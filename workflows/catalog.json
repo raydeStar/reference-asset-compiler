@@ -25,6 +25,17 @@
       "neutralized": "LoadImage filename replaced with reference.png before publication; graph logic unchanged"
     },
     {
+      "id": "hunyuan3d_2mv_geometry_runner",
+      "stage": "geometry_candidate",
+      "path": "geometry/hunyuan3d/run_hy3d_multiview.py",
+      "sha256": "36C7B72DF2CDAD4CE55CD309F4FB6CA9343521FF078399836F8FA57C6A9320C2",
+      "selection": "guarded_image_conditioned_multiview_geometry_candidate",
+      "runtime": "Windows_Python_CUDA_venv_.venv-hy3d_with_upstream_Hunyuan3D-2",
+      "deployment": "copy this file to ${RAC_LEGACY_ROOT}/scripts/run_hy3d_multiview.py; scripts/run_hy3d_geometry.ps1 verifies that copy against this sha256 before launching",
+      "input_contract": "immutable reference image plus optional front/left/back guidance views",
+      "promotion": "fixed_view_modeling_review_required"
+    },
+    {
       "id": "pixal3d_candidate",
       "stage": "geometry_candidate",
       "path": "geometry/pixal3d/run_pixal3d.py",
@@ -38,7 +49,7 @@
       "id": "hunyuan3d21_existing_mesh_pbr",
       "stage": "texture_candidate",
       "path": "texture/hunyuan3d21/run_hy3d21_pbr.py",
-      "sha256": "FB4C1664AD7489ADD748CF79985670716366D582FD79C46073BD504DAD2F844A",
+      "sha256": "B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B",
       "patch_path": "texture/hunyuan3d21/patch_hy3d21_windows.py",
       "patch_sha256": "35F4D60502AC7C43838A0EAB6ECE771407A19937D8C6E51B4FD175C70F09FFB8",
       "selection": "default_existing_mesh_texture_candidate",
@@ -46,7 +57,8 @@
       "runtime": "Windows_Python_3.11_CUDA_12.4",
       "minimum_free_vram_gib": 21,
       "topology_contract": "exact_face_order_geometry_and_UV_with_tolerance_1e-6",
-      "known_limit": "whole_body_PBR_improved_but_face_identity_degraded; requires_semantic_head_review"
+      "known_limit": "whole_body_PBR_improved_but_face_identity_degraded; requires_semantic_head_review",
+      "deployment": "copy this file to ${RAC_LEGACY_ROOT}/scripts/run_hy3d21_pbr.py; scripts/run_hy3d21_texture.ps1 verifies that copy against this sha256 before launching"
     },
     {
       "id": "trellis2_existing_mesh_pbr",

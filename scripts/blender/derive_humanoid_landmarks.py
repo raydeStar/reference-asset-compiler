@@ -37,7 +37,7 @@ from pathlib import Path
 
 import bpy
 import numpy as np
-from mathutils import Matrix, Vector
+from mathutils import Vector
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -177,9 +177,7 @@ def main() -> int:
         if len(leg) < 50:
             raise RuntimeError("leg_{0}: too few vertices below the crotch".format(side))
         centres, _arc = centerline(leg, -leg[:, 2], 24)
-        def leg_at(z):
-            return np.array([np.interp(-z, -centres[:, 2][::-1] * -1 if False else centres[:, 2][::-1] * -1, centres[:, k][::-1]) for k in range(3)])
-        # centres are ordered top (high z) to bottom; interpolate on z directly
+        # centres run top (high z) to bottom; interpolate on z directly.
         zs = centres[:, 2]
         def leg_xy(z):
             idx = np.argsort(zs)
@@ -243,7 +241,8 @@ def main() -> int:
 
     # Twist bones by Manny's fraction along each limb segment.
     def frac(a, b, f):
-        a = np.asarray(joints[a]); b = np.asarray(joints[b])
+        a = np.asarray(joints[a])
+        b = np.asarray(joints[b])
         return (a + (b - a) * f).tolist()
     for side in "lr":
         joints["upperarm_twist_01_" + side] = frac("upperarm_" + side, "lowerarm_" + side, 1 / 3)
@@ -295,12 +294,14 @@ def main() -> int:
             chain_child["{0}_01_{1}".format(digit, side)] = "{0}_02_{1}".format(digit, side)
             chain_child["{0}_02_{1}".format(digit, side)] = "{0}_03_{1}".format(digit, side)
             # fingertip: continue the last phalanx by its own length
-            p2 = np.asarray(joints["{0}_02_{1}".format(digit, side)]); p3 = np.asarray(joints["{0}_03_{1}".format(digit, side)])
+            p2 = np.asarray(joints["{0}_02_{1}".format(digit, side)])
+            p3 = np.asarray(joints["{0}_03_{1}".format(digit, side)])
             joints["{0}_tip_{1}".format(digit, side)] = (p3 + (p3 - p2)).tolist()
             chain_child["{0}_03_{1}".format(digit, side)] = "{0}_tip_{1}".format(digit, side)
     for side in "lr":
         for name in ("ik_foot_", "ik_hand_"):
-            b = np.asarray(joints[name + side]); joints[name + side + "_end"] = (b + np.array([0, 0, 0.05 * H])).tolist()
+            b = np.asarray(joints[name + side])
+            joints[name + side + "_end"] = (b + np.array([0, 0, 0.05 * H])).tolist()
             chain_child[name + side] = name + side + "_end"
     joints["ik_hand_gun_end"] = (np.asarray(joints["ik_hand_gun"]) + np.array([0, 0, 0.05 * H])).tolist()
     chain_child["ik_hand_gun"] = "ik_hand_gun_end"
@@ -346,16 +347,20 @@ def main() -> int:
         if c in scene.render.bl_rna.properties["engine"].enum_items.keys():
             scene.render.engine = c
             break
-    ghost = bpy.data.materials.new("Ghost"); ghost.use_nodes = True
+    ghost = bpy.data.materials.new("Ghost")
+    ghost.use_nodes = True
     g = ghost.node_tree.nodes["Principled BSDF"]
-    g.inputs["Base Color"].default_value = (0.75, 0.75, 0.78, 1.0); g.inputs["Alpha"].default_value = 0.28
+    g.inputs["Base Color"].default_value = (0.75, 0.75, 0.78, 1.0)
+    g.inputs["Alpha"].default_value = 0.28
     if hasattr(ghost, "surface_render_method"):
         ghost.surface_render_method = "BLENDED"
     for m in meshes:
-        m.data.materials.clear(); m.data.materials.append(ghost)
+        m.data.materials.clear()
+        m.data.materials.append(ghost)
 
     def emissive(name, rgb):
-        m = bpy.data.materials.new(name); m.use_nodes = True
+        m = bpy.data.materials.new(name)
+        m.use_nodes = True
         b = m.node_tree.nodes["Principled BSDF"]
         b.inputs["Base Color"].default_value = (*rgb, 1.0)
         emission = b.inputs.get("Emission Color") or b.inputs.get("Emission")
@@ -369,7 +374,8 @@ def main() -> int:
         if name.startswith("ik_"):
             continue
         s = "l" if name.endswith("_l") else "r" if name.endswith("_r") else "c"
-        a = Vector(joints[spec["head"]]); b = Vector(joints[spec["tail"]])
+        a = Vector(joints[spec["head"]])
+        b = Vector(joints[spec["tail"]])
         r = radius * (0.5 if any(name.startswith(d) for d in ("thumb", "index", "middle", "ring", "pinky")) else 1.0)
         bpy.ops.mesh.primitive_uv_sphere_add(radius=r, location=a)
         bpy.context.object.data.materials.append(mats[s])
@@ -379,7 +385,8 @@ def main() -> int:
             cyl = bpy.context.object
             cyl.rotation_euler = d.to_track_quat("Z", "Y").to_euler()
             cyl.data.materials.append(mats[s])
-    world = bpy.data.worlds.new("W"); world.use_nodes = True
+    world = bpy.data.worlds.new("W")
+    world.use_nodes = True
     world.node_tree.nodes["Background"].inputs[0].default_value = (0.18, 0.18, 0.18, 1.0)
     scene.world = world
     scene.view_settings.view_transform = "Standard"
@@ -387,9 +394,13 @@ def main() -> int:
     scene.render.image_settings.file_format = "PNG"
     if hasattr(scene, "eevee"):
         scene.eevee.taa_render_samples = 16
-    centre = Vector((lo + hi) * 0.5); extent = float(max(hi - lo))
-    cam_data = bpy.data.cameras.new("Cam"); cam_data.lens = 85.0
-    cam = bpy.data.objects.new("Cam", cam_data); bpy.context.collection.objects.link(cam); scene.camera = cam
+    centre = Vector((lo + hi) * 0.5)
+    extent = float(max(hi - lo))
+    cam_data = bpy.data.cameras.new("Cam")
+    cam_data.lens = 85.0
+    cam = bpy.data.objects.new("Cam", cam_data)
+    bpy.context.collection.objects.link(cam)
+    scene.camera = cam
     fov = 2.0 * math.atan(0.5 * cam_data.sensor_width / cam_data.lens)
     distance = (extent * 1.25) / (2.0 * math.tan(fov * 0.5))
     views = {}
@@ -402,9 +413,13 @@ def main() -> int:
         bpy.ops.render.render(write_still=True)
         views[view] = sha256(path)
     # hand close-up
-    hand = Vector(joints["hand_l"]); cam_data.lens = 135.0
-    cam.location = hand + Vector((0.0, -0.45 * H, 0.05 * H)); cam.rotation_euler = (hand - cam.location).to_track_quat("-Z", "Y").to_euler()
-    path = out_dir / "overlay-hand-left.png"; scene.render.filepath = str(path); bpy.ops.render.render(write_still=True)
+    hand = Vector(joints["hand_l"])
+    cam_data.lens = 135.0
+    cam.location = hand + Vector((0.0, -0.45 * H, 0.05 * H))
+    cam.rotation_euler = (hand - cam.location).to_track_quat("-Z", "Y").to_euler()
+    path = out_dir / "overlay-hand-left.png"
+    scene.render.filepath = str(path)
+    bpy.ops.render.render(write_still=True)
     views["hand-left"] = sha256(path)
     payload["overlay_sha256"] = views
     landmarks_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

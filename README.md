@@ -223,6 +223,9 @@ mask, the texel count, and the hashes.*
   IK Retargeter and rotate `hand_l` / `hand_r` in the target retarget pose;
   the gallery script records which variant it chose and why.
 
+`docs/AI_STAGES_SETUP.md` lists the studio tree the two AI stages expect, file
+by file, with the hash-pinned runners copied from `workflows/`.
+
 Nothing here redistributes model weights, licensed add-ons, Unreal Engine, or
 the reference artwork.
 
@@ -305,6 +308,9 @@ The repository is written to be resumed by Claude Code, Codex, or a person
 without chat history. Start with `CLAUDE.md`, then `docs/HANDOFF.md` for the
 current asset matrix, exact artifact paths, and the next unresolved gate.
 `docs/DECISIONS.md` lists what failed and why, so nobody repeats it.
+`docs/AGENT_TASKS.md` lists scoped open work with acceptance criteria, split
+into tasks that need a GPU and tasks that do not, so an agent or a contributor
+can pick one up cold.
 
 ## License
 

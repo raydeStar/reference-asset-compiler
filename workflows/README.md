@@ -26,6 +26,8 @@ Their source hashes are recorded in `catalog.json`. Upstream projects, model
 weights, licensed add-ons, and generated assets are intentionally not bundled.
 
 - `geometry/comfyui/hy3d_final_cut.json` — the user's original 64-node graph.
+- `geometry/hunyuan3d/run_hy3d_multiview.py` — the source-locked Hunyuan3D-2mv
+  geometry runner that `scripts/run_hy3d_geometry.ps1` hash-pins.
 - `geometry/pixal3d/run_pixal3d.py` — alpha-locked Pixal3D candidate wrapper.
 - `texture/hunyuan3d21/` — topology/UV-locked Hunyuan3D-Paint 2.1 runner and
   Windows rasterizer patch.

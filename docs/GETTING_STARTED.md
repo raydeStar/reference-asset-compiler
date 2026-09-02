@@ -17,8 +17,8 @@ the parts that produce new characters.
 | **Unreal Engine 5.8** | import verification, gallery, cook | Free (Epic launcher). Needs the Third Person template that ships with it. |
 | **Disk** | see the tiers below | About 5 GB for the no-AI route, about 60 GB with the AI stages. Measured, not guessed: one character workspace is 0.4 GB, six assets came to 5.7 GB, the UE project 1.5 GB (mostly logs you can delete). |
 | **NVIDIA GPU, 24 GB VRAM** | AI geometry and AI texturing only | Verified on an RTX 4090. Texturing refuses to start under 21 GB free. |
-| **Hunyuan3D 2.1 checkout + weights** | AI texturing | Tencent's official repo beside `scripts/run_hy3d21_pbr.py` in a separate studio tree named by `RAC_LEGACY_ROOT`; ~30 GB of weights. |
-| **ComfyUI + Hunyuan3D wrapper nodes** | AI geometry | The preserved graph is `workflows/geometry/comfyui/hy3d_final_cut.json`. |
+| **Hunyuan3D 2.1 checkout + weights** | AI texturing | A separate studio tree named by `RAC_LEGACY_ROOT`; about 15 GB of weights. Layout and steps in `docs/AI_STAGES_SETUP.md`. |
+| **ComfyUI + Hunyuan3D wrapper nodes** | AI geometry | The preserved graph is `workflows/geometry/comfyui/hy3d_final_cut.json`; see `docs/AI_STAGES_SETUP.md`. |
 | **Auto-Rig Pro** (optional, paid) | better humanoid binding | Not required. `run_rig_candidate.ps1` uses it when present and falls back to the free landmark rig otherwise; see *Rigging with or without Auto-Rig Pro*. |
 | **Time** | | A clone to a walkable gallery of your own prop: about an hour. A new character from an image: a working day, most of it review. |
 
@@ -143,7 +143,8 @@ python scripts\record_ue5_import.py my-character
 ## 6. Make a new character from an image
 
 This is the route in the README diagram and in `docs/WORKFLOW_PLAYBOOK.md`.
-It needs the AI stages. The short version:
+It needs the AI stages; `docs/AI_STAGES_SETUP.md` says exactly what to install
+and where. The short version:
 
 1. `rac new <id> <image.png> --kind mascot --articulation required --skeleton-profile mascot_biped_tail`
 2. Generate one geometry candidate; review four clay views; `rac promote modeling_approval`.

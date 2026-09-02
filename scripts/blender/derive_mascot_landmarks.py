@@ -115,9 +115,11 @@ def main() -> int:
     # z. Raw ring positions are kept in the file for audit.
     symmetrized = {}
     for base in ("shoulder", "elbow", "wrist", "hip", "knee", "ankle"):
-        left = np.asarray(joints[base + "_l"]); right = np.asarray(joints[base + "_r"])
+        left = np.asarray(joints[base + "_l"])
+        right = np.asarray(joints[base + "_r"])
         offset = 0.5 * ((left[0] - mid_x) + (mid_x - right[0]))
-        y = 0.5 * (left[1] + right[1]); z = 0.5 * (left[2] + right[2])
+        y = 0.5 * (left[1] + right[1])
+        z = 0.5 * (left[2] + right[2])
         joints[base + "_l"] = [mid_x + offset, y, z]
         joints[base + "_r"] = [mid_x - offset, y, z]
         symmetrized[base] = {"lateral_offset_m": float(offset),
@@ -135,7 +137,8 @@ def main() -> int:
         spine_points.append([mid_x, float(centroid[1]), float(z)])
     # Hand and foot ends come from the surface beyond the wrist and ankle.
     for s in "lr":
-        wrist = np.asarray(joints["wrist_" + s]); elbow = np.asarray(joints["elbow_" + s])
+        wrist = np.asarray(joints["wrist_" + s])
+        elbow = np.asarray(joints["elbow_" + s])
         direction = wrist - elbow
         direction /= np.linalg.norm(direction)
         rel = pts - wrist
@@ -191,7 +194,8 @@ def main() -> int:
     def at(fraction):
         target = fraction * arc[-1]
         return np.array([np.interp(target, arc, centers[:, k]) for k in range(3)])
-    tail_root = at(0.0); tail_root[1] -= 0.02 * height / 1.8  # start just inside the body
+    tail_root = at(0.0)
+    tail_root[1] -= 0.02 * height / 1.8  # start just inside the body
     joints.update({
         "tail_01": tail_root.tolist(), "tail_02": at(1.0 / 3.0).tolist(),
         "tail_03": at(2.0 / 3.0).tolist(), "tail_end": at(1.0).tolist(),
@@ -246,7 +250,8 @@ def main() -> int:
         if c in scene.render.bl_rna.properties["engine"].enum_items.keys():
             scene.render.engine = c
             break
-    ghost = bpy.data.materials.new("Ghost"); ghost.use_nodes = True
+    ghost = bpy.data.materials.new("Ghost")
+    ghost.use_nodes = True
     g = ghost.node_tree.nodes["Principled BSDF"]
     g.inputs["Base Color"].default_value = (0.75, 0.75, 0.78, 1.0)
     g.inputs["Alpha"].default_value = 0.28
@@ -254,10 +259,12 @@ def main() -> int:
         ghost.surface_render_method = "BLENDED"
     else:
         ghost.blend_method = "BLEND"
-    body.data.materials.clear(); body.data.materials.append(ghost)
+    body.data.materials.clear()
+    body.data.materials.append(ghost)
 
     def emissive(name, rgb):
-        m = bpy.data.materials.new(name); m.use_nodes = True
+        m = bpy.data.materials.new(name)
+        m.use_nodes = True
         b = m.node_tree.nodes["Principled BSDF"]
         b.inputs["Base Color"].default_value = (*rgb, 1.0)
         emission = b.inputs.get("Emission Color") or b.inputs.get("Emission")
@@ -272,7 +279,8 @@ def main() -> int:
         if name.startswith("ik_"):
             continue
         s = "l" if name.endswith("_l") else "r" if name.endswith("_r") else "c"
-        a = Vector(joints[h]); b = Vector(joints[t]) if t else Vector(joints[h]) + Vector((0, 0, 0.1))
+        a = Vector(joints[h])
+        b = Vector(joints[t]) if t else Vector(joints[h]) + Vector((0, 0, 0.1))
         bpy.ops.mesh.primitive_uv_sphere_add(radius=joint_radius, location=a)
         bpy.context.object.data.materials.append(mats[s])
         d = b - a
@@ -283,7 +291,8 @@ def main() -> int:
             cyl.rotation_euler = d.to_track_quat("Z", "Y").to_euler()
             cyl.data.materials.append(mats[s])
 
-    world = bpy.data.worlds.new("W"); world.use_nodes = True
+    world = bpy.data.worlds.new("W")
+    world.use_nodes = True
     world.node_tree.nodes["Background"].inputs[0].default_value = (0.18, 0.18, 0.18, 1.0)
     world.node_tree.nodes["Background"].inputs[1].default_value = 1.0
     scene.world = world
@@ -292,9 +301,13 @@ def main() -> int:
     scene.render.image_settings.file_format = "PNG"
     if hasattr(scene, "eevee"):
         scene.eevee.taa_render_samples = 16
-    centre = Vector((lo + hi) * 0.5); extent = float(max(hi - lo))
-    cam_data = bpy.data.cameras.new("Cam"); cam_data.lens = 85.0
-    cam = bpy.data.objects.new("Cam", cam_data); bpy.context.collection.objects.link(cam); scene.camera = cam
+    centre = Vector((lo + hi) * 0.5)
+    extent = float(max(hi - lo))
+    cam_data = bpy.data.cameras.new("Cam")
+    cam_data.lens = 85.0
+    cam = bpy.data.objects.new("Cam", cam_data)
+    bpy.context.collection.objects.link(cam)
+    scene.camera = cam
     fov = 2.0 * math.atan(0.5 * cam_data.sensor_width / cam_data.lens)
     distance = (extent * 1.25) / (2.0 * math.tan(fov * 0.5))
     views = {}

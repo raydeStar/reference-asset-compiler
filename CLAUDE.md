@@ -1,7 +1,9 @@
 # Claude Code entrypoint
 
 This repository is the canonical, portable home of the Reference Asset
-Compiler. Start with [docs/HANDOFF.md](docs/HANDOFF.md), then read
+Compiler. New here? [docs/GETTING_STARTED.md](docs/GETTING_STARTED.md) says
+what a machine needs; [docs/AGENT_TASKS.md](docs/AGENT_TASKS.md) lists scoped
+open work. Start with [docs/HANDOFF.md](docs/HANDOFF.md), then read
 [docs/WORKFLOW_PLAYBOOK.md](docs/WORKFLOW_PLAYBOOK.md),
 [docs/PIPELINE.md](docs/PIPELINE.md), and
 [docs/DECISIONS.md](docs/DECISIONS.md).

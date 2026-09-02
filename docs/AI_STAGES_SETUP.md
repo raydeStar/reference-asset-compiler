@@ -1,0 +1,131 @@
+# Setting up the AI stages
+
+Everything in the compiler runs without a GPU except two stages: AI geometry
+(Hunyuan3D shape generation) and AI texturing (Hunyuan3D-Paint 2.1). Both live
+in a separate "studio tree" outside this repository, named by the environment
+variable `RAC_LEGACY_ROOT`, because they hold tens of gigabytes of weights,
+third-party checkouts, and CUDA virtual environments that do not belong in Git.
+
+This page says exactly what that tree must contain. `scripts\workflow_doctor.ps1`
+checks every item below and reports `[OK]` or `[MISSING]` without launching
+anything.
+
+## You will need
+
+| | Requirement |
+|---|---|
+| GPU | NVIDIA, 24 GB VRAM (verified on an RTX 4090). Texturing refuses to start under 21 GB free. |
+| CUDA | 12.4 toolchain for the Hunyuan3D-Paint rasterizer build, plus Visual Studio Build Tools with the C++ workload. |
+| Python | 3.11 for the paint environment (`.venv-hy3d21`); the geometry environment (`.venv-hy3d`) follows the upstream Hunyuan3D-2 requirements. |
+| Disk | About 15 GB for the paint weights, 2 GB per upstream checkout, about 8 GB per virtual environment, and roughly 10 GB for the shape model. |
+| Network | Hugging Face downloads of `tencent/Hunyuan3D-2.1` (paint PBR subfolder) and `facebook/dinov2-giant` run automatically on first use through `huggingface_hub`. |
+
+## Studio tree layout
+
+```text
+$RAC_LEGACY_ROOT\
+  scripts\
+    run_hy3d_multiview.py         copy of workflows\geometry\hunyuan3d\run_hy3d_multiview.py
+    run_hy3d21_pbr.py             copy of workflows\texture\hunyuan3d21\run_hy3d21_pbr.py
+  upstream\
+    Hunyuan3D-2\                  git clone of Tencent-Hunyuan/Hunyuan3D-2 (geometry)
+    Hunyuan3D-2.1\                git clone of Tencent-Hunyuan/Hunyuan3D-2.1 at 82920d6 (paint)
+      hy3dpaint\ckpt\RealESRGAN_x4plus.pth   67,040,989 bytes, checked exactly
+  models\
+    hy3d21\Hunyuan3D-2.1\         hunyuan3d-paintpbr-v2-1 weights (auto-downloaded on first run)
+    hy3d21\dinov2-giant\          DINOv2 giant (auto-downloaded on first run)
+  .venv-hy3d\Scripts\python.exe   geometry environment
+  .venv-hy3d21\Scripts\python.exe paint environment (Python 3.11, CUDA 12.4 PyTorch)
+```
+
+The two runner scripts are **hash-pinned**. `scripts\run_hy3d_geometry.ps1`
+and `scripts\run_hy3d21_texture.ps1` compute the SHA-256 of the copy in your
+studio tree and refuse to run if it differs from the pin recorded in
+`workflows\catalog.json`. Copy the files byte-for-byte; do not edit them in
+place. If you need a change, add a versioned wrapper beside them and record the
+new hash and the decision, as `workflows/README.md` explains.
+
+## Steps
+
+1. Pick a location with room and set the variable for the session (or your
+   user environment):
+
+   ```powershell
+   $env:RAC_LEGACY_ROOT = "D:\rac-studio"
+   New-Item -ItemType Directory -Force "$env:RAC_LEGACY_ROOT\scripts", "$env:RAC_LEGACY_ROOT\upstream", "$env:RAC_LEGACY_ROOT\models\hy3d21" | Out-Null
+   ```
+
+2. Copy the pinned runners from this repository:
+
+   ```powershell
+   Copy-Item workflows\geometry\hunyuan3d\run_hy3d_multiview.py "$env:RAC_LEGACY_ROOT\scripts\"
+   Copy-Item workflows\texture\hunyuan3d21\run_hy3d21_pbr.py   "$env:RAC_LEGACY_ROOT\scripts\"
+   ```
+
+3. Clone the upstream repositories:
+
+   ```powershell
+   git clone https://github.com/Tencent-Hunyuan/Hunyuan3D-2   "$env:RAC_LEGACY_ROOT\upstream\Hunyuan3D-2"
+   git clone https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1 "$env:RAC_LEGACY_ROOT\upstream\Hunyuan3D-2.1"
+   git -C "$env:RAC_LEGACY_ROOT\upstream\Hunyuan3D-2.1" checkout 82920d6
+   ```
+
+4. Create the paint environment and build its rasterizer. Follow the upstream
+   README for the exact PyTorch and CUDA wheel matching your driver, then apply
+   this repository's Windows patch before building the extension:
+
+   ```powershell
+   py -3.11 -m venv "$env:RAC_LEGACY_ROOT\.venv-hy3d21"
+   & "$env:RAC_LEGACY_ROOT\.venv-hy3d21\Scripts\python.exe" -m pip install -r "$env:RAC_LEGACY_ROOT\upstream\Hunyuan3D-2.1\requirements.txt"
+   & "$env:RAC_LEGACY_ROOT\.venv-hy3d21\Scripts\python.exe" workflows\texture\hunyuan3d21\patch_hy3d21_windows.py "$env:RAC_LEGACY_ROOT\upstream\Hunyuan3D-2.1"
+   # then build hy3dpaint\custom_rasterizer and hy3dpaint\DifferentiableRenderer per the upstream README
+   ```
+
+   The patch fixes two Windows-only build failures in the upstream rasterizer
+   (64-bit `long` assumptions and the CUDA unsupported-compiler opt-in). It is
+   idempotent and refuses a source layout it does not recognize.
+
+5. Download the RealESRGAN checkpoint the paint pipeline expects into
+   `upstream\Hunyuan3D-2.1\hy3dpaint\ckpt\RealESRGAN_x4plus.pth`. The runner
+   verifies its exact size.
+
+6. Create the geometry environment the same way from
+   `upstream\Hunyuan3D-2\requirements.txt` into `.venv-hy3d`, and install the
+   `hy3dgen` package from that checkout.
+
+7. Run the doctor:
+
+   ```powershell
+   .\scripts\workflow_doctor.ps1
+   ```
+
+   Every `hy3d2mv.*` and `hy3d21.*` line should read `[OK]`. The first real
+   paint run downloads the weights into `models\hy3d21` and takes several
+   minutes longer than later runs.
+
+## Geometry through ComfyUI
+
+The geometry stage on the development workstation ran through the preserved
+ComfyUI graph `workflows\geometry\comfyui\hy3d_final_cut.json`, which needs
+ComfyUI with the `ComfyUI-Hunyuan3DWrapper` and `ComfyUI_essentials` custom
+nodes and the `hunyuan3d-dit-v2-0` shape model. The graph also contains
+optional texture, upscale, and face-swap branches that the compiler does not
+use; the playbook says to stop at `Hy3DExportMesh`. `run_hy3d_geometry.ps1`
+talks to a running ComfyUI at `http://127.0.0.1:8188` and checks free VRAM
+before queuing anything.
+
+## What the doctor cannot check
+
+- That your GPU driver and the CUDA wheel agree; the first run tells you.
+- That the rasterizer extension built; the paint runner fails at import if not.
+- That another process owns the GPU. The wrappers read `nvidia-smi` and refuse
+  to launch under 21 GB free; they never kill anything.
+
+## Known limits
+
+- Windows only for the paint rasterizer build path documented here.
+- The paint pipeline's Windows process exits with `-1073741819` on teardown
+  after writing valid outputs. The wrapper requires the validation JSON rather
+  than a clean exit code, and never retries automatically.
+- Weights and upstream code are governed by Tencent's and Meta's licenses, not
+  this repository's MIT license.

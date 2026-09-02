@@ -24,3 +24,22 @@ For each asset, advance exactly one visible gate at a time: modeling, topology,
 texture, rig/deformation, UE import, then cooked runtime. Store accepted and
 rejected evidence with hashes and concise reasons. Never label an asset
 production-ready from a render or import alone.
+
+## Where to start
+
+- `docs/GETTING_STARTED.md`: what a machine needs and the clone-to-gallery path.
+- `docs/HANDOFF.md`: the current asset matrix, exact artifact paths, and the
+  next unresolved gate. Read the tail first; it is chronological.
+- `docs/AGENT_TASKS.md`: scoped open work with acceptance criteria, split into
+  tasks that need no GPU and tasks that do.
+- `docs/DECISIONS.md`: what failed and why. Do not repeat it.
+
+## Without a GPU
+
+Everything except the two AI stages runs on CPU: the ledger and audit, prop and
+pre-rigged character compiles, retopology and UV transport, the free landmark
+rig, deformation tests, fixed-view renders, UE import verification, the gallery
+build and retarget, and every test. If the GPU is owned by another workload,
+say so in your report and skip only `run_hy3d_geometry.ps1` and
+`run_hy3d21_texture.ps1`.
+
