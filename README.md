@@ -43,9 +43,11 @@ looping a retargeted idle, each authority beside its production derivative.*
 ![Texture review: the same atlas under the factory AgX transform and the calibrated transform](docs/images/cat-texture-review-calibration.jpg)
 
 *The single most useful lesson of the project: judge textures on a calibrated
-display transform. The same atlas read "washed out" under Blender's factory AgX
-render (top middle) and matched the reference once exposure and transform were
-calibrated (top right, bottom row).*
+display transform. The first review render (top middle) was washed out by
+Blender's factory AgX transform and showed a hard white glint that turned out to
+be a mirror-glossy eye, not paint. The accepted attempt007 (top right, bottom
+row) is the same base color under a calibrated transform with the eye roughness
+lifted; that is what shipped to UE5.*
 
 ![Rig review: skeleton overlay and the five-pose deformation suite](docs/images/cat-rig-review.jpg)
 
