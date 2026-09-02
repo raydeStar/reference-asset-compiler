@@ -1,0 +1,55 @@
+{
+  "schema": "reference-asset-compiler.texture-channel-evidence.v1",
+  "asset": "office-chair",
+  "gate": "texture",
+  "authority_fbx_sha256": "10537a09ac0ad4a7f9335ebf9e79f8fb8575f800c768abe3c6568af7918400c6",
+  "canary": {
+    "resolution": 512,
+    "cycles_samples": 4,
+    "strategy": "passthrough",
+    "kind": "static_prop",
+    "source_triangles": 5464,
+    "round_trip_triangles": 5336,
+    "silhouette_iou": 1.0,
+    "bake_coverage_pct": {
+      "BaseColor": 100.0,
+      "Roughness": 100.0,
+      "Metallic": 100.0,
+      "AO": 100.0
+    }
+  },
+  "authored_surface_constants": {
+    "M_OfficeChair_BlackFrame": {"roughness": 0.68, "metallic": 0.18},
+    "M_OfficeChair_OliveVinyl": {"roughness": 0.72, "metallic": 0.0},
+    "M_OfficeChair_SeatVinyl": {"roughness": 0.74, "metallic": 0.0},
+    "M_OfficeChair_Rust": {"roughness": 0.83, "metallic": 0.25},
+    "M_OfficeChair_ExposedBacking": {"roughness": 0.9, "metallic": 0.0},
+    "M_OfficeChair_PaperLabel": {"roughness": 0.95, "metallic": 0.0}
+  },
+  "packed_orm": {
+    "ao_mean": 0.2847,
+    "roughness_mean": 0.7222,
+    "metallic_mean": 0.1106,
+    "roughness_source": "authored per-material bake",
+    "metallic_source": "authored per-material bake",
+    "sha256": "88e72bf6f3cca60b7aa675806387c895a7f21944a749563e3bb2d4e04c4d7c24"
+  },
+  "artifact_hashes": {
+    "retopo_report": "7f9635044ebb63bb807cdfb78112c34dad47f596ea1af534ae011ea99347bb82",
+    "roughness_png": "6f5b518ef563aef75330c304a6fe12c2d559cd3bd2845b0b75fc30919b9f20ca",
+    "metallic_png": "1f94b23b8fd1c43ee8486e513beef2b1e115c0f881980db8221cabfd33eee562",
+    "pbr_fbx": "f992817ee8b6b9b5434c02b946584907ea502b41ef64c178055d2967980eb070"
+  },
+  "fixed_view_review": {
+    "views": ["front", "three-quarter", "side", "back"],
+    "passes": ["beauty", "matcap"],
+    "agent_status": "pass_pending_human_texture_approval",
+    "reason": "The authored channel candidate preserves the accepted chair silhouette and base color while the frame/rust response is separated from vinyl, backing, and paper. No channel inversion or metallic flooding is visible."
+  },
+  "tests": {
+    "authored_channels_survive_exactly": "pass",
+    "legacy_character_fallback_remains_explicit": "pass"
+  },
+  "status": "mechanical_and_agent_visual_pass_pending_human_texture_approval",
+  "next_gate": "human texture approval, then UE import and cooked runtime rebuild"
+}

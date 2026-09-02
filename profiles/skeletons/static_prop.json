@@ -1,0 +1,21 @@
+{
+  "schema": "reference-asset-compiler.profile.v1",
+  "profile_id": "static_prop",
+  "description": "A prop with no skeleton. Lives beside the skeleton profiles because the compiler resolves one profile per asset and the texture gate reads its limits from it, but it declares no bones and no asset using it may acquire any.",
+  "required_bones": [],
+  "optional_bones": [],
+  "expected_parents": {},
+  "exact_bone_count": 0,
+  "allow_unlisted_bones": false,
+  "root_bone": null,
+  "root_may_be_armature_object": false,
+  "max_influences": 0,
+  "tri_budget": 20000,
+  "texture_limits": {
+    "min_texel_density_per_cm2": 90,
+    "max_texel_density_ratio": 2.5,
+    "max_uv_islands": 300,
+    "max_baked_light_correlation": 0.35,
+    "limits_reason": "Islands, ratio and baked-light limits match the character profiles; the density floor does not, and the difference is measured rather than chosen. A prop's source art is per-surface tiling textures, not a character atlas: the chair's six 256px tiles hold 62 texels/cm2 weighted by the area each covers. A floor of 120, which is what the humanoids use, cannot be met by any atlas that is not magnifying that art -- 2048 delivers 103 and 4096 delivers 414, or 6.6x the source, for no more detail than the source contains. 90 is set just under what 2048 delivers, so the gate still catches a genuinely soft prop while not forcing a sheet four times the memory to show the same picture larger. Baked-light correlation is looser at 0.35 because a prop's albedo legitimately correlates with its own shape -- the chair's rust and wear were painted into its crevices on purpose -- where the characters' 0.20 exists to catch a lighting bake that leaked into an albedo."
+  }
+}

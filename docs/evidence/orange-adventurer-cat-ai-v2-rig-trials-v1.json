@@ -1,0 +1,140 @@
+{
+  "schema": "reference-asset-compiler.rig-trials.v1",
+  "asset_id": "orange-adventurer-cat-ai-v2",
+  "skeleton_profile": "mascot_biped_tail",
+  "rig_backbone": "blender_custom_rig",
+  "approved_mesh_sha256": "3bdf5249c5dafdcced2bf3d9d9ca1890dca5bbe72dd73d1a27d090720bcc4e3d",
+  "trials": [
+    {
+      "id": "mascot-landmarks-v1",
+      "status": "derived_from_source_bound_evidence",
+      "script": "scripts/blender/derive_mascot_landmarks.py",
+      "landmarks_sha256": "1d8dfe2f87ad0a27b645392e072df338a030fca857932ee5ea0cee1d720c4094",
+      "inputs": {
+        "payload_fbx_sha256": "3bdf5249c5dafdcced2bf3d9d9ca1890dca5bbe72dd73d1a27d090720bcc4e3d",
+        "ring_profile_sha256": "e383676a5c0680639caeeaea95038d28fda44c4f3a74840570b05ecbc64bcba9",
+        "ring_profile_source_sha256": "2003e1418794b8f124cf8af5f1da4c9249a0a36e5a9089581fb5d9376172b37d",
+        "binding_report_sha256": "2d83986ece58546fb91c6ac5452a8bd181b8ea0b41dc774fa3466cb35c329c5a"
+      },
+      "method": "Limb pivots come from the reviewer-passed joint-ring centers (retopo attempt004) carried through the recorded 0.900142 similarity transform into the payload frame, then mirrored about the measured torso midline because the fit had moved the two sides unequally (0.17 m at the shoulders) while the payload is bilaterally symmetric. Spine points are cross-section centroids; the head pivot sits above the neck ring; hand and toe ends come from surface reach; the tail centerline is binned from the +Y, low-Z tail tube and sampled at thirds. Ring ids were viewer-side names, so right_* rings feed _l bones.",
+      "midline_x_m": -0.08926020587957299,
+      "symmetrization": {
+        "shoulder": {
+          "lateral_offset_m": 0.34926248773552654,
+          "left_right_delta_before_m": 0.1652601979361043
+        },
+        "elbow": {
+          "lateral_offset_m": 0.48221367959479844,
+          "left_right_delta_before_m": 0.14075979986022336
+        },
+        "wrist": {
+          "lateral_offset_m": 0.6318923315374699,
+          "left_right_delta_before_m": 0.1420393748732299
+        },
+        "hip": {
+          "lateral_offset_m": 0.13052059282478712,
+          "left_right_delta_before_m": 0.048474130001955475
+        },
+        "knee": {
+          "lateral_offset_m": 0.1350212987594882,
+          "left_right_delta_before_m": 0.040255582656025565
+        },
+        "ankle": {
+          "lateral_offset_m": 0.1440227240420521,
+          "left_right_delta_before_m": 0.018002837151966086
+        }
+      },
+      "tail_selection": {
+        "y_min_m": 0.25200001001358036,
+        "z_max_m": 0.7020000278949737,
+        "vertices": 398,
+        "arc_length_m": 0.6726765792802428
+      },
+      "overlay_sha256": {
+        "front": "c977986c2022f84495cf9fe84c2aa5bd7f68de9850a1950023a40206fb4fc714",
+        "three-quarter": "1a5ac046be41d30c127ff7b8ce2ddd8cfb4a6b58bcc3e46eadb5aacfe6fa7df0",
+        "side": "12eccebb96b4dfef7b8cb2a52bb92fa5f95ea3e39bc9e1acdec94f4bd527496f",
+        "back": "949740703c33a77f731fba815c0044b493673d7bac85d243117b0ff8d7a28873"
+      }
+    },
+    {
+      "id": "mascot-v1-attempt001",
+      "status": "passed_mechanical_gates",
+      "script": "scripts/blender/rig_mascot_biped_tail.py",
+      "rig_candidate_sha256": "ea7162d5a250b4d5b335617f718e3dc971b845a399003a9189ad7c46ff87df4e",
+      "rigged_fbx_sha256": "37d37adfb03cf8c544196a8a97a8aa3760a2cae414825f1627e7852487fbe56d",
+      "rigged_blend_sha256": "f56fd28bd432508dc48f2320668009eb176504fb2adfbb2b7d756c5f2d207b96",
+      "armature_object": "Armature",
+      "bone_count": 26,
+      "bind": {
+        "method": "ARMATURE_AUTO",
+        "unweighted_filled_from_nearest": 0,
+        "influence_cap": 4,
+        "vertices": 10008,
+        "weighted_vertices": 10008,
+        "coverage": 1.0,
+        "maximum_influences": 4,
+        "bones_without_weights": []
+      },
+      "geometry_unchanged": true,
+      "gate_rig": {
+        "sha256": "b3ffae20c8c482c790c6fa65ebc152bcb62faa8b22b3cd06f1cf5052df361512",
+        "ok": true,
+        "warnings": [
+          "facing: no material with 'eye' in its name, so mesh facing could not be verified independently of the skeleton"
+        ],
+        "facing": {
+          "skeleton": "-Y",
+          "skeleton_toe_delta_y": -0.1401,
+          "left_side_axis": "+X"
+        },
+        "bone_count": 26
+      },
+      "deformation": {
+        "sha256": "edf8e8e1784f16a4fc84c1903ac072210ad8e4b98aed3538e98d90f1261705d9",
+        "ok": true,
+        "warnings": [],
+        "poses": {
+          "arms_forward": {
+            "vertices_moved": 1234,
+            "max_displacement_m": 0.5191,
+            "side_bias": -0.009,
+            "bbox_volume_ratio": 0.938
+          },
+          "left_arm_only": {
+            "vertices_moved": 602,
+            "max_displacement_m": 0.64,
+            "side_bias": 1.0,
+            "bbox_volume_ratio": 1.117
+          },
+          "elbows_bent": {
+            "vertices_moved": 712,
+            "max_displacement_m": 0.4753,
+            "side_bias": -0.025,
+            "bbox_volume_ratio": 0.886
+          },
+          "knees_bent": {
+            "vertices_moved": 1163,
+            "max_displacement_m": 0.5745,
+            "side_bias": -0.236,
+            "bbox_volume_ratio": 0.967
+          },
+          "spine_twist": {
+            "vertices_moved": 7394,
+            "max_displacement_m": 0.4508,
+            "side_bias": -0.21,
+            "bbox_volume_ratio": 0.924
+          }
+        }
+      },
+      "review_sheet_sha256": "5b22681ea9c27b363382f58cc3ca99761daf14a3beefd43c5df0d2662f45d361",
+      "ledger": {
+        "rig_and_skin": "2026-09-01T21:55:35.395782+00:00",
+        "deformation_validation": "2026-09-01T21:55:35.883373+00:00"
+      },
+      "note": "Heat-based automatic weights bound all 10,008 vertices with no fill and at most 4 influences; root, ik_foot_root and ik_hand_root do not deform. The rig gate passed the 26-bone mascot_biped_tail contract with -Y facing and left on +X; the only warning is that the mesh has no eye material for an independent facing check. All five deformation poses moved skin, left_arm_only stayed on the +X side (side_bias +1.00), and no pose collapsed the bounding volume. This is mechanical evidence; the UE5 motion review remains the human gate for deformation quality."
+    }
+  ],
+  "rig_status": "passed_mechanical_gates_ue5_import_passed",
+  "next_action": "UE5 import passed; see orange-adventurer-cat-ai-v2-ue-import-v1.json. Human in-engine motion review is next."
+}

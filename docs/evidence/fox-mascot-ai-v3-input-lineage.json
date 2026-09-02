@@ -1,0 +1,33 @@
+{
+  "schema": "reference-asset-compiler.multiview-input-lineage.v1",
+  "asset_id": "fox-mascot-ai-v3",
+  "source": "${RAC_LEGACY_ROOT}/references/fox-mascot-v1/front-authority.png",
+  "source_sha256": "e9152ec6800437dfd4296b3a7fb732291864b7eceea4885b61be6e1b0ac272bb",
+  "policy": "The approved one-tail front artwork is the artistic authority and directly conditions generation. Left and back views are explicitly secondary depth guidance; they are not represented as derivations of the front artwork.",
+  "depth_guidance": {
+    "source": "${RAC_LEGACY_ROOT}/references/fox-mascot-v1/turnaround-challenger-v1.png",
+    "source_sha256": "8fd5e6228fb796d544f1d89d48de818599d93393e4949d66fb301bb4b9f4d942",
+    "split_report": "${RAC_LEGACY_ROOT}/references/fox-mascot-v2/turnaround-v1/turnaround-split.json",
+    "split_report_sha256": "2b83c31635cc36b76af0105164752a9633adbc79b0348829f14f72f7ee51a7f9"
+  },
+  "views": [
+    {
+      "view": "front",
+      "role": "artistic_authority",
+      "output": "${RAC_LEGACY_ROOT}/references/fox-mascot-v1/front-authority.png",
+      "sha256": "e9152ec6800437dfd4296b3a7fb732291864b7eceea4885b61be6e1b0ac272bb"
+    },
+    {
+      "view": "left",
+      "role": "secondary_depth_guidance",
+      "output": "${RAC_LEGACY_ROOT}/references/fox-mascot-v2/turnaround-v1/left.png",
+      "sha256": "094d99df4204a6999eb52b64c82f5c6d1cca3ae4e724db0d3cae8f874fb75424"
+    },
+    {
+      "view": "back",
+      "role": "secondary_depth_guidance",
+      "output": "${RAC_LEGACY_ROOT}/references/fox-mascot-v2/turnaround-v1/back.png",
+      "sha256": "814b3aaf00ab9702b63c7f85e854edc3848aba6deed648a2030dc416e284ecce"
+    }
+  ]
+}

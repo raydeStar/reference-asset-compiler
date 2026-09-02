@@ -1,0 +1,26 @@
+{
+  "profile_id": "arp_humanoid_a_pose_v1",
+  "description": "Deterministic Auto-Rig Pro Smart markers for a centered, upright humanoid A-pose facing -Y. Ratios are measured across the imported mesh bounds and remain explicit review inputs, not inferred artistic truth.",
+  "front_axis": "-Y",
+  "markers": {
+    "chin_loc": {"x_ratio": 0.0, "z_ratio": 0.785, "search_x": 0.02, "search_z": 0.04},
+    "neck_loc": {"x_ratio": 0.0, "z_ratio": 0.735, "search_x": 0.02, "search_z": 0.04},
+    "shoulder_loc": {"x_ratio": 0.145, "z_ratio": 0.700, "search_x": 0.06, "search_z": 0.06},
+    "root_loc": {"x_ratio": 0.0, "z_ratio": 0.455, "search_x": 0.03, "search_z": 0.05},
+    "foot_loc": {"x_ratio": 0.095, "z_ratio": 0.035, "search_x": 0.20, "search_z": 0.04}
+  },
+  "smart": {
+    "spine_count": 6,
+    "neck_count": 2,
+    "twist_count": 2,
+    "spine_shape": "ARCHED",
+    "shoulders_align": "TILTED"
+  },
+  "bind": {
+    "engine": "PSEUDO_VOXELS",
+    "pseudo_voxels_type": "2",
+    "pseudo_voxels_resolution": 8,
+    "minimum_weight_coverage": 0.999,
+    "maximum_influences": 4
+  }
+}

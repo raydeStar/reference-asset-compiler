@@ -1,0 +1,48 @@
+{
+  "asset_id": "field-scout-female",
+  "kind": "humanoid",
+  "skeleton_profile": "ue5_manny",
+  "source": {
+    "authority_fbx": "${RAC_LEGACY_ROOT}/output/recovery-v2/female/semantic-face-v20-ue-upright/female-semantic-face-v20-manny.fbx",
+    "note": "semantic-face v20, the last of twenty face-projection iterations. The rig is a clean 86-bone UE5 Manny export; the outstanding problem is the face texture, not the skeleton. The face is carried by a SEPARATE material projected onto the head, which is the mechanism behind the stamped-face rejection recorded in HANDOFF.md."
+  },
+  "material_textures": {
+    "M_FieldScoutFemale_Body": {
+      "BaseColor": "${RAC_LEGACY_ROOT}/output/recovery-v2/female/semantic-face-v20-ue-upright/textures/Material_0-base_color.png"
+    },
+    "M_FieldScoutFemale_Face": {
+      "BaseColor": "${RAC_LEGACY_ROOT}/output/recovery-v2/female/semantic-face-v20-ue-upright/textures/M_FemaleFaceProjection-base_color.png"
+    }
+  },
+  "normalize": {
+    "target_height_m": null,
+    "target_height_reason": "Measured 2.000 m with feet already on Z=0, matching field-scout-male. No rescale applied.",
+    "recenter": true,
+    "sk_mesh_name": "SK_FieldScoutFemale",
+    "material_renames": {
+      "Material_0": "M_FieldScoutFemale_Body",
+      "M_FemaleFaceProjection": "M_FieldScoutFemale_Face"
+    }
+  },
+  "budget_waiver": {
+    "reason": "Dense generated-and-repaired topology inherited from the legacy studio. Retopology to the 20k budget is scheduled work, not a blocker for engine validation. Deformation is correct at 4 influences with zero unweighted vertices.",
+    "approved_by": "compiler-v1-triage"
+  },
+  "texture_waiver": {
+    "reason": "Textures are inherited from the legacy back-projection stage, which used a per-patch xatlas layout and baked its lighting into the albedo. Regenerating them is scheduled work; the measured numbers are recorded here so the debt stays visible rather than silently passing.",
+    "approved_by": "compiler-v1-triage"
+  },
+  "clean_clothing_atlas": {
+    "M_FieldScoutFemale_Body": {
+      "regions": "leg,torso,foot",
+      "tri_threshold": 0.12,
+      "grow": 5
+    }
+  },
+  "bake_pbr": {
+    "M_FieldScoutFemale_Body": {
+      "resolution": 2048,
+      "samples": 48
+    }
+  }
+}

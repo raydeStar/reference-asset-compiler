@@ -1,0 +1,225 @@
+{
+  "schema": "reference-asset-compiler.retopology-trials.v1",
+  "asset_id": "field-scout-female-ai-v4",
+  "approved_modeling_mesh_sha256": "923fd6b999920a829d5c26fde2d1bce8f636c39fc245f1def3a6af2d4ad104d5",
+  "runtime_contract": {
+    "maximum_vertices": 15000,
+    "maximum_triangles": 20000,
+    "waiver": null
+  },
+  "semantic_cleanup": {
+    "status": "passed",
+    "native_mesh": "work/field-scout-female-ai-v4/cleanup/semantic-v2-attempt001/cleaned.blend",
+    "native_mesh_sha256": "d341bf83f320af6830da09acd9026aa19ba3eb78b4724587d2a695fa6577068b",
+    "topology_report_sha256": "93f3b9a920854daad4dcf63d6d24a70553828b76ce07ce9931fb12666aa3b273",
+    "receipt_sha256": "9f8f92b87a1a4e42a16019c70df36abde7e2d0c9b95241575a9228d940c73909",
+    "measurements": {
+      "vertices": 35002,
+      "triangles": 70000,
+      "components": 1,
+      "boundary_edges": 0,
+      "non_manifold_edges": 0,
+      "degenerate_faces": 0,
+      "loose_vertices": 0,
+      "roundtrip_topology_equal": true,
+      "bounding_box_drift_m": 0.0
+    }
+  },
+  "completed_trials": [
+    {
+      "id": "autoremesher-glb-transport-attempt001",
+      "report_sha256": "4a08f9f518a30b76c87bfde038e5ef74e447abbb37dffb112517c6a5f6281cdf",
+      "status": "rejected",
+      "reason": "GLB transport split 35,002 shared vertices into 209,956 imported face-corner vertices. AutoRemesher received disconnected topology and returned 132,383 triangles with 266,789 boundary/non-manifold edges. The cleanup contract now requires a topology-identical native Blender round-trip."
+    },
+    {
+      "id": "autoremesher-native-9000q-attempt002",
+      "candidate_sha256": "2b8e9bb1c6add0cc00733f715430e4c6e852914242bcbd89d1ccb2160c1daa2d",
+      "report_sha256": "cee180aeda25687cf55ca1ed26e76d70b13349ca4327bb6e55f02f4fa372e56a",
+      "triangles": 9774,
+      "quad_fraction": 0.9514925373,
+      "status": "rejected_visual",
+      "reason": "Mechanical topology passed, but fixed clay views lost jacket pockets and seams, facial structure, collar definition, and articulated finger forms."
+    },
+    {
+      "id": "quadriflow-native-9000q-attempt001",
+      "report_sha256": "825551ce6681a180fd06518feebaa3ec80cecc69907551538062c2e2fb616f5b",
+      "status": "backend_refused",
+      "reason": "QuadriFlow returned CANCELLED with Blender's generic manifold/normals warning. A later strict preflight found the omitted cause: 19 source edges at or below Blender's 0.0001 m QuadriFlow comparison tolerance. The failed invocation was not retried."
+    },
+    {
+      "id": "autoremesher-native-18000q-attempt003",
+      "candidate_sha256": "4f8f90fd88fbe207d663b5c68832b0fd86ab2b8b8b8325c1da747b2fde4e0042",
+      "report_sha256": "4f9307c937cfd80b0a2fcc44e4616163d1ab5a8128292ce699c3e72cacf59c62",
+      "triangles": 11300,
+      "quad_fraction": 0.9650474996,
+      "status": "rejected_visual",
+      "reason": "A measured target calibration increased topology but did not recover the approved jacket construction, facial planes, or hands. More setting sweeps would optimize against the gate without a credible method change."
+    },
+    {
+      "id": "quadriflow-precondition-v1-attempt001",
+      "strict_audit_sha256": "97566084f326f3d212d238d8c82a367a9333187da945f5591273bddcf31d87b2",
+      "repair_report_sha256": "bcf9fcddcaa826c9d89b9edd7f6afeceda968976f75c39d2b0effab2b2f705fd",
+      "candidate_sha256": "7f8801d4bde73497f73234f892dc37b78a358faf4c274f999a0563bc2b183fdc",
+      "status": "diagnostic_repair_passed",
+      "measurements": {
+        "micro_edges_collapsed": 19,
+        "faces_before": 70000,
+        "faces_after": 69970,
+        "components_after": 1,
+        "nonmanifold_edges_after": 0,
+        "maximum_surface_deviation_m": 0.000017438369468436576
+      },
+      "reason": "The bounded derivative collapsed only the 19 measured micro-edges, retained one closed component, and cleared the exact QuadriFlow precondition. It is diagnostic input for one challenger, not production retopology."
+    },
+    {
+      "id": "quadriflow-native-9000q-attempt002",
+      "candidate_sha256": "c5cd74cd99d0804e708812439275c5d2c8354fc23b13467b4cfd2a645a13faae",
+      "report_sha256": "b66669aed828ed8378cb1ec011df1d818f12a4d70eab2983c2ffb0a6436664ec",
+      "triangles": 14898,
+      "quad_fraction": 1.0,
+      "symmetric_surface_deviation_m": {
+        "p99": 0.019890131428837776,
+        "maximum": 0.07648121565580368
+      },
+      "status": "rejected_numeric",
+      "reason": "After the exact precondition repair, QuadriFlow completed and produced a closed all-quad mesh under budget, but p99 deviation was 19.89 mm and maximum deviation was 76.48 mm. Both exceed the 5 mm and 20 mm limits, so the route is retired without a parameter sweep."
+    },
+    {
+      "id": "feature-qem-20k-attempt001",
+      "candidate_sha256": "434b20d8ffaee0abe8c4abfb228499bf318f9a297c1a8f880e70a67651edbeb3",
+      "report_sha256": "d664ef54c0b563aaef141a8bf11b248d02bc7715723e77c574cce4f59f5823b7",
+      "vertices": 10002,
+      "triangles": 20000,
+      "quad_fraction": 0.0,
+      "symmetric_surface_deviation_m": {
+        "p99": 0.001214228686876595,
+        "maximum": 0.002434623194858432
+      },
+      "initial_flat_fixed_view_sha256": {
+        "matcap_front": "9bf731dc099887828d92ca51cc27f3ee3dd9649bcb7831bde4afab793ce56629",
+        "matcap_three_quarter": "eab56a7bcd8d3ed0b9ebcffbb6098ca76fae03c476106b56245717100cab2602",
+        "matcap_side": "a8465cb0764aed399efe77460a6937e620f81bd91d80570c4364a7181212885d",
+        "matcap_back": "f3e9668e13101367373853cf22201c78dca7a43f7b22e974acad07d5eccc68f9"
+      },
+      "smooth_review": {
+        "report_sha256": "2c27413236f41798f55663f446f743791f3f14eaef9cdaa1d76552c41439ed39",
+        "candidate_sha256": "b94c61146b7544665d6f1ead12a965a73bb2f30fb4d4c367404ea768406a2c21",
+        "geometry_unchanged": true,
+        "smooth_faces_before": 0,
+        "smooth_faces_after": 20000,
+        "fixed_view_sha256": {
+          "matcap_front": "2886c28e873c52b68b80e5cecec97a775732f456b0e4519fee00b8fa5335ee7d",
+          "matcap_three_quarter": "9f453802703d95cbbeae89745d22d5839c6a9279db528d2fea1b4c0d4fcb320a",
+          "matcap_side": "d4ed91e88bed2a9e9bc2965c72d7748c96330af4b46a6b874d7866c65ce071af",
+          "matcap_back": "d3856936f3b66fb388388fc5fbcf3540deb259d87d48bf427d95666a1511f562"
+        }
+      },
+      "status": "rejected_articulated_topology_visual_diagnostic_retained",
+      "reason": "The original faceting judgment was invalidated: all 20,000 candidate faces carried flat shading. A geometry-fingerprinted derivative changed only polygon smooth flags and preserves the AI-authored silhouette, clothing, hair, hands, and face broadly, with some small-feature softening. The result remains rejected because it is entirely triangles and fails the current articulated production-retopology contract before rigging. Its corrected views are retained as diagnostic evidence, not as a candidate eligible for promotion."
+    },
+    {
+      "id": "remi-instant-meshes-9000q-attempt001",
+      "candidate_sha256": "7083e7e7ee7cd092265454bec141f7e607e044430c5ed3d9dbe66c81ec738bff",
+      "report_sha256": "c5d2c508b5af51546c6c52f37661dfe007512e7605c8348598988dfa211186f5",
+      "native_module_sha256": "752068659267bb57a73ce585dbe9195cfa68923e62084d7d0dd1a8c1f3b91153",
+      "instant_meshes_commit": "7b3160864a2e1025af498c84cfed91cbfb613698",
+      "vertices": 8732,
+      "triangles": 17460,
+      "quad_fraction": 1.0,
+      "symmetric_surface_deviation_m": {
+        "p99": 0.011567607522010803,
+        "maximum": 0.040032997727394104
+      },
+      "status": "rejected_numeric_and_visual",
+      "reason": "The pinned Windows-native field solver produced one deterministic, closed, all-quad candidate under budget, but exceeded both deviation limits. Fixed views confirmed that uniform whole-surface density erased hair spikes, jacket pockets, and hand structure. This is a genuine new backend result, not permission for a parameter sweep."
+    },
+    {
+      "id": "semantic-regions-v1-audit003",
+      "profile_sha256": "6767764422fac38a15314846590acd4825e078398a4ffcb1422271f91440e98b",
+      "audit_report_sha256": "7c3bf3710df63b9dc74b88fb91fc3239dee8dd95075ef75dd0938d143fed4cfa",
+      "status": "segmentation_mechanical_pass_visual_diagnostic",
+      "reason": "Four closed downstream regions bound to the approved AI cleanup mesh were audited at a scarf fold and both cuffs. The first z=0.46 diagnostic visibly crossed the chest and was rejected. Moving the cut to z=0.66 concealed it inside the scarf volume; fixed front and three-quarter views no longer showed the chest defect. This remains segmentation evidence, not retopology approval."
+    },
+    {
+      "id": "semantic-instant-meshes-v1-attempt001",
+      "failure_log_sha256": "03b0e79fc26d9b0654bbc5e606fd22cb5c92cfcff0176b7227f2004be4fad8c4",
+      "status": "backend_rejected",
+      "reason": "No retry was attempted. Although every segmented input region was closed two-manifold, Instant Meshes opened holes while extracting the first body region and the native wrapper rejected the result. The planar cap representation must be replaced or constrained before another solver attempt."
+    },
+    {
+      "id": "semantic-instant-meshes-v1-attempt002",
+      "report_sha256": "a7e4b593357663d4eb2a6166d7d57a2d04c8ff5584c8c0c440fd72c818fc4a9b",
+      "status": "rejected_profile_defect",
+      "reason": "Open-boundary solving plus post-solver closure produced 9,043 vertices, 18,068 triangles, 99.93% quads, and a closed surface. The diagonal cuff half-planes also removed both lower legs, proven by a candidate z minimum of -0.36 m versus -0.999 m in the authority and by fixed views. The profile was preserved and retired."
+    },
+    {
+      "id": "semantic-instant-meshes-v2-attempt001",
+      "report_sha256": "ab011b81688ea8d3d56a07cae7fe17868985d774ec40114ed99d9f6a70533769",
+      "candidate_sha256": "cb3b462459f5ed277cee669dff118bb6c3ab17202a02c8dc3b73dbcc8148dba6",
+      "status": "rejected_numeric_and_visual",
+      "reason": "A fixed-view-audited V2 profile used vertical cuff cuts and preserved the full body. Its 8,989-vertex, 17,960-triangle, 99.93% quad candidate remained outside deviation limits at p99 8.92 mm and maximum 32.84 mm; fixed views also showed unacceptable loss of pockets, collar, face, and hair detail. Uniform field remeshing is retired for this asset."
+    },
+    {
+      "id": "paired-feature-qem-attempt001-and-002",
+      "conservative_report_sha256": "629d53f35529d681f7e37506f9c164580fe99b63bd6a70a7c30c3a5b10683a06",
+      "full_angle_report_sha256": "d62514c655bd0dad78ace9cc21c2de285b923ec3eb4587e00522fe9186084a64",
+      "status": "diagnostic_pairing_shortfall",
+      "reason": "Pairing adjacent Feature-QEM triangles preserved every vertex and remained well inside deviation limits. Conservative compatibility yielded 39.51% quads; the diagnosed full-angle greedy maximum reached 77.60%. Both were rejected before review because the articulated contract requires at least 80%."
+    },
+    {
+      "id": "paired-feature-qem-attempt003",
+      "report_sha256": "108747ebf78754a73f5e7a121f2b78798c632483e5c1cf2ca2a855e09122feb9",
+      "candidate_sha256": "989487b4e72f793ed191181162dd68a2f7427bb6aa05e89b77199a0ec4dd8a9e",
+      "vertices": 10002,
+      "triangles": 20000,
+      "quads": 8889,
+      "quad_fraction": 0.8000180001800018,
+      "symmetric_surface_deviation_m": {
+        "p99": 0.0015826585004106164,
+        "maximum": 0.004477308597415686
+      },
+      "fixed_view_sha256": {
+        "matcap_front": "9443af97c648d3ff3464eb5f4b1d89441833c05256bd9f8bb94cecaa302631a2",
+        "matcap_three_quarter": "8bed0d99485378b1a3281afd30fd3818dc9b85a5ab8ab9d46910d8e51f10f3b1",
+        "matcap_side": "677d03aedab58ce12a7847bb70a2bb6c9203495bac8ea9e24167fc253394045b",
+        "matcap_back": "66984d9ec267638cab11f1af343cef6a7b67f2abea29b6b593ec82fe7eeb37c1"
+      },
+      "canonical_report_sha256": "9b8ed937ed5360113f64352fd33781f84acd604218cbce4e683034f6783111d2",
+      "review_bundle_sha256": "a6a42018af104ef015d8d3aeb90a48a7ecd416314dc4e02d7cfeeb5c16ffe952",
+      "wireframe_view_sha256": {
+        "front": "ca84e5aa80e9cdaf43426294e597c4fa614c9a54aedc0eae2550e554d8808467",
+        "three_quarter": "de85498d348f7a0b5a30afd9fd18eba225ea882ead512a87fde327e8c3c514bd",
+        "side": "16d3bc43a556bad164f00e0b508adf4739a88ac9b65e4b1e58a5afd0e7cd1a37",
+        "back": "c00c1329d1fbcb45b29d3588756a094561f68488a20fe60cbdd51bdf0a770695"
+      },
+      "status": "rejected_deformation_topology",
+      "reason": "A bounded length-three augmenting pass converted exactly 150 local 1-quad-plus-2-triangle neighborhoods into 2 quads without moving vertices. The candidate met the numeric 80% threshold and retained the AI-derived form, but its required wireframe review exposed stochastic paired-face flow without reliable rings around shoulders, elbows, hips, knees, wrists, or fingers. It is rejected rather than promoted; passing a percentage is not deformation-aware topology."
+    },
+    {
+      "id": "joint-guides-v1-through-v3",
+      "evidence_sha256": "37c1508ed4c19e543abc5d37259c6f7213e6e3f3867ed7f7a84fe8dfc71b06e9",
+      "status": "v3_visual_preflight_passed",
+      "reason": "V1 outside-in projection crossed unrelated surfaces and V2 hip rings bridged the connected pelvis. V3 switched to local inside-out projection and upper-thigh support rings; hash-bound front, three-quarter, and side views show all 13 rings staying on their intended local neck or limb surface."
+    },
+    {
+      "id": "guided-remi-v3-attempt001-and-002",
+      "status": "route_retired",
+      "reason": "Attempt 001 stopped before solving because Remi rejects a visually closed stroke with a repeated terminal point on its starting face. After recording that exact diagnosis, attempt 002 omitted only the duplicate terminal sample and completed guide projection plus orientation and position solving. Extraction then opened holes in the watertight source and the native safeguard rejected it. No candidate was emitted and no third retry is authorized."
+    },
+    {
+      "id": "joint-aware-paired-qem-attempt001-and-002",
+      "status": "route_retired",
+      "reason": "Protecting paths through existing Feature-QEM edges could not construct one simple local neck cycle. Independent arcs branched; the diagnosed non-overlap constructor then found no local route through all anchors inside the audited band. Both failures occurred before triangle pairing and emitted no candidate. Controlled joint-band topology must be introduced rather than inferred from the stochastic QEM edge graph."
+    },
+    {
+      "id": "limb-band-surgery-v1-and-v2",
+      "evidence_sha256": "a76413eb78280e20acba3fa4515edcd8f64ed2949ad849269b9c7c331856a273",
+      "status": "route_retired_visual",
+      "reason": "A hash-bound audit proved four removable arm and leg bands with exactly two closed boundary cycles each. Nine immutable challenger outputs tested Blender bridge loops, deterministic count-transition stitching, support rings, AI-boundary contour lofting, and nearest-surface projection. The final 9,780-vertex, 19,556-triangle, 81.12%-quad candidate passed every mechanical limit, but fixed views retained visible sleeve and trouser transition notches. Local tube surgery is retired; closed manifold numbers cannot overrule visible defects."
+    }
+  ],
+  "selected_candidate": null,
+  "production_retopology_status": "pending",
+  "next_action": "Use a deformation-template or garment-aware retopology method constrained to the accepted AI cleanup surface. Do not continue local limb-tube parameter sweeps and do not reconstruct from the reference image in Blender. The production receipt requires four wireframe views plus four matcap views. Do not begin UV/bake or rigging before this gate is approved."
+}

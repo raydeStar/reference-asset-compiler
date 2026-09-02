@@ -1,0 +1,22 @@
+{
+  "schema": "reference-asset-compiler.joint-ring-guides.v1",
+  "asset_id": "orange-adventurer-cat-ai-v2",
+  "source_sha256": "2003e1418794b8f124cf8af5f1da4c9249a0a36e5a9089581fb5d9376172b37d",
+  "coordinate_space": "source_object_local_meters",
+  "samples_per_ring": 32,
+  "rings": [
+    {"id": "neck", "center": [0.0, 0.0, 0.28], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.30},
+    {"id": "right_upper_arm_support", "center": [0.41, -0.13, 0.12], "axis": [0.78, 0.0, -0.63], "cast_radius": 0.20},
+    {"id": "left_upper_arm_support", "center": [-0.41, -0.17, 0.12], "axis": [-0.78, 0.0, -0.63], "cast_radius": 0.20},
+    {"id": "right_elbow", "center": [0.52, -0.13, 0.01], "axis": [0.78, 0.0, -0.63], "cast_radius": 0.20},
+    {"id": "left_elbow", "center": [-0.52, -0.08, 0.01], "axis": [-0.78, 0.0, -0.63], "cast_radius": 0.20},
+    {"id": "right_wrist", "center": [0.68, -0.15, -0.13], "axis": [0.78, 0.0, -0.63], "cast_radius": 0.17},
+    {"id": "left_wrist", "center": [-0.68, -0.12, -0.13], "axis": [-0.78, 0.0, -0.63], "cast_radius": 0.17},
+    {"id": "right_upper_thigh_support", "center": [0.16, 0.0, -0.48], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.20},
+    {"id": "left_upper_thigh_support", "center": [-0.16, 0.0, -0.48], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.20},
+    {"id": "right_knee", "center": [0.16, 0.0, -0.64], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.18},
+    {"id": "left_knee", "center": [-0.16, 0.0, -0.64], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.18},
+    {"id": "right_ankle", "center": [0.16, 0.0, -0.82], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.16},
+    {"id": "left_ankle", "center": [-0.16, 0.0, -0.82], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.16}
+  ]
+}

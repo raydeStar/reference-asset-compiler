@@ -1,0 +1,720 @@
+{
+  "schema": "reference-asset-compiler.reference-skeleton-pose.v1",
+  "source": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple (UE 5.8 Third Person template)",
+  "coordinate_space": "component_cm_forward_plus_y_up_plus_z",
+  "height_cm": 180.54,
+  "bones": {
+    "root": {
+      "position_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parent": null
+    },
+    "pelvis": {
+      "position_cm": [
+        -0.0,
+        2.281,
+        95.897
+      ],
+      "parent": "root"
+    },
+    "spine_01": {
+      "position_cm": [
+        0.0,
+        2.048,
+        99.566
+      ],
+      "parent": "pelvis"
+    },
+    "spine_02": {
+      "position_cm": [
+        -0.0,
+        3.324,
+        106.241
+      ],
+      "parent": "spine_01"
+    },
+    "spine_03": {
+      "position_cm": [
+        -0.0,
+        4.251,
+        113.419
+      ],
+      "parent": "spine_02"
+    },
+    "spine_04": {
+      "position_cm": [
+        -0.0,
+        3.718,
+        121.926
+      ],
+      "parent": "spine_03"
+    },
+    "spine_05": {
+      "position_cm": [
+        0.0,
+        0.525,
+        141.102
+      ],
+      "parent": "spine_04"
+    },
+    "neck_01": {
+      "position_cm": [
+        -0.0,
+        -1.567,
+        152.804
+      ],
+      "parent": "spine_05"
+    },
+    "neck_02": {
+      "position_cm": [
+        -0.0,
+        -0.348,
+        157.767
+      ],
+      "parent": "neck_01"
+    },
+    "head": {
+      "position_cm": [
+        -0.0,
+        0.663,
+        162.575
+      ],
+      "parent": "neck_02"
+    },
+    "clavicle_l": {
+      "position_cm": [
+        1.428,
+        -1.74,
+        146.301
+      ],
+      "parent": "spine_05"
+    },
+    "upperarm_l": {
+      "position_cm": [
+        19.01,
+        -2.557,
+        143.583
+      ],
+      "parent": "clavicle_l"
+    },
+    "lowerarm_l": {
+      "position_cm": [
+        35.007,
+        -1.907,
+        120.892
+      ],
+      "parent": "upperarm_l"
+    },
+    "lowerarm_twist_02_l": {
+      "position_cm": [
+        39.261,
+        3.962,
+        115.417
+      ],
+      "parent": "lowerarm_l"
+    },
+    "lowerarm_twist_01_l": {
+      "position_cm": [
+        43.515,
+        9.83,
+        109.942
+      ],
+      "parent": "lowerarm_l"
+    },
+    "hand_l": {
+      "position_cm": [
+        47.769,
+        15.699,
+        104.467
+      ],
+      "parent": "lowerarm_l"
+    },
+    "index_metacarpal_l": {
+      "position_cm": [
+        48.139,
+        19.7,
+        103.231
+      ],
+      "parent": "hand_l"
+    },
+    "index_01_l": {
+      "position_cm": [
+        50.532,
+        23.732,
+        99.678
+      ],
+      "parent": "index_metacarpal_l"
+    },
+    "index_02_l": {
+      "position_cm": [
+        50.992,
+        25.939,
+        96.278
+      ],
+      "parent": "index_01_l"
+    },
+    "index_03_l": {
+      "position_cm": [
+        50.806,
+        26.93,
+        93.887
+      ],
+      "parent": "index_02_l"
+    },
+    "middle_metacarpal_l": {
+      "position_cm": [
+        49.689,
+        18.13,
+        102.917
+      ],
+      "parent": "hand_l"
+    },
+    "middle_01_l": {
+      "position_cm": [
+        52.646,
+        21.976,
+        99.222
+      ],
+      "parent": "middle_metacarpal_l"
+    },
+    "middle_02_l": {
+      "position_cm": [
+        52.967,
+        24.274,
+        94.603
+      ],
+      "parent": "middle_01_l"
+    },
+    "middle_03_l": {
+      "position_cm": [
+        52.388,
+        24.88,
+        92.275
+      ],
+      "parent": "middle_02_l"
+    },
+    "thumb_01_l": {
+      "position_cm": [
+        46.227,
+        18.496,
+        102.958
+      ],
+      "parent": "hand_l"
+    },
+    "thumb_02_l": {
+      "position_cm": [
+        45.19,
+        22.225,
+        100.912
+      ],
+      "parent": "thumb_01_l"
+    },
+    "thumb_03_l": {
+      "position_cm": [
+        45.049,
+        24.226,
+        98.567
+      ],
+      "parent": "thumb_02_l"
+    },
+    "pinky_metacarpal_l": {
+      "position_cm": [
+        50.945,
+        16.074,
+        101.904
+      ],
+      "parent": "hand_l"
+    },
+    "pinky_01_l": {
+      "position_cm": [
+        53.54,
+        17.628,
+        97.969
+      ],
+      "parent": "pinky_metacarpal_l"
+    },
+    "pinky_02_l": {
+      "position_cm": [
+        54.546,
+        18.761,
+        94.466
+      ],
+      "parent": "pinky_01_l"
+    },
+    "pinky_03_l": {
+      "position_cm": [
+        54.357,
+        19.198,
+        92.482
+      ],
+      "parent": "pinky_02_l"
+    },
+    "ring_metacarpal_l": {
+      "position_cm": [
+        50.331,
+        17.133,
+        102.405
+      ],
+      "parent": "hand_l"
+    },
+    "ring_01_l": {
+      "position_cm": [
+        53.689,
+        19.777,
+        98.716
+      ],
+      "parent": "ring_metacarpal_l"
+    },
+    "ring_02_l": {
+      "position_cm": [
+        54.466,
+        21.689,
+        94.187
+      ],
+      "parent": "ring_01_l"
+    },
+    "ring_03_l": {
+      "position_cm": [
+        54.151,
+        22.248,
+        92.015
+      ],
+      "parent": "ring_02_l"
+    },
+    "upperarm_twist_01_l": {
+      "position_cm": [
+        24.342,
+        -2.34,
+        136.02
+      ],
+      "parent": "upperarm_l"
+    },
+    "upperarm_twist_02_l": {
+      "position_cm": [
+        29.675,
+        -2.124,
+        128.456
+      ],
+      "parent": "upperarm_l"
+    },
+    "clavicle_r": {
+      "position_cm": [
+        -1.428,
+        -1.74,
+        146.301
+      ],
+      "parent": "spine_05"
+    },
+    "upperarm_r": {
+      "position_cm": [
+        -19.01,
+        -2.557,
+        143.583
+      ],
+      "parent": "clavicle_r"
+    },
+    "lowerarm_r": {
+      "position_cm": [
+        -35.007,
+        -1.907,
+        120.892
+      ],
+      "parent": "upperarm_r"
+    },
+    "lowerarm_twist_02_r": {
+      "position_cm": [
+        -39.261,
+        3.962,
+        115.417
+      ],
+      "parent": "lowerarm_r"
+    },
+    "lowerarm_twist_01_r": {
+      "position_cm": [
+        -43.514,
+        9.83,
+        109.942
+      ],
+      "parent": "lowerarm_r"
+    },
+    "hand_r": {
+      "position_cm": [
+        -47.768,
+        15.699,
+        104.466
+      ],
+      "parent": "lowerarm_r"
+    },
+    "pinky_metacarpal_r": {
+      "position_cm": [
+        -50.945,
+        16.074,
+        101.904
+      ],
+      "parent": "hand_r"
+    },
+    "pinky_01_r": {
+      "position_cm": [
+        -53.54,
+        17.628,
+        97.968
+      ],
+      "parent": "pinky_metacarpal_r"
+    },
+    "pinky_02_r": {
+      "position_cm": [
+        -54.546,
+        18.761,
+        94.466
+      ],
+      "parent": "pinky_01_r"
+    },
+    "pinky_03_r": {
+      "position_cm": [
+        -54.357,
+        19.198,
+        92.482
+      ],
+      "parent": "pinky_02_r"
+    },
+    "ring_metacarpal_r": {
+      "position_cm": [
+        -50.331,
+        17.133,
+        102.405
+      ],
+      "parent": "hand_r"
+    },
+    "ring_01_r": {
+      "position_cm": [
+        -53.689,
+        19.777,
+        98.716
+      ],
+      "parent": "ring_metacarpal_r"
+    },
+    "ring_02_r": {
+      "position_cm": [
+        -54.466,
+        21.689,
+        94.187
+      ],
+      "parent": "ring_01_r"
+    },
+    "ring_03_r": {
+      "position_cm": [
+        -54.151,
+        22.248,
+        92.015
+      ],
+      "parent": "ring_02_r"
+    },
+    "middle_metacarpal_r": {
+      "position_cm": [
+        -49.689,
+        18.13,
+        102.917
+      ],
+      "parent": "hand_r"
+    },
+    "middle_01_r": {
+      "position_cm": [
+        -52.646,
+        21.976,
+        99.222
+      ],
+      "parent": "middle_metacarpal_r"
+    },
+    "middle_02_r": {
+      "position_cm": [
+        -52.967,
+        24.274,
+        94.603
+      ],
+      "parent": "middle_01_r"
+    },
+    "middle_03_r": {
+      "position_cm": [
+        -52.388,
+        24.88,
+        92.275
+      ],
+      "parent": "middle_02_r"
+    },
+    "index_metacarpal_r": {
+      "position_cm": [
+        -48.139,
+        19.7,
+        103.231
+      ],
+      "parent": "hand_r"
+    },
+    "index_01_r": {
+      "position_cm": [
+        -50.532,
+        23.732,
+        99.678
+      ],
+      "parent": "index_metacarpal_r"
+    },
+    "index_02_r": {
+      "position_cm": [
+        -50.992,
+        25.939,
+        96.278
+      ],
+      "parent": "index_01_r"
+    },
+    "index_03_r": {
+      "position_cm": [
+        -50.806,
+        26.93,
+        93.887
+      ],
+      "parent": "index_02_r"
+    },
+    "thumb_01_r": {
+      "position_cm": [
+        -46.227,
+        18.496,
+        102.958
+      ],
+      "parent": "hand_r"
+    },
+    "thumb_02_r": {
+      "position_cm": [
+        -45.19,
+        22.225,
+        100.912
+      ],
+      "parent": "thumb_01_r"
+    },
+    "thumb_03_r": {
+      "position_cm": [
+        -45.049,
+        24.226,
+        98.567
+      ],
+      "parent": "thumb_02_r"
+    },
+    "upperarm_twist_01_r": {
+      "position_cm": [
+        -24.342,
+        -2.341,
+        136.019
+      ],
+      "parent": "upperarm_r"
+    },
+    "upperarm_twist_02_r": {
+      "position_cm": [
+        -29.675,
+        -2.124,
+        128.456
+      ],
+      "parent": "upperarm_r"
+    },
+    "thigh_r": {
+      "position_cm": [
+        -9.969,
+        2.55,
+        93.543
+      ],
+      "parent": "pelvis"
+    },
+    "calf_r": {
+      "position_cm": [
+        -12.332,
+        2.605,
+        50.267
+      ],
+      "parent": "thigh_r"
+    },
+    "foot_r": {
+      "position_cm": [
+        -14.088,
+        -0.985,
+        8.238
+      ],
+      "parent": "calf_r"
+    },
+    "ball_r": {
+      "position_cm": [
+        -15.778,
+        13.938,
+        0.751
+      ],
+      "parent": "foot_r"
+    },
+    "calf_twist_02_r": {
+      "position_cm": [
+        -12.955,
+        1.403,
+        36.259
+      ],
+      "parent": "calf_r"
+    },
+    "calf_twist_01_r": {
+      "position_cm": [
+        -13.577,
+        0.201,
+        22.252
+      ],
+      "parent": "calf_r"
+    },
+    "thigh_twist_01_r": {
+      "position_cm": [
+        -10.757,
+        2.568,
+        79.118
+      ],
+      "parent": "thigh_r"
+    },
+    "thigh_twist_02_r": {
+      "position_cm": [
+        -11.545,
+        2.587,
+        64.692
+      ],
+      "parent": "thigh_r"
+    },
+    "thigh_l": {
+      "position_cm": [
+        9.969,
+        2.541,
+        93.543
+      ],
+      "parent": "pelvis"
+    },
+    "calf_l": {
+      "position_cm": [
+        12.332,
+        2.596,
+        50.266
+      ],
+      "parent": "thigh_l"
+    },
+    "foot_l": {
+      "position_cm": [
+        14.088,
+        -0.994,
+        8.238
+      ],
+      "parent": "calf_l"
+    },
+    "ball_l": {
+      "position_cm": [
+        15.778,
+        13.929,
+        0.751
+      ],
+      "parent": "foot_l"
+    },
+    "calf_twist_02_l": {
+      "position_cm": [
+        12.917,
+        1.399,
+        36.257
+      ],
+      "parent": "calf_l"
+    },
+    "calf_twist_01_l": {
+      "position_cm": [
+        13.577,
+        0.191,
+        22.251
+      ],
+      "parent": "calf_l"
+    },
+    "thigh_twist_01_l": {
+      "position_cm": [
+        10.757,
+        2.559,
+        79.117
+      ],
+      "parent": "thigh_l"
+    },
+    "thigh_twist_02_l": {
+      "position_cm": [
+        11.545,
+        2.577,
+        64.692
+      ],
+      "parent": "thigh_l"
+    },
+    "ik_foot_root": {
+      "position_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parent": "root"
+    },
+    "ik_foot_l": {
+      "position_cm": [
+        14.088,
+        -0.994,
+        8.238
+      ],
+      "parent": "ik_foot_root"
+    },
+    "ik_foot_r": {
+      "position_cm": [
+        -14.088,
+        -0.985,
+        8.238
+      ],
+      "parent": "ik_foot_root"
+    },
+    "ik_hand_root": {
+      "position_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parent": "root"
+    },
+    "ik_hand_gun": {
+      "position_cm": [
+        -47.768,
+        15.699,
+        104.466
+      ],
+      "parent": "ik_hand_root"
+    },
+    "ik_hand_l": {
+      "position_cm": [
+        47.769,
+        15.699,
+        104.467
+      ],
+      "parent": "ik_hand_gun"
+    },
+    "ik_hand_r": {
+      "position_cm": [
+        -47.768,
+        15.699,
+        104.466
+      ],
+      "parent": "ik_hand_gun"
+    },
+    "interaction": {
+      "position_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parent": "root"
+    },
+    "center_of_mass": {
+      "position_cm": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "parent": "root"
+    }
+  }
+}

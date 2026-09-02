@@ -1,0 +1,51 @@
+{
+  "schema": "reference-asset-compiler.semantic-retopology-profile.v1",
+  "asset_id": "orange-adventurer-cat-ai-v1",
+  "source_sha256": "2d5ef40d4cc4059b8cfc4d977e311778fa4293c6ef214cb8a585ef4ead4f5c12",
+  "coordinate_space": "source_object_local_meters",
+  "purpose": "Preserve the source-derived whisker island exactly and allocate independent density to the upper detail mass and lower articulated body.",
+  "regions": [
+    {
+      "id": "body_costume_rear_tail",
+      "seed": [0.0, 0.0, -0.1],
+      "target_faces": 1800,
+      "mode": "remesh",
+      "cuts": [
+        {
+          "seam": "inside_scarf",
+          "point": [0.0, 0.0, 0.28],
+          "normal": [0.0, 0.0, 1.0],
+          "keep": "negative"
+        }
+      ]
+    },
+    {
+      "id": "head_face_upper_gear",
+      "seed": [-0.34, 0.2, 0.48],
+      "target_faces": 2500,
+      "mode": "remesh",
+      "cuts": [
+        {
+          "seam": "inside_scarf",
+          "point": [0.0, 0.0, 0.28],
+          "normal": [0.0, 0.0, 1.0],
+          "keep": "positive"
+        }
+      ]
+    },
+    {
+      "id": "thin_whisker_island",
+      "seed": [0.0, -0.15, 0.68],
+      "target_faces": 320,
+      "mode": "preserve_source",
+      "cuts": [
+        {
+          "seam": "inside_scarf",
+          "point": [0.0, 0.0, 0.28],
+          "normal": [0.0, 0.0, 1.0],
+          "keep": "positive"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+{
+  "schema": "reference-asset-compiler.cohort.v1",
+  "cohort_id": "v1-seven-asset-benchmark",
+  "members": [
+    {
+      "asset_id": "field-scout-male-ai-v2",
+      "asset_kind": "humanoid",
+      "workspace": "field-scout-male-ai-v2",
+      "maximum_vertices": 15000,
+      "maximum_triangles": 20000
+    },
+    {
+      "asset_id": "field-scout-female-ai-v4",
+      "asset_kind": "humanoid",
+      "workspace": "field-scout-female-ai-v4",
+      "maximum_vertices": 15000,
+      "maximum_triangles": 20000
+    },
+    {
+      "asset_id": "ninja-man-ai-v3",
+      "asset_kind": "humanoid",
+      "workspace": "ninja-man-ai-v3",
+      "maximum_vertices": 15000,
+      "maximum_triangles": 20000
+    },
+    {
+      "asset_id": "orange-adventurer-cat-ai-v2",
+      "asset_kind": "mascot",
+      "workspace": "orange-adventurer-cat-ai-v2",
+      "maximum_vertices": 15000,
+      "maximum_triangles": 20000
+    },
+    {
+      "asset_id": "office-chair-ai-v2",
+      "asset_kind": "static_prop",
+      "workspace": "office-chair-ai-v2",
+      "maximum_vertices": 15000,
+      "maximum_triangles": 20000
+    },
+    {
+      "asset_id": "weathered-longsword",
+      "asset_kind": "static_prop",
+      "workspace": "weathered-longsword",
+      "maximum_vertices": 15000,
+      "maximum_triangles": 20000
+    },
+    {
+      "asset_id": "sunburst-guitar-ai-v2",
+      "asset_kind": "static_prop",
+      "workspace": "sunburst-guitar-ai-v2",
+      "maximum_vertices": 15000,
+      "maximum_triangles": 20000
+    }
+  ]
+}

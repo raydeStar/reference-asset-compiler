@@ -1,0 +1,116 @@
+{
+  "schema": "reference-asset-compiler.limb-band-trials.v1",
+  "asset_id": "field-scout-female-ai-v4",
+  "authority_sha256": "d341bf83f320af6830da09acd9026aa19ba3eb78b4724587d2a695fa6577068b",
+  "paired_qem_source_sha256": "989487b4e72f793ed191181162dd68a2f7427bb6aa05e89b77199a0ec4dd8a9e",
+  "joint_guide_report_sha256": "a0749471d58e608522e21bc93c130e0264b4ae867e3f38b02a5b48058a108425",
+  "implementation": {
+    "audit_script_sha256": "115ee32da5bc3786912f3153164dbdca3f28930865bc66d96badbd207f399f81",
+    "challenger_script_sha256": "9c2acae70cac8719d9adc1313d8d06cca5e8c909783b8453a9de9e09c9cec5aa"
+  },
+  "band_audit": {
+    "id": "limb-band-audit-v6-attempt001",
+    "report_sha256": "8b180d2fede552797d6e28d58a74d4d603527932cb33cc680244c74c1f667681",
+    "status": "mechanical_pass",
+    "result": "All four audited arm and leg regions have exactly two closed degree-two boundary cycles. The selection changes only 1,117 faces and leaves the AI-derived torso, head, hair, cuffs, hands, and boots untouched."
+  },
+  "challenger_trials": [
+    {
+      "id": "limb-band-challenger-v1-attempt001",
+      "report_sha256": "207e82525b8b9a9c92edaa3c7a0a2443ddc9489e5a6220be7df038946e247557",
+      "candidate_sha256": "2b5f2d5b2f7380f535db4c98f3be7a3ddff54e9f4c32c4114a4ca758f9567e51",
+      "status": "rejected_numeric",
+      "reason": "Blender bridge-loop subdivision produced 20,954 triangles and exceeded the unwaived 20,000-triangle contract."
+    },
+    {
+      "id": "limb-band-challenger-v1-attempt002",
+      "report_sha256": "9242da60421fd9ab3ab6d78bcbb5c70ae188fa59f103e2fd4fab787e0252a264",
+      "candidate_sha256": "e434e13adfe25b696f85efe2ef373cb16c3185c47a472b79c4b16742074d7210",
+      "status": "rejected_numeric",
+      "reason": "The bounded projection fix reached 19,968 triangles but only 79.84 percent quads."
+    },
+    {
+      "id": "limb-band-challenger-v1-attempt003-and-004",
+      "report_sha256": [
+        "8110c411a39d9b83ac5f2f996d8823404304022062bc4746989d6510a230b8b5",
+        "e82c47d47c0fbd40790ad3f0937c0fc81e082f85b19490193fa9749ae766d5f3"
+      ],
+      "candidate_sha256": [
+        "d1676eb5e4a1167cee0a7324457de175c0362fecff17cf49c0e7e14c436a1a62",
+        "c7348d6a5303a098a89986900fc779ed7ca04deedac4fb88b564bd1a67fc790b"
+      ],
+      "status": "rejected_visual",
+      "reason": "Bounded quad augmentation met the mechanical contract, but Blender's opaque boundary correspondence carved long helical grooves through the sleeves and trousers. Reversing projection direction did not remove them."
+    },
+    {
+      "id": "limb-band-challenger-v2-attempt001-and-002",
+      "report_sha256": [
+        "5bd4058cfe5d195e933d833e5308b8b04f53245534f780df19d735429399e488",
+        "cf65dbd1c6d173ec0b034befe4934115e2220b1ea9e984eda052a224cff203db"
+      ],
+      "candidate_sha256": [
+        "04e4aec43fa62ac353a639729f7fbeb82e5e00d979e7d45ef378fdd988701312",
+        "b5b2c3902b77613503522d1036b517aead68f4bb88e2d5af1092444bf1d91795"
+      ],
+      "status": "rejected_visual",
+      "reason": "Deterministic count-transition stitching created readable circumferential rows under budget, but circular projection left sharp transition gashes. A bounded radial median reduced interior grooves without curing the boundary defects."
+    },
+    {
+      "id": "limb-band-challenger-v2-attempt003",
+      "report_sha256": "428cb807d7b6c8b857b080b557352a9e35c8228973b45c3c298f95f96095b4c4",
+      "candidate_sha256": "5c7ac991c2c312aa2ef7c6a2fcd0a0bc232d067430d51565f4da253b90b7e59b",
+      "measurements": {
+        "vertices": 9780,
+        "triangles": 19556,
+        "quad_fraction": 0.811243864,
+        "p99_surface_deviation_m": 0.003098395,
+        "maximum_surface_deviation_m": 0.010257512
+      },
+      "matcap_sha256": {
+        "front": "eb0ca2992349fc59ac0060b366d58cda22e7fa2edc9af5237d3aececf26cf5ca",
+        "three_quarter": "c8ba6f3cdfce0a20e2051e4e44707a85c114fa86baf7f13c4c572b712a08bb64",
+        "side": "538811ae37f6ab732f4b0be4c537f4c4e813edf8665f7235f2ad96365bce773b",
+        "back": "f8d38dd98a7e0a51e8d4de8cbf6babda5d81fe94507acb144ef9f13fcf7d5472"
+      },
+      "status": "rejected_visual",
+      "reason": "Support rings localized the transition but revealed deep folded faces at sleeves, upper thighs, and trouser cuffs. Closed-manifold measurements did not make the visible wounds acceptable."
+    },
+    {
+      "id": "limb-band-challenger-v2-attempt004",
+      "report_sha256": "2c5fb1bd80a89192558b4340aa7d69b50cf5cea8263e010fb32f6693f10994c3",
+      "candidate_sha256": "e19296124553f0b25ec1a10aa7b732be4afb69ae8ce903b3d6207e000f558b05",
+      "matcap_sha256": {
+        "front": "b6864d2b77ec09e2b85b1486304bd87faa5589e54f4259dc0a5ddf36bc1047a8",
+        "three_quarter": "471ffcd8b52dfccf4d0155305b0d2883029af0d5a213aaf4312409d7dee2ed8c",
+        "side": "4b48ecbd17bc15f2e30d995bc4d2317292d4dee618e1c8154c7660584d2a03de",
+        "back": "041521eb1af8b20ed6b982a926ebea3c47ef5fe14ebf57a115ae4a49a4323439"
+      },
+      "status": "rejected_visual",
+      "reason": "Arc-length lofting from the actual audited boundaries reduced circularization but center-out projection still hit adjacent torso and garment surfaces."
+    },
+    {
+      "id": "limb-band-challenger-v2-attempt005",
+      "report_sha256": "a5fd14ef46cee76d55414df872f6e4259bbc630e05de6e7133312da2fb963cee",
+      "candidate_sha256": "3fd4a4c18555fd91d571465f0caaea9af649fff0a20733d4f5bfc89bc6063191",
+      "measurements": {
+        "vertices": 9780,
+        "triangles": 19556,
+        "quad_fraction": 0.811243864,
+        "p99_surface_deviation_m": 0.002855079,
+        "maximum_surface_deviation_m": 0.01142551
+      },
+      "matcap_sha256": {
+        "front": "613d7cbf514ed9dda07d511778f600192038bb6a7bec9587ff01e26e19121360",
+        "three_quarter": "77cd7932c1dfccdefd57b5ff0aebfe57b3ccaf06a7882f3e7bbbff5cef02948d",
+        "side": "d614c690410af56ccbbe1a793e11eb8829e17ae54e22bf981e55e202a7c9a859",
+        "back": "e66812527bc65152772d51450697c5713db9097dac23271d1f4c91af99730381"
+      },
+      "status": "rejected_visual",
+      "reason": "Nearest-surface contour projection removed the worst occlusion grooves, but visible notches remained at both sleeves and at upper and lower trouser transitions. The result is not eligible for human approval."
+    }
+  ],
+  "route_decision": "retired_local_limb_band_surgery",
+  "decision_reason": "The audited selection is valid and every final candidate passed mechanical limits, but stitching deformation tubes into garment-bearing stochastic QEM boundaries repeatedly produced visible folds or notches. Further parameter tuning is not authorized.",
+  "next_action": "Use a deformation-template or garment-aware retopology method constrained to the approved AI-derived cleanup mesh. Blender may perform downstream surface cleanup and verification, but must not reconstruct the character by interpreting the reference image.",
+  "production_grade": false
+}

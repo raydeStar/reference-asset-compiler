@@ -1,0 +1,37 @@
+{
+  "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+  "asset_id": "sunburst-guitar-ai-v2",
+  "workspace": "${RAC_REPO_ROOT}/work/sunburst-guitar-ai-v2",
+  "source_authority": {
+    "path": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/sunburst-guitar/turnaround-v2.png",
+    "sha256": "4b313ceea46e54a464baf209e1b567fe08f278dccddf2a21bd6624bde3c087c0"
+  },
+  "derivation_report": {
+    "path": "${RAC_REPO_ROOT}/docs/evidence/sunburst-guitar-ai-v2-input-lineage.json",
+    "sha256": "c3512cc41d0c0abc3705a380d2ba4b3650180e0917b4da55e41f40f615bf5b81"
+  },
+  "inputs": [
+    {
+      "view": "front",
+      "path": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/sunburst-guitar/turnaround-v2/front.png",
+      "sha256": "dc55ea328f59e59a0700594ea9d5e434d941c31339f434f9594bb2756aa4f5ba"
+    },
+    {
+      "view": "left",
+      "path": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/sunburst-guitar/turnaround-v2/left-side.png",
+      "sha256": "2b849c8d5f43736bee35c543f46651a574225f531f4f89c8e6c9ef0cb9b48c14"
+    },
+    {
+      "view": "back",
+      "path": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/sunburst-guitar/turnaround-v2/back.png",
+      "sha256": "f05df07f45e73d9df6270079c8754404e37fa1cec8eb56f05438225e3f43dd7a"
+    }
+  ],
+  "parameters": {
+    "seed": 42,
+    "steps": 40,
+    "octree_resolution": 512,
+    "chunks": 20000
+  },
+  "output_directory": "${RAC_REPO_ROOT}/work/sunburst-guitar-ai-v2/candidates/hy3d-mv-seed42-attempt001"
+}

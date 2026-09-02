@@ -1,0 +1,26 @@
+{
+  "asset_id": "office-chair-ai-v2",
+  "kind": "static_prop",
+  "articulation": "static",
+  "skeleton_profile": null,
+  "source": {
+    "authority_fbx": "work/office-chair-ai-v2/textures/hy3d21-attempt005-fixed-uv/chair.obj",
+    "note": "The exact 18,000-triangle, topology-locked OBJ from the Ayric-approved Hunyuan3D-Paint attempt. The 4096 BaseColor is the retained pre-downsample parent of the approved 2048 map; no repainting or geometry reinterpretation is permitted.",
+    "reference_authority": "work/office-chair-ai-v2/references/primary.png"
+  },
+  "material_textures": {
+    "Material": {
+      "BaseColor": "work/office-chair-ai-v2/textures/hy3d21-attempt005-fixed-uv/diagnostics/post-inpaint-albedo.png"
+    }
+  },
+  "normalize": {
+    "mesh_name": "SM_OfficeChairAiV2",
+    "target_height_m": 1.019,
+    "target_height_reason": "The accepted generated mesh is 1.993 m tall. The checked chair recipe's independent knee-height and manufactured-base measurements both establish 1.019 m as the physical target.",
+    "recenter": true,
+    "yaw_degrees": 0.0,
+    "material_renames": {
+      "Material": "M_OfficeChairAiV2"
+    }
+  }
+}

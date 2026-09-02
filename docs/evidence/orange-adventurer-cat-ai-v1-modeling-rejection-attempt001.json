@@ -1,0 +1,27 @@
+{
+  "schema": "reference-asset-compiler.modeling-rejection.v1",
+  "asset_id": "orange-adventurer-cat-ai-v1",
+  "attempt": "hy3d-mv-seed241-attempt001",
+  "candidate_sha256": "bde3c810bd4d7f904dc62880a6dc1f7955e997c408b8bc8255962e5da6d44370",
+  "source_sha256": "0a581d91ed58aaadfbf882f989b3b6c44df37fbd2fad1dc9ed37258c34e5b553",
+  "status": "rejected",
+  "reason": "Fixed front, side, and back views prove two distinct tails. The source has exactly one tail. Removing one downstream would be an unapproved semantic reconstruction, not cleanup.",
+  "views": [
+    {
+      "view": "front",
+      "sha256": "46a240ebbac49d41344b9258f8e2a5dce21b436b49400fbc0842bf0882ce0fb4"
+    },
+    {
+      "view": "three-quarter",
+      "sha256": "2b38a21802e5a44e245f22b987548bd62f1edcb75c6aa3fa2f7c7ad90638226b"
+    },
+    {
+      "view": "side",
+      "sha256": "405882ba62d6d649e7474ff53bbe5558ec94c220e5939dcec4b4117813b55c74"
+    },
+    {
+      "view": "back",
+      "sha256": "3e194ae23268a4ea11629e7be3f0200b632ae9f2fcdcc9179a4c5bd2a8cbd0fe"
+    }
+  ]
+}

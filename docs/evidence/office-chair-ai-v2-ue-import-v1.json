@@ -1,0 +1,36 @@
+{
+  "schema": "reference-asset-compiler.checkpoint.v1",
+  "asset_id": "office-chair-ai-v2",
+  "recorded_at": "2026-09-01T08:34:00-06:00",
+  "status": "ue5_import_passed_runtime_review_pending",
+  "production": {
+    "triangles": 18000,
+    "height_m": 1.019,
+    "atlas_size": 4096,
+    "texel_density_per_cm2": 427.8,
+    "baked_light_correlation": 0.344995806763418,
+    "uv_islands_warning": 582,
+    "fbx_sha256": "ba446f9d387cca9ca5940aa0942569c9979563299d58731897379ab67eed67ad",
+    "base_color_sha256": "b4974a074f68166e14a5f967ae95bf0243aea1c335613bb44218df72bb528431",
+    "texture_gate_sha256": "36c8f1f69320735d41a3bd01df57a6bd94d6dc734363cfc1f70d94628bd9c167"
+  },
+  "ue5": {
+    "engine_version": "5.8.2-56702186+++UE5+Release-5.8",
+    "manifest_sha256": "4a2db3b85d824736cd5e1f7da3de780aace13104d16d7c384de8e17fb4fb7473",
+    "import_evidence_sha256": "24a632fd9d73dbf23a5c63f44e3bdcc58dc52ec8da6a18cbad51872481846558",
+    "map": "/Game/Compiled/L_RacGallery",
+    "map_sha256": "a22a763a67fdbe48fb92cbde032e3414bfe6b53677877f9ed61f98b916396dca",
+    "review_frame_sha256": "471ae2554dbf170e1f440fb2806c9a8191f5068ff191d2c247869c1cc2e9d89c",
+    "checks": {
+      "import_scale_cm": 101.9,
+      "material_assigned": true,
+      "declared_textures_sampled": true,
+      "lod_count": 3
+    }
+  },
+  "human_gates": {
+    "texture_approval": "passed_by_Ayric",
+    "ue5_runtime_review": "pending_Ayric_review_of_live_editor_and_frame",
+    "cook": "blocked_by_runtime_review_contract"
+  }
+}

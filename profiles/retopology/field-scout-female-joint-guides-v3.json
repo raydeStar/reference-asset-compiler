@@ -1,0 +1,22 @@
+{
+  "schema": "reference-asset-compiler.joint-ring-guides.v1",
+  "asset_id": "field-scout-female-ai-v4",
+  "source_sha256": "d341bf83f320af6830da09acd9026aa19ba3eb78b4724587d2a695fa6577068b",
+  "coordinate_space": "source_object_local_meters",
+  "samples_per_ring": 32,
+  "rings": [
+    {"id": "neck", "center": [0.0, 0.0, 0.66], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.20},
+    {"id": "right_upper_arm_support", "center": [0.2915, 0.055, 0.3326], "axis": [0.615, 0.0, -0.788], "cast_radius": 0.16},
+    {"id": "left_upper_arm_support", "center": [-0.2953, 0.055, 0.3336], "axis": [-0.615, 0.0, -0.788], "cast_radius": 0.16},
+    {"id": "right_elbow", "center": [0.3508, 0.034, 0.1893], "axis": [0.615, 0.0, -0.788], "cast_radius": 0.16},
+    {"id": "left_elbow", "center": [-0.3575, 0.0342, 0.1856], "axis": [-0.615, 0.0, -0.788], "cast_radius": 0.16},
+    {"id": "right_wrist", "center": [0.4666, 0.0102, 0.003], "axis": [0.615, 0.0, -0.788], "cast_radius": 0.12},
+    {"id": "left_wrist", "center": [-0.4712, 0.0125, 0.004], "axis": [-0.615, 0.0, -0.788], "cast_radius": 0.12},
+    {"id": "right_upper_thigh_support", "center": [0.1454, -0.0024, -0.181], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.16},
+    {"id": "left_upper_thigh_support", "center": [-0.1454, -0.0049, -0.1785], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.16},
+    {"id": "right_knee", "center": [0.15, 0.0, -0.43], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.16},
+    {"id": "left_knee", "center": [-0.155, 0.0, -0.43], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.16},
+    {"id": "right_ankle", "center": [0.1457, 0.0553, -0.7626], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.13},
+    {"id": "left_ankle", "center": [-0.1518, 0.0566, -0.7613], "axis": [0.0, 0.0, 1.0], "cast_radius": 0.13}
+  ]
+}

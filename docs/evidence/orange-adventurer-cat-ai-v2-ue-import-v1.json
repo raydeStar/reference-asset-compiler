@@ -1,0 +1,264 @@
+{
+  "schema": "reference-asset-compiler.ue5-import.v1",
+  "asset_id": "orange-adventurer-cat-ai-v2",
+  "production_asset_id": "orange-adventurer-cat-ai-v2-production",
+  "recipe": "recipes/orange-adventurer-cat-ai-v2-production.json",
+  "recipe_sha256": "4dab73785df614db55394d164cc9b7d8c8b439b02c40c35faefb889626fcfebf",
+  "compile": {
+    "source_authority": "work/orange-adventurer-cat-ai-v2/rig/mascot-v1-attempt001/orange-adventurer-cat-ai-v2_rigged.fbx",
+    "source_authority_sha256": "37d37adfb03cf8c544196a8a97a8aa3760a2cae414825f1627e7852487fbe56d",
+    "fbx_sha256": "04078567b8e45575348bad3f6c9fb49779ce1ba313f89955fb4fd4931b91eac6",
+    "manifest_sha256": "8688ea2eb49b02cb48467976ed430278072f3f11f60e4fe0940068fb7ae4339d",
+    "height_cm_in_ue5": 180.0,
+    "bone_count_blender": 26,
+    "total_tris": 20000,
+    "orm": "R constant 1.0 (no AO bake), G accepted roughness, B accepted metallic; prod-v1/orm-pack-report.json"
+  },
+  "engine_version": "5.8.2-56702186+++UE5+Release-5.8",
+  "import": {
+    "package_root": "/Game/Compiled/OrangeAdventurerCatAiV2Production",
+    "imported_height_cm": 180.0,
+    "material_slots": [
+      "M_OrangeAdventurerCatAiV2_Body"
+    ],
+    "textures_used": [
+      "DefaultNormal",
+      "T_OrangeAdventurerCatAiV2Body_BaseColor",
+      "T_OrangeAdventurerCatAiV2Body_ORM"
+    ],
+    "lod_count": 3,
+    "checks": [
+      {
+        "check": "bone_count",
+        "ok": true,
+        "detail": "not exposed to Python in this engine version; skipped"
+      },
+      {
+        "check": "import_scale",
+        "ok": true,
+        "detail": "imported 180.0 cm, manifest expected 180.0 cm"
+      },
+      {
+        "check": "materials_assigned",
+        "ok": true,
+        "detail": "slots: ['M_OrangeAdventurerCatAiV2_Body']; expected materials from ['M_OrangeAdventurerCatAiV2_Body']"
+      },
+      {
+        "check": "materials_textured",
+        "ok": true,
+        "detail": "material samples 3 textures; manifest textures not sampled: none"
+      },
+      {
+        "check": "lods_built",
+        "ok": true,
+        "detail": "engine reports 3 LODs, manifest declared 3"
+      },
+      {
+        "check": "texture_settings",
+        "ok": true,
+        "detail": "all correct"
+      }
+    ],
+    "ok": true
+  },
+  "ledger": {
+    "ue5_import": "2026-09-01T22:08:17.230550+00:00",
+    "evidence": "work/orange-adventurer-cat-ai-v2/validation/ue5-import.json"
+  },
+  "gallery": {
+    "level": "/Game/Compiled/L_RacGallery",
+    "cat_placement": [
+      {
+        "asset": "/Game/Compiled/OrangeAdventurerCatAiV2Production/orange-adventurer-cat-ai-v2-production.orange-adventurer-cat-ai-v2-production",
+        "x_cm": 480.0
+      }
+    ],
+    "characters_placed": 7,
+    "props_placed": 8,
+    "fox_removed": "Ayric retired the fox mascot on 2026-09-01; its recipe, out/ packages and UE content were removed and the gallery rebuilt with 7 skeletal characters."
+  },
+  "idle_retarget": {
+    "script": "scripts/ue5/setup_gallery_playable.py",
+    "source_mesh": "/Game/Characters/Mannequins/Meshes/SKM_Manny_Simple",
+    "idle": "/Game/Characters/Mannequins/Anims/Unarmed/MM_Idle",
+    "manny_chains": {
+      "Spine": [
+        "spine_01",
+        "spine_05"
+      ],
+      "Head": [
+        "neck_01",
+        "head"
+      ],
+      "LeftClavicle": [
+        "clavicle_l",
+        "clavicle_l"
+      ],
+      "RightClavicle": [
+        "clavicle_r",
+        "clavicle_r"
+      ],
+      "LeftArm": [
+        "upperarm_l",
+        "hand_l"
+      ],
+      "RightArm": [
+        "upperarm_r",
+        "hand_r"
+      ],
+      "LeftLeg": [
+        "thigh_l",
+        "ball_l"
+      ],
+      "RightLeg": [
+        "thigh_r",
+        "ball_r"
+      ]
+    },
+    "cat": {
+      "rig": "/Game/Compiled/Retargeted/r20260901164349/Rigs/IK_RAC_OrangeAdventurerCatAiV2Production.IK_RAC_OrangeAdventurerCatAiV2Production",
+      "chains": {
+        "Spine": [
+          "spine_01",
+          "spine_03"
+        ],
+        "Head": [
+          "neck_01",
+          "head"
+        ],
+        "LeftClavicle": [
+          "clavicle_l",
+          "clavicle_l"
+        ],
+        "RightClavicle": [
+          "clavicle_r",
+          "clavicle_r"
+        ],
+        "LeftArm": [
+          "upperarm_l",
+          "hand_l"
+        ],
+        "RightArm": [
+          "upperarm_r",
+          "hand_r"
+        ],
+        "LeftLeg": [
+          "thigh_l",
+          "foot_l"
+        ],
+        "RightLeg": [
+          "thigh_r",
+          "foot_r"
+        ]
+      },
+      "retargeter": "/Game/Compiled/Retargeted/r20260901164349/Rigs/RTG_RAC_Manny_to_OrangeAdventurerCatAiV2Production_limbsaligned.RTG_RAC_Manny_to_OrangeAdventurerCatAiV2Production_limbsaligned",
+      "idle": "/Game/Compiled/Retargeted/r20260901164349/Anims/MM_Idle_OrangeAdventurerCatAiV2Production_limbsaligned.MM_Idle_OrangeAdventurerCatAiV2Production_limbsaligned",
+      "notes": [
+        "op:IKRetargetPelvisMotionOp",
+        "op:IKRetargetFKChainsOp",
+        "auto_align_bones(limbs only)",
+        "pelvis track rescaled by 0.0100 over 228 keys (ancestor scale 100.0); ancestor tracks removed: ['root']",
+        "chosen limbsaligned by policy; mismatch vs Manny {'refpose': 19.6, 'limbsaligned': 6.0, 'allaligned': 6.3}",
+        "retargeted pelvis frame0 local=(0.009,-0.007,0.488) ancestor scale 100.0 -> 48.8 cm from parent"
+      ],
+      "unmapped_target_bones_note": "tail chain intentionally absent",
+      "ok": true
+    },
+    "all_characters_ok": true,
+    "characters": [
+      {
+        "actor": "field-scout-female",
+        "profile": "ue5_manny",
+        "ok": true,
+        "idle": "/Game/Compiled/Retargeted/r20260901164349/Anims/MM_Idle_FieldScoutFemale_limbsaligned.MM_Idle_FieldScoutFemale_limbsaligned",
+        "retarget_pose_variant": "limbsaligned",
+        "pose_mismatch_deg": {
+          "refpose": 13.9,
+          "limbsaligned": 3.2,
+          "allaligned": 0.3
+        }
+      },
+      {
+        "actor": "field-scout-female-production",
+        "profile": "ue5_manny",
+        "ok": true,
+        "idle": "/Game/Compiled/Retargeted/r20260901164349/Anims/MM_Idle_FieldScoutFemaleProduction_limbsaligned.MM_Idle_FieldScoutFemaleProduction_limbsaligned",
+        "retarget_pose_variant": "limbsaligned",
+        "pose_mismatch_deg": {
+          "refpose": 13.9,
+          "limbsaligned": 3.2,
+          "allaligned": 0.3
+        }
+      },
+      {
+        "actor": "field-scout-male",
+        "profile": "ue5_manny",
+        "ok": true,
+        "idle": "/Game/Compiled/Retargeted/r20260901164349/Anims/MM_Idle_FieldScoutMale_limbsaligned.MM_Idle_FieldScoutMale_limbsaligned",
+        "retarget_pose_variant": "limbsaligned",
+        "pose_mismatch_deg": {
+          "refpose": 12.2,
+          "limbsaligned": 4.6,
+          "allaligned": 1.2
+        }
+      },
+      {
+        "actor": "field-scout-male-production",
+        "profile": "ue5_manny",
+        "ok": true,
+        "idle": "/Game/Compiled/Retargeted/r20260901164349/Anims/MM_Idle_FieldScoutMaleProduction_limbsaligned.MM_Idle_FieldScoutMaleProduction_limbsaligned",
+        "retarget_pose_variant": "limbsaligned",
+        "pose_mismatch_deg": {
+          "refpose": 12.2,
+          "limbsaligned": 4.6,
+          "allaligned": 1.2
+        }
+      },
+      {
+        "actor": "ninja-man",
+        "profile": "ue4_mannequin",
+        "ok": true,
+        "idle": "/Game/Compiled/Retargeted/r20260901164349/Anims/MM_Idle_NinjaMan_limbsaligned.MM_Idle_NinjaMan_limbsaligned",
+        "retarget_pose_variant": "limbsaligned",
+        "pose_mismatch_deg": {
+          "refpose": 23.0,
+          "limbsaligned": 2.3,
+          "allaligned": 1.6
+        }
+      },
+      {
+        "actor": "ninja-man-production",
+        "profile": "ue4_mannequin",
+        "ok": true,
+        "idle": "/Game/Compiled/Retargeted/r20260901164349/Anims/MM_Idle_NinjaManProduction_limbsaligned.MM_Idle_NinjaManProduction_limbsaligned",
+        "retarget_pose_variant": "limbsaligned",
+        "pose_mismatch_deg": {
+          "refpose": 22.6,
+          "limbsaligned": 2.3,
+          "allaligned": 1.6
+        }
+      },
+      {
+        "actor": "orange-adventurer-cat-ai-v2-production",
+        "profile": "mascot_biped_tail",
+        "ok": true,
+        "idle": "/Game/Compiled/Retargeted/r20260901164349/Anims/MM_Idle_OrangeAdventurerCatAiV2Production_limbsaligned.MM_Idle_OrangeAdventurerCatAiV2Production_limbsaligned",
+        "retarget_pose_variant": "limbsaligned",
+        "pose_mismatch_deg": {
+          "refpose": 19.6,
+          "limbsaligned": 6.0,
+          "allaligned": 6.3
+        }
+      }
+    ],
+    "retarget_pose_policy": "Three retarget poses were built per skeleton: reference pose, limbs auto-aligned to Manny, and all bones auto-aligned. All-bones alignment minimizes segment-direction mismatch versus Manny (0.3 to 1.6 degrees) but pitched every legacy face down, because those head and spine bones tilt differently from Manny while the faces already look forward. Limbs-only alignment is the policy: limb rest poses differ legitimately (the ninja rests near a T-pose) while spine, neck and head keep the reference pose.",
+    "root_scale_finding": "Compiled skeletons have a 100x ancestor scale above the pelvis with bone offsets in metres. The retargeter wrote the pelvis translation in centimetres into that space and emitted unit-scale tracks for the scaled ancestors, which at playback shrank each character to about 2 cm. setup_gallery_playable.py measures the factor, omits IK ops, rescales the pelvis track by 0.01 over 228 keys, strips the ancestor tracks, and composes each pose from the animation data to check it."
+  },
+  "playable": {
+    "game_mode": "/Game/ThirdPerson/Blueprints/BP_ThirdPersonGameMode (Third Person template, copied from UE 5.8 TemplateResources with its Input pack)",
+    "player_start": "(0, 620, 90) facing -Y, placed by build_gallery_level.py",
+    "launch": "UnrealEditor.exe work/ue5-validate/RacValidate.uproject -game -windowed -ResX=1920 -ResY=1080 -NoTextureStreaming"
+  },
+  "status": "ue5_import_passed_awaiting_human_motion_review",
+  "next_action": "Ayric walks the gallery as Manny and judges each character's retargeted idle and the cat's texture in-engine; record_ue5_motion_review then needs two clean animation runs and reviewed in-engine frames before cook."
+}

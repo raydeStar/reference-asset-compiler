@@ -1,0 +1,9 @@
+{
+  "schema_version": 1,
+  "asset_id": "example-weathered-sword",
+  "asset_slug": "example-weathered-sword",
+  "asset_kind": "static_prop",
+  "articulation": "static",
+  "candidate_adapters": ["pixal3d", "trellis2", "hunyuan3d_2_1"],
+  "source": {"primary_view": "three-quarter", "path": "references/primary.png", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"}
+}

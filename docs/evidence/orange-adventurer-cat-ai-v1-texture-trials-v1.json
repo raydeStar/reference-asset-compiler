@@ -1,0 +1,47 @@
+{
+  "schema": "reference-asset-compiler.texture-trials.v1",
+  "asset_id": "orange-adventurer-cat-ai-v1",
+  "reference_sha256": "0a581d91ed58aaadfbf882f989b3b6c44df37fbd2fad1dc9ed37258c34e5b553",
+  "approved_retopology_sha256": "84fd22ee72cedefb14e64e7d55f85eb1ad0abca21a5ba0cb616d286963bf32f1",
+  "trials": [
+    {
+      "id": "uv-v1-attempt001",
+      "report_sha256": "5387048df429912702a54bb0872e5dd3f409b13c4f60ee257b525b36e9f9b833",
+      "status": "rejected",
+      "reason": "The OBJ transport contained 19,997 triangles while the approved BLEND triangulated to 20,000. The stop was retained until the discrepancy was diagnosed."
+    },
+    {
+      "id": "uv-v1-attempt002",
+      "report_sha256": "8c6a67816365190a989c1873f21552b3f939c4c77e546ac6eabaa681f8774415",
+      "status": "diagnostic_reject",
+      "reason": "The accepted surface contains five duplicate triangle pairs. Blender OBJ export removed three redundant copies, but the validator did not yet distinguish duplicate faces from unique surface loss."
+    },
+    {
+      "id": "uv-v1-attempt003",
+      "report_sha256": "7c4810745a07c3e5346a01315d9c9f438cdfe4ddce32fd5351779983316b8323",
+      "status": "passed",
+      "reason": "Smart Project produced complete finite 0-1 UVs without moving geometry. OBJ transport removed only three of five measured duplicate triangles and stayed within 0.000000871 m symmetric vertex delta."
+    },
+    {
+      "id": "hy3d21-attempt001",
+      "backend": "Hunyuan3D-Paint 2.1",
+      "validation_sha256": "66ecfd347e7b096f0dd0d43708887ee1a0e16758863c05052d77d0b1a79fa0e3",
+      "candidate_glb_sha256": "bbe26b4042dae1b1015320ab32b669cfd38be007eb811e86a806471c4c84f6bf",
+      "basecolor_sha256": "4c89d7059c90fb64895b4c13bf2037c7f1accfabee124ba74b8ecc8172c8c05f",
+      "metallic_sha256": "2a49e871086a69e741867b509bd5ba6f341b36607f24702d223091468f6ad13d",
+      "roughness_sha256": "a8b7ae6f5295820396c9fc18e435420c87b0cc1991993d2633943249c42c51a7",
+      "vertices": 16327,
+      "triangles": 19997,
+      "faces_equal": true,
+      "geometry_delta_m": 1.466686496930845e-7,
+      "uv_delta": 5.336801227874062e-8,
+      "views": 6,
+      "resolution": 512,
+      "status": "awaiting_ayric_texture_review",
+      "reason": "The original cat image directly conditioned existing-mesh PBR mapping. Four lit fixed views show coherent face, clothing, gear, backpack, sword, boots, and striped-tail coverage. Fur saturation is paler than the reference and rear treatment is inferred; human review retains veto power.",
+      "runtime_note": "The runner wrote and validated all outputs, then upstream teardown returned Windows status -1073741819. No retry was attempted."
+    }
+  ],
+  "texture_status": "awaiting_human_review",
+  "next_action": "Ayric must pass or reject the four lit fixed views. A pass advances production packaging, texture gates, rigging, deformation, and UE import; a reject must name the visible defect before any bounded correction."
+}

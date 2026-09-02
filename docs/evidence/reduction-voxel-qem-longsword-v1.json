@@ -1,0 +1,57 @@
+{
+  "schema": "reference-asset-compiler.reduction-review.v1",
+  "recorded_local_date": "2026-08-31",
+  "asset": "weathered-longsword",
+  "source": {
+    "path": "${RAC_LEGACY_ROOT}/output/repro-v1-20260830/props/weathered-longsword/weathered-longsword-pixal3d-1024.glb",
+    "sha256": "b054705f79a6cc2a77c240229ad011fe68f6736bc87402ba54c196bcab89f3ff",
+    "triangles": 977341,
+    "boundary_edges": 543608,
+    "nonmanifold_edges": 543611
+  },
+  "candidate": {
+    "work_path": "work/voxel-qem-longsword-20k-v1/voxel-qem-candidate.glb",
+    "sha256": "1f92069728cfbe4787676f36ba797b9c0021d0ea0ee996695b2693157c299e44",
+    "triangles": 18000,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "finite_coordinates": true
+  },
+  "settings": {
+    "backend": "Blender voxel remesh then collapse QEM",
+    "voxel_resolution": 420,
+    "smooth_iterations": 5,
+    "smooth_lambda": 0.28,
+    "target_triangles": 18000,
+    "triangle_budget": 20000
+  },
+  "comparison_authority": {
+    "path": "${RAC_LEGACY_ROOT}/output/repro-v1-20260830/props/weathered-longsword/weathered-longsword-game-retopo.glb",
+    "sha256": "63893407a0e480d6bca64324cb237aae90a8fee96a93e40c7087567536d28b18",
+    "triangles": 48000
+  },
+  "fixed_view_matcap_sha256": {
+    "candidate_front": "8d15b11ae009e191bcd85f5d24cbf686b79686107df411b2b417d438ed4facf4",
+    "candidate_three_quarter": "8e1d017608137f221af38d70af554c8001a68ee7d63abaaeecc7fa4adb4268bf",
+    "candidate_side": "5c625ee7a7987b8439ad7f2a5cb4db22f2edb8b044b4e85eba761ecf53405b2a",
+    "candidate_back": "35f6f2049d1f3481afcdda8a179c85d5d8cc130a260eb3f88bbeec5445af9952",
+    "legacy_front": "8e22876bfacc6e66b1592e8373a9c5e7d2121f5687be50247276b31d7243ee70",
+    "legacy_three_quarter": "850e78329ae2205a38af709491905a3b719ec4ee407615e21cc852fcea1b3ad3",
+    "legacy_side": "aa3222640ee760be7fabd8d615cecc5a78a3627ed41e5128b6c8ca24c63b0ef5",
+    "legacy_back": "e2c15998ce6fb812f32be7537f7d46f44e0b0a834adf1c4fd6a4811dec10d4dc"
+  },
+  "review": {
+    "status": "agent_visual_pass_pending_human_modeling_approval",
+    "reviewed_by": "codex",
+    "reason": "At 512 px fixed clay views, the 18k candidate retains the accepted 48k blade profile, fuller, crossguard, wrapped grip, pommel, and side-view thickness. This is not texture approval or user modeling approval."
+  },
+  "remaining_gates": [
+    "human_modeling_approval",
+    "dense_to_runtime_uv_and_texture_bake",
+    "texture_fixed_view_review",
+    "ue5_import",
+    "collision_review",
+    "cooked_runtime"
+  ],
+  "production_grade": false
+}

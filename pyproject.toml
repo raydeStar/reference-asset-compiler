@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling>=1.26"]
+build-backend = "hatchling.build"
+
+[project]
+name = "reference-asset-compiler"
+version = "0.1.0"
+description = "Evidence-gated orchestration for reference-image to game-ready 3D assets"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { file = "LICENSE" }
+authors = [{ name = "Ayric" }]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "License :: OSI Approved :: MIT License",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+]
+dependencies = ["numpy>=1.26", "Pillow>=10.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8.3", "jsonschema>=4.23", "ruff>=0.9"]
+
+[project.scripts]
+rac = "reference_asset_compiler.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/reference_asset_compiler"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+# Declared, not inherited. Ruff's default rule set changes between releases,
+# and the dependency below is a floor rather than a pin -- so CI silently
+# started enforcing rules the working tree had never been checked against,
+# and a green local run pushed a red build. Enforce a fixed set instead:
+# real errors and undefined names, which is what a linter is for here.
+#
+# pyupgrade is deliberately absent. These modules are written in .format()
+# style throughout, including the 34 stage files that run inside Blender's
+# and Unreal's own interpreters, and rewriting all of them to f-strings
+# would be a diff nobody can review in exchange for nothing.
+select = ["E4", "E7", "E9", "F"]
+
+[tool.ruff.lint.per-file-ignores]
+# The tests put src/ on sys.path before importing the package, so that they run
+# from a clean checkout without an editable install. The import cannot come
+# first.
+"tests/*" = ["E402"]
+# The Blender stages are executed by Blender's own interpreter via
+# `blender --python`, which supplies `bpy` and friends. They are linted for
+# real mistakes, not for imports this environment cannot resolve.
+"scripts/blender/*" = ["E402"]

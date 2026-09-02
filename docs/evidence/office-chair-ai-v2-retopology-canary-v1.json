@@ -1,0 +1,57 @@
+{
+  "schema": "reference-asset-compiler.retopology-canary-review.v1",
+  "asset": "office-chair-ai-v2",
+  "input": {
+    "path": "work/office-chair-ai-v2/cleanup/semantic-v1-attempt001/cleaned.blend",
+    "sha256": "838b046a3a924aa9f2dd7036edeb1a39a4ebadb6e449892082b6d14735ddabdb",
+    "triangles": 1122897
+  },
+  "attempts": [
+    {
+      "attempt": "voxel-qem-attempt001",
+      "status": "failed_preflight",
+      "reason": "The reducer rejected the required native BLEND cleanup authority. This exposed and retained an adapter integration defect; no asset output was produced."
+    },
+    {
+      "attempt": "voxel-qem-attempt002",
+      "status": "mechanical_pass_diagnostic_only",
+      "reason": "Native BLEND input support worked, but the reducer still emitted the older challenger report schema and could not satisfy the production retopology receipt contract."
+    },
+    {
+      "attempt": "voxel-qem-attempt003",
+      "status": "passed",
+      "settings": {
+        "triangle_budget": 20000,
+        "target_triangles": 18000,
+        "voxel_resolution": 420,
+        "smooth_iterations": 5,
+        "smooth_lambda": 0.28
+      },
+      "output": {
+        "path": "work/office-chair-ai-v2/retopo/voxel-qem-attempt003/voxel-qem-candidate.glb",
+        "sha256": "975f958d2503f9ef762f03e96ec4d46ba4c59cbf8166a497411ff0f4bb281531",
+        "native_blend_sha256": "5965c87a5b04c6aad350081719d1a7b61599feec6161897ab274b93dc7e3d605",
+        "report_sha256": "da0253c0cf3d8121eba114220b63485a3cc091240e5175ac058e30c9c07341a3",
+        "vertices": 8992,
+        "triangles": 18000,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "fixed_views": {
+        "front": "206e7ab4e231d912ca04aaec26d9a44c4d5532fbd9301084887fde0885bb2ab8",
+        "three-quarter": "966a552c03667a38fdd100bced9593f7880e4eb7ff0d43cba2075f45bc56ee54",
+        "side": "e8c7a03c39335270c245bf46463dcb30a4220d8c99767577b79ece77d30a075f",
+        "back": "19b3de46f9f9d72cb569ee30eb4a8b7752c690a3596205b7247ee85b4b6b0b2a"
+      },
+      "agent_visual_assessment": "The same-camera authority/candidate comparison preserves the approved silhouette, cushion and back proportions, armrests, pedestal, five-star base, and caster read. Small fastener dimples and minor underside irregularities soften.",
+      "human_decision": {
+        "approved_by": "Ayric",
+        "status": "passed",
+        "receipt_sha256": "e77be9785ee48cd8db66de605dea60cadecaf8eeaf088eab1c7022002e19e360"
+      }
+    }
+  ],
+  "production_retopology_status": "passed",
+  "next_action": "Use the exact approved mesh and its completed UV/AO derivative for image-conditioned texture mapping. Do not reconstruct or repaint the chair by eye in Blender.",
+  "production_grade": false
+}

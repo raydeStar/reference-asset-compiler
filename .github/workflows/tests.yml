@@ -1,0 +1,42 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  contract-tests:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.11', '3.12']
+    steps:
+      # Pin action releases to commits. Floating tags make every CI run an
+      # unreviewed supply-chain update.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: pip
+      - run: python -m pip install -e ".[dev]"
+      - run: python -m pytest
+      # scripts/ is the pipeline itself and is where nearly all the work is.
+      # Linting only src/ meant a syntax error in a stage was found by running
+      # it, several minutes into a build.
+      - run: python -m ruff check src tests scripts
+      # The Blender and Unreal stages cannot be imported off-host. They can be
+      # parsed, and that is the check that matters: Blender reports a script
+      # that raised the same way it reports one that succeeded.
+      - run: python scripts/check_stage_syntax.py
+      - run: python -m pip wheel . --no-deps --wheel-dir dist

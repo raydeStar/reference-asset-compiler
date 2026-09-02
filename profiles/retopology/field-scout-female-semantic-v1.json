@@ -1,0 +1,42 @@
+{
+  "schema": "reference-asset-compiler.semantic-retopology-profile.v1",
+  "asset_id": "field-scout-female-ai-v4",
+  "source_sha256": "d341bf83f320af6830da09acd9026aa19ba3eb78b4724587d2a695fa6577068b",
+  "coordinate_space": "source_object_local_meters",
+  "regions": [
+    {
+      "id": "body",
+      "seed": [0.0, 0.0, 0.1],
+      "target_faces": 6500,
+      "cuts": [
+        {"seam": "scarf", "point": [0.0, 0.0, 0.66], "normal": [0.0, 0.0, 1.0], "keep": "negative"},
+        {"seam": "right_cuff", "point": [0.44, 0.0, -0.05], "normal": [0.615, 0.0, -0.788], "keep": "negative"},
+        {"seam": "left_cuff", "point": [-0.445, 0.0, -0.05], "normal": [-0.615, 0.0, -0.788], "keep": "negative"}
+      ]
+    },
+    {
+      "id": "head_hair",
+      "seed": [0.0, 0.0, 0.8],
+      "target_faces": 1800,
+      "cuts": [
+        {"seam": "scarf", "point": [0.0, 0.0, 0.66], "normal": [0.0, 0.0, 1.0], "keep": "positive"}
+      ]
+    },
+    {
+      "id": "right_hand",
+      "seed": [0.5447, -0.0059, -0.0965],
+      "target_faces": 350,
+      "cuts": [
+        {"seam": "right_cuff", "point": [0.44, 0.0, -0.05], "normal": [0.615, 0.0, -0.788], "keep": "positive"}
+      ]
+    },
+    {
+      "id": "left_hand",
+      "seed": [-0.55, -0.0059, -0.0965],
+      "target_faces": 350,
+      "cuts": [
+        {"seam": "left_cuff", "point": [-0.445, 0.0, -0.05], "normal": [-0.615, 0.0, -0.788], "keep": "positive"}
+      ]
+    }
+  ]
+}

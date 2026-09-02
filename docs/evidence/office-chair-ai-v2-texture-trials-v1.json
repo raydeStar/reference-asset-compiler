@@ -1,0 +1,128 @@
+{
+  "schema": "reference-asset-compiler.texture-trials.v1",
+  "asset": "office-chair-ai-v2",
+  "active_gate": "texture_approval",
+  "production_mesh": {
+    "path": "work/office-chair-ai-v2/bake/uv-bake-attempt004/cleaned_retopo.fbx",
+    "sha256": "ba0c66facc5078ebf826dc9bab9dccb537f1686915908d6a67ce657eda2cc140",
+    "triangles": 18000
+  },
+  "texture_transport": {
+    "path": "work/office-chair-ai-v2/bake/uv-bake-attempt004/texture-transport/chair.obj",
+    "sha256": "ef37db76a837e1ec8ca61c954d4e9ef93eb2859f8a7e2ca4a349e61141fa54d8",
+    "report": "work/office-chair-ai-v2/bake/uv-bake-attempt004/texture-transport/transport-report.json",
+    "status": "passed",
+    "triangles": 18000,
+    "maximum_symmetric_vertex_delta_m": 8.690072945682914e-07
+  },
+  "attempts": [
+    {
+      "attempt": "hy3d21-attempt001",
+      "method": "Hunyuan3D-Paint 2.1",
+      "status": "failed_preflight",
+      "reason": "The upstream loader does not support FBX through trimesh. No model inference ran."
+    },
+    {
+      "attempt": "hy3d21-attempt002",
+      "method": "Hunyuan3D-Paint 2.1",
+      "status": "rejected_topology_uv_gate",
+      "reason": "The official pipeline reloaded OBJ with process=True and merged or reindexed vertices before the UV lock. The defect was diagnosed and fixed before one new attempt."
+    },
+    {
+      "attempt": "hy3d21-attempt003",
+      "method": "Hunyuan3D-Paint 2.1",
+      "status": "rejected_visual",
+      "reference_sha256": "878ed150e0aec1b1e03260fa4d2a3aaba0c1ff62d7ad499e9598837786932ba8",
+      "validation_sha256": "0199605232f01e187c89ef4185b66d8b05c17192c69479e54fccfbf7b017e2d0",
+      "output_glb_sha256": "95f9ad1990d6ad8ce533e610a54016458f9e0063f36628019bf2eb6329681fb8",
+      "basecolor_sha256": "c0d05f39c881cd0e93718cac29f59e1da82b6928ceb3e52f50f1831df976f263",
+      "beauty_three_quarter_sha256": "88ed9f61f349ee3a3e1894c01c0b20ce81bd1ad3193937e507dcf55b0139d152",
+      "mechanical_gate": {
+        "vertices": 9070,
+        "triangles": 18000,
+        "faces_equal": true,
+        "geometry_delta_m": 1.1170564637609549e-07,
+        "uv_delta": 4.669119304317186e-08
+      },
+      "reason": "The exact shell and UV transport passed, but fixed views showed washed-out upholstery, projection mosaics, large smears, and a diagonal atlas artifact. Later diagnostic capture proved the AI multiview images were coherent and the then-approved UV derivative had collapsed into a near-1D diagonal."
+    },
+    {
+      "attempt": "trellis2-attempt001",
+      "method": "TRELLIS.2 existing-mesh texturing",
+      "status": "rejected_visual",
+      "reference_sha256": "c4a9d38ff6fa61159c2139829935d2c1e9c45d4264d3334c235a85e5c6810058",
+      "validation_sha256": "7bef7e36080c4370c27db058a3b95a270c96380d9b1a0e19eb7e68da17ff7744",
+      "output_glb_sha256": "24cef254258f169e254dbd3d07f208d6e973fb7be85252b3be08225f7fdef5b7",
+      "beauty_three_quarter_sha256": "744a0a870cc32e6bee6540bdd48093c4ba6b8ba22a22651ca73f743799eccf6f",
+      "mechanical_gate": {
+        "vertices": 9070,
+        "triangles": 18000,
+        "faces_equal": true,
+        "geometry_delta_after_restore_m": 0.0,
+        "uv_exact_delta": 5.551115123125783e-17
+      },
+      "reason": "The exact shell and UVs passed, but fixed views show bleached cream upholstery, broad projection scars, speckling, and weak correspondence to the olive and black authority."
+    },
+    {
+      "attempt": "imagegen-atlas-attempt001",
+      "method": "reference-conditioned generative atlas edit",
+      "status": "rejected_uv_lock_preflight",
+      "output_sha256": "ae8457a2a8dc7de13b0be0700916e5e2846403034e68bb6a4934bd9004d8667e",
+      "output_dimensions": [1254, 1254],
+      "reason": "The generated image captures the target material family, but invents a conventional atlas and rearranges island boundaries and coordinates. It was rejected before mesh application."
+    },
+    {
+      "attempt": "hy3d21-attempt004-diagnostic",
+      "method": "Hunyuan3D-Paint 2.1 with intermediate correspondence capture",
+      "status": "diagnostic_only",
+      "finding": "Raw and enhanced AI views coherently map the approved chair reference, while the baked atlas covers only a diagonal sliver. The prior UV gate checked finiteness and 0-1 bounds but not two-dimensional utilization.",
+      "decision": "Replace the UV derivative and add area, nondegeneracy, and minor/major variance gates before one corrected paint attempt."
+    },
+    {
+      "attempt": "hy3d21-attempt005-fixed-uv",
+      "method": "Hunyuan3D-Paint 2.1 on corrected immutable UV transport",
+      "status": "human_visual_pass_mechanical_gate_failed",
+      "validation_sha256": "834dd5ad1070fd6aea44adbb1ca9030dc8f93bb88d507985f56ebe2024633cc0",
+      "output_glb_sha256": "28d3ec1f0fd7eb9332540c60c3e2d2139a4af870ba02f0a8e8acb184fae24599",
+      "basecolor_sha256": "16d95050a2b369e55fcba52ef9508c9c4756051a3fb58a84eb83075613393c6d",
+      "metallic_sha256": "4469de598835f470b104acfd46ca45e3ddfbe327777b2c311f11dd2574eb1476",
+      "roughness_sha256": "62b20a9da6a79c112fd1a9384b008b02292966a8ea0659a130bb0506788d0521",
+      "mechanical_gate": {
+        "transport_vertices": 13603,
+        "triangles": 18000,
+        "faces_equal": true,
+        "geometry_delta_m": 1.1170564637609549e-07,
+        "uv_delta": 5.3016825771012804e-08
+      },
+      "unlit_albedo_views": {
+        "front": "786944084f8106f54bf24fe29c1470b14e230728633124bdef3d193720b27883",
+        "three-quarter": "9379fc2ee435ccf88063ff32b2ae2922841d337582ec47b6c5b1958363e475eb",
+        "side": "998e0fb1331fd9e76589a21f2ecdebb8b8abdf54c88b044f4869e2382f4c848d",
+        "back": "f60c66db20944a6545d58337e3e57087d55b14bcdfba126305089f898af11340"
+      },
+      "agent_visual_assessment": "The corrected atlas removes the diagonal smear and projection mosaic. Unlit views coherently read as worn olive/yellow upholstery with dark supports and base, retaining the authority's cracks, stains, fasteners, and damaged material family.",
+      "human_visual_decision": {
+        "approved_by": "Ayric",
+        "status": "passed"
+      },
+      "production_texture_gate": {
+        "report_sha256": "3e51b0ff9d8d8574c31a778787e6cffc982597a929923a73e475ea70ca651f94",
+        "ok": false,
+        "texel_density_per_cm2": 27.9,
+        "required_floor": 90,
+        "uv_islands": 582,
+        "uv_island_limit_advisory": 300,
+        "baked_light_correlation": 0.344995806763418,
+        "baked_light_limit": 0.35
+      },
+      "scale_diagnosis": {
+        "candidate_height_m": 1.9933095574378967,
+        "target_height_m": 1.019,
+        "target_authority": "recipes/office-chair.json"
+      }
+    }
+  ],
+  "decision": "Attempt005 is visually approved by Ayric but is not ledger-approved because the production texel-density gate fails. Do not reconstruct or paint the reference by eye in Blender.",
+  "next_route": "Normalize the accepted mesh to the measured 1.019 m target and preserve the same AI mapping at 4096. Rerun the mechanical texture gate before promoting texture_approval.",
+  "production_grade": false
+}

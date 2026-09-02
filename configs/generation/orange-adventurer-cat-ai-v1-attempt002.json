@@ -1,0 +1,37 @@
+{
+  "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+  "asset_id": "orange-adventurer-cat-ai-v1",
+  "workspace": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1",
+  "source_authority": {
+    "path": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/primary.png",
+    "sha256": "0a581d91ed58aaadfbf882f989b3b6c44df37fbd2fad1dc9ed37258c34e5b553"
+  },
+  "derivation_report": {
+    "path": "${RAC_REPO_ROOT}/docs/evidence/orange-adventurer-cat-ai-v1-input-lineage-attempt002.json",
+    "sha256": "845595409f0fd4383c390fe81058fc748b3c4273c6b8c294b8d0562bf18268c3"
+  },
+  "inputs": [
+    {
+      "view": "front",
+      "path": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/turnaround-v1/front.png",
+      "sha256": "db2d1ee2b999da4909b208c240edc2935d26ff7206926cf3c046b5efe648694e"
+    },
+    {
+      "view": "left",
+      "path": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/turnaround-v1/left.png",
+      "sha256": "c94cf3f3e2299ee6f820220f1b6bef00177f8d4aa2de1dfbeec74983d7a19933"
+    },
+    {
+      "view": "back",
+      "path": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/turnaround-v1/back.png",
+      "sha256": "67b10c3dcdc1b6d3edf7c650170d6ad600ff533748ceb5282a3871dc19583afd"
+    }
+  ],
+  "parameters": {
+    "seed": 241,
+    "steps": 40,
+    "octree_resolution": 512,
+    "chunks": 20000
+  },
+  "output_directory": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/candidates/hy3d-mv-seed241-attempt002"
+}

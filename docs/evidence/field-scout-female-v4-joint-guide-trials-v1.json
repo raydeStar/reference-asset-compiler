@@ -1,0 +1,63 @@
+{
+  "schema": "reference-asset-compiler.joint-guide-trials.v1",
+  "asset_id": "field-scout-female-v4",
+  "source_sha256": "d341bf83f320af6830da09acd9026aa19ba3eb78b4724587d2a695fa6577068b",
+  "trials": [
+    {
+      "id": "joint-guides-v1-audit001",
+      "profile_sha256": "52357c5708a7f31ed32f5e2c7435010d944901b67c1d3af97ffef3c84202183b",
+      "audit_report_sha256": "3df7edf8b50b7c3719e4a106830dd0ad676c9fad17758383129a3a3c598b9051",
+      "decision": "rejected_projection",
+      "reason": "Outside-in projection crossed unrelated torso and limb surfaces, producing non-local guide strokes."
+    },
+    {
+      "id": "joint-guides-v2-audit001",
+      "profile_sha256": "cb2fd7c8699a3008ae13a23a4a4e027fd3a7f529e2f11352382cc0e4b8a0ea19",
+      "audit_report_sha256": "80718cb2f7adeb2a5172d3b26eff71472a12790e502f2e6cbd289db34b49ff59",
+      "decision": "rejected_landmarks",
+      "reason": "The hip rings wrapped the connected pelvis and read as waist-spanning bands rather than local deformation guides."
+    },
+    {
+      "id": "joint-guides-v3-audit001",
+      "profile_sha256": "8630d9ea2073a1811f2e36fc0042bb5c2f51739adb75a089d45b11b4385f062a",
+      "audit_report_sha256": "a0749471d58e608522e21bc93c130e0264b4ae867e3f38b02a5b48058a108425",
+      "decision": "accepted_for_single_solver_attempt",
+      "reason": "All reviewed rings stay on their intended local limb or neck surface; upper-thigh supports replace the invalid pelvis-spanning hip rings.",
+      "reviewed_views": {
+        "beauty-front.png": "137ad21fc8293a926960e81d30074c897b01cd61158b8b685be691243bfcd60b",
+        "beauty-three-quarter.png": "861ddb8f28e48f0e2ee6c910f0f26a4b2f00dd1324f87a74674c99a1ff44f2b1",
+        "beauty-side.png": "c7f997603ee9ef0b0287564cdfb5dd1efb63b0de195bb9ab2b5fc3d1adb4f895"
+      }
+    }
+  ],
+  "solver_attempts": [
+    {
+      "id": "guided-v3-attempt001",
+      "decision": "rejected_pre_solve",
+      "reason": "Remi smooth_curve rejects a visually closed stroke whose first and final samples resolve to the same face; orientation and position solving never started.",
+      "diagnosis": "The audit representation repeated the first ring hit as its terminal hit. Remi requires an open stroke representation even when the intended guide describes a closed joint band."
+    },
+    {
+      "id": "guided-v3-attempt002",
+      "decision": "rejected_solver_holes",
+      "reason": "The diagnosed open-stroke representation passed guide projection and completed orientation and position solving, but Remi extraction opened holes in the watertight source and rejected the result.",
+      "result": "No candidate mesh or mechanical report was emitted; the guided Remi route is retired without another retry."
+    }
+  ],
+  "solver_attempts_authorized": 2,
+  "route_decision": "retired_after_two_distinct_evidence_failures",
+  "downstream_cycle_trials": [
+    {
+      "id": "joint-aware-paired-qem-attempt001",
+      "decision": "rejected_pre_pairing",
+      "reason": "Independent shortest paths for adjacent neck anchors overlapped and formed a branched graph. No mesh was emitted. The corrected constructor forbids previously used ring vertices and future anchors so only a simple closed cycle can reach pairing."
+    },
+    {
+      "id": "joint-aware-paired-qem-attempt002",
+      "decision": "rejected_pre_pairing",
+      "reason": "After forbidding overlap and future-anchor crossings, the existing QEM edge graph had no local path connecting all neck anchors inside the audited band. No mesh was emitted and this reuse-existing-edges route is retired."
+    }
+  ],
+  "downstream_cycle_route_decision": "retired_existing_edges_cannot_supply_simple_local_joint_cycles",
+  "production_grade": false
+}

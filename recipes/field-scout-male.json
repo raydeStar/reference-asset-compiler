@@ -1,0 +1,41 @@
+{
+  "asset_id": "field-scout-male",
+  "kind": "humanoid",
+  "skeleton_profile": "ue5_manny",
+  "source": {
+    "authority_fbx": "${RAC_LEGACY_ROOT}/output/recovery-v2/gallery/face-repair/male-v1/export/male-eye-repaired.fbx",
+    "note": "Auto-Rig Pro game-engine export. ARP 3.74.40 and a candidate-only existing-mesh driver are operational in Blender 5.2.1, but explicit hand landmarks and the complete deformation/export/runtime rebuild gates are not yet portable, so this FBX remains an immutable input authority. Its parent .blend holds a 369-bone ARP control rig that must never be exported directly."
+  },
+  "textures": {
+    "BaseColor": "${RAC_LEGACY_ROOT}/output/recovery-v2/gallery/face-repair/male-v1/export/textures/MAT_FieldScout_ReviewedAtlas.001-base_color.png",
+    "ORM": "${RAC_LEGACY_ROOT}/output/recovery-v2/gallery/face-repair/male-v1/export/textures/MAT_FieldScout_ReviewedAtlas.001-orm.png"
+  },
+  "normalize": {
+    "target_height_m": null,
+    "target_height_reason": "Measured 1.999 m with feet already on Z=0. Within tolerance for an adult humanoid; no rescale applied.",
+    "recenter": true,
+    "textured_material": "M_FieldScoutMale_Body",
+    "sk_mesh_name": "SK_FieldScoutMale",
+    "material_renames": {
+      "MAT_FieldScout_ReviewedAtlas.001": "M_FieldScoutMale_Body",
+      "MAT_EyeSclera": "M_FieldScoutMale_EyeSclera",
+      "MAT_IrisBlue": "M_FieldScoutMale_EyeIris",
+      "MAT_Pupil": "M_FieldScoutMale_EyePupil",
+      "MAT_EyeHighlight": "M_FieldScoutMale_EyeHighlight"
+    }
+  },
+  "budget_waiver": {
+    "reason": "Dense generated-and-repaired topology inherited from the legacy studio. Retopology to the 20k budget is scheduled work, not a blocker for engine validation. Deformation is correct at 4 influences with zero unweighted vertices.",
+    "approved_by": "compiler-v1-triage"
+  },
+  "texture_waiver": {
+    "reason": "Textures are inherited from the legacy back-projection stage, which used a per-patch xatlas layout and baked its lighting into the albedo. Regenerating them is scheduled work; the measured numbers are recorded here so the debt stays visible rather than silently passing.",
+    "approved_by": "compiler-v1-triage"
+  },
+  "bake_pbr": {
+    "M_FieldScoutMale_Body": {
+      "resolution": 2048,
+      "samples": 48
+    }
+  }
+}

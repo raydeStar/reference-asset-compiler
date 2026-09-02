@@ -1,0 +1,160 @@
+{
+  "schema": "reference-asset-compiler.adapters.v1",
+  "adapters": [
+    {
+      "id": "pixal3d",
+      "role": "geometry",
+      "supports_asset_kinds": [
+        "humanoid",
+        "mascot",
+        "creature",
+        "mechanical_articulated",
+        "static_prop",
+        "wearable",
+        "environment_structure",
+        "vegetation",
+        "unknown"
+      ],
+      "outputs": [
+        "high_resolution_mesh",
+        "pbr_materials"
+      ],
+      "runtime": "external",
+      "official_source": "https://github.com/TencentARC/Pixal3D",
+      "policy": "candidate_only_until_fixed_view_modeling_approval"
+    },
+    {
+      "id": "trellis2",
+      "role": "geometry_and_texture",
+      "supports_asset_kinds": [
+        "humanoid",
+        "mascot",
+        "creature",
+        "mechanical_articulated",
+        "static_prop",
+        "wearable",
+        "environment_structure",
+        "vegetation",
+        "unknown"
+      ],
+      "outputs": [
+        "high_resolution_mesh",
+        "pbr_materials",
+        "existing_mesh_texture"
+      ],
+      "runtime": "external",
+      "official_source": "https://github.com/microsoft/TRELLIS.2",
+      "policy": "candidate_only_until_fixed_view_approval"
+    },
+    {
+      "id": "hunyuan3d_2_1",
+      "role": "geometry_and_texture",
+      "supports_asset_kinds": [
+        "humanoid",
+        "mascot",
+        "creature",
+        "mechanical_articulated",
+        "static_prop",
+        "wearable",
+        "environment_structure",
+        "vegetation",
+        "unknown"
+      ],
+      "outputs": [
+        "high_resolution_mesh",
+        "pbr_materials",
+        "existing_mesh_texture"
+      ],
+      "runtime": "external",
+      "official_source": "https://github.com/Tencent-Hunyuan/Hunyuan3D-2.1",
+      "policy": "candidate_only_until_fixed_view_approval"
+    },
+    {
+      "id": "anigen",
+      "role": "articulation",
+      "supports_asset_kinds": [
+        "humanoid",
+        "mascot",
+        "creature",
+        "mechanical_articulated",
+        "vegetation",
+        "unknown"
+      ],
+      "outputs": [
+        "mesh",
+        "skeleton",
+        "skinning_weights"
+      ],
+      "input_contract": "authority_image_generates_replacement_mesh_and_rig",
+      "driver": "workflows/rigging/anigen/run_anigen_candidate.py",
+      "runtime": "external",
+      "official_source": "https://github.com/VAST-AI-Research/AniGen",
+      "policy": "challenger_until_chain_and_deformation_gates_pass"
+    },
+    {
+      "id": "auto_rig_pro",
+      "role": "humanoid_rig_refinement",
+      "supports_asset_kinds": [
+        "humanoid"
+      ],
+      "outputs": [
+        "control_rig",
+        "deform_skeleton",
+        "skinning_weights",
+        "ue5_fbx"
+      ],
+      "input_contract": "approved_existing_mesh",
+      "driver": "scripts/run_arp_rig_candidate.ps1",
+      "driver_status": "candidate_only_requires_deformation_export_and_ue5_gates",
+      "availability_probe": "scripts/blender/preflight_arp.py",
+      "runtime": "licensed_local_blender_addon",
+      "policy": "allowed_when_license_is_user_supplied_and_runtime_gates_pass"
+    },
+    {
+      "id": "blender_custom_rig",
+      "role": "articulation",
+      "supports_asset_kinds": [
+        "mascot",
+        "creature",
+        "mechanical_articulated"
+      ],
+      "outputs": [
+        "deform_skeleton",
+        "skinning_weights",
+        "ue5_fbx"
+      ],
+      "input_contract": "approved_existing_mesh",
+      "driver": "scripts/run_rig_candidate.ps1",
+      "runtime": "blender",
+      "policy": "requires_explicit_skeleton_profile_and_deformation_suite; free, no add-on",
+      "driver_status": "candidate_only_requires_deformation_export_and_ue5_gates",
+      "landmark_scripts": [
+        "scripts/blender/derive_mascot_landmarks.py",
+        "scripts/blender/rig_from_landmarks.py"
+      ]
+    },
+    {
+      "id": "blender_landmark_rig",
+      "role": "articulation",
+      "supports_asset_kinds": [
+        "humanoid",
+        "mascot"
+      ],
+      "outputs": [
+        "deform_skeleton",
+        "skinning_weights",
+        "ue5_fbx"
+      ],
+      "input_contract": "approved_existing_mesh",
+      "driver": "scripts/run_rig_candidate.ps1",
+      "driver_status": "candidate_only_requires_deformation_export_and_ue5_gates",
+      "landmark_scripts": [
+        "scripts/blender/derive_humanoid_landmarks.py",
+        "scripts/blender/derive_mascot_landmarks.py",
+        "scripts/blender/rig_from_landmarks.py"
+      ],
+      "runtime": "blender",
+      "policy": "free fallback: humanoids use it when Auto-Rig Pro is unavailable (run_rig_candidate.ps1 -Backbone auto); mascots always; heat weights, so binding quality is below Auto-Rig Pro on layered clothing"
+    }
+  ]
+}

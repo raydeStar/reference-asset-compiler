@@ -1,0 +1,307 @@
+{
+  "schema": "reference-asset-compiler.texture-trials.v1",
+  "asset_id": "orange-adventurer-cat-ai-v2",
+  "reference_sha256": "fb1c0c963b79db3d38714c048ec473d7ed201bfd9cc84c3b3828056f1d8a0158",
+  "approved_retopology_sha256": "2003e1418794b8f124cf8af5f1da4c9249a0a36e5a9089581fb5d9376172b37d",
+  "trials": [
+    {
+      "id": "uv-v1-attempt001",
+      "status": "passed",
+      "report_sha256": "0b09bc6c3bacfa9c5a988b029837bdf903672ba0555d88a33e99138f757fcea5",
+      "uv_authority_sha256": "6febeec7720b18ab6952ba1f11eb0d71e5cfa9936b20c5d917632adeeb91735b",
+      "transport_obj_sha256": "5d17b4e4503a9e51dc94475427d314cc616cc7db8592721fa763cac9a2f135e9",
+      "source_triangles": 20000,
+      "transport_triangles": 19982,
+      "duplicate_source_triangles": 39,
+      "triangles_removed_as_redundant": 18,
+      "maximum_symmetric_vertex_delta_m": 8.785368663666304e-07,
+      "reason": "Geometry-locked Smart Project UVs are complete and finite. OBJ transport removed only measured duplicate triangles and stayed below the one-micrometer geometry limit."
+    },
+    {
+      "id": "hy3d21-attempt001",
+      "status": "rejected_by_ayric",
+      "source_conditioning": "The original orange-adventurer-cat-ai-v2 primary reference directly conditioned six Hunyuan3D-Paint 2.1 views.",
+      "validation_sha256": "9fb77ef7cdbd875fe45aeb8eef947e19c336a089fc814c29d5efed7bf47b4da6",
+      "glb_sha256": "a0be09de40be8b23e9d29b15e5a2447fe1a33dc4f4080df16aeb5ccedb795651",
+      "base_color_sha256": "356842f67717613ec21ffefff2d0fb20c065065743e26cf577f559993ecbc78a",
+      "metallic_sha256": "86011d773b5c5c659842d18e01f9d359e7e2cf716dc3dfe33e4cddb8fac53152",
+      "roughness_sha256": "e6adac4b3623ef86ebee7e30fc842969963972ce70670c0bbf55831ee31b76e5",
+      "views": 6,
+      "resolution": 512,
+      "triangles": 19982,
+      "geometry_delta_m": 1.5057593471513415e-07,
+      "uv_delta": 5.2849445915060835e-08,
+      "fixed_view_sha256": {
+        "front": "7b07d0d936656dd6b1eac77e459b07bec74a52e11abe09d87c3ebfe1546c35f6",
+        "three_quarter": "35894bc232b462630cb703d0c2c6cf02601e478ff780e315f1c5854534e55c6c",
+        "side": "c0f6c9a3ee47ce12a353fe10f1a9590a5aacd055b8d29af9eac2361481b9cbc5",
+        "back": "296f87fad9e61efb2111d7970b798fb0beebf1f187f1b3aa2c511fbc5d11ca87"
+      },
+      "visual_review": "Rejected by Ayric as sloppy. The reference has broad round eyes, while the mapped left eye pinches into a teardrop and the right eye is narrow and tilted. Albedo-only evidence proves this is painted into the texture rather than caused by lighting. The mapping is also paler than the orange authority and remains soft at the whiskers and chest strap; the rear has a small symbol-like projection artifact near the tail root and dark grain under the backpack.",
+      "runtime_note": "The validated files were written before the upstream Windows process exited -1073741819 during teardown. No retry was attempted. The previously idle ComfyUI server was restarted with its original arguments and its queue returned ready and empty."
+    },
+    {
+      "id": "hy3d21-attempt002",
+      "status": "rejected_after_fixed_view_review",
+      "ai_corrected_reference_sha256": "a08b5fceb52445f3645afd4ecb85b416e83bcf724e4350cc02e1b163ec773013",
+      "validation_sha256": "7e0307c5e1c781bbbd8b4aa74f9d371060dae6b5488869f595cb3477a53cd204",
+      "glb_sha256": "f13a1b22da1690861f4e968aea4ffc289c500952420655281827b57bfaed521c",
+      "triangles": 19982,
+      "geometry_delta_m": 1.5057593471513415e-07,
+      "uv_delta": 5.2849445915060835e-08,
+      "reason": "A source-locked AI edit supplied round symmetric eye landmarks and directly conditioned exactly one new Hunyuan paint run. The eyes improved, but the full repaint washed the fur and smeared the scarf, chest, and equipment, so it was rejected. The validated files again preceded the known -1073741819 teardown exit; no automatic retry occurred and ComfyUI was restored ready with an empty queue."
+    },
+    {
+      "id": "hybrid-eye-attempt003-through-ai-reference-projection-attempt005",
+      "status": "rejected_calibration_evidence",
+      "reason": "Attempt003 geometry-selected the front upper head and borrowed only attempt002 texels, but inherited its remaining angular right eye. Attempts004 and 005 directly back-projected the AI-corrected reference through Hunyuan's front camera and produced two round eyes, but exposed dark UV-boundary hairlines because the regional path had not yet reused the official UV inpaint stage. Geometry and UVs were never changed."
+    },
+    {
+      "id": "ai-reference-projection-attempt006",
+      "status": "awaiting_ayric_texture_review",
+      "projection_report_sha256": "8f3c00477437d309a2df129c2becf003baa8d7a5e401aeae2d6d44218229214d",
+      "base_color_sha256": "bc3e1ee51fadcdc595a4fdf0b33ac97592e890f487812ed07023a92955d3f40b",
+      "ai_corrected_reference_sha256": "a08b5fceb52445f3645afd4ecb85b416e83bcf724e4350cc02e1b163ec773013",
+      "source_base_color_sha256": "356842f67717613ec21ffefff2d0fb20c065065743e26cf577f559993ecbc78a",
+      "uv_transport_sha256": "5d17b4e4503a9e51dc94475427d314cc616cc7db8592721fa763cac9a2f135e9",
+      "camera": "Hunyuan elevation 0 degrees, azimuth 0 degrees",
+      "head_faces": 5524,
+      "atlas_mask_fraction": 0.04440188407897949,
+      "upstream_uv_inpaint": true,
+      "geometry_or_uv_changed": false,
+      "fixed_view_sha256": {
+        "front": "a792f2b3e289664b33c74a6bb7aee52da930ec81d74eeb1f95ea2ba4f9681021",
+        "three_quarter": "4598a46ecfd2217864e7d2de159466feb092a2f77c6c0dcd24c688da170ee2c0",
+        "side": "e5e3c2fc6ac4e8afe832f53c43f0c659abc901980da89f7c45f16a82de1806d1",
+        "back": "ee236ee7c7aeb24a868c540d24ec7d3d06926737b7360a9d64d50762885108a8",
+        "unlit_front": "b9fcd8ed2164aa6d9e84feed1abda486d2121d76526659822f975ef8def6b07d"
+      },
+      "visual_review": "The unlit front now has two broad round white eye boundaries, matched round green irises, centered dark pupils, and clean eyelid outlines. Hunyuan's UV inpaint removes the projection hairlines seen in attempts004 and 005. Only 4.44 percent of atlas texels are eligible for the geometry-bounded head-front correction; the stronger attempt001 body, gear, tail, metallic, and roughness maps remain intact. Human approval is still required."
+    },
+    {
+      "id": "review-render-calibration-attempt006",
+      "status": "evidence_correction_awaiting_ayric_texture_review",
+      "source_atlas_sha256": "bc3e1ee51fadcdc595a4fdf0b33ac97592e890f487812ed07023a92955d3f40b",
+      "texture_pixels_changed": false,
+      "geometry_or_uv_changed": false,
+      "finding": "Every earlier fixed beauty view was rendered through Blender's factory AgX view transform at exposure 0 under the three-light evidence rig. On this atlas that combination turned saturated orange fur salmon pink and clipped 33% of subject pixels; the unlit albedo pass of the same atlas was already saturated and reference-like. Blender's OBJ importer also wired the metallic and roughness maps as sRGB and set Specular IOR Level to 1.0 (twice the default), and Hunyuan's GLB carries the same doubled specular as KHR_materials_specular specularColorFactor 2.0.",
+      "measurements": {
+        "factory_agx_front_clipped_subject_fraction": 0.331,
+        "standard_exposure_minus_1_5_front_clipped_subject_fraction": 0.098,
+        "reference_forehead_fur_rgb": [
+          0.972,
+          0.57,
+          0.135
+        ],
+        "calibrated_forehead_fur_rgb": [
+          0.967,
+          0.475,
+          0.188
+        ],
+        "hunyuan_metallic_atlas_mean": 0.166,
+        "hunyuan_metallic_atlas_p5_p95": [
+          0.141,
+          0.184
+        ],
+        "hunyuan_roughness_atlas_mean": 0.946
+      },
+      "renderer_change": "scripts/blender/render_turnaround.py gained an optional sixth argument: 'factory' reproduces the historical AgX evidence; 'calibrated' renders the beauty and albedo passes with Standard at exposure -1.5, reads metallic/roughness as Non-Color data, and resets specular to the 0.5 default, while the matcap pass keeps the factory transform so clay evidence stays comparable. The pass order was also fixed: matcap now precedes albedo, because the albedo pass removes the lights and had left every matcap view black whenever albedo was requested. Old and new beauty views are not comparable with each other.",
+      "fixed_view_sha256": {
+        "beauty_front": "0af46630aa2d9382de714afcf3eaa149691e7a19e00a458b52c253592024b44a",
+        "beauty_three_quarter": "6d0e109f12cd5a045e02a4eeb69448fc333ed8ec74a787f2008e53e3903a9dd1",
+        "beauty_side": "83105568730167a252211f56b97466d18877085873f2825430785ca70fadef6f",
+        "beauty_back": "8bb9459666d03e4d5222ddeeb9a707fc5168011c2d6c50a1b0e5a0fa59c57dae",
+        "albedo_front": "95bcd08bbb0cf568ac7a3726cfe2f9a55d732f7791422aa332cefbfc8ada80c7",
+        "matcap_front": "91da2cd3eee39675627639adbc1e48b4fff48757c81b5752d71607da97bb0d42",
+        "review_sheet": "7f6d4608eff256162bb2443e1ca6425b29e72bddc36caad6e70b1e5286464baa"
+      },
+      "output_directory": "work/orange-adventurer-cat-ai-v2/texture/ai-reference-projection-attempt006/fixed-views-calibrated",
+      "remaining_texture_defects_at_calibrated_exposure": [
+        "chest strap, clasp, and pendant remain soft from the 512-pixel six-view paint",
+        "shorts show vertical projection streaks and the tail and boots show faint island patchiness from the 66-degree Smart Project confetti UV layout",
+        "small dark projection artifact at the tail root in the back view",
+        "forehead tabby markings are fainter than the reference",
+        "whisker spikes read as brown sticks; that is geometry, not texture",
+        "the viewer-left eye showed a hard white blob under the key light; the unlit albedo proved it was not painted, and attempt007 traces it to eye roughness near 0.11",
+        "the viewer-left eye showed a hard white blob under the key light; the unlit albedo proved it was not painted, and attempt007 traces it to eye roughness near 0.11"
+      ],
+      "visual_review": "Human approval is still required. Ayric had judged the AgX renders as janky; the calibrated views of the identical atlas are presented for a fresh decision."
+    },
+    {
+      "id": "eye-roughness-attempt007",
+      "status": "passed_by_ayric",
+      "derived_from": "ai-reference-projection-attempt006",
+      "script": "scripts/clamp_region_roughness.py",
+      "report_sha256": "36fc2961d1590988e3ddc07e5a7704cd6ef244bbf87e519550cf3b62e2d27ebc",
+      "source_sha256": {
+        "mesh": "7bc761dd1aa308205eb83ce7a22c12b7373d093dbcab6a6230c8b2595a2bcd93",
+        "mtl": "2a03b5c98d72c3be327a9b49a321901bade94e8043e01bb3b46e287dd7f0bd92",
+        "base_color": "bc3e1ee51fadcdc595a4fdf0b33ac97592e890f487812ed07023a92955d3f40b",
+        "metallic": "86011d773b5c5c659842d18e01f9d359e7e2cf716dc3dfe33e4cddb8fac53152",
+        "roughness": "e6adac4b3623ef86ebee7e30fc842969963972ce70670c0bbf55831ee31b76e5"
+      },
+      "output_sha256": {
+        "mesh": "7bc761dd1aa308205eb83ce7a22c12b7373d093dbcab6a6230c8b2595a2bcd93",
+        "mtl": "2a03b5c98d72c3be327a9b49a321901bade94e8043e01bb3b46e287dd7f0bd92",
+        "base_color": "bc3e1ee51fadcdc595a4fdf0b33ac97592e890f487812ed07023a92955d3f40b",
+        "metallic": "86011d773b5c5c659842d18e01f9d359e7e2cf716dc3dfe33e4cddb8fac53152",
+        "roughness": "2f29376b09d3a60d5ca1dba806187e5a7ea7d309249ee4fe586b6883ce5c05e4"
+      },
+      "region_mask": "attempt006 head-front-mask.png (geometry-rasterized upper-head front faces)",
+      "region_mask_sha256": "68d20d9c0ae7a2b9a786a71bd0137118a2f8e78d4f91409bfadbb564ddfc5b1e",
+      "parameters": {
+        "glossy_below": 0.5,
+        "floor": 0.7,
+        "min_component_texels": 1000,
+        "dilate_pixels": 2,
+        "jpeg_quality": 96
+      },
+      "components": [
+        {
+          "texels": 12,
+          "bbox_xyxy": [
+            1009,
+            85,
+            1014,
+            88
+          ],
+          "roughness_mean_before": 0.19411766529083252,
+          "kept": false
+        },
+        {
+          "texels": 19,
+          "bbox_xyxy": [
+            31,
+            1033,
+            32,
+            1043
+          ],
+          "roughness_mean_before": 0.24107328057289124,
+          "kept": false
+        },
+        {
+          "texels": 1728,
+          "bbox_xyxy": [
+            194,
+            1335,
+            244,
+            1382
+          ],
+          "roughness_mean_before": 0.11922432482242584,
+          "kept": true
+        },
+        {
+          "texels": 1964,
+          "bbox_xyxy": [
+            62,
+            1336,
+            116,
+            1383
+          ],
+          "roughness_mean_before": 0.11069047451019287,
+          "kept": true
+        },
+        {
+          "texels": 462,
+          "bbox_xyxy": [
+            1777,
+            1367,
+            1792,
+            1409
+          ],
+          "roughness_mean_before": 0.0985570102930069,
+          "kept": false
+        }
+      ],
+      "lifted_texels": 4235,
+      "atlas_fraction_changed": 0.0009157657623291016,
+      "roughness_in_lift_mask": {
+        "before_mean": 0.20192144811153412,
+        "after_mean": 0.7138050198554993
+      },
+      "base_color_changed": false,
+      "metallic_changed": false,
+      "geometry_or_uv_changed": false,
+      "reason": "Ayric asked about the white shape on the viewer-left eye. Unlit albedo showed the eye art was clean with only the small painted glint the reference carries, so the shape was a specular reflection: Hunyuan left both eye regions at roughness about 0.11 on an otherwise 0.95 head, and the key area light mirrored off the lumpy eye geometry. Only the two glossy components inside the geometry-derived head-front mask (the eyes, 4,235 texels, 0.10 percent of the atlas) were lifted to a 0.7 floor; a third 462-texel glossy speck was left alone by the size threshold. Floors of 0.35, 0.5 and 0.7 were rendered; 0.5 removed the blob but left a grey wash over the iris, 0.7 matched the matte painted-glint style of the reference.",
+      "fixed_view_sha256": {
+        "beauty_front": "2947450dcb3c597b960554aef5544a8e62e5989e30cf3547c88739b7a856e0f1",
+        "beauty_three_quarter": "3b73e5cb75d53f169d2c0dfd6816379040937b9fbcb9cc3677525d72cba95d01",
+        "beauty_side": "b83286878ae4f559f3e346a99d7b3914ea36a42eb53db00e1c269b8c697d2b00",
+        "beauty_back": "0c1abc10001857b190344e6e21267b065ef57946bea411ef4b120be3310e4455",
+        "albedo_front": "700e8c186b3a234b9760783b9fa8a722749f5b8125147020562062245438d60d",
+        "matcap_front": "7b73963669f41791e914cd2092c5256748c25944da10a8e2e8a97cce28db746b",
+        "review_sheet": "1db426c5f3399594723f8c704b5a2abd6f89d915001e8143a69a36cfd41eee92"
+      },
+      "output_directory": "work/orange-adventurer-cat-ai-v2/texture/eye-roughness-attempt007",
+      "visual_review": "Ayric passed attempt007 on 2026-09-01 after reviewing the calibrated fixed views: both eyes read as matched green irises with the painted glint as the only highlight."
+    },
+    {
+      "id": "texture-payload-prod-v1",
+      "status": "passed",
+      "script": "scripts/package_character_texture.py",
+      "output_directory": "work/orange-adventurer-cat-ai-v2/prod-v1",
+      "source_uv_authority_sha256": "6febeec7720b18ab6952ba1f11eb0d71e5cfa9936b20c5d917632adeeb91735b",
+      "source_texture_sha256": {
+        "BaseColor": "bc3e1ee51fadcdc595a4fdf0b33ac97592e890f487812ed07023a92955d3f40b",
+        "Roughness": "2f29376b09d3a60d5ca1dba806187e5a7ea7d309249ee4fe586b6883ce5c05e4",
+        "Metallic": "86011d773b5c5c659842d18e01f9d359e7e2cf716dc3dfe33e4cddb8fac53152"
+      },
+      "staged_texture_sha256": {
+        "BaseColor": "c46bc1d91cb8ab5a5e62232b18ef5b0ea05448c9f3899d97aa8b1877a34c034f",
+        "Roughness": "5f94182b50e9e14a7c3abcc1547a56b8e4b06e54acad01752a0b0c5b8a395015",
+        "Metallic": "867026c0d98399a160089d87b270419be4c436aea70ca0478e6b8b02e835e138"
+      },
+      "production_fbx_sha256": "3bdf5249c5dafdcced2bf3d9d9ca1890dca5bbe72dd73d1a27d090720bcc4e3d",
+      "retopo_sha256": "67fb94c8c0e6c281dc1c4fdfd36e523b57efaea3bf4b145d8baf56c65bb37677",
+      "gate_texture_sha256": "c977701d5f52b920722e027a04de0e0a7d6341036ac719edb1e377a5435afd55",
+      "triangles": 20000,
+      "physical_scale": {
+        "source_height_m": 1.999684,
+        "height_m": 1.8,
+        "uniform_scale": 0.9001420453825683,
+        "reason": "Ayric directed the cat to follow the UE5.8 Manny standard scale; the repository's documented Manny target is 1.80 m. Origin moved to the floor between the feet."
+      },
+      "native_scale_probe": {
+        "directory": "work/orange-adventurer-cat-ai-v2/prod-probe-native-scale",
+        "texel_density_per_cm2": 15.8,
+        "baked_light_correlation": 0.2170995153422882,
+        "uv_islands": 783,
+        "gate_ok": false
+      },
+      "texture_gate": {
+        "ok": true,
+        "texture_waived": true,
+        "waiver_approved_by": "Ayric",
+        "texel_density_per_cm2": 19.5,
+        "texel_density_floor": 120,
+        "baked_light_correlation": 0.21709952430663032,
+        "baked_light_limit": 0.2,
+        "uv_islands": 783,
+        "uv_island_advisory": 300
+      },
+      "fixed_views_sha256": {
+        "albedo-back.png": "d78fc29fe784642f4e34e5942a88717945b76f8bede205ad0f33e4c3bca4f61a",
+        "albedo-front.png": "36b3f4627a5cd12f405946d367eeffcef6e8f1d44d90fa52dba12c3563b7bc38",
+        "albedo-side.png": "ccef35145ed765ad5eae5f3e7d5eaf024f0c4d4608090fc4a24845a37e376e85",
+        "albedo-three-quarter.png": "960edd7bdff5e4766f772519e80e6fd53a2c4669e2cf546a20bde4f24c343e03",
+        "beauty-back.png": "432901298de9987cc551a575c962b6be40ff5594dd8c175991f0e89b4efa64cf",
+        "beauty-front.png": "29bae7cff69f70ba82f82a5242776be53ac95f77e3d19b00dbf04e5f43b408f9",
+        "beauty-side.png": "45d62997aa80ee62249e3823302e7b7bb1a8a79db5968b88badaf675aeda9ade",
+        "beauty-three-quarter.png": "498953206362985039dc5d2ce48aa9fff2b9910f84628b425098f095061c88a5",
+        "matcap-back.png": "dbe4638b9abd01c0c895aeb54f61a317264392231c63f208a8d893c9d83a0117",
+        "matcap-front.png": "a370779b5022cda2616f7391e44a2ba75daa800e6f6a0f81d2b28d511f47ae9c",
+        "matcap-side.png": "10d8ac40b8354efcba95fc511a2e937bd0fff8626d0857121dd5d1b905aec2c7",
+        "matcap-three-quarter.png": "928857ac4e98bc3f09ef76993d55649e64c6af608846fc5858626655a6a5c927"
+      },
+      "ledger": {
+        "unwrap_and_bake": "2026-09-01T21:45:43.987551+00:00",
+        "texture_approval": "2026-09-01T21:45:44.247768+00:00",
+        "texture_approval_approved_by": "Ayric"
+      },
+      "reason": "The accepted attempt006 base color and metallic maps and the attempt007 roughness map were staged as PNG and bound to the unchanged UV authority as one Principled material. Only a uniform 0.900142 scale and a floor-origin translation were applied; every vertex sits within 0.07 micrometres of the similarity transform and face order is unchanged. The texture gate fails on its own numbers at any Manny-scale height, so Ayric's recorded waiver carries the measured density, baked-light, and island debt forward visibly."
+    }
+  ],
+  "texture_status": "passed_by_ayric",
+  "blocker": null,
+  "next_action": "Texture stage closed. Rig evidence continues in orange-adventurer-cat-ai-v2-rig-trials-v1.json."
+}

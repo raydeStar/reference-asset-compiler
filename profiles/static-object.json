@@ -1,0 +1,8 @@
+{
+  "schema": "reference-asset-compiler.profile.v1",
+  "id": "static_object",
+  "default_budgets": {"maximum_vertices": 50000, "maximum_triangles": 100000},
+  "modeling_hard_gates": ["identity", "dimensions", "primary_part_count", "front_side_back_read", "ground_contact"],
+  "texture_hard_gates": ["material_region_accuracy", "no_projection_specks", "no_baked_shadow_holes", "pbr_response", "fixed_view_review"],
+  "runtime_hard_gates": ["ue5_import", "scale_review", "collision_when_required", "map_check", "cooked_sample"]
+}

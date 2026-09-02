@@ -1,0 +1,76 @@
+{
+  "schema": "reference-asset-compiler.portable-intake-review.v1",
+  "recorded_local_date": "2026-08-31",
+  "asset": "weathered-longsword",
+  "reference_authority": {
+    "path": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/weathered-longsword/front-rgba-no-shadow.png",
+    "sha256": "691f39384d7aac91f06095f3fdead7a72da31b9d4dbbb45b9d94ba9cfd909e59"
+  },
+  "scale_authority": {
+    "target_height_m": 1.3,
+    "reason": "UE 5.8 reproduction gallery measured the selected source at 123.610079 cm and applied 1.051694173x to ratify a 130 cm display height beside the 180 cm humanoid cohort."
+  },
+  "normalized_dense_authority": {
+    "workstation_path": "out/weathered-longsword/weathered-longsword.fbx",
+    "sha256": "fe43f18110aa415cc62c4bba7bc2eba754c4e3e24c14ac39ed1f3d7ffb9c7c49",
+    "triangles": 977341,
+    "height_m": 1.3
+  },
+  "ai_candidate_lineage": {
+    "adapter": "pixal3d",
+    "workstation_path": "${RAC_LEGACY_ROOT}/output/repro-v1-20260830/props/weathered-longsword/weathered-longsword-pixal3d-1024.glb",
+    "sha256": "b054705f79a6cc2a77c240229ad011fe68f6736bc87402ba54c196bcab89f3ff",
+    "approved_image_sha256": "691f39384d7aac91f06095f3fdead7a72da31b9d4dbbb45b9d94ba9cfd909e59",
+    "ledger_stage": "generate_candidates",
+    "ledger_status": "passed",
+    "recorded_utc": "2026-09-01T03:58:16.005611+00:00",
+    "note": "Retained image-conditioned AI output was hash-bound into the portable ledger without rerunning inference or authoring replacement geometry."
+  },
+  "reduced_candidate": {
+    "workstation_path": "work/weathered-longsword/reduction-v1/voxel-qem-candidate.fbx",
+    "sha256": "ac841e97ecfecf3054c841f0ac80fbe0f288938133e6c1016f07e7c4840d28a7",
+    "triangles": 18000,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "finite_coordinates": true
+  },
+  "modeling_derivative_lineage": {
+    "receipt_sha256": "0536d20f080673b5d0ab1b923d36045293d67017c1fa658fb2e30d52f60d9354",
+    "source_ai_candidate_sha256": "b054705f79a6cc2a77c240229ad011fe68f6736bc87402ba54c196bcab89f3ff",
+    "normalized_authority_sha256": "fe43f18110aa415cc62c4bba7bc2eba754c4e3e24c14ac39ed1f3d7ffb9c7c49",
+    "modeling_candidate_sha256": "ac841e97ecfecf3054c841f0ac80fbe0f288938133e6c1016f07e7c4840d28a7",
+    "operations": [
+      "normalize_scale_origin",
+      "voxel_remesh",
+      "collapse_qem"
+    ],
+    "status": "ready_for_human_modeling_decision"
+  },
+  "fixed_view_sha256": {
+    "beauty_front": "f3cd5acead7bf6fd4f2d66b1352ef93389279d7ec7ced603a3e3e0fed51653f4",
+    "beauty_three_quarter": "7c4a5c0aef1a7732927914d2be079c38b074f8ab5a55674f5e0360df846ee38e",
+    "beauty_side": "b945e29557b0716b20bf9647ff1d7fba01c2627d39a6d71e47425a5aa9fe1ad8",
+    "beauty_back": "e52091d8fb6d3e3eb880468c9a9f97c008cf6c1f3cfd7fa1709a8d5aa8aa0b79",
+    "matcap_front": "4514f45b6a1f66b6453f0f4a37248e8617be336525bbb3579930758e895e9ec9",
+    "matcap_three_quarter": "875300763105aeabf60894c04167340df5f6909809b0f81689d7d68bc97d672d",
+    "matcap_side": "ed803a48e53b70264159fee6e86710413688e5465956fb07acdc66d0f31df515",
+    "matcap_back": "4b66341c599a6dc84c5e9db54f6c18dec47ebc8df50d15b1f8db93442cc2d5e7"
+  },
+  "raw_ai_fixed_view_sha256": {
+    "beauty_front": "d0d1522db11310874cbb288c791875383ec888883738888c232664f6da6cd174",
+    "beauty_three_quarter": "17f256ddd103ce180f0561f7f3a17e9b16aa3a73addcc7ecb068a13f561ff303",
+    "beauty_side": "4bb9df9d911d5c1a6f457d17501a5d5381702fd55800fad74daf86be2f6ee527",
+    "beauty_back": "7186be250bee257ea64d3d9c9714e10a6b05128e226a1ad7cec1e4ace7ecf0e7",
+    "matcap_front": "4f8fc01a34710673382c124ff9db0543ab29684852411c73c778dac9e1a6c778",
+    "matcap_three_quarter": "36fd9dcfcf591245a7ad612fb26d0b4dcc5efc2534530203935c086debb03c32",
+    "matcap_side": "214fe38c57f743d23809a6e274912d1f98cb779996635dcc5653498d240f6ccc",
+    "matcap_back": "f565a117bb47945f0f0d994171275974613f3fb205bcb02e7a2d0eafed64ead1"
+  },
+  "review": {
+    "status": "agent_visual_concerns_pending_human_modeling_decision",
+    "reviewed_by": "codex",
+    "reason": "A fresh source-versus-raw-versus-reduced audit found that the raw AI output reproduces the source image's detached dark secondary blade as separate geometry. The reduction removes that artifact and retains a readable main sword, but its straight crossguard and blade-to-hilt proportions drift from the asymmetric broad fantasy design. The exact candidate remains pending an identified human approve-or-reject decision; it is not an agent-approved modeling authority."
+  },
+  "next_gate": "human modeling approval of the reduced candidate before dense-to-low texture bake",
+  "production_grade": false
+}

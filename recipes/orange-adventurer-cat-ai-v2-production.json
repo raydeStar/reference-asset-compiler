@@ -1,0 +1,27 @@
+{
+  "asset_id": "orange-adventurer-cat-ai-v2-production",
+  "kind": "mascot",
+  "skeleton_profile": "mascot_biped_tail",
+  "source": {
+    "authority_fbx": "work/orange-adventurer-cat-ai-v2/rig/mascot-v1-attempt001/orange-adventurer-cat-ai-v2_rigged.fbx",
+    "note": "Exact rig_and_skin and deformation_validation payload from the orange-adventurer-cat-ai-v2 ledger: texture-approved prod-v1 mesh with the 26-bone mascot_biped_tail skeleton authored by scripts/blender/rig_mascot_biped_tail.py from source-bound landmarks.",
+    "workspace": "work/orange-adventurer-cat-ai-v2"
+  },
+  "material_textures": {
+    "M_OrangeAdventurerCatAiV2_Body": {
+      "BaseColor": "work/orange-adventurer-cat-ai-v2/prod-v1/T_orange-adventurer-cat-ai-v2_BaseColor.png",
+      "ORM": "work/orange-adventurer-cat-ai-v2/prod-v1/T_orange-adventurer-cat-ai-v2_ORM.png"
+    }
+  },
+  "normalize": {
+    "target_height_m": null,
+    "target_height_reason": "Already normalized to 1.80 m (UE5.8 Manny standard, Ayric's direction) with the origin on the floor during texture packaging; no rescale.",
+    "recenter": true,
+    "sk_mesh_name": "SK_OrangeAdventurerCatAiV2",
+    "material_renames": {}
+  },
+  "texture_waiver": {
+    "reason": "Ayric passed the attempt007 texture visually in calibrated fixed views on 2026-09-01. Measured at 1.80 m: texel density ~19.5 texels/cm2 against the 120 floor because the 2048 atlas is spread over a Manny-scale body; baked-light correlation +0.22 against the 0.20 limit; 783 Smart Project UV islands against the 300 advisory. Recorded so the debt stays visible; a coherent semantic UV pass and a higher-resolution paint are the scheduled remedies.",
+    "approved_by": "Ayric"
+  }
+}

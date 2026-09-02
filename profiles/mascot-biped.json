@@ -1,0 +1,10 @@
+{
+  "schema": "reference-asset-compiler.profile.v1",
+  "id": "mascot_biped",
+  "default_budgets": {"maximum_vertices": 50000, "maximum_triangles": 100000, "maximum_skin_influences": 4},
+  "required_intake": ["skeleton_profile"],
+  "modeling_hard_gates": ["identity", "primary_part_count", "front_side_back_read", "limb_continuity", "tail_count", "feet"],
+  "texture_hard_gates": ["eye_symmetry", "face_read", "no_projection_outline", "consistent_material_response"],
+  "rig_hard_gates": ["explicit_chain_map", "tail_chain_when_present", "maximum_four_influences", "limb_deformation", "clean_fbx_reimport"],
+  "runtime_hard_gates": ["ue5_import", "idle_motion_review", "map_check", "cooked_sample"]
+}

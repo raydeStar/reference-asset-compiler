@@ -1,0 +1,49 @@
+{
+  "asset_id": "ninja-man",
+  "kind": "humanoid",
+  "skeleton_profile": "ue4_mannequin",
+  "source": {
+    "authority_fbx": "${RAC_LEGACY_ROOT}/output/recovery-v2/gallery/face-repair/ninja-v24/export/ninja-eye-repaired.fbx",
+    "note": "Auto-Rig Pro game-engine export, UE4 Mannequin preset (spine_01..03, single twist per segment). Its parent .blend holds a 344-bone ARP control rig that must never be exported directly."
+  },
+  "textures": {
+    "BaseColor": "${RAC_LEGACY_ROOT}/output/recovery-v2/gallery/face-repair/ninja-v24/export/textures/Ninja_ProvenancePBR.001-base_color.png",
+    "ORM": "${RAC_LEGACY_ROOT}/output/recovery-v2/gallery/face-repair/ninja-v24/export/textures/Ninja_ProvenancePBR.001-orm.png"
+  },
+  "repair": {
+    "flip_mesh_180_z": true,
+    "reason": "gate_rig facing check: the authority mesh faces +Y while its skeleton correctly faces -Y, so hand_l/foot_l drive the visually right side and knees bend backwards under animation. The mesh is rotated 180 degrees about Z and every _l/_r vertex group is swapped in the same pass, which realigns geometry, weights and bone labels together. Verified by re-running gate_rig on the exported result."
+  },
+  "normalize": {
+    "target_height_m": 1.8,
+    "target_height_reason": "Measured 0.952 m. The reference is an adult male ninja, so this is a scale defect, not art direction -- it would import into UE5 as a child-sized character. Rescaled uniformly to 1.80 m. Change target_height_m here if the intent really was a small character.",
+    "recenter": true,
+    "textured_material": "M_NinjaMan_Body",
+    "sk_mesh_name": "SK_NinjaMan",
+    "material_renames": {
+      "Ninja_ProvenancePBR.001": "M_NinjaMan_Body",
+      "MAT_NinjaEyeSurfaceDark": "M_NinjaMan_EyeSurface"
+    }
+  },
+  "budget_waiver": {
+    "reason": "Dense generated-and-repaired topology inherited from the legacy studio. Retopology to the 20k budget is scheduled work, not a blocker for engine validation. Deformation is correct at 4 influences with zero unweighted vertices.",
+    "approved_by": "compiler-v1-triage"
+  },
+  "texture_waiver": {
+    "reason": "Textures are inherited from the legacy back-projection stage, which used a per-patch xatlas layout and baked its lighting into the albedo. Regenerating them is scheduled work; the measured numbers are recorded here so the debt stays visible rather than silently passing.",
+    "approved_by": "compiler-v1-triage"
+  },
+  "clean_clothing_atlas": {
+    "M_NinjaMan_Body": {
+      "regions": "leg,torso,foot",
+      "tri_threshold": 0.12,
+      "grow": 5
+    }
+  },
+  "bake_pbr": {
+    "M_NinjaMan_Body": {
+      "resolution": 2048,
+      "samples": 48
+    }
+  }
+}

@@ -1,0 +1,109 @@
+{
+  "schema": "reference-asset-compiler.character-ai-lineage-audit.v1",
+  "audited_at": "2026-09-01",
+  "policy": "Every V1 geometry authority must be hash-bound to an image-conditioned AI generation. Blender and other DCC operations may only produce explicit downstream derivatives; legacy runtime success cannot substitute for this lineage.",
+  "assets": {
+    "field-scout-female-ai-v4": {
+      "source_authority_sha256": "d43a01aeb84b4d93ddac10cc2362a4d2023a8848d9e08a9f40f38043cf0fc70e",
+      "split_report_sha256": "7f31e6bdfd2f6b59f2c0e220222dc394d544ddc21d0ffbaae6e54af68b874cc9",
+      "conditioned_view_sha256": {
+        "front": "fc28e02217d4df8d8f2d4b63a07433c442bc75d9e018759794b7ed21d15b5302",
+        "left": "cc405ffbcfc9f774762f5716ec81ab024d6540ba8ec507807f45ba57e1145317",
+        "back": "aca7f41d5b4b6bad75de33aa63f09fcdf986f03f501279a316c237b01d1923f9"
+      },
+      "ai_generation": {
+        "adapter": "hunyuan3d_2_1",
+        "model": "tencent/Hunyuan3D-2mv:hunyuan3d-dit-v2-mv",
+        "seed": 42,
+        "steps": 40,
+        "mesh_sha256": "44495ae6bfb2aaaad307b5230a2a0692dad012c6585f05c3e5850c7a6a7a142e",
+        "generation_report_sha256": "f0dcb04cbae307746dec68a385b6abe181a73b1b07c13461bb66de041b37779e"
+      },
+      "reviewed_modeling_derivative": {
+        "operation": "collapse_qem",
+        "mesh_sha256": "923fd6b999920a829d5c26fde2d1bce8f636c39fc245f1def3a6af2d4ad104d5",
+        "derivation_report_sha256": "40279756bc4bd0e8696e7de778eea9b219f50e7862504daf29e89c9a6fc704c2",
+        "human_approval": "Ayric, recorded 2026-08-29 for the exact V4 fixed-view modeling checkpoint"
+      },
+      "portable_workspace": "work/field-scout-female-ai-v4",
+      "portable_stages": {
+        "generate_candidates": "passed",
+        "modeling_approval": "passed",
+        "texture_approval": "pending"
+      },
+      "v1_eligible": false,
+      "reason": "AI geometry and modeling lineage are valid, but the existing facial texture was rejected and no approved topology-locked texture, portable rig/deformation receipt, UE motion review, or cooked-runtime receipt exists for this authority."
+    },
+    "field-scout-male": {
+      "ai_generation_found": true,
+      "ai_generation_mesh": "${RAC_LEGACY_ROOT}/output/production-compiler/field-scout-male-v2/01-hy3d-multiview/field-scout-male-v2.glb",
+      "ai_generation_mesh_sha256": "94871bc38eb9433813109990c4f535ee9c58194001f6cd2074e5dbd855c88cd4",
+      "generation_report_sha256": "45af80882dcddce8f6a254c4599591c9d5d79627ce7b9e17ea0c7d1c94f2adde",
+      "current_runtime_authority": "${RAC_LEGACY_ROOT}/output/recovery-v2/gallery/face-repair/male-v1/export/male-eye-repaired.fbx",
+      "local_workspace": "work/field-scout-male-ai-v2",
+      "portable_stages": {
+        "generate_candidates": "passed",
+        "modeling_approval": "rejected"
+      },
+      "modeling_review_ready": {
+        "candidate_sha256": "3689c3cdfc44db773aad516232a982144dc57227f3e7493e16c9169a22ea60cf",
+        "lineage_receipt_sha256": "f400030081f757ba2187c8aa21aa7a218130e3a17960af9af710e5661c451f6f",
+        "operation": "collapse_qem",
+        "fixed_views": {
+          "front": "92b4d8c879878b004589287ce11b246b0379a4c34b7b09ec1dd3c98b76c667a0",
+          "three-quarter": "1ec52774491ff964d77ec57e8c3676de658938cc640ae922fd1e20c6264754e5",
+          "side": "c6a8974b105bf5befa3c40b95ceefee38d974de64eb0c9a90e3493bb59fab05f",
+          "back": "86311d00f40c4a4bdbedb4ab0e6d9fc5aa232aeb11e70a94a3649f86a58acf61"
+        },
+        "review_observation": "The character silhouette, jacket, scarf, boots, and holster are coherent, but the face, hands, garment seams, pockets, boot construction, and reference-specific details are substantially simplified. Human modeling approval remains required."
+      },
+      "portable_derivation_chain_to_runtime_authority": false,
+      "v1_eligible": false,
+      "reason": "The historical Hunyuan generation is real, but the portable ledger does not yet bind every modeling, topology, texture, rig, deformation, UE motion, and cook derivative leading to the selected runtime FBX."
+    },
+    "ninja-man": {
+      "ai_generation_found": true,
+      "preserved_pixal3d_mesh_sha256": "17b24c9ba720cccc1719e0a6799cf87abc4908891f077ca3c9a834ed542945c2",
+      "fresh_hunyuan_candidate": "${RAC_LEGACY_ROOT}/output/production-compiler/ninja-man-v3/01-hy3d-multiview/ninja-man-v3.glb",
+      "fresh_hunyuan_candidate_sha256": "0c969f4fb42f57d640afc45eb23296a45d1a4422c586fe48e35bba695584e3d6",
+      "fresh_generation_report_sha256": "0a0d467a8d1d2cbd2581de2384e5e5fa0e724af06f92a0782610e2ddaa314c2f",
+      "current_runtime_authority": "${RAC_LEGACY_ROOT}/output/recovery-v2/gallery/face-repair/ninja-v24/export/ninja-eye-repaired.fbx",
+      "local_workspace": "work/ninja-man-ai-v3",
+      "portable_stages": {
+        "generate_candidates": "passed",
+        "modeling_approval": "pending"
+      },
+      "modeling_review_ready": {
+        "candidate_sha256": "b9391cef5deefb200759aa2c1d507d943d516f6a877210e5cc71701295d33966",
+        "lineage_receipt_sha256": "928d702e025c75e0768921e70bd59e23f10368bdb33d99a3b5f1687316ceaac1",
+        "operation": "collapse_qem",
+        "fixed_views": {
+          "front": "0979e0a8df9abf6a826d5cddeb30678ace79e603c8b87bc96118786ad9f19d2f",
+          "three-quarter": "b0e3142a44713f3b1b6d9c66f76bbf1289a5d4c5f49821f63def70f9a1e01c8a",
+          "side": "4fd8e9436dbdf02d64de0b02142cc9b13e6be76e98c4834ef7e439e3187035df",
+          "back": "b58a621cbda4e8bd406174121ee05cdef2cb9cb6e3b962cedda3f259be8c3dfc"
+        },
+        "status": "rejected_by_agent_visual_preflight",
+        "review_observation": "Rejected against the immutable turnaround. The broad silhouette is present, but the source-defining face mask, layered vest, forearm wraps, and boot construction are absent or collapsed; the hands are malformed and the feet read as flat paddles. Return to image-conditioned AI acquisition rather than rebuilding the design in Blender."
+      },
+      "portable_derivation_chain_to_runtime_authority": false,
+      "v1_eligible": false,
+      "reason": "The Pixal3D and Hunyuan image-conditioned candidates are genuine, but the selected runtime mesh contains a long legacy cleanup and authored-detail chain that is not representable by the current allowed derivative contract. The fresh Hunyuan V3 candidate failed the portable modeling gate and is rejected."
+    },
+    "fox-mascot": {
+      "ai_generation_found": true,
+      "hunyuan_candidate_status": "rejected for head-neck separation",
+      "current_runtime_authority": "${RAC_LEGACY_ROOT}/output/recovery-v2/gallery/face-repair/fox-v4/export/fox-eye-repaired.fbx",
+      "selected_fallback_lineage_portable": false,
+      "replacement_workspace": "work/fox-mascot-ai-v3",
+      "replacement_stages": {
+        "intake": "passed",
+        "route": "passed",
+        "generate_candidates": "pending"
+      },
+      "v1_eligible": false,
+      "reason": "Both recorded Hunyuan reductions were rejected. The selected voxel-union fallback has useful runtime evidence but lacks a complete portable image-to-AI-to-runtime derivation chain under the current contract."
+    }
+  },
+  "conclusion": "Only female V4 currently has a portable, human-approved AI-to-modeling chain. None of the four character runtime authorities is V1-eligible yet. Legacy compiler, rig, deformation, UE import, and cook evidence remains regression evidence and must not be relabeled as cohort ratification."
+}

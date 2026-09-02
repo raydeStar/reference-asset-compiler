@@ -1,0 +1,95 @@
+{
+  "schema": "reference-asset-compiler.retopology-trials.v1",
+  "asset_id": "orange-adventurer-cat-ai-v1",
+  "approved_modeling_candidate_sha256": "54c5b0d1970bfd0849b41b366efc1fac2a0830d417bac49d4b45684b7ed45b5a",
+  "semantic_cleanup_sha256": "2d5ef40d4cc4059b8cfc4d977e311778fa4293c6ef214cb8a585ef4ead4f5c12",
+  "trials": [
+    {
+      "id": "instant-meshes-9k-attempt001",
+      "report_sha256": "07cf4f549bbaf37d7c6ec229c9b7747fbc440e6066fac6813382e53ad18d7d8a",
+      "status": "rejected",
+      "reason": "Opened 74 boundary edges and exceeded surface-deviation limits, including 0.212 m maximum deviation."
+    },
+    {
+      "id": "autoremesher-9k-attempt001",
+      "report_sha256": "e96cd66ee93124876d6620c5e271dd555fe39bfb08e129cc6a02e9d61df95131",
+      "status": "rejected",
+      "reason": "Raw cleanup produced 100,521 triangles and 0.1% quads."
+    },
+    {
+      "id": "voxel-quadriflow-9k-attempt001",
+      "report_sha256": "72238acb627c2b37cf740822eb58be8c3d77073ec5247aa6f4774f3582438ba2",
+      "status": "backend_rejected",
+      "reason": "Voxel conditioning created a closed coherent surface, but Blender QuadriFlow refused it before emitting a candidate."
+    },
+    {
+      "id": "voxel-conditioned-420-attempt001",
+      "report_sha256": "3ea09dc16c3b564edb1de25c9128e56c781153f0ba8a912eaff9661814b097ed",
+      "status": "intermediate_pass",
+      "reason": "Source-derived voxel conditioning closed the surface without inventing reference geometry."
+    },
+    {
+      "id": "voxel-autoremesher-4300q-attempt004",
+      "candidate_sha256": "c2155b5dc11196fd761fc349c6c1f95998c13f2ab384c4f5d8f9dd5d38f36095",
+      "report_sha256": "9887da23eeb540f25234d44a15337b202a21de5b0708789eca1212e66ba760da",
+      "vertices": 9408,
+      "triangles": 18836,
+      "quad_fraction": 0.9328779006723054,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "status": "rejected_by_ayric",
+      "reason": "The isolated candidate meets topology and budget limits but visibly erases facial sockets, whiskers, fingers, belt detail, and costume features. Ayric rejected it and required detail-preserving retopology."
+    },
+    {
+      "id": "regional-autoremesher-v2-attempt001",
+      "region_audit_sha256": "752ea0463adbd2ab37b084d17565ef017009907c17ca54d38d77432b35dbaa85",
+      "report_sha256": "79bf99cc6fcd3ae41516355ac2bcc64cd598b5b9b7137627c2351576fcdef1b5",
+      "vertices": 11033,
+      "triangles": 21924,
+      "quad_fraction": 0.8198527549191056,
+      "boundary_edges": 182,
+      "status": "rejected",
+      "reason": "Independent body and head remeshing plus an exact preserved whisker island retained the whiskers, but still flattened the eyes, muzzle, belt, and costume relief. It also exceeded the triangle budget and opened 182 boundary edges. The regional whole-surface remesh route is retired for this asset."
+    },
+    {
+      "id": "feature-qem-20k-attempt001",
+      "report_sha256": "1290d731a18a5de6816cfd99d59265fae3363ba1f3f84da6253b4f4e6fe70c34",
+      "status": "diagnostic_reject",
+      "reason": "The source-surface reduction visibly retained the face, whiskers, scarf, belt, pouches, boots, and tail, but inherited all 27 cleanup boundary edges. The diagnosed retry was limited to repairing those inherited holes before the same reduction."
+    },
+    {
+      "id": "feature-qem-20k-attempt002",
+      "candidate_sha256": "1e4e9af163e000194e22bdacee7f67b04677944e084a8c85d15b32dabf36c17b",
+      "report_sha256": "f718cecda91808a50cbe288f4ddd57ce92a8822a56ce5b5f3a060f470a823bbf",
+      "vertices": 9984,
+      "triangles": 20000,
+      "quad_fraction": 0.0,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "p99_surface_deviation_m": 0.0032292413525283337,
+      "maximum_surface_deviation_m": 0.011089473031461239,
+      "status": "intermediate_pass",
+      "reason": "Feature-weighted surface collapse closed the inherited holes and retained the approved AI mesh's important visible forms at the exact runtime triangle budget. It remains an intermediate because its faces are triangles."
+    },
+    {
+      "id": "paired-feature-qem-attempt001",
+      "candidate_sha256": "84fd22ee72cedefb14e64e7d55f85eb1ad0abca21a5ba0cb616d286963bf32f1",
+      "review_glb_sha256": "0e4166a343ea4e482efca03206ebf6d0b37b3f48803af2ebf37339c58a8c7882",
+      "report_sha256": "35f49e67da7bcf55e7de8f7d0ed7876cc849cb39c3b8ade639710e989c667b01",
+      "vertices": 9984,
+      "triangles": 20000,
+      "quads": 8792,
+      "quad_fraction": 0.8000728000728001,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "p99_surface_deviation_m": 0.0038055076729506254,
+      "maximum_surface_deviation_m": 0.011089473031461239,
+      "vertex_coordinates_unchanged_by_pairing": true,
+      "status": "awaiting_ayric_visual_review",
+      "reason": "Pairing compatible triangles reaches the articulated topology contract without moving a vertex, so the detail-preserving shape is unchanged. Fixed matcap and wireframe views are complete. Appearance approval and a separate deformation-flow review are still required before this can pass production retopology."
+    }
+  ],
+  "evidence_correction": "An initial fixed-view render accidentally included both dense source and challenger from the AutoRemesher blend. It was moved to rejected-fixed-views-composite and replaced by isolated GLB renders before review.",
+  "production_retopology_status": "in_progress_awaiting_visual_and_deformation_flow_review",
+  "next_action": "Ayric must pass or reject paired-feature-qem-attempt001 from its isolated fixed matcap and wireframe views. If its likeness passes, audit explicit joint flow before rigging, then bake remaining dense-source normal and material detail after topology approval."
+}

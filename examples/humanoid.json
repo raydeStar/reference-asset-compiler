@@ -1,0 +1,10 @@
+{
+  "schema_version": 1,
+  "asset_id": "example-field-operative",
+  "asset_slug": "example-field-operative",
+  "asset_kind": "humanoid",
+  "articulation": "required",
+  "candidate_adapters": ["pixal3d", "trellis2", "hunyuan3d_2_1", "anigen", "auto_rig_pro"],
+  "rig_backbone": "auto_rig_pro",
+  "source": {"primary_view": "front", "path": "references/primary.png", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"}
+}

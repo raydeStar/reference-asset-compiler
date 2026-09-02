@@ -1,0 +1,35 @@
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+
+# Generated asset workspaces and heavyweight model output never belong in Git.
+work/
+out/
+output/
+models/
+checkpoints/
+downloads/
+*.blend1
+*.fbx
+*.glb
+*.gltf
+*.uasset
+*.umap
+
+# Unreal-generated state.
+ue5/Binaries/
+ue5/DerivedDataCache/
+ue5/Intermediate/
+ue5/Saved/
+
+# Local machine configuration may contain paths or credentials.
+config.local.json
+.env
+.env.*

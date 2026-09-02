@@ -1,0 +1,37 @@
+{
+  "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+  "asset_id": "fox-mascot-ai-v3",
+  "workspace": "${RAC_REPO_ROOT}/work/fox-mascot-ai-v3",
+  "source_authority": {
+    "path": "${RAC_LEGACY_ROOT}/references/fox-mascot-v1/front-authority.png",
+    "sha256": "e9152ec6800437dfd4296b3a7fb732291864b7eceea4885b61be6e1b0ac272bb"
+  },
+  "derivation_report": {
+    "path": "${RAC_REPO_ROOT}/docs/evidence/fox-mascot-ai-v3-input-lineage.json",
+    "sha256": "3461b804977e49262010e43ab60ec3d99c8b9c68172606a242449a46f73368ab"
+  },
+  "inputs": [
+    {
+      "view": "front",
+      "path": "${RAC_LEGACY_ROOT}/references/fox-mascot-v1/front-authority.png",
+      "sha256": "e9152ec6800437dfd4296b3a7fb732291864b7eceea4885b61be6e1b0ac272bb"
+    },
+    {
+      "view": "left",
+      "path": "${RAC_LEGACY_ROOT}/references/fox-mascot-v2/turnaround-v1/left.png",
+      "sha256": "094d99df4204a6999eb52b64c82f5c6d1cca3ae4e724db0d3cae8f874fb75424"
+    },
+    {
+      "view": "back",
+      "path": "${RAC_LEGACY_ROOT}/references/fox-mascot-v2/turnaround-v1/back.png",
+      "sha256": "814b3aaf00ab9702b63c7f85e854edc3848aba6deed648a2030dc416e284ecce"
+    }
+  ],
+  "parameters": {
+    "seed": 137,
+    "steps": 40,
+    "octree_resolution": 512,
+    "chunks": 20000
+  },
+  "output_directory": "${RAC_REPO_ROOT}/work/fox-mascot-ai-v3/candidates/hy3d-mv-seed137-attempt001"
+}

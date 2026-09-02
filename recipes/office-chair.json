@@ -1,0 +1,35 @@
+{
+  "asset_id": "office-chair",
+  "kind": "static_prop",
+  "articulation": "static",
+  "skeleton_profile": null,
+  "source": {
+    "authority_fbx": "${RAC_LEGACY_ROOT}/output/production-compiler/props/office-chair-v1/SM_OfficeChairV1.glb",
+    "note": "The production-compiler chair, the lineage HANDOFF.md records as explicitly passed. Chosen over output/repro-v1-20260830/props/office-chair/chair-rebuild-v2/: that one is a Pixal3D generation whose projected texture came back teal and grey where the reference is worn olive and rust, so it fails the artistic contract on colour before anything else is measured. This one is 38 named parts matching the 15 the reference manifest declares.",
+    "reference_authority": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/office-chair/turnaround-v2.png",
+    "reference_manifest": "${RAC_LEGACY_ROOT}/asset_manifests/prop_office_chair_v1.json"
+  },
+  "material_textures": {
+    "M_OfficeChair_BlackFrame": {"BaseColor": "${RAC_LEGACY_ROOT}/output/production-compiler/props/office-chair-v1/textures/T_ChairBlackFrame_BaseColor.png"},
+    "M_OfficeChair_OliveVinyl": {"BaseColor": "${RAC_LEGACY_ROOT}/output/production-compiler/props/office-chair-v1/textures/T_ChairOliveVinyl_BaseColor.png"},
+    "M_OfficeChair_SeatVinyl": {"BaseColor": "${RAC_LEGACY_ROOT}/output/production-compiler/props/office-chair-v1/textures/T_ChairSeatVinyl_BaseColor.png"},
+    "M_OfficeChair_Rust": {"BaseColor": "${RAC_LEGACY_ROOT}/output/production-compiler/props/office-chair-v1/textures/T_ChairRust_BaseColor.png"},
+    "M_OfficeChair_ExposedBacking": {"BaseColor": "${RAC_LEGACY_ROOT}/output/production-compiler/props/office-chair-v1/textures/T_ChairExposedBacking_BaseColor.png"},
+    "M_OfficeChair_PaperLabel": {"BaseColor": "${RAC_LEGACY_ROOT}/output/production-compiler/props/office-chair-v1/textures/T_ChairPaperLabel_BaseColor.png"}
+  },
+  "normalize": {
+    "mesh_name": "SM_OfficeChair",
+    "target_height_m": 1.019,
+    "target_height_reason": "The authority is modelled 2.460 m tall, which is not a scale, it is whatever the generator produced. Two independent rules agree on 0.414x. Anatomy: the seat top sits at 48.0% of the model's height, and 0.414x puts it at 0.489 m -- exactly the knee of field-scout-male, whose calf_l bone head measures 0.4890 m. A seat that meets the knee is what a chair is. Manufacture: the same factor takes the five-star base from 1.62 m across to 0.67 m, and a real office chair base is 0.65-0.70 m. Both checks were made against measurements, not eyeballed, and they land within a centimetre of each other.",
+    "recenter": true,
+    "yaw_degrees": 0.0,
+    "material_renames": {
+      "MAT-ChairBlackFrame": "M_OfficeChair_BlackFrame",
+      "MAT-ChairOliveVinyl": "M_OfficeChair_OliveVinyl",
+      "MAT-ChairSeatVinyl": "M_OfficeChair_SeatVinyl",
+      "MAT-ChairRust": "M_OfficeChair_Rust",
+      "MAT-ChairExposedBacking": "M_OfficeChair_ExposedBacking",
+      "MAT-ChairPaperLabel": "M_OfficeChair_PaperLabel"
+    }
+  }
+}

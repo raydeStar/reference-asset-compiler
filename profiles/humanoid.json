@@ -1,0 +1,9 @@
+{
+  "schema": "reference-asset-compiler.profile.v1",
+  "id": "humanoid",
+  "default_budgets": {"maximum_vertices": 50000, "maximum_triangles": 100000, "maximum_skin_influences": 4},
+  "modeling_hard_gates": ["identity", "anatomy", "front_side_back_read", "head_neck_continuity", "hands", "elbows", "waist_closure", "feet"],
+  "texture_hard_gates": ["face_landmark_alignment", "no_feature_stamping", "no_uv_seam_lines", "consistent_material_response", "fixed_view_review"],
+  "rig_hard_gates": ["complete_finger_chains", "manny_compatible_skeleton", "maximum_four_influences", "elbow_deformation", "wrist_deformation", "waist_deformation", "clean_fbx_reimport"],
+  "runtime_hard_gates": ["ue5_import", "animation_pose_review", "map_check", "cooked_sample"]
+}

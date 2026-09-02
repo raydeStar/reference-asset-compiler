@@ -1,0 +1,11 @@
+{
+  "schema_version": 1,
+  "asset_id": "example-fox-mascot",
+  "asset_slug": "example-fox-mascot",
+  "asset_kind": "mascot",
+  "articulation": "required",
+  "candidate_adapters": ["pixal3d", "trellis2", "hunyuan3d_2_1", "blender_custom_rig"],
+  "rig_backbone": "blender_custom_rig",
+  "skeleton_profile": "biped-with-one-tail",
+  "source": {"primary_view": "front", "path": "references/primary.png", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"}
+}

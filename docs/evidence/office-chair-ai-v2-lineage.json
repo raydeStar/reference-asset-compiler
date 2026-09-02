@@ -1,0 +1,84 @@
+{
+  "schema": "reference-asset-compiler.multiview-ai-lineage-review.v1",
+  "asset": "office-chair-ai-v2",
+  "source_authority": {
+    "path": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/office-chair/turnaround-v2.png",
+    "sha256": "fd8d0533d5d66cf841e8f0bdfc8e99bc52d3bf830652652a67a631d29adaa0e3"
+  },
+  "image_derivation": {
+    "report": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/office-chair/turnaround-v2/turnaround-split.json",
+    "sha256": "ec1102bddf9970ab00cfc689cd30f7f1c94d8e3ba68e53100c072a04eee77ea5",
+    "conditioned_views": {
+      "front": "878ed150e0aec1b1e03260fa4d2a3aaba0c1ff62d7ad499e9598837786932ba8",
+      "left-side": "49d69c4c8b84e85cb090ebe6eb1e3f893c4d099a3020b2f8a70144d28eb293d1",
+      "back": "6272851a5d1bb017b1b36fe012f71f33b6f8e6c64ade400ed2d3e7fcaea3871e"
+    }
+  },
+  "ai_candidate": {
+    "adapter": "hunyuan3d_2_1",
+    "model": "tencent/Hunyuan3D-2mv:hunyuan3d-dit-v2-mv",
+    "path": "${RAC_LEGACY_ROOT}/output/repro-v1-20260830/props/office-chair/chair-rebuild-v2/office-chair-v2-high.glb",
+    "sha256": "4bbea5540e382c6a2aa9fb8106423e1a5624aaa9818f785d44483713d918aa2c",
+    "seed": 42,
+    "steps": 40
+  },
+  "ledger": {
+    "workspace": "work/office-chair-ai-v2",
+    "generate_candidates": "passed",
+    "modeling_approval": "passed",
+    "semantic_cleanup": "passed",
+    "production_retopology": "passed",
+    "unwrap_and_bake": "passed",
+    "texture_approval": "pending"
+  },
+  "modeling_review_ready": {
+    "lineage_receipt_sha256": "325d23a682dab323e41f4742f74330db5e3cdf8b8ea01d5f5fb03c44b16c5c0c",
+    "modeling_candidate_sha256": "4bbea5540e382c6a2aa9fb8106423e1a5624aaa9818f785d44483713d918aa2c",
+    "derivation": "direct_ai_candidate",
+    "fixed_views": {
+      "front": "fa3b490e277d2e66fe41b3ced26154eac4e893ccecb87797e7633afc8f032bc3",
+      "three-quarter": "f08b6c7d1cb957c0d705f50a21d60bf9efba044322c4654c69cfdb9052063e17",
+      "side": "b427c6691c2801538436bec875afaba89731095d60d0e38a747f0e2190252c61",
+      "back": "b2a6cd38428bfd2345ef5f7bfde80bb15e1f1813bbca41b6252ca7422d65e2fa"
+    },
+    "approved_by": "Ayric",
+    "decision": "passed"
+  },
+  "semantic_cleanup": {
+    "native_mesh_sha256": "838b046a3a924aa9f2dd7036edeb1a39a4ebadb6e449892082b6d14735ddabdb",
+    "topology_report_sha256": "948276a84ca54f19cd108ee4d0a910082343ac609321d291346ee9e8a5ace25d",
+    "receipt_sha256": "81bd98c09c29e578a227485c38059b6fed6c5931c294011df805a7626f944fe7",
+    "result": "Topology-identical native round trip passed after removing 27 degenerate faces and 56 redundant vertices; the four AI-authored components and bounding shape were preserved."
+  },
+  "production_retopology": {
+    "mesh_sha256": "975f958d2503f9ef762f03e96ec4d46ba4c59cbf8166a497411ff0f4bb281531",
+    "report_sha256": "da0253c0cf3d8121eba114220b63485a3cc091240e5175ac058e30c9c07341a3",
+    "receipt_sha256": "e77be9785ee48cd8db66de605dea60cadecaf8eeaf088eab1c7022002e19e360",
+    "vertices": 8992,
+    "triangles": 18000,
+    "boundary_edges": 0,
+    "nonmanifold_edges": 0,
+    "approved_by": "Ayric",
+    "decision": "passed"
+  },
+  "unwrap_and_bake": {
+    "fbx_sha256": "ba0c66facc5078ebf826dc9bab9dccb537f1686915908d6a67ce657eda2cc140",
+    "report_sha256": "bbe9940171ec28777f3429bf324285e94edf97685f03ab5b8a3b2d87d3a184b7",
+    "ao_sha256": "7ab423ffb0b33feeb709eb4af316a39d9dad0aaf842d9673e25b1f14cc15954c",
+    "uv_regions_sha256": "1becea4b7b0202f7c4344e376d8ca7a636cabb73e1e60b11baeb440affb5516f",
+    "uv_layout_metrics": {
+      "triangle_area": 0.466135,
+      "nondegenerate_fraction": 1.0,
+      "minor_major_variance_ratio": 0.893999
+    },
+    "result": "The first formally finite atlas was superseded after diagnostics proved it had collapsed into a diagonal. The corrected Smart Project atlas is genuinely two-dimensional and its 2048 AO bake passes. BaseColor remains explicitly deferred to image-conditioned texturing."
+  },
+  "superseded_authority": {
+    "asset": "office-chair",
+    "reason": "The previously shipped 38-part chair is explicitly hand-authored. Its earlier visual approval cannot satisfy the later non-negotiable AI-conditioned geometry contract.",
+    "v1_eligible": false
+  },
+  "texture_status": "Human visual review passed by Ayric. Ledger promotion remains pending because the production texture gate measured only 27.9 texels/cm2 against the 90 floor; the candidate is also still at the generator's 1.993 m height instead of the measured 1.019 m chair target. See office-chair-ai-v2-texture-trials-v1.json.",
+  "next_gate": "Normalize the exact approved chair to 1.019 m, preserve its accepted UV correspondence, emit the Hunyuan atlas at 4096 instead of its downsampled 2048 export, and rerun the mechanical texture gate. The same visual decision may be carried only if the maps remain image-identical apart from resolution and scale packaging.",
+  "production_grade": false
+}

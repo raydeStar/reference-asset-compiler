@@ -1,0 +1,107 @@
+{
+  "schema": "reference-asset-compiler.retopology-trials.v1",
+  "asset_id": "orange-adventurer-cat-ai-v2",
+  "approved_modeling_candidate_sha256": "4b3f5eb8141d9dcf8edf27b4f45b05689bca34598474dc929b0be4305152bdef",
+  "semantic_cleanup_sha256": "6b420f4613d856685d6785907872c2c214dc1502f79f3757596cf23269e3dd42",
+  "trials": [
+    {
+      "id": "feature-qem-20k-attempt001",
+      "status": "rejected_after_native_reopen",
+      "reason": "The glTF review export ran before the native save and its validation mutated the production mesh, dropping five faces and opening 15 edges. The attempt is retained and the driver now saves and verifies the native round trip before exporting review transport."
+    },
+    {
+      "id": "paired-feature-qem-attempt001-through-attempt007",
+      "status": "rejected",
+      "representative_report_sha256": "0be839efb1a78f26a4c89ed9d18a3779a0213b67b6b2091527709da60fd8f028",
+      "reason": "Bulk and early deterministic pairing treated five legitimate coincident two-sided detail sheets as ordinary body faces. Export validation removed one side and exposed 15 edges. Angle changes did not solve the structural cause."
+    },
+    {
+      "id": "paired-feature-qem-attempt008",
+      "status": "rejected",
+      "report_sha256": "e6cf5bb75bc96b0cb14ade5e03ec416e0f55e0dfd871aeb4ef51101a520d6c00",
+      "reason": "Removing both sides of the five thin sheets produced a closed 80.0036% quad body but erased muzzle and chest detail, causing 0.12592 m maximum surface deviation. The sheets are authored detail and may not be discarded."
+    },
+    {
+      "id": "feature-qem-19990-attempt003",
+      "status": "intermediate_pass",
+      "report_sha256": "f473df5e8c16fcf9f8364a37983fd27d7ee073efdfc2218148564fb10a909a73",
+      "reason": "The detail-weighted surface reserves ten triangulated faces for export-safe thickening of five coincident detail sheets."
+    },
+    {
+      "id": "paired-feature-qem-attempt009",
+      "status": "rejected_by_ayric",
+      "candidate_sha256": "88895ee4b00cbd50a7b5bb68c0472a275c843910ab0ea486640e3f5c773101ef",
+      "review_glb_sha256": "27ccdcd0889ba8bfc409a123e49426f4e8ae3d1a727ae0410e8b3e8a3ce52e91",
+      "report_sha256": "7cd5b7ceb29b01fe2fcca9b73ab2342b47541bdce14c5cc1bf688106cc52bfa6",
+      "review_manifest_sha256": "2a303bf9eef9a79697ed26fd556d2537be7d1832eee81d66d716ad5c810ed8df",
+      "vertices": 10008,
+      "triangles": 20000,
+      "quads": 8887,
+      "quad_fraction": 0.8001260466372558,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "p99_surface_deviation_m": 0.0035828130785375834,
+      "maximum_surface_deviation_m": 0.009711017832159996,
+      "detail_sheet_repair": "Five coincident two-sided detail triangles were converted into closed 0.25 mm tetrahedral shells while retaining each original visible face exactly.",
+      "reason": "Mechanical limits pass, but Ayric rejected the visibly bumpy surface. Texture work remains blocked."
+    },
+    {
+      "id": "feature-fairing-attempt001-through-attempt010",
+      "status": "rejected",
+      "reason": "Early passes either left the body visibly lumpy, reduced measured roughness by less than 15%, or exceeded the 5 mm p99 surface-deviation contract. Attempts are immutable calibration evidence."
+    },
+    {
+      "id": "feature-fairing-attempt011",
+      "status": "approved_by_ayric_with_known_deformation_risk",
+      "candidate_sha256": "2003e1418794b8f124cf8af5f1da4c9249a0a36e5a9089581fb5d9376172b37d",
+      "review_glb_sha256": "fe0df6786ddd6bbcf27c8ee8921144997b4c3d80b1c0cfa344c5eff764e0a697",
+      "report_sha256": "4a3ca53e10394050faff36ecdbef12c8ad36cab46c6e1286f478718d4df92327",
+      "vertices": 10008,
+      "triangles": 20000,
+      "quads": 8887,
+      "quad_fraction": 0.8001260466372558,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "roughness_reduction_fraction": 0.45898347391283834,
+      "p99_surface_deviation_m": 0.004960468038916588,
+      "maximum_surface_deviation_m": 0.01162735465914011,
+      "canonical_report_sha256": "d9cdc07377a9ce8cff8bd5b382bc6b11206f98c04d36397fdd8c37592fbc1ed2",
+      "approval_receipt_sha256": "d14b511b05f39c908b189506d86d160dcb2bb2bbd39e490b0469cf56ca309c0a",
+      "reason": "The broad body surfaces are visibly calmer and all numeric contracts pass. Ayric accepted the slight residual waviness for now and authorized texture progression after reviewing the surface, wireframe, and joint-guide overlay. Non-semantic paired-QEM flow remains an explicit risk for downstream deformation validation."
+    },
+    {
+      "id": "autoremesher-over-faired-attempt005-through-attempt006",
+      "status": "rejected_and_backend_retired_for_asset",
+      "reason": "The calibrated 20,000 target returned only 8,571 triangles, 33 boundary edges, and 37 non-manifold edges, while fixed views erased eyes, whiskers, cuffs, and costume definition. The AutoRemesher gate now rejects open and non-manifold output."
+    },
+    {
+      "id": "joint-guides-v1-attempt001-through-attempt003",
+      "status": "rejected_or_superseded",
+      "reason": "The first draft missed a sleeve cross-section. The first fitted overlay projected the neck ring across the lower muzzle. Both were corrected without launching topology surgery."
+    },
+    {
+      "id": "joint-guides-v1-attempt004",
+      "status": "approved_by_ayric_for_bounded_topology_investigation",
+      "fitted_profile_sha256": "e383676a5c0680639caeeaea95038d28fda44c4f3a74840570b05ecbc64bcba9",
+      "fit_report_sha256": "11cb58b4fba26eb5129dc785590b546a7bf0b81f91d8b0562218129bfe30e1bc",
+      "projection_report_sha256": "69fe2f4a3c58fa8521cc16b5fc3a816b4ac75d6783e98852683c5480866fc9a9",
+      "rings": 13,
+      "maximum_center_movement_m": 0.11661904066645952,
+      "minimum_inward_clearance_m": 0.005224715918302536,
+      "reason": "The source-bound overlay places local rings at the scarf/base-of-head, shoulders, elbows, wrists, exposed upper legs, knee/boot transitions, and ankles. Ayric passed the overlay and authorized progression."
+    },
+    {
+      "id": "limb-band-audit-attempt001-through-attempt004",
+      "status": "rejected_and_route_retired_for_asset",
+      "report_sha256": [
+        "3c399155e52547a2d6fbf7cab064cac2fa209dfdd770a049bc9fc76f4934e388",
+        "3578a9f4081a493015554d15803d83d382e783dd142b074aefdffd43f2c7f5c7",
+        "34c4b02a2a95fc39aa6c8214f1714bfbee1cb456d1e046be1f655a2eee191a07",
+        "f1c9f409a14a6936eb877d6f93c4501f3c5c62d96faf31e8d842ab42712fe1bd"
+      ],
+      "reason": "The default leg selection branched into adjacent geometry. A reduced radius produced nominally closed boundaries but fixed colored views exposed narrow slivers rather than full circumferential bands. The intermediate radius restored branched boundaries. No topology was mutated, and local limb-band surgery is retired for this cat."
+    }
+  ],
+  "production_retopology_status": "passed_with_known_deformation_risk",
+  "next_action": "Continue the accepted UV and source-conditioned texture route. Rigging must run explicit elbow, knee, spine, and tail deformation tests before any runtime promotion."
+}

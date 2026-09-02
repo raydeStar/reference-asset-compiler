@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reference-asset-compiler.dev/schemas/hand-landmarks.schema.json",
+  "title": "Reviewed humanoid hand landmarks",
+  "type": "object",
+  "required": ["schema", "source", "coordinate_space", "hands", "review"],
+  "properties": {
+    "schema": {"const": "reference-asset-compiler.hand-landmarks.v1"},
+    "source": {
+      "type": "object",
+      "required": ["path", "sha256"],
+      "properties": {
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "coordinate_space": {"const": "mesh_local_after_import_transform_apply"},
+    "hands": {
+      "type": "object",
+      "required": ["l", "r"],
+      "properties": {
+        "l": {"$ref": "#/$defs/hand"},
+        "r": {"$ref": "#/$defs/hand"}
+      }
+    },
+    "review": {
+      "type": "object",
+      "required": ["status", "approved_by", "note"],
+      "properties": {
+        "status": {"const": "approved"},
+        "approved_by": {"type": "string", "minLength": 1},
+        "note": {"type": "string", "minLength": 1}
+      }
+    }
+  },
+  "$defs": {
+    "point": {
+      "type": "array",
+      "prefixItems": [{"type": "number"}, {"type": "number"}, {"type": "number"}],
+      "minItems": 3,
+      "maxItems": 3
+    },
+    "digit": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/point"},
+      "minItems": 4,
+      "maxItems": 4
+    },
+    "hand": {
+      "type": "object",
+      "required": ["wrist", "digits"],
+      "properties": {
+        "wrist": {"$ref": "#/$defs/point"},
+        "digits": {
+          "type": "object",
+          "required": ["thumb", "index", "middle", "ring", "pinky"],
+          "properties": {
+            "thumb": {"$ref": "#/$defs/digit"},
+            "index": {"$ref": "#/$defs/digit"},
+            "middle": {"$ref": "#/$defs/digit"},
+            "ring": {"$ref": "#/$defs/digit"},
+            "pinky": {"$ref": "#/$defs/digit"}
+          }
+        }
+      }
+    }
+  }
+}

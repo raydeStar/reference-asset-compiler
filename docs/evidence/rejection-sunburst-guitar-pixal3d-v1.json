@@ -1,0 +1,36 @@
+{
+  "schema": "reference-asset-compiler.modeling-rejection.v1",
+  "asset_id": "sunburst-guitar",
+  "gate": "modeling_approval",
+  "status": "rejected",
+  "reviewer": "agent_visual_review",
+  "reviewed_at": "2026-08-31T21:31:00-06:00",
+  "lineage": {
+    "adapter": "pixal3d",
+    "seed": 42,
+    "resolution": 1024,
+    "config_sha256": "189d43dc5a97d7483e868bd905ed9a9a79caa0544cc3fd2e5e159900a72a1810",
+    "approved_source_sha256": "f17c8f47605ea09cc0a51bd0bf495bb997fd8ce5817343b98eae609605aacd3d",
+    "alpha_authority_sha256": "50d472abc8747e8bd69d813a105a1fc1307dc027b82686e1ccff0e799a8f6abc",
+    "raw_candidate_sha256": "1281415c69dfee2e5e6d5dc2b87240d5f45817cbceca9a6b1fdd1d6ddd72c948",
+    "pipeline_state": "${RAC_LEGACY_ROOT}/output/repro-v1-20260830/props/sunburst-guitar/pipeline-state.json"
+  },
+  "reviewed_derivative": {
+    "path": "${RAC_LEGACY_ROOT}/output/repro-v1-20260830/props/sunburst-guitar/sunburst-guitar-game-ready-unrigged.glb",
+    "sha256": "187e7efb28d01f7dcbdfdce64ecb6e7d1206dc80f08b7a3c54f03d8b9c667b72",
+    "fixed_views": {
+      "front_sha256": "10d47f6415b9c51416db6a38d75a6c5d93212d62e6b3eb2b7be2528ebc0972f1",
+      "three_quarter_sha256": "273a2c4dc0bd98ddaec2f108447be4fdf1030c2433675a1bf4b38a3c3accd6de",
+      "side_sha256": "46cef0d1a68fcf2a43754ec401781b57177b0c1978b386550b5f7085d3b8c97d",
+      "back_sha256": "81b673b36376c068746c2a322f5f581cc263610fb7745d5a4d5f963ad420107e"
+    }
+  },
+  "reasons": [
+    "Neck, body, and cutaway transitions are melted and structurally ambiguous.",
+    "Pickups, bridge, tailpiece, controls, strings, frets, and tuners are malformed or fused.",
+    "Side and back views do not establish credible guitar construction or clean depth.",
+    "The stand and platform case are fused into noisy generated geometry rather than separable authored parts.",
+    "Texture projection cannot repair these modeling defects."
+  ],
+  "next_action": "Generate a new image-conditioned AI geometry challenger when GPU ownership and free VRAM permit; stop again at fixed-view modeling approval."
+}

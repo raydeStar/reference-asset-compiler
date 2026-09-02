@@ -1,0 +1,40 @@
+{
+  "schema": "reference-asset-compiler.input-lineage.v1",
+  "asset_id": "orange-adventurer-cat-ai-v2",
+  "source": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v2/references/primary.png",
+  "source_sha256": "fb1c0c963b79db3d38714c048ec473d7ed201bfd9cc84c3b3828056f1d8a0158",
+  "source_role": "primary artistic authority; Ayric-corrected open trailing tail contract; mandatory direct input to the later AI texture-mapping gate",
+  "source_derivation": {
+    "generator": "OpenAI image generation",
+    "input": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/primary.png",
+    "prompt_summary": "Preserve the approved adventurer-cat identity and costume while changing the single striped tail from a loop into an open backward-trailing curve and clarifying face, scarf, strap, clasp, pendant, and chest details."
+  },
+  "views": [
+    {
+      "view": "front",
+      "output": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v2/references/turnaround-v1/front.png",
+      "sha256": "81d4329f98afc2db893a51faf6333bc429530bffe96022c57c4db33455a1ed11",
+      "role": "AI-derived pose-consistent geometry guidance with one open trailing tail"
+    },
+    {
+      "view": "left",
+      "output": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v2/references/turnaround-v1/left.png",
+      "sha256": "5b61d28b0e25aa4554a079c45d7f0225aedf500ed3d4eb66bf96142660370c9b",
+      "role": "AI-derived geometry guidance and authoritative no-loop tail silhouette"
+    },
+    {
+      "view": "back",
+      "output": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v2/references/turnaround-v1/back.png",
+      "sha256": "62680ee3bbcfdc30dc089dd2ed1a956b1e18102a3849a8bff6642a8a54c15491",
+      "role": "AI-derived geometry guidance and authoritative tail-root separation"
+    }
+  ],
+  "rejected_derivatives": [
+    {
+      "path": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/turnaround-ai-v2-tail-corrected.png",
+      "sha256": "1661e96ce45b4bd1b6c1cd6788bef271e5c29076ba817862f5f7c28fb0c44e13",
+      "reason": "Equal-width panel extraction clipped visible parts and leaked a tail tip across panel boundaries; independent full-frame views replaced it."
+    }
+  ],
+  "authority_policy": "The corrected primary and three independent supporting views directly condition AI geometry. The tail is a structural modeling constraint, not a Blender cleanup request. The corrected primary must directly condition topology-locked AI texture mapping before texture approval."
+}

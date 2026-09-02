@@ -1,0 +1,34 @@
+{
+  "schema": "reference-asset-compiler.input-lineage.v1",
+  "asset_id": "orange-adventurer-cat-ai-v1",
+  "source": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/primary.png",
+  "source_sha256": "0a581d91ed58aaadfbf882f989b3b6c44df37fbd2fad1dc9ed37258c34e5b553",
+  "source_role": "primary artistic authority and direct front-view geometry conditioning",
+  "generated_sheet": {
+    "path": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/turnaround-ai-v1.png",
+    "sha256": "e08ae1635e6b0649003ca592f0394202b404352336f3fcbc5e8a7a0ade856831",
+    "generator": "OpenAI image generation",
+    "prompt_summary": "Three-panel orthographic front, left, and back turnaround of the supplied adventurer cat, preserving identity, outfit, props, one striped tail, and a neutral A-pose."
+  },
+  "views": [
+    {
+      "view": "front",
+      "output": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/primary.png",
+      "sha256": "0a581d91ed58aaadfbf882f989b3b6c44df37fbd2fad1dc9ed37258c34e5b553",
+      "role": "direct source authority"
+    },
+    {
+      "view": "left",
+      "output": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/turnaround-v1/left.png",
+      "sha256": "c94cf3f3e2299ee6f820220f1b6bef00177f8d4aa2de1dfbeec74983d7a19933",
+      "role": "AI-derived depth guidance"
+    },
+    {
+      "view": "back",
+      "output": "${RAC_REPO_ROOT}/work/orange-adventurer-cat-ai-v1/references/turnaround-v1/back.png",
+      "sha256": "67b10c3dcdc1b6d3edf7c650170d6ad600ff533748ceb5282a3871dc19583afd",
+      "role": "AI-derived depth guidance"
+    }
+  ],
+  "authority_policy": "The supplied primary image controls identity and visible construction. AI-derived side and back views are secondary depth guidance and cannot override the source."
+}

@@ -1,0 +1,401 @@
+{
+  "schema": "reference-asset-compiler.cohort-audit.v1",
+  "cohort_id": "v1-seven-asset-benchmark",
+  "manifest_sha256": "350e42394e6af48c98f4194fd7b3b16b288ca118d36694962390a41c3d842dee",
+  "workspace_root": "work",
+  "ok": false,
+  "production_ready": false,
+  "summary": {
+    "required_assets": 7,
+    "production_ready_assets": 0,
+    "incomplete_assets": 7,
+    "rejected_assets": 1,
+    "blocked_assets": 0
+  },
+  "failures": [
+    "field-scout-male-ai-v2 is incomplete; unresolved stages: ['modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'rig_and_skin', 'deformation_validation', 'ue5_import', 'ue5_motion_review', 'cook']",
+    "field-scout-female-ai-v4 is incomplete; unresolved stages: ['production_retopology', 'unwrap_and_bake', 'texture_approval', 'rig_and_skin', 'deformation_validation', 'ue5_import', 'ue5_motion_review', 'cook']",
+    "ninja-man-ai-v3 requires replacement evidence; rejected stages: ['modeling_approval']; all unresolved stages: ['modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'rig_and_skin', 'deformation_validation', 'ue5_import', 'ue5_motion_review', 'cook']",
+    "fox-mascot-ai-v3 is incomplete; unresolved stages: ['generate_candidates', 'modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'rig_and_skin', 'deformation_validation', 'ue5_import', 'ue5_motion_review', 'cook']",
+    "office-chair-ai-v2 is incomplete; unresolved stages: ['texture_approval', 'collision_optional', 'static_validation', 'ue5_import', 'ue5_runtime_review', 'cook']",
+    "weathered-longsword is incomplete; unresolved stages: ['modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'collision_optional', 'static_validation', 'ue5_import', 'ue5_runtime_review', 'cook']",
+    "sunburst-guitar-ai-v2 is incomplete; unresolved stages: ['generate_candidates', 'modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'collision_optional', 'static_validation', 'ue5_import', 'ue5_runtime_review', 'cook']"
+  ],
+  "members": [
+    {
+      "asset_id": "field-scout-male-ai-v2",
+      "asset_kind": "humanoid",
+      "workspace": "field-scout-male-ai-v2",
+      "production_ready": false,
+      "failures": [
+        "field-scout-male-ai-v2 is incomplete; unresolved stages: ['modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'rig_and_skin', 'deformation_validation', 'ue5_import', 'ue5_motion_review', 'cook']"
+      ],
+      "budgets": {
+        "maximum_vertices": 15000,
+        "maximum_triangles": 20000
+      },
+      "audit": {
+        "schema": "reference-asset-compiler.audit.v1",
+        "asset_id": "field-scout-male-ai-v2",
+        "asset_kind": "humanoid",
+        "ok": true,
+        "all_stages_passed": false,
+        "production_ready": false,
+        "failures": [],
+        "stages": {
+          "intake": "passed",
+          "route": "passed",
+          "generate_candidates": "passed",
+          "modeling_approval": "pending",
+          "semantic_cleanup": "pending",
+          "production_retopology": "pending",
+          "unwrap_and_bake": "pending",
+          "texture_approval": "pending",
+          "rig_and_skin": "pending",
+          "deformation_validation": "pending",
+          "ue5_import": "pending",
+          "ue5_motion_review": "pending",
+          "cook": "pending"
+        }
+      },
+      "stage_summary": {
+        "rejected": [],
+        "blocked": [],
+        "in_progress": [],
+        "pending": [
+          "modeling_approval",
+          "semantic_cleanup",
+          "production_retopology",
+          "unwrap_and_bake",
+          "texture_approval",
+          "rig_and_skin",
+          "deformation_validation",
+          "ue5_import",
+          "ue5_motion_review",
+          "cook"
+        ]
+      }
+    },
+    {
+      "asset_id": "field-scout-female-ai-v4",
+      "asset_kind": "humanoid",
+      "workspace": "field-scout-female-ai-v4",
+      "production_ready": false,
+      "failures": [
+        "field-scout-female-ai-v4 is incomplete; unresolved stages: ['production_retopology', 'unwrap_and_bake', 'texture_approval', 'rig_and_skin', 'deformation_validation', 'ue5_import', 'ue5_motion_review', 'cook']"
+      ],
+      "budgets": {
+        "maximum_vertices": 15000,
+        "maximum_triangles": 20000
+      },
+      "audit": {
+        "schema": "reference-asset-compiler.audit.v1",
+        "asset_id": "field-scout-female-ai-v4",
+        "asset_kind": "humanoid",
+        "ok": true,
+        "all_stages_passed": false,
+        "production_ready": false,
+        "failures": [],
+        "stages": {
+          "intake": "passed",
+          "route": "passed",
+          "generate_candidates": "passed",
+          "modeling_approval": "passed",
+          "semantic_cleanup": "passed",
+          "production_retopology": "pending",
+          "unwrap_and_bake": "pending",
+          "texture_approval": "pending",
+          "rig_and_skin": "pending",
+          "deformation_validation": "pending",
+          "ue5_import": "pending",
+          "ue5_motion_review": "pending",
+          "cook": "pending"
+        }
+      },
+      "stage_summary": {
+        "rejected": [],
+        "blocked": [],
+        "in_progress": [],
+        "pending": [
+          "production_retopology",
+          "unwrap_and_bake",
+          "texture_approval",
+          "rig_and_skin",
+          "deformation_validation",
+          "ue5_import",
+          "ue5_motion_review",
+          "cook"
+        ]
+      }
+    },
+    {
+      "asset_id": "ninja-man-ai-v3",
+      "asset_kind": "humanoid",
+      "workspace": "ninja-man-ai-v3",
+      "production_ready": false,
+      "failures": [
+        "ninja-man-ai-v3 requires replacement evidence; rejected stages: ['modeling_approval']; all unresolved stages: ['modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'rig_and_skin', 'deformation_validation', 'ue5_import', 'ue5_motion_review', 'cook']"
+      ],
+      "budgets": {
+        "maximum_vertices": 15000,
+        "maximum_triangles": 20000
+      },
+      "audit": {
+        "schema": "reference-asset-compiler.audit.v1",
+        "asset_id": "ninja-man-ai-v3",
+        "asset_kind": "humanoid",
+        "ok": true,
+        "all_stages_passed": false,
+        "production_ready": false,
+        "failures": [],
+        "stages": {
+          "intake": "passed",
+          "route": "passed",
+          "generate_candidates": "passed",
+          "modeling_approval": "rejected",
+          "semantic_cleanup": "pending",
+          "production_retopology": "pending",
+          "unwrap_and_bake": "pending",
+          "texture_approval": "pending",
+          "rig_and_skin": "pending",
+          "deformation_validation": "pending",
+          "ue5_import": "pending",
+          "ue5_motion_review": "pending",
+          "cook": "pending"
+        }
+      },
+      "stage_summary": {
+        "rejected": [
+          "modeling_approval"
+        ],
+        "blocked": [],
+        "in_progress": [],
+        "pending": [
+          "semantic_cleanup",
+          "production_retopology",
+          "unwrap_and_bake",
+          "texture_approval",
+          "rig_and_skin",
+          "deformation_validation",
+          "ue5_import",
+          "ue5_motion_review",
+          "cook"
+        ]
+      }
+    },
+    {
+      "asset_id": "fox-mascot-ai-v3",
+      "asset_kind": "mascot",
+      "workspace": "fox-mascot-ai-v3",
+      "production_ready": false,
+      "failures": [
+        "fox-mascot-ai-v3 is incomplete; unresolved stages: ['generate_candidates', 'modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'rig_and_skin', 'deformation_validation', 'ue5_import', 'ue5_motion_review', 'cook']"
+      ],
+      "budgets": {
+        "maximum_vertices": 15000,
+        "maximum_triangles": 20000
+      },
+      "audit": {
+        "schema": "reference-asset-compiler.audit.v1",
+        "asset_id": "fox-mascot-ai-v3",
+        "asset_kind": "mascot",
+        "ok": true,
+        "all_stages_passed": false,
+        "production_ready": false,
+        "failures": [],
+        "stages": {
+          "intake": "passed",
+          "route": "passed",
+          "generate_candidates": "pending",
+          "modeling_approval": "pending",
+          "semantic_cleanup": "pending",
+          "production_retopology": "pending",
+          "unwrap_and_bake": "pending",
+          "texture_approval": "pending",
+          "rig_and_skin": "pending",
+          "deformation_validation": "pending",
+          "ue5_import": "pending",
+          "ue5_motion_review": "pending",
+          "cook": "pending"
+        }
+      },
+      "stage_summary": {
+        "rejected": [],
+        "blocked": [],
+        "in_progress": [],
+        "pending": [
+          "generate_candidates",
+          "modeling_approval",
+          "semantic_cleanup",
+          "production_retopology",
+          "unwrap_and_bake",
+          "texture_approval",
+          "rig_and_skin",
+          "deformation_validation",
+          "ue5_import",
+          "ue5_motion_review",
+          "cook"
+        ]
+      }
+    },
+    {
+      "asset_id": "office-chair-ai-v2",
+      "asset_kind": "static_prop",
+      "workspace": "office-chair-ai-v2",
+      "production_ready": false,
+      "failures": [
+        "office-chair-ai-v2 is incomplete; unresolved stages: ['texture_approval', 'collision_optional', 'static_validation', 'ue5_import', 'ue5_runtime_review', 'cook']"
+      ],
+      "budgets": {
+        "maximum_vertices": 15000,
+        "maximum_triangles": 20000
+      },
+      "audit": {
+        "schema": "reference-asset-compiler.audit.v1",
+        "asset_id": "office-chair-ai-v2",
+        "asset_kind": "static_prop",
+        "ok": true,
+        "all_stages_passed": false,
+        "production_ready": false,
+        "failures": [],
+        "stages": {
+          "intake": "passed",
+          "route": "passed",
+          "generate_candidates": "passed",
+          "modeling_approval": "passed",
+          "semantic_cleanup": "passed",
+          "production_retopology": "passed",
+          "unwrap_and_bake": "passed",
+          "texture_approval": "pending",
+          "collision_optional": "pending",
+          "static_validation": "pending",
+          "ue5_import": "pending",
+          "ue5_runtime_review": "pending",
+          "cook": "pending"
+        }
+      },
+      "stage_summary": {
+        "rejected": [],
+        "blocked": [],
+        "in_progress": [],
+        "pending": [
+          "texture_approval",
+          "collision_optional",
+          "static_validation",
+          "ue5_import",
+          "ue5_runtime_review",
+          "cook"
+        ]
+      }
+    },
+    {
+      "asset_id": "weathered-longsword",
+      "asset_kind": "static_prop",
+      "workspace": "weathered-longsword",
+      "production_ready": false,
+      "failures": [
+        "weathered-longsword is incomplete; unresolved stages: ['modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'collision_optional', 'static_validation', 'ue5_import', 'ue5_runtime_review', 'cook']"
+      ],
+      "budgets": {
+        "maximum_vertices": 15000,
+        "maximum_triangles": 20000
+      },
+      "audit": {
+        "schema": "reference-asset-compiler.audit.v1",
+        "asset_id": "weathered-longsword",
+        "asset_kind": "static_prop",
+        "ok": true,
+        "all_stages_passed": false,
+        "production_ready": false,
+        "failures": [],
+        "stages": {
+          "intake": "passed",
+          "route": "passed",
+          "generate_candidates": "passed",
+          "modeling_approval": "pending",
+          "semantic_cleanup": "pending",
+          "production_retopology": "pending",
+          "unwrap_and_bake": "pending",
+          "texture_approval": "pending",
+          "collision_optional": "pending",
+          "static_validation": "pending",
+          "ue5_import": "pending",
+          "ue5_runtime_review": "pending",
+          "cook": "pending"
+        }
+      },
+      "stage_summary": {
+        "rejected": [],
+        "blocked": [],
+        "in_progress": [],
+        "pending": [
+          "modeling_approval",
+          "semantic_cleanup",
+          "production_retopology",
+          "unwrap_and_bake",
+          "texture_approval",
+          "collision_optional",
+          "static_validation",
+          "ue5_import",
+          "ue5_runtime_review",
+          "cook"
+        ]
+      }
+    },
+    {
+      "asset_id": "sunburst-guitar-ai-v2",
+      "asset_kind": "static_prop",
+      "workspace": "sunburst-guitar-ai-v2",
+      "production_ready": false,
+      "failures": [
+        "sunburst-guitar-ai-v2 is incomplete; unresolved stages: ['generate_candidates', 'modeling_approval', 'semantic_cleanup', 'production_retopology', 'unwrap_and_bake', 'texture_approval', 'collision_optional', 'static_validation', 'ue5_import', 'ue5_runtime_review', 'cook']"
+      ],
+      "budgets": {
+        "maximum_vertices": 15000,
+        "maximum_triangles": 20000
+      },
+      "audit": {
+        "schema": "reference-asset-compiler.audit.v1",
+        "asset_id": "sunburst-guitar-ai-v2",
+        "asset_kind": "static_prop",
+        "ok": true,
+        "all_stages_passed": false,
+        "production_ready": false,
+        "failures": [],
+        "stages": {
+          "intake": "passed",
+          "route": "passed",
+          "generate_candidates": "pending",
+          "modeling_approval": "pending",
+          "semantic_cleanup": "pending",
+          "production_retopology": "pending",
+          "unwrap_and_bake": "pending",
+          "texture_approval": "pending",
+          "collision_optional": "pending",
+          "static_validation": "pending",
+          "ue5_import": "pending",
+          "ue5_runtime_review": "pending",
+          "cook": "pending"
+        }
+      },
+      "stage_summary": {
+        "rejected": [],
+        "blocked": [],
+        "in_progress": [],
+        "pending": [
+          "generate_candidates",
+          "modeling_approval",
+          "semantic_cleanup",
+          "production_retopology",
+          "unwrap_and_bake",
+          "texture_approval",
+          "collision_optional",
+          "static_validation",
+          "ue5_import",
+          "ue5_runtime_review",
+          "cook"
+        ]
+      }
+    }
+  ]
+}

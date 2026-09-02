@@ -1,0 +1,118 @@
+{
+  "schema": "reference-asset-compiler.workflow-catalog.v1",
+  "updated": "2026-08-30",
+  "workstation_contract": {
+    "comfyui_role": "geometry_generation_only_by_default",
+    "texture_default": "hunyuan3d21_existing_mesh_pbr",
+    "texture_challenger": "trellis2_existing_mesh_pbr",
+    "humanoid_rig_default": "user_licensed_auto_rig_pro_existing_mesh_authoring_then_compiler_gates",
+    "compiler_role": "normalize_gate_package_and_ue5_verify_existing_authorities"
+  },
+  "workflows": [
+    {
+      "id": "hy3d_final_cut",
+      "stage": "geometry_candidate",
+      "path": "geometry/comfyui/hy3d_final_cut.json",
+      "sha256": "C5FFEADD692BFEEE543E121146A72DA932AF38D4497653DBA710019934734B3A",
+      "source": "original download hy3d_final_cut.json from the hunyuan3d2HighRes_v12 workflow pack (hash-pinned above)",
+      "graph": {
+        "nodes": 64,
+        "links": 83
+      },
+      "selection": "historical_primary_geometry_graph",
+      "run_boundary": "bypass downstream texture nodes and stop at Hy3DExportMesh unless explicitly evaluating the legacy texture branch",
+      "current_machine_status": "graph_preserved_but_required_Hunyuan3DWrapper_and_ReActor_nodes_are_not_installed_in_current_ComfyUI",
+      "neutralized": "LoadImage filename replaced with reference.png before publication; graph logic unchanged"
+    },
+    {
+      "id": "pixal3d_candidate",
+      "stage": "geometry_candidate",
+      "path": "geometry/pixal3d/run_pixal3d.py",
+      "sha256": "C0E38E6B5741245F04331BBDC306BD51407425E9DD2D4A1759804D1B11B6DD7D",
+      "selection": "preferred_high_fidelity_challenger",
+      "runtime": "WSL_isolated_environment",
+      "input_contract": "presegmented_nonopaque_RGBA",
+      "promotion": "fixed_view_modeling_review_required"
+    },
+    {
+      "id": "hunyuan3d21_existing_mesh_pbr",
+      "stage": "texture_candidate",
+      "path": "texture/hunyuan3d21/run_hy3d21_pbr.py",
+      "sha256": "FB4C1664AD7489ADD748CF79985670716366D582FD79C46073BD504DAD2F844A",
+      "patch_path": "texture/hunyuan3d21/patch_hy3d21_windows.py",
+      "patch_sha256": "35F4D60502AC7C43838A0EAB6ECE771407A19937D8C6E51B4FD175C70F09FFB8",
+      "selection": "default_existing_mesh_texture_candidate",
+      "verified_upstream_commit": "82920d6",
+      "runtime": "Windows_Python_3.11_CUDA_12.4",
+      "minimum_free_vram_gib": 21,
+      "topology_contract": "exact_face_order_geometry_and_UV_with_tolerance_1e-6",
+      "known_limit": "whole_body_PBR_improved_but_face_identity_degraded; requires_semantic_head_review"
+    },
+    {
+      "id": "trellis2_existing_mesh_pbr",
+      "stage": "texture_challenger",
+      "path": "texture/trellis2/run_trellis2_texturing.py",
+      "sha256": "D93B9A7D4726CC29354E525632D4BC8F652314B18A17F5C03C2F661B2C923752",
+      "selection": "isolated_challenger_not_default",
+      "verified_upstream_commit": "75fbf01",
+      "runtime": "WSL_Python_3.10_CUDA_12.4",
+      "input_contract": "presegmented_nonopaque_RGBA_and_existing_UVs",
+      "known_limit": "whole_body_trial_showed_face_bands_identity_loss_and_triangle_speckling"
+    },
+    {
+      "id": "anigen_rig_candidate",
+      "stage": "articulation_challenger",
+      "path": "rigging/anigen/run_anigen_candidate.py",
+      "sha256": "CF73CA4083CB685E0F6837F8085F0BC742F312B55242C2E03CD92137350F3A8C",
+      "selection": "challenger_only",
+      "runtime": "isolated_Linux_environment",
+      "input_contract": "authority_image_generates_replacement_mesh_and_rig",
+      "not_a_rig_and_skin_driver": true,
+      "promotion": "named_skeleton_profile_chain_parent_influence_deformation_FBX_and_UE5_gates_required"
+    },
+    {
+      "id": "auto_rig_pro_existing_mesh",
+      "stage": "rig_and_skin",
+      "path": "scripts/run_arp_rig_candidate.ps1",
+      "preflight": "scripts/blender/preflight_arp.py",
+      "selection": "preferred_existing_mesh_humanoid_authoring_runtime",
+      "runtime": "licensed_Blender_extension",
+      "input_contract": "approved_existing_mesh",
+      "current_machine_status": "Auto-Rig Pro 3.74.40 operational in Blender 5.2.1; portable A-pose existing-mesh candidate driver authored; full retained-asset run and downstream export gates pending",
+      "promotion": "candidate_only_until_geometry_hash_weight_deformation_FBX_profile_and_UE5_gates"
+    },
+    {
+      "id": "autoremesher_reduction_challenger",
+      "stage": "production_retopology",
+      "path": "scripts/run_autoremesher_reduction.ps1",
+      "preflight": "scripts/blender/preflight_autoremesher.py",
+      "selection": "isolated_challenger_for_raw_generated_meshes_quadriflow_refuses",
+      "runtime": "licensed_Blender_extension",
+      "input_contract": "immutable_dense_geometry_authority",
+      "known_result": "raw Pixal3D chair rejected: 979546 to 372317 triangles, 0.315 quad fraction, about 156k boundary/nonmanifold edges",
+      "promotion": "triangle_quad_finite_fixed_view_texture_bake_and_runtime_gates_required"
+    },
+    {
+      "id": "voxel_quadriflow_reduction_challenger",
+      "stage": "production_retopology",
+      "path": "scripts/run_voxel_quadriflow_reduction.ps1",
+      "selection": "isolated_challenger_derived_from_the_successful_legacy_chair_reduction_lineage",
+      "runtime": "Blender_headless_CPU",
+      "input_contract": "immutable_dense_geometry_authority",
+      "method": "voxel_condition_to_closed_surface_then_quadriflow_without_decimation_fallback",
+      "known_result": "current Blender 5.2.1 refused closed manifold conditioned chair and longsword surfaces; retained as a diagnostic challenger",
+      "promotion": "not_selected"
+    },
+    {
+      "id": "voxel_qem_reduction_challenger",
+      "stage": "production_retopology",
+      "path": "scripts/run_voxel_qem_reduction.ps1",
+      "selection": "preferred_reduction_challenger_based_on_the_visually_accepted_legacy_chair_triangle_fallback",
+      "runtime": "Blender_headless_CPU",
+      "input_contract": "immutable_dense_geometry_authority",
+      "method": "voxel_condition_to_dominant_closed_surface_then_explicit_collapse_QEM",
+      "known_result": "raw longsword 977341 to 18000 triangles, closed manifold; fixed clay views match accepted 48k silhouette at 512px pending human and texture review",
+      "promotion": "triangle_manifold_fixed_view_dense_texture_bake_and_runtime_gates_required"
+    }
+  ]
+}

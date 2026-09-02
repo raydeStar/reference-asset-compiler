@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://reference-asset-compiler.dev/schemas/asset-intake.schema.json",
+  "title": "Reference Asset Compiler intake",
+  "type": "object",
+  "required": ["schema_version", "asset_id", "asset_kind", "articulation", "source"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "asset_id": {"type": "string", "minLength": 1},
+    "asset_slug": {"type": "string", "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"},
+    "asset_kind": {
+      "enum": ["humanoid", "mascot", "creature", "mechanical_articulated", "static_prop", "wearable", "environment_structure", "vegetation", "unknown"]
+    },
+    "articulation": {"enum": ["auto", "required", "optional", "static"]},
+    "candidate_adapters": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "rig_backbone": {"type": ["string", "null"]},
+    "skeleton_profile": {"type": ["string", "null"]},
+    "source": {
+      "type": "object",
+      "required": ["primary_view", "path", "sha256"],
+      "properties": {
+        "primary_view": {"enum": ["front", "three-quarter", "side", "back", "turnaround"]},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      },
+      "additionalProperties": true
+    },
+    "budgets": {
+      "type": "object",
+      "properties": {
+        "maximum_vertices": {"type": "integer", "minimum": 1},
+        "maximum_triangles": {"type": "integer", "minimum": 1}
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": true
+}

@@ -1,0 +1,27 @@
+{
+  "schema": "reference-asset-compiler.multiview-input-lineage.v1",
+  "asset_id": "sunburst-guitar-ai-v2",
+  "source": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/sunburst-guitar/turnaround-v2.png",
+  "source_sha256": "4b313ceea46e54a464baf209e1b567fe08f278dccddf2a21bd6624bde3c087c0",
+  "policy": "The three authored turnaround panels directly condition AI geometry. The split is deterministic and hash-bound; Blender does not reconstruct the guitar from observation.",
+  "split_report": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/sunburst-guitar/turnaround-v2/turnaround-split.json",
+  "split_report_sha256": "9ee48df3f0658088bb3526052910e752f4bdf70ae33e2c0d2450b0c142743112",
+  "views": [
+    {
+      "view": "front",
+      "output": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/sunburst-guitar/turnaround-v2/front.png",
+      "sha256": "dc55ea328f59e59a0700594ea9d5e434d941c31339f434f9594bb2756aa4f5ba"
+    },
+    {
+      "view": "left",
+      "source_view": "left-side",
+      "output": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/sunburst-guitar/turnaround-v2/left-side.png",
+      "sha256": "2b849c8d5f43736bee35c543f46651a574225f531f4f89c8e6c9ef0cb9b48c14"
+    },
+    {
+      "view": "back",
+      "output": "${RAC_LEGACY_ROOT}/references/prop-ai-v1/sunburst-guitar/turnaround-v2/back.png",
+      "sha256": "f05df07f45e73d9df6270079c8754404e37fa1cec8eb56f05438225e3f43dd7a"
+    }
+  ]
+}
