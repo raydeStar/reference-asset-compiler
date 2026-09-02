@@ -1,0 +1,24 @@
+{
+  "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+  "mode": "single_view",
+  "asset_id": "caped-adventurer-ai-v1",
+  "workspace": "${RAC_REPO_ROOT}/work/caped-adventurer-ai-v1",
+  "source_authority": {
+    "path": "${RAC_REPO_ROOT}/work/caped-adventurer-ai-v1/references/primary.png",
+    "sha256": "abd147bc835091df9855f4a3882fb12993b95f4fbeaf60d9245f93854b7ea7f3"
+  },
+  "inputs": [
+    {
+      "view": "primary",
+      "path": "${RAC_REPO_ROOT}/work/caped-adventurer-ai-v1/references/primary.png",
+      "sha256": "abd147bc835091df9855f4a3882fb12993b95f4fbeaf60d9245f93854b7ea7f3"
+    }
+  ],
+  "parameters": {
+    "seed": 42,
+    "steps": 40,
+    "octree_resolution": 512,
+    "chunks": 20000
+  },
+  "output_directory": "${RAC_REPO_ROOT}/work/caped-adventurer-ai-v1/candidates/hy3d-single-seed42-attempt001"
+}

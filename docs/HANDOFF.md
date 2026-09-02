@@ -717,3 +717,23 @@ Exit code `0` means every named workspace independently reports
 `production_ready: true`; exit code `1` means the cohort is intact but
 incomplete, missing, or invalid. The current checked-in snapshot is
 `docs/evidence/v1-cohort-audit-current.json` and truthfully reports 0/7 ready.
+
+## Pending: caped-adventurer-ai-v1 (single-image route, waiting for GPU)
+
+Ayric supplied one reference image (an anime-style woman in a T-pose: brown
+hair, white shirt, red jacket and trousers, blue cape, satchel) to prove the
+single-image route. Intake is done: `work/caped-adventurer-ai-v1` exists with
+the hashed reference, kind humanoid, profile `ue5_manny`. The geometry request
+`configs/generation/caped-adventurer-ai-v1-attempt001.json` is in
+`single_view` mode and passed preflight (`launch_ready: true`, nothing
+launched). The GPU was reserved for other work at the time, so generation was
+not started. Next step, when about 12 GB of VRAM is free and Ayric agrees:
+
+```powershell
+.\scriptsun_hy3d_geometry.ps1 -Request .\configs\generation\caped-adventurer-ai-v1-attempt001.json
+```
+
+then render four clay views of the candidate for modeling approval. Expect the
+back of the cape to be inferred from the single view; if it reads wrong, that
+is the case for the multiview route with guidance views.
+
