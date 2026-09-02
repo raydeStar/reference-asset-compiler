@@ -1,5 +1,10 @@
 # Reference Asset Compiler
 
+[![tests](https://github.com/raydeStar/reference-asset-compiler/actions/workflows/tests.yml/badge.svg)](https://github.com/raydeStar/reference-asset-compiler/actions/workflows/tests.yml)
+![license](https://img.shields.io/badge/license-MIT-blue.svg)
+![engine](https://img.shields.io/badge/Unreal%20Engine-5.8-black.svg)
+![blender](https://img.shields.io/badge/Blender-5.2%20LTS-orange.svg)
+
 **Open-source, evidence-gated pipeline from one concept image to a rigged,
 textured, animation-ready Unreal Engine 5 character.** AI image-to-3D
 (Hunyuan3D) for geometry and PBR textures, Blender for retopology, UV, rigging
