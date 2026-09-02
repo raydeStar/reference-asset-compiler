@@ -36,6 +36,19 @@
       "promotion": "fixed_view_modeling_review_required"
     },
     {
+      "id": "hunyuan3d_2_single_view_geometry_runner",
+      "stage": "geometry_candidate",
+      "path": "geometry/hunyuan3d/run_hy3d_single_view.py",
+      "sha256": "EDAE182896DCE708610C12047B385CE8DBED7BBE2F761526047C724CDB5DA11A",
+      "selection": "single_image_geometry_candidate_when_no_guidance_views_exist",
+      "runtime": "Windows_Python_CUDA_venv_.venv-hy3d_with_upstream_Hunyuan3D-2",
+      "model": "tencent/Hunyuan3D-2:hunyuan3d-dit-v2-0",
+      "deployment": "copy this file to ${RAC_LEGACY_ROOT}/scripts/run_hy3d_single_view.py; scripts/run_hy3d_geometry.ps1 selects it for requests with mode single_view and verifies this sha256",
+      "input_contract": "the immutable reference image alone; the request's single input must hash-match the workspace source authority",
+      "known_limit": "one view cannot disambiguate the far side; prefer the multiview runner when consistent front/left/back guidance exists",
+      "promotion": "fixed_view_modeling_review_required"
+    },
+    {
       "id": "pixal3d_candidate",
       "stage": "geometry_candidate",
       "path": "geometry/pixal3d/run_pixal3d.py",

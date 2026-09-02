@@ -115,5 +115,45 @@ class GeometryRequestTests(unittest.TestCase):
             validate_geometry_request(self.request, self.legacy, self.repo)
 
 
+    def write_single_view_request(self, input_path: Path, input_hash: str,
+                                  derivation: bool = False) -> None:
+        payload = {
+            "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+            "mode": "single_view",
+            "asset_id": "fox",
+            "workspace": "${RAC_REPO_ROOT}/work/fox",
+            "source_authority": {
+                "path": str(self.authority),
+                "sha256": sha256_file(self.authority),
+            },
+            "inputs": [{"view": "primary", "path": str(input_path), "sha256": input_hash}],
+            "parameters": {"seed": 7, "steps": 30, "octree_resolution": 384, "chunks": 20000},
+            "output_directory": "${RAC_REPO_ROOT}/work/fox/candidates/single-001",
+        }
+        if derivation:
+            payload["derivation_report"] = {
+                "path": str(self.derivation), "sha256": sha256_file(self.derivation)}
+        self.request.write_text(json.dumps(payload), encoding="utf-8")
+
+    def test_single_view_request_conditions_on_the_source_itself(self) -> None:
+        self.write_single_view_request(self.authority, sha256_file(self.authority))
+        result = validate_geometry_request(self.request, self.legacy, self.repo)
+        self.assertEqual("single_view", result["mode"])
+        self.assertIsNone(result["derivation_report"])
+        self.assertEqual(["primary"], [row["view"] for row in result["inputs"]])
+        self.assertTrue(result["launch_ready"])
+
+    def test_single_view_input_must_be_the_authority(self) -> None:
+        other = self.views["front"]
+        self.write_single_view_request(other, sha256_file(other))
+        with self.assertRaisesRegex(ValueError, "must be the workspace source authority"):
+            validate_geometry_request(self.request, self.legacy, self.repo)
+
+    def test_single_view_request_rejects_a_derivation_report(self) -> None:
+        self.write_single_view_request(self.authority, sha256_file(self.authority), derivation=True)
+        with self.assertRaisesRegex(ValueError, "omit derivation_report"):
+            validate_geometry_request(self.request, self.legacy, self.repo)
+
+
 if __name__ == "__main__":
     unittest.main()

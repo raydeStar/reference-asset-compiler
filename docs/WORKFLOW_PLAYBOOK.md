@@ -131,6 +131,17 @@ proximity result or a percentage-only face-pairing result cannot pass.
 The user preferred the voxel fallback over destructive direct vertex cutting
 when the ninja arm became faceted. Use it only as a reviewed repair derivative.
 
+### Geometry from a single image
+
+When you have only the approved picture, write the request with
+`"mode": "single_view"` and one `primary` input whose hash equals the source
+authority; `scripts\run_hy3d_geometry.ps1` then hash-pins and runs
+`run_hy3d_single_view.py` (Hunyuan3D-2, `hunyuan3d-dit-v2-0`). The multiview
+route remains preferable when consistent front/left/back guidance exists,
+because a single view infers the far side. Both routes stop at the same
+fixed-view modeling approval. See `docs/AI_STAGES_SETUP.md` for the request
+shape and VRAM needs.
+
 ## Stage 4 — existing-mesh PBR texture
 
 ### Default: Hunyuan3D-Paint 2.1

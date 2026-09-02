@@ -147,7 +147,7 @@ It needs the AI stages; `docs/AI_STAGES_SETUP.md` says exactly what to install
 and where. The short version:
 
 1. `rac new <id> <image.png> --kind mascot --articulation required --skeleton-profile mascot_biped_tail`
-2. Generate one geometry candidate; review four clay views; `rac promote modeling_approval`.
+2. Write a geometry request (`mode: single_view` needs only the picture; `multiview` needs front/left/back guidance views), run `run_hy3d_geometry.ps1`, review four clay views; `rac promote modeling_approval`.
 3. Cleanup and retopology scripts; review matcaps and wireframes; `rac promote production_retopology`.
 4. `run_texture_uv_prep.ps1`, then `run_hy3d21_texture.ps1`; review **calibrated** lit views and unlit albedo; fix landmarks with `project_ai_reference_region.py` or channels with `clamp_region_roughness.py` if needed; `package_character_texture.py`; `rac promote texture_approval`.
 5. `run_rig_candidate.ps1` (Auto-Rig Pro or the free landmark rig, then `gate_rig.py` and `deform_test.py`), then `record_rig_and_skin.py` and `record_deformation.py`.

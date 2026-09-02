@@ -1,4 +1,4 @@
-"""Validation for deterministic Hunyuan multiview geometry requests."""
+"""Validation for deterministic Hunyuan geometry requests (multiview or single view)."""
 
 from __future__ import annotations
 
@@ -9,6 +9,8 @@ from .io import read_json, sha256_file
 
 REQUEST_SCHEMA = "reference-asset-compiler.hy3d-geometry-request.v1"
 REQUIRED_VIEWS = ("front", "left", "back")
+SINGLE_VIEW = ("primary",)
+MODES = {"multiview", "single_view"}
 
 
 def _expand_path(value: Any, legacy_root: Path, repo_root: Path) -> Path:
@@ -65,23 +67,35 @@ def validate_geometry_request(
         raise ValueError("Geometry request source does not match immutable workspace intake")
     _require_hash(intake_copy, authority_hash, "workspace source authority")
 
+    mode = str(request.get("mode") or "multiview")
+    if mode not in MODES:
+        raise ValueError("Geometry request mode must be multiview or single_view")
+    expected_views = REQUIRED_VIEWS if mode == "multiview" else SINGLE_VIEW
+
     derivation = request.get("derivation_report")
-    if not isinstance(derivation, dict):
-        raise ValueError("Geometry request requires derivation_report")
-    derivation_path = _expand_path(derivation.get("path"), legacy_root, repo_root)
-    derivation_hash = derivation.get("sha256")
-    _require_hash(derivation_path, derivation_hash, "derivation report")
-    derivation_payload = read_json(derivation_path)
-    report_source = _expand_path(
-        derivation_payload.get("source"), legacy_root, repo_root)
-    if derivation_payload.get("source_sha256") != authority_hash:
-        raise ValueError("Derivation report source hash does not match source authority")
-    if sha256_file(report_source) != authority_hash:
-        raise ValueError("Derivation report is not bound to the workspace source authority")
+    derivation_path = derivation_hash = derivation_payload = None
+    if mode == "multiview":
+        # Guidance views are derived images; the report binds each one to the
+        # immutable source so a stale or edited view cannot condition geometry.
+        if not isinstance(derivation, dict):
+            raise ValueError("Geometry request requires derivation_report")
+        derivation_path = _expand_path(derivation.get("path"), legacy_root, repo_root)
+        derivation_hash = derivation.get("sha256")
+        _require_hash(derivation_path, derivation_hash, "derivation report")
+        derivation_payload = read_json(derivation_path)
+        report_source = _expand_path(
+            derivation_payload.get("source"), legacy_root, repo_root)
+        if derivation_payload.get("source_sha256") != authority_hash:
+            raise ValueError("Derivation report source hash does not match source authority")
+        if sha256_file(report_source) != authority_hash:
+            raise ValueError("Derivation report is not bound to the workspace source authority")
+    elif derivation is not None:
+        raise ValueError("A single-view request conditions on the source itself; omit derivation_report")
 
     inputs = request.get("inputs")
-    if not isinstance(inputs, list) or len(inputs) != len(REQUIRED_VIEWS):
-        raise ValueError("Geometry request requires exactly front, left, and back inputs")
+    if not isinstance(inputs, list) or len(inputs) != len(expected_views):
+        raise ValueError("Geometry request requires exactly {0} input(s)".format(
+            ", ".join(expected_views)))
     input_by_view: dict[str, dict[str, Any]] = {}
     resolved_inputs = []
     for item in inputs:
@@ -99,29 +113,36 @@ def validate_geometry_request(
             "path": str(input_path),
             "sha256": input_hash,
         })
-    if set(input_by_view) != set(REQUIRED_VIEWS):
-        raise ValueError("Geometry request requires exactly front, left, and back inputs")
+    if set(input_by_view) != set(expected_views):
+        raise ValueError("Geometry request requires exactly {0} input(s)".format(
+            ", ".join(expected_views)))
 
-    report_views = derivation_payload.get("views")
-    if not isinstance(report_views, list):
-        raise ValueError("Derivation report does not enumerate conditioned views")
-    report_by_view = {
-        str(item.get("view") or "").strip(): item
-        for item in report_views if isinstance(item, dict)
-    }
-    if set(report_by_view) != set(REQUIRED_VIEWS):
-        raise ValueError("Derivation report must enumerate exactly front, left, and back")
-    for item in resolved_inputs:
-        report_view = report_by_view.get(item["view"])
-        if report_view is None:
-            raise ValueError("Derivation report omits conditioned view: {0}".format(item["view"]))
-        report_output = _expand_path(report_view.get("output"), legacy_root, repo_root)
-        if (
-            report_output != Path(item["path"])
-            or report_view.get("sha256") != item["sha256"]
-            or sha256_file(report_output) != item["sha256"]
-        ):
-            raise ValueError("Derivation report is not bound to view: {0}".format(item["view"]))
+    if mode == "single_view":
+        # The one input must be the immutable source authority itself.
+        primary = resolved_inputs[0]
+        if primary["sha256"] != authority_hash or Path(primary["path"]) != authority_path:
+            raise ValueError("Single-view input must be the workspace source authority")
+    else:
+        report_views = derivation_payload.get("views")
+        if not isinstance(report_views, list):
+            raise ValueError("Derivation report does not enumerate conditioned views")
+        report_by_view = {
+            str(item.get("view") or "").strip(): item
+            for item in report_views if isinstance(item, dict)
+        }
+        if set(report_by_view) != set(REQUIRED_VIEWS):
+            raise ValueError("Derivation report must enumerate exactly front, left, and back")
+        for item in resolved_inputs:
+            report_view = report_by_view.get(item["view"])
+            if report_view is None:
+                raise ValueError("Derivation report omits conditioned view: {0}".format(item["view"]))
+            report_output = _expand_path(report_view.get("output"), legacy_root, repo_root)
+            if (
+                report_output != Path(item["path"])
+                or report_view.get("sha256") != item["sha256"]
+                or sha256_file(report_output) != item["sha256"]
+            ):
+                raise ValueError("Derivation report is not bound to view: {0}".format(item["view"]))
 
     parameters = request.get("parameters")
     if not isinstance(parameters, dict):
@@ -161,10 +182,11 @@ def validate_geometry_request(
             "path": str(authority_path),
             "sha256": authority_hash,
         },
-        "derivation_report": {
-            "path": str(derivation_path),
-            "sha256": derivation_hash,
-        },
+        "mode": mode,
+        "derivation_report": (
+            {"path": str(derivation_path), "sha256": derivation_hash}
+            if derivation_path is not None else None
+        ),
         "inputs": resolved_inputs,
         "parameters": {
             "seed": seed,

@@ -9,22 +9,26 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
-$expectedRunnerHash = '36C7B72DF2CDAD4CE55CD309F4FB6CA9343521FF078399836F8FA57C6A9320C2'
+# Two hash-pinned runners: multiview (three guidance views) and single view
+# (the reference image alone). The request's mode selects one after preflight.
+$expectedRunnerHashes = @{
+    multiview   = '36C7B72DF2CDAD4CE55CD309F4FB6CA9343521FF078399836F8FA57C6A9320C2'
+    single_view = 'EDAE182896DCE708610C12047B385CE8DBED7BBE2F761526047C724CDB5DA11A'
+}
+$runnerNames = @{ multiview = 'run_hy3d_multiview.py'; single_view = 'run_hy3d_single_view.py' }
+$generationSchemas = @{ multiview = 'reference-studio.hunyuan3d-multiview.v2'; single_view = 'reference-studio.hunyuan3d-single-view.v1' }
 $compilerPython = $CompilerPython
 $hyPython = Join-Path $LegacyRoot '.venv-hy3d\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d_multiview.py'
+$expectedRunnerHash = $expectedRunnerHashes.multiview
 $upstream = Join-Path $LegacyRoot 'upstream\Hunyuan3D-2'
 
-foreach ($required in @($hyPython, $runner, $upstream)) {
+foreach ($required in @($hyPython, $upstream)) {
     if (-not (Test-Path -LiteralPath $required)) {
         throw "Required Hunyuan3D multiview component is missing: $required"
     }
 }
 
-$actualRunnerHash = (Get-FileHash -LiteralPath $runner -Algorithm SHA256).Hash
-if ($actualRunnerHash -ne $expectedRunnerHash) {
-    throw "Legacy Hunyuan multiview runner changed: expected $expectedRunnerHash, found $actualRunnerHash"
-}
 
 $requestPath = (Resolve-Path -LiteralPath $Request).Path
 $repoPath = (Resolve-Path -LiteralPath $RepoRoot).Path
@@ -45,6 +49,17 @@ if ($preflightExit -ne 0) {
 $preflight = ($preflightLines -join [Environment]::NewLine) | ConvertFrom-Json
 if (-not $preflight.launch_ready -or $preflight.inference_launched) {
     throw 'Geometry preflight returned an unsafe launch state; inference was not launched'
+}
+$mode = if ($preflight.mode) { [string]$preflight.mode } else { 'multiview' }
+if (-not $runnerNames.ContainsKey($mode)) { throw "Unsupported geometry request mode: $mode" }
+$runner = Join-Path $LegacyRoot ('scripts\' + $runnerNames[$mode])
+$expectedRunnerHash = $expectedRunnerHashes[$mode]
+if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
+    throw "Required Hunyuan3D runner is missing: $runner (copy it from workflows\geometry\hunyuan3d)"
+}
+$actualRunnerHash = (Get-FileHash -LiteralPath $runner -Algorithm SHA256).Hash
+if ($actualRunnerHash -ne $expectedRunnerHash) {
+    throw "Hunyuan runner changed: expected $expectedRunnerHash, found $actualRunnerHash"
 }
 
 $gpuLines = @(& nvidia-smi --query-gpu=memory.free,utilization.gpu --format=csv,noheader,nounits 2>&1)
@@ -114,10 +129,12 @@ $parameters = $preflight.parameters
 Write-Host "HY3D_GEOMETRY_LAUNCH_READY asset=$($preflight.asset_id) free_mib=$freeMiB utilization=$utilization% runner_sha256=$actualRunnerHash"
 
 try {
-    & $hyPython $runner `
-        --front ([string]$inputByView.front.path) `
-        --left ([string]$inputByView.left.path) `
-        --back ([string]$inputByView.back.path) `
+    $viewArguments = if ($mode -eq 'single_view') {
+        @('--image', [string]$inputByView.primary.path)
+    } else {
+        @('--front', [string]$inputByView.front.path, '--left', [string]$inputByView.left.path, '--back', [string]$inputByView.back.path)
+    }
+    & $hyPython $runner @viewArguments `
         --output $candidate `
         --report $generationReport `
         --prepared-dir $preparedDirectory `
@@ -135,7 +152,7 @@ try {
         }
     }
     $generation = Get-Content -LiteralPath $generationReport -Raw | ConvertFrom-Json
-    if ($generation.schema -ne 'reference-studio.hunyuan3d-multiview.v2') {
+    if ($generation.schema -ne $generationSchemas[$mode]) {
         throw 'Hunyuan3D generation report has an unsupported schema'
     }
 
@@ -149,9 +166,12 @@ try {
         image_sha256 = $preflight.source_authority.sha256
         source_image = $preflight.source_authority.path
         source_image_sha256 = $preflight.source_authority.sha256
-        image_inputs = @($preflight.inputs)
-        image_derivation_report = $preflight.derivation_report.path
-        image_derivation_report_sha256 = $preflight.derivation_report.sha256
+        mode = $mode
+        # Multiview receipts bind the derived guidance views and their report;
+        # a single-view receipt is bound by the source image hash alone.
+        image_inputs = $(if ($mode -eq 'multiview') { @($preflight.inputs) } else { $null })
+        image_derivation_report = $(if ($mode -eq 'multiview') { $preflight.derivation_report.path } else { $null })
+        image_derivation_report_sha256 = $(if ($mode -eq 'multiview') { $preflight.derivation_report.sha256 } else { $null })
         generation_report = $generationReport
         generation_report_sha256 = (Get-FileHash -LiteralPath $generationReport -Algorithm SHA256).Hash.ToLowerInvariant()
         request = $preflight.request

@@ -161,7 +161,8 @@ evidence and who approved it.
 ```text
 approved image
   -> rac new                              immutable reference, routing decision
-  -> run_hy3d_geometry.ps1                isolated AI geometry candidate (ComfyUI, Hunyuan3D)
+  -> run_hy3d_geometry.ps1                isolated AI geometry candidate: single image, or
+                                          three guidance views when you have them (Hunyuan3D)
   -> rac promote modeling_approval        YOU, on four clay views
   -> run_semantic_cleanup.ps1             conservative topology sanitation
   -> run_paired_feature_qem.ps1 /         20k-triangle quad-dominant retopology with

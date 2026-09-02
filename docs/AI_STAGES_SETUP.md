@@ -26,6 +26,7 @@ anything.
 $RAC_LEGACY_ROOT\
   scripts\
     run_hy3d_multiview.py         copy of workflows\geometry\hunyuan3d\run_hy3d_multiview.py
+    run_hy3d_single_view.py       copy of workflows\geometry\hunyuan3d\run_hy3d_single_view.py
     run_hy3d21_pbr.py             copy of workflows\texture\hunyuan3d21\run_hy3d21_pbr.py
   upstream\
     Hunyuan3D-2\                  git clone of Tencent-Hunyuan/Hunyuan3D-2 (geometry)
@@ -58,7 +59,8 @@ new hash and the decision, as `workflows/README.md` explains.
 2. Copy the pinned runners from this repository:
 
    ```powershell
-   Copy-Item workflows\geometry\hunyuan3d\run_hy3d_multiview.py "$env:RAC_LEGACY_ROOT\scripts\"
+   Copy-Item workflows\geometry\hunyuan3d\run_hy3d_multiview.py   "$env:RAC_LEGACY_ROOT\scripts\"
+   Copy-Item workflows\geometry\hunyuan3d\run_hy3d_single_view.py "$env:RAC_LEGACY_ROOT\scripts\"
    Copy-Item workflows\texture\hunyuan3d21\run_hy3d21_pbr.py   "$env:RAC_LEGACY_ROOT\scripts\"
    ```
 
@@ -102,6 +104,35 @@ new hash and the decision, as `workflows/README.md` explains.
    Every `hy3d2mv.*` and `hy3d21.*` line should read `[OK]`. The first real
    paint run downloads the weights into `models\hy3d21` and takes several
    minutes longer than later runs.
+
+## Geometry from one image, or from three
+
+Two Hunyuan3D geometry runners share one wrapper, `scripts\run_hy3d_geometry.ps1`,
+selected by the request's `mode`:
+
+| Mode | Runner | Model | Inputs | When |
+|---|---|---|---|---|
+| `single_view` (default when you only have the picture) | `run_hy3d_single_view.py` | `tencent/Hunyuan3D-2` `hunyuan3d-dit-v2-0` | the reference image alone | Any agent or person can run it with nothing but the approved image. The far side is inferred. |
+| `multiview` | `run_hy3d_multiview.py` | `tencent/Hunyuan3D-2mv` | front, left, back guidance views bound to the source by a derivation report | When consistent guidance views exist (the cat's were produced by an image model). Better tails, backs, and silhouettes. |
+
+A single-view request looks like this (`configs/generation/<asset>-attempt001.json`):
+
+```json
+{
+  "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+  "mode": "single_view",
+  "asset_id": "<asset>",
+  "workspace": "${RAC_REPO_ROOT}/work/<asset>",
+  "source_authority": { "path": "${RAC_REPO_ROOT}/work/<asset>/references/primary.png", "sha256": "<sha256>" },
+  "inputs": [ { "view": "primary", "path": "${RAC_REPO_ROOT}/work/<asset>/references/primary.png", "sha256": "<sha256>" } ],
+  "parameters": { "seed": 42, "steps": 40, "octree_resolution": 512, "chunks": 20000 },
+  "output_directory": "${RAC_REPO_ROOT}/work/<asset>/candidates/hy3d-single-seed42-attempt001"
+}
+```
+
+The preflight refuses a single-view request whose input is not the immutable
+source itself, and refuses a derivation report on it; the receipt is bound by
+the source image hash. Single view needs about 12 GB of free VRAM, multiview 18.
 
 ## Geometry through ComfyUI
 
