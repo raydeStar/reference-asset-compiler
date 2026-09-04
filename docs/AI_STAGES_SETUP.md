@@ -17,7 +17,7 @@ anything.
 | GPU | NVIDIA, 24 GB VRAM (verified on an RTX 4090). Texturing refuses to start under 21 GB free. |
 | CUDA | 12.4 toolchain for the Hunyuan3D-Paint rasterizer build, plus Visual Studio Build Tools with the C++ workload. |
 | Python | 3.11 for the paint environment (`.venv-hy3d21`); the geometry environment (`.venv-hy3d`) follows the upstream Hunyuan3D-2 requirements. |
-| Disk | About 15 GB for the paint weights, 2 GB per upstream checkout, about 8 GB per virtual environment, and roughly 10 GB for the shape model. |
+| Disk | 34,665,936,452 bytes (32.285 GiB) for a fresh one-image stack; 39,594,089,622 bytes (36.875 GiB) with both pinned shape models. Keep 45/50 GiB free respectively, or 60 GiB with room for attempts. |
 | Network | Hugging Face downloads of `tencent/Hunyuan3D-2.1` (paint PBR subfolder) and `facebook/dinov2-giant` run automatically on first use through `huggingface_hub`. |
 
 ## Studio tree layout
@@ -45,6 +45,36 @@ studio tree and refuse to run if it differs from the pin recorded in
 `workflows\catalog.json`. Copy the files byte-for-byte; do not edit them in
 place. If you need a change, add a versioned wrapper beside them and record the
 new hash and the decision, as `workflows/README.md` explains.
+
+## Measured component sizes
+
+Measured on the verified Windows installation on 2026-09-04 using logical
+file lengths:
+
+| Component | Bytes | GiB | Notes |
+|---|---:|---:|---|
+| One pinned FP16 geometry payload | 4,928,153,166-170 | 4.590 | Exact `config.yaml` plus `model.fp16.safetensors`; single-view and multiview differ by four bytes. |
+| Hunyuan3D-Paint 2.1 PBR | 6,887,589,708 | 6.415 | `hunyuan3d-paintpbr-v2-1` only. |
+| DINOv2 giant | 9,092,168,676 | 8.468 | Current sync downloads both `.bin` and `.safetensors`. |
+| `.venv-hy3d` | 5,970,391,978 | 5.560 | Geometry runtime. |
+| `.venv-hy3d21` | 7,025,227,469 | 6.543 | Paint runtime and CUDA extensions. |
+| `upstream/Hunyuan3D-2` | 268,455,880 | 0.250 | Checkout only. |
+| `upstream/Hunyuan3D-2.1` | 493,949,575 | 0.460 | Includes the 67,040,989-byte RealESRGAN checkpoint. |
+| **Fresh one-image total** | **34,665,936,452** | **32.285** | Single-view geometry plus the complete paint stack above. |
+| **Fresh both-model total** | **39,594,089,622** | **36.875** | Adds the separately pinned multiview shape payload. |
+
+Run this on any installation to get its real footprint:
+
+```powershell
+.\scripts\measure_ai_install.ps1 -StudioRoot $env:RAC_LEGACY_ROOT
+.\scripts\measure_ai_install.ps1 -StudioRoot $env:RAC_LEGACY_ROOT -Json
+```
+
+The measurement counts duplicate weight formats when both are present. It is
+therefore an honest disk figure, not a theoretical minimum download. The
+verified workstation currently reports 39,594,554,524 bytes (36.875 GiB): its
+older multiview cache retains both FP16 checkpoint formats and its single-view
+payload has not been downloaded yet.
 
 ## Steps
 
@@ -115,6 +145,12 @@ selected by the request's `mode`:
 | `single_view` (default when you only have the picture) | `run_hy3d_single_view.py` | `tencent/Hunyuan3D-2` `hunyuan3d-dit-v2-0` | the reference image alone | Any agent or person can run it with nothing but the approved image. The far side is inferred. |
 | `multiview` | `run_hy3d_multiview.py` | `tencent/Hunyuan3D-2mv` | front, left, back guidance views bound to the source by a derivation report | When consistent guidance views exist (the cat's were produced by an image model). Better tails, backs, and silhouettes. |
 
+Both runners pin the model revision and fetch only the config plus the FP16
+safetensors they actually open. This matters most for single-view: the upstream
+subfolder currently exposes five equivalent checkpoint variants totalling
+24,642,009,013 bytes (22.950 GiB), while this runner downloads the required
+4,928,153,166 bytes (4.590 GiB).
+
 A single-view request looks like this (`configs/generation/<asset>-attempt001.json`):
 
 ```json
@@ -134,16 +170,21 @@ The preflight refuses a single-view request whose input is not the immutable
 source itself, and refuses a derivation report on it; the receipt is bound by
 the source image hash. Single view needs about 12 GB of free VRAM, multiview 18.
 
-## Geometry through ComfyUI
+## Optional historical geometry through ComfyUI
 
-The geometry stage on the development workstation ran through the preserved
+Earlier geometry work on the development workstation ran through the preserved
 ComfyUI graph `workflows\geometry\comfyui\hy3d_final_cut.json`, which needs
 ComfyUI with the `ComfyUI-Hunyuan3DWrapper` and `ComfyUI_essentials` custom
 nodes and the `hunyuan3d-dit-v2-0` shape model. The graph also contains
 optional texture, upscale, and face-swap branches that the compiler does not
-use; the playbook says to stop at `Hy3DExportMesh`. `run_hy3d_geometry.ps1`
-talks to a running ComfyUI at `http://127.0.0.1:8188` and checks free VRAM
-before queuing anything.
+use; the playbook says to stop at `Hy3DExportMesh`.
+
+The current default bypasses that graph and calls the Hunyuan Python runner
+directly. `run_hy3d_geometry.ps1` only queries `http://127.0.0.1:8188/queue`
+when a ComfyUI process is already running, so it can refuse to steal a busy
+GPU. It does not start ComfyUI or queue a ComfyUI prompt. Wraparound-image
+generation may be added later as an optional, hash-bound preprocessing stage;
+it is not required for the single-view route and is not silently implied here.
 
 ## What the doctor cannot check
 

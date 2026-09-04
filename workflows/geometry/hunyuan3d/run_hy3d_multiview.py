@@ -14,6 +14,24 @@ from PIL import Image
 from hy3dgen.rembg import BackgroundRemover
 from hy3dgen.shapegen import Hunyuan3DDiTFlowMatchingPipeline
 
+MODEL_PATH = "tencent/Hunyuan3D-2mv"
+MODEL_SUBFOLDER = "hunyuan3d-dit-v2-mv"
+MODEL_REVISION = "3a761b539b29fe4ff64714813aa9560fd66f5de0"
+
+
+def minimal_model_snapshot() -> str:
+    """Fetch only the FP16 safetensors actually opened by this runner."""
+    from huggingface_hub import snapshot_download
+
+    return snapshot_download(
+        repo_id=MODEL_PATH,
+        revision=MODEL_REVISION,
+        allow_patterns=[
+            f"{MODEL_SUBFOLDER}/config.yaml",
+            f"{MODEL_SUBFOLDER}/model.fp16.safetensors",
+        ],
+    )
+
 
 def remove_uniform_studio_background(image: Image.Image) -> Image.Image | None:
     """Extract artwork from a near-uniform light studio sheet.
@@ -146,10 +164,11 @@ def main() -> None:
     if free_vram < 18 * 1024**3:
         raise RuntimeError(f"Hunyuan3D-2mv requires 18 GiB free VRAM; found {free_vram / 1024**3:.1f}")
 
+    model_snapshot = minimal_model_snapshot()
     print("Loading official Hunyuan3D-2mv model...", flush=True)
     pipeline = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(
-        "tencent/Hunyuan3D-2mv",
-        subfolder="hunyuan3d-dit-v2-mv",
+        model_snapshot,
+        subfolder=MODEL_SUBFOLDER,
         variant="fp16",
     )
     started = time.perf_counter()
@@ -166,6 +185,7 @@ def main() -> None:
     payload = {
         "schema": "reference-studio.hunyuan3d-multiview.v2",
         "model": "tencent/Hunyuan3D-2mv:hunyuan3d-dit-v2-mv",
+        "model_revision": MODEL_REVISION,
         "sources": {key: str(path.resolve()) for key, path in source_paths.items()},
         "prepared": prepared_paths,
         "output": str(output),

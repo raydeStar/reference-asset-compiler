@@ -15,10 +15,10 @@ the parts that produce new characters.
 | **Python 3.11 or 3.12** | ledger, gates, packaging | `py -3.12` on the PATH. `pip install -e ".[dev]"` pulls numpy, Pillow, scipy. |
 | **Blender 5.2 LTS** | retopology, UVs, rigging, deformation tests, renders | Free. Found automatically in Steam or Program Files; else set `RAC_BLENDER`. |
 | **Unreal Engine 5.8** | import verification, gallery, cook | Free (Epic launcher). Needs the Third Person template that ships with it. |
-| **Disk** | see the tiers below | About 5 GB for the no-AI route, about 60 GB with the AI stages. Measured, not guessed: one character workspace is 0.4 GB, six assets came to 5.7 GB, the UE project 1.5 GB (mostly logs you can delete). |
+| **Disk** | see the tiers below | A fresh one-image AI stack is 34,665,936,452 bytes (32.285 GiB); both shape modes are 39,594,089,622 bytes (36.875 GiB). Keep 45/50 GiB free respectively, or 60 GiB for working room. The no-AI route is about 5 GB. |
 | **NVIDIA GPU, 24 GB VRAM** | AI geometry and AI texturing only | Verified on an RTX 4090. Texturing refuses to start under 21 GB free. |
-| **Hunyuan3D 2.1 checkout + weights** | AI texturing | A separate studio tree named by `RAC_LEGACY_ROOT`; about 15 GB of weights. Layout and steps in `docs/AI_STAGES_SETUP.md`. |
-| **ComfyUI + Hunyuan3D wrapper nodes** | AI geometry | The preserved graph is `workflows/geometry/comfyui/hy3d_final_cut.json`; see `docs/AI_STAGES_SETUP.md`. |
+| **Hunyuan3D checkouts + weights** | AI geometry and texturing | A separate studio tree named by `RAC_LEGACY_ROOT`: Hunyuan3D-2/2mv for shape and Hunyuan3D-Paint 2.1 for the existing mesh. Exact sizes and layout are in `docs/AI_STAGES_SETUP.md`. |
+| **ComfyUI + wrapper nodes** (optional) | historical geometry graph or future guidance-view generation | Not required by the one-image operator. The preserved graph is `workflows/geometry/comfyui/hy3d_final_cut.json`. |
 | **Auto-Rig Pro** (optional, paid) | better humanoid binding | Not required. `run_rig_candidate.ps1` uses it when present and falls back to the free landmark rig otherwise; see *Rigging with or without Auto-Rig Pro*. |
 | **Time** | | A clone to a walkable gallery of your own prop: about an hour. A new character from an image: a working day, most of it review. |
 
@@ -30,12 +30,13 @@ Unreal Engine, or the reference artwork the cat was built from.
 | Tier | What it enables | Approximate size |
 |---|---|---|
 | Base | ledger, gates, prop and pre-rigged character compiles, UE gallery | 1 GB Blender + the UE 5.8 install you already have + 2 GB UE project + 0.5 GB per asset |
-| AI texturing | Hunyuan3D-Paint 2.1 on your meshes | + 15 GB weights, 2 GB upstream checkout, about 8 GB Python environment with PyTorch |
-| AI geometry | Hunyuan3D shape generation through ComfyUI | + ComfyUI itself and the Hunyuan3D shape model, roughly 10 GB |
+| AI geometry | Direct Hunyuan3D single-view or multiview shape generation | 4,928,153,166-170 bytes (4.590 GiB) per pinned shape payload + 5,970,391,978 bytes (5.560 GiB) Python environment + 268,455,880 bytes (0.250 GiB) checkout |
+| AI texturing | Hunyuan3D-Paint 2.1 on your meshes | 6,887,589,708 bytes (6.415 GiB) paint + 9,092,168,676 bytes (8.468 GiB) DINOv2 + 7,025,227,469 bytes (6.543 GiB) environment + 493,949,575 bytes (0.460 GiB) checkout/RealESRGAN |
 
 You do not need a general ComfyUI model library; the pipeline uses one graph
-and one model family. `work/ue5-validate/Saved` and `Intermediate` are engine
-scratch and safe to delete between sessions.
+only as an optional historical route. The default geometry and texture stages
+run their pinned Python entrypoints directly. `work/ue5-validate/Saved` and
+`Intermediate` are engine scratch and safe to delete between sessions.
 
 ### Flexibility
 
@@ -76,7 +77,7 @@ $env:RAC_UNREAL_EDITOR  = "C:\path\to\UnrealEditor.exe"
 
 `workflow_doctor.ps1` is read-only and reports every route. On a machine
 without the AI stages it will list them as `[MISSING]` and exit non-zero; that
-is information, not a failure of the compiler. `verify.ps1` runs 69 contract
+is information, not a failure of the compiler. `verify.ps1` runs 75 contract
 tests and must end with `RAC_VERIFY_OK`.
 
 ## 2. Create the UE5 validation project
@@ -152,6 +153,32 @@ and where. The short version:
 4. `run_texture_uv_prep.ps1`, then `run_hy3d21_texture.ps1`; review **calibrated** lit views and unlit albedo; fix landmarks with `project_ai_reference_region.py` or channels with `clamp_region_roughness.py` if needed; `package_character_texture.py`; `rac promote texture_approval`.
 5. `run_rig_candidate.ps1` (Auto-Rig Pro or the free landmark rig, then `gate_rig.py` and `deform_test.py`), then `record_rig_and_skin.py` and `record_deformation.py`.
 6. Write the production recipe, `compile_asset.ps1`, and step 5 above.
+
+## 7. Run from one image without Codex
+
+The operator command needs no coding agent and no ComfyUI server:
+
+```powershell
+$env:RAC_LEGACY_ROOT = "D:\rac-studio"
+python scripts\crank_from_image.py my-lantern D:\art\lantern.png `
+  --kind static_prop --height 0.55 `
+  --height-reason "Measured against the 0.9 m table in the concept sheet."
+```
+
+The command resumes from retained receipts and stops at each visual gate. Look
+at the directory it prints, then rerun with the requested approval option. The
+static-prop route continues through direct Hunyuan3D-Paint packaging; add
+`--import-ue5` to run headless import verification. Use `--prepare-only` to
+create and validate the request without touching the GPU.
+
+There is no separate texture-upscaling stage in this route. Hunyuan3D-Paint
+authors the 512 or 768 square atlas directly. ComfyUI-generated wraparounds are
+also not silently created; they remain a possible future input to the retained
+multiview runner, with their derivation and hashes recorded.
+
+Humanoids and mascots deliberately stop after modeling review. Their generic
+deformation-aware topology and rig/export path is not complete, so the command
+will not quietly ship an unproven character.
 
 `docs/HANDOFF.md` is the worked example: every command the cat went through,
 every rejection, and why.

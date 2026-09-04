@@ -12,8 +12,10 @@ open work. Start with [docs/HANDOFF.md](docs/HANDOFF.md), then read
 
 Do not infer tool roles from an aspirational architecture:
 
-- ComfyUI is used for image-to-3D **geometry generation** here. The preserved
-  original graph is `workflows/geometry/comfyui/hy3d_final_cut.json`.
+- Image-to-3D **geometry generation** defaults to the hash-pinned direct
+  Hunyuan3D Python runners. They inspect a live ComfyUI queue only to avoid GPU
+  contention. The preserved original ComfyUI graph at
+  `workflows/geometry/comfyui/hy3d_final_cut.json` is historical and optional.
 - Existing-mesh PBR **texturing** uses the isolated Hunyuan3D-Paint 2.1 runner
   in `workflows/texture/hunyuan3d21/`.
 - TRELLIS.2 is an isolated texture challenger, not the default.

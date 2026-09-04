@@ -33,7 +33,7 @@ the ledger refuses to advance past a gate that was not actually passed.
 
 | Stage | What runs | What you look at |
 |---|---|---|
-| Geometry | Hunyuan3D 2.1 multiview from the reference (ComfyUI graph preserved) | Clay front / three-quarter / side / back |
+| Geometry | Direct Hunyuan3D single-view or multiview from the reference (historical ComfyUI graph preserved) | Clay front / three-quarter / side / back |
 | Modeling approval | You, in the ledger | Same four views, your name on the receipt |
 | Cleanup and retopology | Feature-aware QEM to a 20k-triangle quad-dominant budget, joint-ring guides fitted to the AI surface | Matcaps, wireframes, deviation numbers |
 | Texturing | Hunyuan3D-Paint 2.1 on the exact UV-locked mesh, region-bounded fixes when landmarks drift | Unlit albedo and calibrated lit views |
@@ -74,7 +74,7 @@ py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
 python scripts\rac_env.py --all          # where Blender and Unreal were found
 .\scripts\workflow_doctor.ps1            # read-only report of every route
-.\scripts\verify.ps1                     # 69 contract tests; must pass
+.\scripts\verify.ps1                     # 75 contract tests; must pass
 ```
 
 If a tool is not found, point at it:
@@ -83,6 +83,34 @@ If a tool is not found, point at it:
 $env:RAC_BLENDER    = "C:\path\to\blender.exe"
 $env:RAC_UNREAL_CMD = "C:\path\to\UnrealEditor-Cmd.exe"
 ```
+
+### Run it without Codex
+
+Codex is an operator, not a runtime dependency. The resumable operator command
+drives the same hash-bound PowerShell, Python, Blender, and Unreal stages:
+
+```powershell
+$env:RAC_LEGACY_ROOT = "D:\rac-studio"
+python scripts\crank_from_image.py brass-lantern D:\art\lantern.png `
+  --kind static_prop --height 0.55 `
+  --height-reason "Measured against the 0.9 m table in the concept sheet."
+```
+
+It runs until the next visual gate, prints the exact review directory, and
+stops. Inspect the four views, then rerun the same command with
+`--approve-modeling-by "Your Name"`, `--approve-retopology-by "Your Name"`,
+or `--approve-texture-by "Your Name"` as requested. Add `--import-ue5` on the
+final run to import and verify the packaged payload in the local validation
+project. `--prepare-only` writes and hashes the request without launching GPU
+work.
+
+This first operator route is wired end-to-end for **static props**; it has
+passed request/preflight and contract tests but has not yet been certified by
+a fresh full GPU-to-UE run. Humanoids and mascots use the same one-image
+geometry intake and modeling review, but the command stops there: generic
+deformation-aware retopology, hand landmarks, rig export, and motion proof are
+not yet safe to automate. It does not call a triangle soup a character merely
+because optimism is inexpensive.
 
 ### Try it on a mesh you already have (no AI, no GPU)
 
@@ -210,10 +238,10 @@ mask, the texel count, and the hashes.*
 
 ## AI stages: what you need and what is honest about them
 
-- **Geometry** uses the preserved ComfyUI graph in `workflows/geometry/comfyui/`
-  with the Hunyuan3D wrapper nodes. It runs on this repository's development
-  workstation from a separate studio tree named by `RAC_LEGACY_ROOT`; the
-  routing report from `workflow_doctor.ps1` tells you what your machine has.
+- **Geometry** defaults to the hash-pinned Hunyuan3D-2/2mv Python runner. It does not
+  execute a ComfyUI graph. The launcher only inspects a live ComfyUI queue so
+  it will not steal the GPU from somebody else's job. The original ComfyUI
+  geometry graph remains preserved as an optional historical route.
 - **Texturing** uses the official Hunyuan3D-Paint 2.1 pipeline through
   `scripts/run_hy3d21_texture.ps1`, patched only to keep your UVs instead of
   rewrapping. It needs 21 GB of free VRAM and a `upstream/Hunyuan3D-2.1`
@@ -223,6 +251,12 @@ mask, the texel count, and the hashes.*
   Auto-Rig Pro when your Blender has it (better binding on layered clothing,
   needs your licence and a reviewed hand-landmark file), otherwise the free
   landmark rig built into this repo. See *Rigging with or without Auto-Rig Pro*.
+- **Texture upscaling** is not a separate default stage. The painter currently
+  authors a 512 or 768 square atlas directly; RealESRGAN is an upstream paint
+  dependency and must not be described as a proven final-texture upscaler here.
+- **Wraparound-image generation** is not in the one-image operator. ComfyUI may
+  later supply hash-bound guidance views for the multiview runner, but today the
+  command uses the approved source image directly and infers the hidden side.
 - **Retargeting** in the gallery builds IK Rigs from bone names and retargets
   `MM_Idle`, aligning limb chains to Manny and keeping spine and head at rest.
   Chain alignment cannot fix roll about a bone axis, so a character whose hands
@@ -236,6 +270,33 @@ by file, with the hash-pinned runners copied from `workflows/`.
 
 Nothing here redistributes model weights, licensed add-ons, Unreal Engine, or
 the reference artwork.
+
+### Measured AI install size
+
+These are logical file sizes measured on the verified Windows installation on
+2026-09-04, plus the exact files selected from the pinned shape-model
+revisions—not estimates copied from model-card headlines:
+
+| Component | Bytes | GiB |
+|---|---:|---:|
+| One pinned FP16 shape model (single-view or multiview) | 4,928,153,166-170 | 4.590 |
+| Hunyuan3D-Paint 2.1 PBR weights | 6,887,589,708 | 6.415 |
+| DINOv2 giant | 9,092,168,676 | 8.468 |
+| Geometry Python environment | 5,970,391,978 | 5.560 |
+| Paint Python environment | 7,025,227,469 | 6.543 |
+| Two pinned upstream checkouts, including RealESRGAN | 762,405,455 | 0.710 |
+| **Fresh one-image stack** | **34,665,936,452** | **32.285** |
+| **Fresh stack with both shape models** | **39,594,089,622** | **36.875** |
+
+The current DINO download contains both `pytorch_model.bin` and
+`model.safetensors`; both are counted. The pinned geometry runners now request
+only `config.yaml` and `model.fp16.safetensors`; upstream's broad single-view
+download otherwise pulls five equivalent checkpoint files totalling
+24,642,009,013 bytes (22.950 GiB). Keep **45 GiB free** for a one-image-only
+installation, **50 GiB** for both geometry modes, or **60 GiB** if you also
+want room for attempts and evidence. Run
+`scripts\measure_ai_install.ps1 -StudioRoot D:\rac-studio` to measure the
+actual installation rather than trusting this snapshot.
 
 ## Rigging with or without Auto-Rig Pro
 

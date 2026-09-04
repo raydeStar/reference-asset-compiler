@@ -737,3 +737,24 @@ then render four clay views of the candidate for modeling approval. Expect the
 back of the cape to be inferred from the single view; if it reads wrong, that
 is the case for the multiview route with guidance views.
 
+## 2026-09-04: non-Codex single-image operator route
+
+`scripts/crank_from_image.py` is now the user-facing, resumable entrypoint for
+people who do not want a coding agent in the loop. It creates a hash-bound
+single-view Hunyuan request, launches the pinned Python geometry runner, and
+advances deterministic stages until a human modeling, production-retopology,
+or texture gate. Static props can continue through Hunyuan3D-Paint packaging
+and optional headless UE import. Articulated assets stop after modeling review;
+generic deformation-aware retopology, hand landmarks, rig export, and motion
+proof remain explicitly unwired.
+
+The current default does not execute ComfyUI. It only inspects a live ComfyUI
+queue before direct Hunyuan inference so it will not steal a busy GPU. The old
+64-node graph remains preserved as an optional historical route. Installed
+direct-geometry plus PBR-paint dependencies measured 39,594,554,524 bytes
+(36.875 GiB) on this workstation. The new pinned minimal fetch is 32.285 GiB
+for single-view plus paint, or 36.875 GiB with both shape modes. The runners
+avoid the unused duplicate shape checkpoints. `scripts/measure_ai_install.ps1`
+reproduces the installed measurement and counts duplicate formats rather than
+hiding them.
+

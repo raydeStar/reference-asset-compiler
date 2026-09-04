@@ -1,9 +1,9 @@
-"""Package an accepted, topology-locked character texture without repainting it.
+"""Package an accepted, topology-locked AI texture without repainting it.
 
-``package_accepted_texture.py`` is the static-prop remediation path; it needs a
-compiled ``out/<asset>`` payload and a prop normalization report. A generated
-character that has passed retopology, UV transport, and a human texture review
-has neither yet, so this step builds the texture-approval evidence directly:
+``package_accepted_texture.py`` remains the legacy static-prop remediation path.
+This script is the generated-asset path: it accepts either an unrigged character
+or static prop after retopology and UV transport, then builds the texture-review
+payload directly:
 
   1. stage the accepted BaseColor, Roughness, and Metallic maps as PNG under
      their shipped names (JPEG sources are decoded once; nothing is repainted);
@@ -128,8 +128,11 @@ def main() -> int:
         raise ValueError(f"texture maps must be one square resolution, found {sorted(sizes)}")
     resolution = next(iter(sizes))[0]
 
+    intake = json.loads((work / "intake.json").read_text(encoding="utf-8-sig"))
+    asset_kind = intake.get("asset_kind")
+    static_prop = asset_kind == "static_prop"
     material_name = f"M_{pascal(args.asset)}_Body"
-    mesh_name = f"SK_{pascal(args.asset)}"
+    mesh_name = f"{'SM' if static_prop else 'SK'}_{pascal(args.asset)}"
     textures_json = prod / "production-texture-map.json"
     textures_json.write_text(json.dumps(
         {material_name: {channel: str(path) for channel, path in staged.items()}}, indent=2
@@ -185,10 +188,19 @@ def main() -> int:
         "albedo", "smooth", "calibrated",
     ], "fixed-view render")
 
+    # Hunyuan3D-Paint emits base color, metallic and roughness but no AO map.
+    # White is the physically neutral AO value: it adds no invented shadowing
+    # and lets the UE packer keep one explicit R/G/B contract for every asset.
+    ao_path = prod / f"T_{args.asset}_AO.png"
+    Image.new("L", (resolution, resolution), 255).save(ao_path)
+    staged["AO"] = ao_path
+
     retopo = {
-        "schema": "reference-asset-compiler.character-texture-payload.v1",
+        "schema": ("reference-asset-compiler.generated-texture-payload.v1"
+                   if static_prop else
+                   "reference-asset-compiler.character-texture-payload.v1"),
         "asset_id": args.asset,
-        "asset_kind": json.loads((work / "intake.json").read_text(encoding="utf-8-sig")).get("asset_kind"),
+        "asset_kind": asset_kind,
         "source_uv_authority": str(uv_authority),
         "source_uv_authority_sha256": sha256(uv_authority),
         "uv_layer": bind_report["uv_layer"],
@@ -221,7 +233,9 @@ def main() -> int:
     retopo_path.write_text(json.dumps(retopo, indent=2) + "\n", encoding="utf-8")
 
     receipt = {
-        "schema": "reference-asset-compiler.accepted-character-texture.v1",
+        "schema": ("reference-asset-compiler.accepted-generated-texture.v1"
+                   if static_prop else
+                   "reference-asset-compiler.accepted-character-texture.v1"),
         "asset_id": args.asset,
         "source_uv_authority_sha256": retopo["source_uv_authority_sha256"],
         "source_texture_sha256": {c: v["sha256"] for c, v in retopo["texture_lineage"]["sources"].items()},
@@ -238,6 +252,7 @@ def main() -> int:
         "texture_gate_ok": bool(gate.get("ok")),
         "operations": [
             "decode accepted AI maps once and stage as PNG under shipped names",
+            "write neutral white AO because the painter does not author occlusion",
             "bind maps to the unchanged UV authority as one Principled material",
             "apply only the recorded uniform scale and floor-origin translation",
             "export FBX with relative texture references beside the payload",
@@ -247,7 +262,7 @@ def main() -> int:
         json.dumps(receipt, indent=2) + "\n", encoding="utf-8")
     status = "gate passed" if gate.get("ok") else "GATE FAILED (no ledger promotion)"
     print(
-        f"[CHARACTER TEXTURE] {args.asset}: {retopo['low_tris']} tris, "
+        f"[GENERATED TEXTURE] {args.asset}: {retopo['low_tris']} tris, "
         f"{retopo['physical_scale']['height_m']:.3f} m, {resolution} atlas -- {status}."
     )
     return 0 if gate.get("ok") else 3

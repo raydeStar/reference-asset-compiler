@@ -1,10 +1,10 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string] $Request,
-    [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds ComfyUI and the Hunyuan3D geometry runner.' }),
+    [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D checkout, environment, and pinned runner.' }),
     [string] $RepoRoot = (Split-Path -Parent $PSScriptRoot),
     [string] $CompilerPython = $(& py -3.12 -c 'import sys; print(sys.executable)'),
-    [int] $MinimumFreeVramMiB = 18432,
+    [int] $MinimumFreeVramMiB = 0,
     [string] $ComfyUrl = 'http://127.0.0.1:8188'
 )
 
@@ -12,8 +12,8 @@ $ErrorActionPreference = 'Stop'
 # Two hash-pinned runners: multiview (three guidance views) and single view
 # (the reference image alone). The request's mode selects one after preflight.
 $expectedRunnerHashes = @{
-    multiview   = '36C7B72DF2CDAD4CE55CD309F4FB6CA9343521FF078399836F8FA57C6A9320C2'
-    single_view = 'EDAE182896DCE708610C12047B385CE8DBED7BBE2F761526047C724CDB5DA11A'
+    multiview   = 'EBE3900B671A1A32416CFB650AA57967150ACEB8AE2994FC252DA9C61356C207'
+    single_view = '119B41DD0DF2AB4E1C9F75A6159F3F8A2C7D47DFC7A20309AC7FBF0519A2AF6C'
 }
 $runnerNames = @{ multiview = 'run_hy3d_multiview.py'; single_view = 'run_hy3d_single_view.py' }
 $generationSchemas = @{ multiview = 'reference-studio.hunyuan3d-multiview.v2'; single_view = 'reference-studio.hunyuan3d-single-view.v1' }
@@ -54,6 +54,13 @@ $mode = if ($preflight.mode) { [string]$preflight.mode } else { 'multiview' }
 if (-not $runnerNames.ContainsKey($mode)) { throw "Unsupported geometry request mode: $mode" }
 $runner = Join-Path $LegacyRoot ('scripts\' + $runnerNames[$mode])
 $expectedRunnerHash = $expectedRunnerHashes[$mode]
+$requiredFreeVramMiB = if ($MinimumFreeVramMiB -gt 0) {
+    $MinimumFreeVramMiB
+} elseif ($mode -eq 'single_view') {
+    12288
+} else {
+    18432
+}
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     throw "Required Hunyuan3D runner is missing: $runner (copy it from workflows\geometry\hunyuan3d)"
 }
@@ -89,8 +96,8 @@ if ($comfyProcesses.Count -gt 0) {
         throw "ComfyUI queue is busy (running=$queueRunning pending=$queuePending); inference was not launched"
     }
 }
-if ($freeMiB -lt $MinimumFreeVramMiB) {
-    throw "GPU has $freeMiB MiB free; $MinimumFreeVramMiB MiB is required. ComfyUI queue was checked (running=$queueRunning pending=$queuePending). No process was killed and inference was not launched. Owners: $($computeApps -join '; ')"
+if ($freeMiB -lt $requiredFreeVramMiB) {
+    throw "GPU has $freeMiB MiB free; $requiredFreeVramMiB MiB is required for $mode. ComfyUI queue was checked (running=$queueRunning pending=$queuePending). No process was killed and inference was not launched. Owners: $($computeApps -join '; ')"
 }
 
 $outputDirectory = [System.IO.Path]::GetFullPath([string]$preflight.output_directory)

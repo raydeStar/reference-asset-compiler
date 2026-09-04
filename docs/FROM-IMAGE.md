@@ -1,5 +1,18 @@
 # One image to a compiled prop
 
+For the direct Hunyuan, non-Codex route, start here:
+
+```powershell
+python scripts\crank_from_image.py my-crate D:\art\crate.png `
+    --kind static_prop --height 0.6 `
+    --height-reason "Waist height on the 2 m cohort; pelvis measures 0.91 m."
+```
+
+It creates the workspace and a hash-bound single-view request, runs Hunyuan
+directly, and resumes until the next human visual gate. The older
+`compile_from_image.py` route documented below remains the Pixal3D import and
+reproduction path; it is not the default user-facing launcher.
+
 The image must enter the geometry generator as conditioning data. This route
 does not permit an agent to inspect the image and manually or procedurally
 recreate an approximation in Blender. Blender work starts after AI acquisition

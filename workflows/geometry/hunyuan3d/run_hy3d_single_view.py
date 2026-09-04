@@ -34,8 +34,29 @@ from hy3dgen.shapegen import Hunyuan3DDiTFlowMatchingPipeline
 
 MODEL_PATH = "tencent/Hunyuan3D-2"
 MODEL_SUBFOLDER = "hunyuan3d-dit-v2-0"
+MODEL_REVISION = "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf"
 REPORT_SCHEMA = "reference-studio.hunyuan3d-single-view.v1"
 PREPARE_SCHEMA = "reference-studio.hunyuan3d-single-view-preparation.v1"
+
+
+def minimal_model_snapshot() -> str:
+    """Fetch only the FP16 safetensors used by this runner.
+
+    Upstream's broad subfolder pattern downloads five equivalent checkpoint
+    formats for the single-view model, turning one 4.59 GiB payload into a
+    22.95 GiB cache. The loader accepts a local snapshot path, so give it the
+    exact config and checkpoint it will open. Disk space deserves truth too.
+    """
+    from huggingface_hub import snapshot_download
+
+    return snapshot_download(
+        repo_id=MODEL_PATH,
+        revision=MODEL_REVISION,
+        allow_patterns=[
+            f"{MODEL_SUBFOLDER}/config.yaml",
+            f"{MODEL_SUBFOLDER}/model.fp16.safetensors",
+        ],
+    )
 
 
 def remove_uniform_studio_background(image: Image.Image) -> Image.Image | None:
@@ -145,9 +166,10 @@ def main() -> None:
     if free_vram < 12 * 1024**3:
         raise RuntimeError(f"Hunyuan3D-2 single view requires 12 GiB free VRAM; found {free_vram / 1024**3:.1f}")
 
+    model_snapshot = minimal_model_snapshot()
     print(f"Loading official {MODEL_PATH}:{MODEL_SUBFOLDER}...", flush=True)
     pipeline = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(
-        MODEL_PATH, subfolder=MODEL_SUBFOLDER, variant="fp16")
+        model_snapshot, subfolder=MODEL_SUBFOLDER, variant="fp16")
     started = time.perf_counter()
     mesh = pipeline(
         image=image,
@@ -162,6 +184,7 @@ def main() -> None:
     payload = {
         "schema": REPORT_SCHEMA,
         "model": f"{MODEL_PATH}:{MODEL_SUBFOLDER}",
+        "model_revision": MODEL_REVISION,
         "sources": {"primary": str(args.image.resolve())},
         "prepared": {"primary": str(prepared_path)},
         "extraction": extraction,
