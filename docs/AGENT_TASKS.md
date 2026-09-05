@@ -83,6 +83,12 @@ crash, never kill GPU processes) apply to every task below.
   are written up in `docs/HANDOFF.md`.
 
 ### 8. Higher-resolution texture paint
+- **Note (2026-09-05):** a head-only second paint on the same UVs is now a
+  two-command route (`scripts/blender/extract_head_transport.py`, then
+  `scripts/composite_head_paint.py`). It raised head resolution tenfold on
+  the Ayric body but doubled facial features on that shallow head; see
+  `docs/WORKFLOW_PLAYBOOK.md`, Stage 4. A candidate for the cat, whose head
+  has real sockets, remains open.
 - **Why:** 19.5 texels/cm² against a 120 floor. Hunyuan3D-Paint supports 768
   and more views; each needs more VRAM.
 - **Done when:** one recorded attempt at 768 or 12 views on the cat's UV

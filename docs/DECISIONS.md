@@ -190,6 +190,30 @@ there and says so in its receipt. That is the honest boundary between the free
 route and Auto-Rig Pro's pseudo-voxel binding, and the reason the rig driver is
 either-or rather than one or the other.
 
+### Multi-view paint needs geometry it can read
+
+Painting a character's head by itself, with its own UVs, is a clean way to
+buy resolution: the transport is a face subset, the atlas rectangles are
+unchanged, and the composite is a bounded blend. On the Ayric body it
+produced convincing skin and hair and a face with two pairs of eyes. The
+multi-view diffusion localizes features from the normal and position
+controls; a low-detail head with shallow sockets gives it nothing to lock
+onto, so each view guessed differently and the bake averaged the guesses.
+Feature placement therefore comes from a registered single front image on
+such meshes, and the painter is reserved for material and hair. The
+orientation was checked and exonerated first: the same export axes as the
+body transport, vertices identical to the body's head region.
+
+### A launcher must not die on its child's stderr
+
+Windows PowerShell 5.1 turns a native command's redirected stderr into
+ErrorRecords, and under `$ErrorActionPreference = 'Stop'` the first
+harmless warning becomes a terminating error. `run_hy3d21_texture.ps1`
+aborted a paint at model sync the moment its caller added `*> log.txt`,
+before any receipt existed. Every launcher now relaxes the preference
+around the native call, as `compile_asset.ps1` already did; the exit code
+and the validation JSON are the signal, never the stream.
+
 ## Operational lessons
 
 - Disk growth from reproducible generations can exhaust hundreds of GB.

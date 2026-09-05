@@ -102,7 +102,9 @@ if ($humanoid -and $Backbone -ne 'landmark') {
 }
 $route = 'landmark'
 $reason = 'portable landmark route'
-if ($humanoid -and $Backbone -eq 'arp') {
+if ($Backbone -eq 'landmark') {
+    $reason = 'landmark route requested explicitly (-Backbone landmark); Auto-Rig Pro was not probed'
+} elseif ($humanoid -and $Backbone -eq 'arp') {
     if (-not $arpAvailable) { throw "Backbone 'arp' requested but Auto-Rig Pro is not operational: $arpDetail" }
     $route = 'arp'; $reason = 'Auto-Rig Pro requested explicitly and operational'
 } elseif ($humanoid -and $Backbone -eq 'auto' -and $arpAvailable) {

@@ -174,6 +174,25 @@ enhanced views, bake coverage, and pre/post-inpaint atlases. This is for locatin
 a correspondence failure before changing the method; it does not turn a repeat
 of a visibly rejected candidate into useful evidence.
 
+### Head-detail paint pass (same UVs, second paint)
+
+A full-body paint at 512 px gives a 1.85 m character's head about fifty
+pixels per view. `scripts/blender/extract_head_transport.py` cuts the head
+and neck faces out of the UV authority with their exact UVs, so a second
+`run_hy3d21_texture.ps1` run on that transport fills every view with the
+head; `scripts/composite_head_paint.py` then bakes the recovered head maps
+onto the body's (possibly repacked) layout and blends them over the body
+maps inside the geometry-derived head region, byte-preserving everything
+else. The reference must show only head and neck: a crop that kept a strip
+of armour made the painter spread armour colour over the whole head.
+
+Measured result on `sunset-ayric-v2` (2026-09-05): the pass paints skin,
+hair, eyes and beard at ten times the earlier resolution, but on that
+shallow-featured 19.6k-triangle head the views disagreed about where the
+face was and the bake carried doubled eyes. Rejected under the landmark
+rule. The tooling is validated; the method needs a head with real sockets
+and a nose, or a single registered front image, to place features.
+
 Hunyuan3D-Paint was the strongest full-body PBR base, not an accepted face
 solution. It improved clothing and material response while degrading facial
 identity. Review unlit albedo and lit PBR separately.

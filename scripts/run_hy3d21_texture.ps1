@@ -56,8 +56,18 @@ if ($DiagnosticsDir) {
     }
     $runnerArgs += @('--diagnostics-dir', $diagnosticsPath)
 }
-& $python @runnerArgs
-$exitCode = $LASTEXITCODE
+# The runner and its dependencies write ordinary progress and warnings to
+# stderr. Under $ErrorActionPreference = 'Stop', any caller that redirects our
+# output to a log (2>&1, *>) would turn the first such line into a terminating
+# error and kill the paint before a receipt exists. Relax only around the call.
+$previousPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+try {
+    & $python @runnerArgs
+    $exitCode = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $previousPreference
+}
 $report = [System.IO.Path]::ChangeExtension($outputPath, '.validation.json')
 if (-not (Test-Path -LiteralPath $report -PathType Leaf)) {
     throw "Hunyuan3D-Paint exited $exitCode without a validation report; it will not be auto-retried"
