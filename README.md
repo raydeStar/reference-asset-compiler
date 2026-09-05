@@ -1,5 +1,9 @@
 # Reference Asset Compiler
 
+Scene utilities: [physical-unit atmosphere recipes, protected UE derivatives,
+and portable pending-approval reviews](docs/SCENE_TOOLS.md). Start with
+`python scripts/scene_tools.py --help`; planning needs no editor or GPU.
+
 [![tests](https://github.com/raydeStar/reference-asset-compiler/actions/workflows/tests.yml/badge.svg)](https://github.com/raydeStar/reference-asset-compiler/actions/workflows/tests.yml)
 ![license](https://img.shields.io/badge/license-MIT-blue.svg)
 ![engine](https://img.shields.io/badge/Unreal%20Engine-5.8-black.svg)

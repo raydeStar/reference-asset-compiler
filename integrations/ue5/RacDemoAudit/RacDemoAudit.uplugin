@@ -1,0 +1,10 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "RAC Cooked Demo Audit",
+  "Description": "Opt-in cooked gameplay and screenshot evidence. Inert unless -RACDemoAudit is supplied.",
+  "Category": "Testing",
+  "CanContainContent": false,
+  "Modules": [{ "Name": "RacDemoAudit", "Type": "Runtime", "LoadingPhase": "PostEngineInit" }]
+}
