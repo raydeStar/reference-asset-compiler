@@ -40,7 +40,9 @@ $projectPath = Join-Path $repoRoot $Project
 if (-not (Test-Path -LiteralPath $projectPath)) { throw "Project not found: $projectPath" }
 
 $unrealCmd = (& python (Join-Path $PSScriptRoot 'rac_env.py') --unreal-cmd) | Select-Object -Last 1
-$uat = Join-Path (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $unrealCmd)))) 'Build\BatchFiles\RunUAT.bat'
+# <Engine>/Binaries/Win64/UnrealEditor-Cmd.exe -> <Engine>/Build/BatchFiles/RunUAT.bat
+$engineRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $unrealCmd))
+$uat = Join-Path $engineRoot 'Build\BatchFiles\RunUAT.bat'
 if (-not (Test-Path -LiteralPath $uat)) { throw "RunUAT.bat not found next to $unrealCmd" }
 
 $staging = Join-Path $repoRoot ('work/sunset-workshop/staged-' + (Split-Path -Leaf $Archive))
