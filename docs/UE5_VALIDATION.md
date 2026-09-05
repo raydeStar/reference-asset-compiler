@@ -57,3 +57,30 @@ pose-mismatch numbers for every variant it tried. Launch with
 `UnrealEditor.exe <project> -game -windowed -NoTextureStreaming` to be dropped
 in as Manny.
 
+## Replacing the demo player with a compiled character
+
+`scripts/ue5/probe_workshop_player.py` reads a level's game mode, player
+Blueprint, mesh placement and animation-blueprint dependencies without
+changing anything. `scripts/ue5/swap_workshop_player.py` then builds, as
+versioned copies under `/Game/SunsetWorkshop/<Tag>Player/<Version>/`:
+
+- IK Rigs for Manny and the target from bone names, an IK Retargeter with
+  limbs aligned to Manny, and a batch retarget of the player's animation
+  blueprint plus every sequence and blend space it references. In UE 5.8 the
+  batch operation writes the retargeted animation blueprint but does not list
+  it in its results; the script picks it up by path, re-aims its target
+  skeleton, saves it, rescans the folder, and audits the saved package's
+  dependencies (Blueprint graphs are not reflected to Python). Every
+  retargeted sequence gets the pelvis rescale and ancestor-track strip that the
+  compiled skeletons' 100x root scale requires.
+- A copy of the player Blueprint with the target mesh, the retargeted
+  animation blueprint, the capsule sized to the mesh height, the mesh yawed so
+  heel-to-toe points down the actor's +X, and any socket-attached prop
+  re-fitted to the new skeleton.
+- A copy of the game mode with that pawn, and a copy of the level using it.
+
+`scripts/ue5/probe_workshop_walkthrough.py` gives Play-in-Editor movement and
+collision evidence with screenshots; `scripts/cook_workshop_level.ps1` cooks
+the level into a fresh archive once that receipt exists. Neither is a human
+visual approval.
+
