@@ -1,5 +1,7 @@
 # Reference Asset Compiler
 
+![Ayric in the finished night workshop — actual Unreal Engine capture](docs/images/ayric-workshop-v051/hero.png)
+
 [![tests](https://github.com/raydeStar/reference-asset-compiler/actions/workflows/tests.yml/badge.svg)](https://github.com/raydeStar/reference-asset-compiler/actions/workflows/tests.yml)
 ![license](https://img.shields.io/badge/license-MIT-blue.svg)
 ![engine](https://img.shields.io/badge/Unreal%20Engine-5.8-black.svg)
@@ -28,6 +30,53 @@ isolated candidates; an immutable reference image, fixed-view reviews, numeric
 gates, deformation tests, and engine evidence decide what gets promoted. Every
 stage writes a receipt with the SHA-256 of what it consumed and produced, and
 the ledger refuses to advance past a gate that was not actually passed.
+
+## In the workshop — actual UE 5.8 captures
+
+<p align="center">
+  <img src="docs/images/ayric-workshop-v051/portrait.png" width="49%" alt="Window-side character portrait with the moon and desert behind him" />
+  <img src="docs/images/ayric-workshop-v051/opposite.png" width="49%" alt="Ayric beside the workshop's furnished workbench and sofa" />
+</p>
+
+**Real scene, real materials, no promotional repaint.** These are staged captures
+inside the actual v051 night workshop, with its independent props and 3D desert.
+A temporary soft portrait fill makes the character readable; saved scene lighting,
+textures and character assets are unchanged. The detailed
+head was acquired separately with image-conditioned AI, fitted to the existing
+body, and attached to its head bone. The face artwork stays locked; a bounded
+surface-aware colour **and normal** transition reconciles the neck with the body.
+The original black-background inspection shots remain in the media history.
+
+<p align="center">
+  <img src="docs/images/ayric-workshop-v051/walk.gif" width="800" alt="An in-place walking cycle inside the workshop: hips, knees, feet and arms animate while the separate head and sword stay attached" />
+</p>
+
+*Working locomotion rig: one complete 1.5-second walk cycle, sampled at 24
+actual UE animation poses and encoded as a looping GIF. No generated motion or
+interpolated frames. This is an editor animation capture, not an FPS benchmark
+or a recording of keyboard-controlled gameplay.*
+
+The separate packaged-game audit passes **18 checks** for possession, moving
+legs, forward travel, wall collision, jump/landing, attachments and actual native
+mesh budgets. Body + head + sword total **36,437 vertices / 54,027 triangles at
+LOD0**. This demonstrates the reviewed desktop demo, not every target device.
+The head is rigidly attached—facial expressions and cloth simulation are not
+implemented. A small collar edge remains visible close up; final neck appearance
+awaits human approval. These shots do not silently grant production-ledger approval.
+
+What made the texture work repeatable:
+
+- Match painted features to modeled eyes, nose and mouth; better paint cannot
+  repair the wrong facial geometry.
+- Keep the face's coherent UVs and approved artwork intact. Correct the narrow
+  body/neck transition instead of stamping over the entire character.
+- Review albedo separately from roughness, metallic and normal response, then
+  inspect both sides in the actual engine.
+- Measure socket placement in the reference pose and verify real deformation
+  and native vertex counts—not just bone names or capsule movement.
+
+[Recapture these images and GIF](docs/CHARACTER_SHOWCASE.md) ·
+[Media provenance](docs/images/ayric-workshop-v051/provenance.json)
 
 ## What you get
 

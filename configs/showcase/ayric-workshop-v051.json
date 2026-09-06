@@ -1,0 +1,18 @@
+{
+  "level": "/Game/SunsetWorkshop/L_WorkshopNight_v051",
+  "character_location": [220,40,0],
+  "character_yaw": 90,
+  "portrait_fill": {"location":[100,10,200],"target":[220,40,135],"lumens":3},
+  "blueprint": "/Game/SunsetWorkshop/AyricPlayer/v051/BP_WorkshopAyric_v051",
+  "mesh": "/Game/SunsetWorkshop/RigRepairs/neck_transfer_v012/ayric_body",
+  "animations": "/Game/SunsetWorkshop/AyricPlayer/v036/Anims",
+  "runtime_audit": "work/sunset-workshop/evidence/cooked-ayric-v051/audit.json",
+  "animation": "MF_Unarmed_Walk_Fwd_Ayric",
+  "frames_per_cycle": 24,
+  "shots": [
+    {"name":"hero","camera":[-280,220,170],"target":[260,0,145],"width":1600,"height":1000,"time":0.25,"animation":"MM_Idle_Ayric"},
+    {"name":"portrait","camera":[158,75,175],"target":[220,40,162],"width":1400,"height":1000,"time":0.25,"animation":"MM_Idle_Ayric"},
+    {"name":"opposite","camera":[80,-90,165],"target":[240,30,140],"width":1600,"height":1000,"time":0.25,"animation":"MM_Idle_Ayric"}
+  ],
+  "walk_camera":[30,130,125],"walk_target":[250,30,110],"walk_width":960,"walk_height":640
+}
