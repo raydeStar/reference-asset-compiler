@@ -1,0 +1,10 @@
+# The workflow pins actions to commit hashes so CI is not an unreviewed
+# supply-chain update. Dependabot proposes the hash bumps as PRs instead.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    commit-message:
+      prefix: "ci"

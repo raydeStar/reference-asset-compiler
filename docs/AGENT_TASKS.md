@@ -51,6 +51,13 @@ crash, never kill GPU processes) apply to every task below.
   be tested with synthetic atlases and meshes.
 - **Done when:** `verify.ps1` runs at least one test per new pure-Python script
   and the tests fail on a deliberately broken mask or missing input.
+- **Status (2026-09-08):** partly done. `clamp_region_roughness.py` is covered
+  end to end against a synthetic atlas (`tests/test_clamp_region_roughness.py`);
+  the numpy helpers of `derive_humanoid_landmarks.py` and
+  `derive_mascot_landmarks.py` run under a stubbed `bpy`
+  (`tests/test_landmark_helpers.py`); `package_character_texture.py` has
+  argument-contract tests. `rig_from_landmarks.py` is still uncovered: every
+  function takes a live Blender object, so it needs a fake-object harness.
 
 ### 5. Coherent semantic UVs for unrigged meshes
 - **Why:** Smart Project produces confetti islands (783 on the cat), which caps

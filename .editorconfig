@@ -1,0 +1,23 @@
+# Mirrors .gitattributes so editors write what Git expects and the
+# "CRLF will be replaced by LF" warnings stay gone.
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.py]
+indent_style = space
+indent_size = 4
+
+[*.{json,yml,yaml,toml}]
+indent_style = space
+indent_size = 2
+
+[*.ps1]
+end_of_line = crlf
+
+[*.md]
+trim_trailing_whitespace = false

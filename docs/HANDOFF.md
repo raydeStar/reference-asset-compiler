@@ -1,6 +1,8 @@
 # Cross-agent handoff: V1 checkpoint
 
-Last updated: 2026-09-01
+Last updated: 2026-09-06. The sections up to *Definition of V1 completion*
+describe the 2026-08-30 checkpoint; everything after them is a dated log
+appended in order, so the current state is the last dated section.
 
 ## What this checkpoint is
 
