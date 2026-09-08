@@ -42,6 +42,14 @@ try {
     if ($LASTEXITCODE -ne 0) {
         throw "Blender stage scripts failed to compile with exit code $LASTEXITCODE"
     }
+    # Native adapters import unreal at runtime, but their Python syntax can
+    # still be checked without opening the editor. No royal summons required.
+    Invoke-RepoPython -ArgumentList @(
+        '-m', 'compileall', '-q', (Join-Path $repoRoot 'scripts\ue5')
+    )
+    if ($LASTEXITCODE -ne 0) {
+        throw "UE stage scripts failed to compile with exit code $LASTEXITCODE"
+    }
     Invoke-RepoPython -ArgumentList @(
         '-m', 'unittest', 'discover', '-s', (Join-Path $repoRoot 'tests'), '-v'
     )

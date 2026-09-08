@@ -7,7 +7,11 @@ Renders front, three-quarter, side and back at fixed cameras in two passes:
 
 Usage:
   blender -b --factory-startup --python scripts/blender/render_turnaround.py \
-      -- <asset.fbx|asset.glb|asset.gltf> <out_dir> [resolution] [albedo] [smooth] [calibrated]
+      -- <asset.fbx|asset.glb|asset.gltf> <out_dir> [resolution] [albedo] [smooth] [calibrated] [surface]
+
+Append ``surface`` after the display-profile argument to include overhead,
+underside and elevated evidence in addition to the unchanged four views.
+Use a fresh output directory for supplemental evidence on a retained asset.
 
 The optional sixth argument selects the display transform for the beauty pass:
   factory     -- Blender's factory default (AgX on 4.x/5.x) at exposure 0.
@@ -85,7 +89,7 @@ def add_key_lights(centre, radius):
         bpy.context.collection.objects.link(lamp)
 
 
-def place_camera(centre, extent, angle_deg):
+def place_camera(centre, extent, angle_deg, elevation_degrees=None):
     cam_data = bpy.data.cameras.new("EvidenceCam")
     cam_data.lens = 85.0
     cam = bpy.data.objects.new("EvidenceCam", cam_data)
@@ -102,6 +106,13 @@ def place_camera(centre, extent, angle_deg):
     cam.location = centre + Vector(
         (math.sin(angle) * distance, -math.cos(angle) * distance, extent * 0.08)
     )
+    if elevation_degrees is not None:
+        elevation = math.radians(elevation_degrees)
+        cam.location = centre + Vector((
+            math.sin(angle) * math.cos(elevation) * distance,
+            -math.cos(angle) * math.cos(elevation) * distance,
+            math.sin(elevation) * distance,
+        ))
     direction = centre - cam.location
     cam.rotation_euler = direction.to_track_quat("-Z", "Y").to_euler()
     bpy.context.scene.camera = cam
@@ -212,6 +223,13 @@ def main() -> int:
     include_albedo = len(argv) > 3 and argv[3].strip().lower() in {"1", "true", "yes", "albedo"}
     smooth_normals = len(argv) > 4 and argv[4].strip().lower() in {"1", "true", "yes", "smooth"}
     display = argv[5].strip().lower() if len(argv) > 5 else "factory"
+    # Optional supplemental views for flat tools and boards. Preserve the
+    # original four cameras exactly; an edge-on wrench is a poor witness.
+    surface_views = len(argv) > 6 and argv[6].strip().lower() == "surface"
+    view_specs = [(name, angle, None) for name, angle in VIEWS.items()]
+    if surface_views:
+        view_specs.extend((("top", 0, 90), ("underside", 0, -90),
+                           ("elevated", 45, 55)))
     if display not in DISPLAY_PROFILES:
         raise RuntimeError(
             f"Unknown display profile {display!r}; expected one of {sorted(DISPLAY_PROFILES)}"
@@ -292,15 +310,15 @@ def main() -> int:
         if pass_name == "albedo":
             bpy.context.scene.view_layers[0].material_override = None
             apply_unlit_albedo(meshes)
-        for view, angle in VIEWS.items():
-            place_camera(centre, extent, angle)
+        for view, angle, elevation in view_specs:
+            place_camera(centre, extent, angle, elevation)
             path = out_dir / "{0}-{1}.png".format(pass_name, view)
             scene.render.filepath = str(path)
             bpy.ops.render.render(write_still=True)
             print("[RENDER] {0}".format(path))
 
     print("[RENDER] {0} fixed-view images written to {1}".format(
-        len(passes) * len(VIEWS), out_dir))
+        len(passes) * len(view_specs), out_dir))
     return 0
 
 

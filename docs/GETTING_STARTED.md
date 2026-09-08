@@ -77,7 +77,7 @@ $env:RAC_UNREAL_EDITOR  = "C:\path\to\UnrealEditor.exe"
 
 `workflow_doctor.ps1` is read-only and reports every route. On a machine
 without the AI stages it will list them as `[MISSING]` and exit non-zero; that
-is information, not a failure of the compiler. `verify.ps1` runs 75 contract
+is information, not a failure of the compiler. `verify.ps1` runs the contract
 tests and must end with `RAC_VERIFY_OK`.
 
 ## 2. Create the UE5 validation project
@@ -171,8 +171,13 @@ static-prop route continues through direct Hunyuan3D-Paint packaging; add
 `--import-ue5` to run headless import verification. Use `--prepare-only` to
 create and validate the request without touching the GPU.
 
-There is no separate texture-upscaling stage in this route. Hunyuan3D-Paint
-authors the 512 or 768 square atlas directly. ComfyUI-generated wraparounds are
+There is no separate operator-level texture-upscaling stage. `512` or `768`
+controls the generated view resolution, **not** the final atlas size.
+The installed Hunyuan3D-Paint pipeline includes RealESRGAN view enhancement,
+bakes a 4096-square atlas, then exports it at 2048 square. The workshop runs
+verified these sizes from actual files. Large furniture may fail the density
+gate at this export size; do not waive that failure or label simple image
+enlargement as newly generated detail. ComfyUI-generated wraparounds are
 also not silently created; they remain a possible future input to the retained
 multiview runner, with their derivation and hashes recorded.
 
@@ -216,8 +221,18 @@ docs/DECISIONS.md                  what failed and why, so you do not repeat it
 - **A gate fails.** Read the JSON it wrote; the failure names the bone, the
   texel count, or the deviation. Fix the input and rerun; attempt directories
   refuse to be overwritten, so use a new attempt name.
+- **A UV attempt fails.** Preserve it, diagnose the cause, and explicitly
+  select a new `--uv-attempt N` when resuming `crank_from_image.py`. Retain
+  that option on subsequent resumes of the same chosen UV candidate.
 - **The AI paint crashed on teardown** (`-1073741819`). Its outputs were written
   before the crash and validated; do not rerun it, record it.
+- **An exported paint atlas is too small.** When full-size diagnostic bakes
+  survive, `scripts/recover_fullsize_paint_maps.py <paint-attempt> <fresh-dir>`
+  checks correspondence and recovers those original maps without inference
+  or upscaling. Resume with `--paint-map-directory <fresh-dir>` and a fresh
+  `--texture-package-name prod-v3`; retain these flags on subsequent resumes.
+  The new package still must pass texture checks and human review. Recovery
+  cannot repair bad paint or baked lighting. See `docs/SUNSET_WORKSHOP.md`.
 - **Characters look washed out in a Blender render.** Use the `calibrated`
   argument to `render_turnaround.py`. See `docs/DECISIONS.md`.
 - **Characters are invisible in the UE gallery.** Check

@@ -66,6 +66,7 @@ def main() -> int:
     tri_centre = []
     tri_normal = []
     tri_area = []
+    tri_position = []
     material_names = []
 
     for obj in meshes:
@@ -93,6 +94,7 @@ def main() -> int:
         )
 
         for tri in me.loop_triangles:
+            tri_position.append([list(obj.matrix_world @ me.vertices[i].co) for i in tri.vertices])
             uvs = [uv_layer.data[loop].uv for loop in tri.loops]
             tri_uv.append([[uvs[0][0], uvs[0][1]],
                            [uvs[1][0], uvs[1][1]],
@@ -115,6 +117,7 @@ def main() -> int:
         centre=np.asarray(tri_centre, dtype=np.float32),
         normal=np.asarray(tri_normal, dtype=np.float32),
         area=np.asarray(tri_area, dtype=np.float32),
+        position=np.asarray(tri_position, dtype=np.float32),
         region_names=np.asarray(REGIONS),
         material_names=np.asarray(material_names),
     )

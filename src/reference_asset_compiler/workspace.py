@@ -11,6 +11,8 @@ from typing import Any
 from .contracts import STAGE_STATUSES
 from .io import read_json, sha256_file, slugify, write_json
 from .planner import plan
+from .delegated_review import validate_delegated_review
+from .native_revision import validate_native_revision, validate_matched_native_frames
 
 MODELING_VIEWS = {
     "matcap-front.png",
@@ -155,7 +157,8 @@ def _valid_frame_stats(payload: Any) -> bool:
     )
 
 
-def _validate_ue5_import_receipt(evidence: list[Path]) -> None:
+def _validate_ue5_import_receipt(evidence: list[Path], maximum_vertices=None,
+                                maximum_triangles=None) -> None:
     found = _receipt(evidence, "reference-asset-compiler.ue5-import-evidence.v1")
     if found is None:
         raise ValueError("ue5_import requires a manifest-bound per-asset UE receipt")
@@ -173,6 +176,8 @@ def _validate_ue5_import_receipt(evidence: list[Path]) -> None:
             or any(not isinstance(check, dict) or check.get("ok") is not True
                    for check in checks)):
         raise ValueError("ue5_import receipt does not prove successful native checks")
+    if "native_revision" in payload:
+        validate_native_revision(payload, evidence, maximum_vertices, maximum_triangles)
 
 
 def _validate_generation_receipt(
@@ -241,6 +246,7 @@ def _validate_modeling_lineage(
 
 
 def _validate_runtime_review_receipt(evidence: list[Path], reviewer: str) -> None:
+    from .static_review import SCHEMA as STATIC_REVIEW_SCHEMA, validate_static_frames
     found = _receipt(evidence, "reference-asset-compiler.ue5-runtime-review.v1")
     if found is None:
         raise ValueError("ue5_runtime_review requires its reviewed-frame receipt")
@@ -257,6 +263,38 @@ def _validate_runtime_review_receipt(evidence: list[Path], reviewer: str) -> Non
             or not str(payload.get("note", "")).strip()
             or not _valid_frame_stats(payload.get("screenshot"))):
         raise ValueError("ue5_runtime_review receipt lacks a valid human-reviewed frame")
+    gallery_path = _evidence_path_for_hash(evidence, receipt_path, payload["gallery_report_sha256"])
+    if (read_json(gallery_path).get("schema") == STATIC_REVIEW_SCHEMA
+            and "static_multiview_import_sha256" not in payload):
+        raise ValueError("Static multiview runtime receipt is missing its import binding")
+    if "native_import_sha256" in payload:
+        _require_bound_hashes(payload, ("native_import_sha256",), hashes, "native runtime review")
+        imported_path = _evidence_path_for_hash(evidence, receipt_path, payload["native_import_sha256"])
+        gallery_path = _evidence_path_for_hash(evidence, receipt_path, payload["gallery_report_sha256"])
+        imported, gallery = read_json(imported_path), read_json(gallery_path)
+        if (imported.get("schema") != "reference-asset-compiler.ue5-import-evidence.v1"
+                or imported.get("manifest_sha256") != payload.get("manifest_sha256")
+                or imported.get("ok") is not True):
+            raise ValueError("Native runtime review is not bound to its successful manifest import")
+        frames = validate_matched_native_frames(
+            gallery, imported["result"]["mesh"], imported["result"]["native_lods"][0]["vertices"])
+        if any(sha256_file(path) not in hashes for path in frames):
+            raise ValueError("Native runtime review lacks its complete frame evidence")
+        if payload["screenshot_sha256"] not in {row["sha256"] for row in gallery["frames"]
+                                               if row["mesh"] == imported["result"]["mesh"]}:
+            raise ValueError("Native runtime primary frame shows a different mesh")
+    if "static_multiview_import_sha256" in payload:
+        key = "static_multiview_import_sha256"
+        _require_bound_hashes(payload, (key,), hashes, "static multiview runtime review")
+        imported_path = _evidence_path_for_hash(evidence, receipt_path, payload[key])
+        gallery_path = _evidence_path_for_hash(evidence, receipt_path, payload["gallery_report_sha256"])
+        imported, gallery = read_json(imported_path), read_json(gallery_path)
+        if imported.get("manifest_sha256") != payload["manifest_sha256"]:
+            raise ValueError("Static multiview manifest differs from runtime receipt")
+        frames = validate_static_frames(gallery, imported, imported_path)
+        frame_hashes = {sha256_file(path) for path in frames}
+        if not frame_hashes <= hashes or payload["screenshot_sha256"] not in frame_hashes:
+            raise ValueError("Static multiview runtime review lacks its complete frame evidence")
 
 
 def _validate_cook_receipt(evidence: list[Path], reviewer: str) -> None:
@@ -511,7 +549,11 @@ def validate_passed_stage_contract(
     if not reviewer:
         raise ValueError("Cannot pass {0} without approved_by".format(stage))
     if stage in HUMAN_STAGES and reviewer.lower() in AUTOMATION_REVIEWERS:
-        raise ValueError("{0} requires an identified human reviewer".format(stage))
+        try:
+            validate_delegated_review(evidence, reviewer, source_sha256, stage)
+        except ValueError as error:
+            raise ValueError("{0} requires an identified human reviewer or explicit "
+                             "hash-bound user delegation: {1}".format(stage, error)) from error
 
     names = {path.name.lower() for path in evidence}
     if stage == "generate_candidates":
@@ -544,7 +586,7 @@ def validate_passed_stage_contract(
     elif stage == "deformation_validation":
         _validate_deformation_receipt(evidence)
     elif stage == "ue5_import":
-        _validate_ue5_import_receipt(evidence)
+        _validate_ue5_import_receipt(evidence, maximum_vertices, maximum_triangles)
     elif stage == "ue5_runtime_review":
         _validate_runtime_review_receipt(evidence, reviewer)
     elif stage == "ue5_motion_review":

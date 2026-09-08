@@ -69,4 +69,8 @@ bright for the saved exposure. v004 uses only 3 lumens. Source textures were
 not adjusted to compensate for staging light. The current README points to
 `docs/images/ayric-workshop-v051`; earlier studio media is retained separately.
 
+See [the canonical head and neck method](CHARACTER_HEAD_AND_NECK.md) for the
+actual texture/geometry repair. Lighting a screenshot is not a texture repair—
+even the butler cannot polish away topology.
+
 The README describes the source-locked head and bounded neck method. The generated workshop project and repair artifacts are local prerequisites, not included in this source-only publication.

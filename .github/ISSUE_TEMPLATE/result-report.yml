@@ -1,0 +1,37 @@
+name: I ran a character through it
+description: Report an attempt, good or bad, on your own hardware and image. This is the feedback that shapes what gets built next.
+title: "[result] "
+labels: ["hardware-report"]
+body:
+  - type: input
+    id: hardware
+    attributes:
+      label: Hardware
+      placeholder: "RTX 4070 12 GB, 32 GB RAM, Windows 11"
+    validations:
+      required: true
+  - type: dropdown
+    id: howfar
+    attributes:
+      label: How far did it get
+      options:
+        - Geometry only
+        - Geometry and retopology
+        - Textured
+        - Rigged with deformation evidence
+        - Imported and verified in UE5
+        - Cooked and played
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: What was hard, what was surprising, what you had to work around
+      description: Honest notes beat polished ones. VRAM peaks, timings, and which gate rejected what are all useful.
+    validations:
+      required: true
+  - type: textarea
+    id: views
+    attributes:
+      label: Fixed views (optional)
+      description: Front, three-quarter, side, back. Drag images in. A good front view cannot hide a broken side, so all four help.

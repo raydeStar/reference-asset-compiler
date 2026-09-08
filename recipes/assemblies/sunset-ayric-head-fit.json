@@ -1,0 +1,17 @@
+{
+  "schema": "reference-asset-compiler.head-fit.v1",
+  "body": "work/sunset-ayric-v2/rig/anatomical-v002/ayric_rigged.blend",
+  "body_sha256": "c29161f0dbe1ba1ae68f578fac4abf96c4ceb39fa806de7cf3e452ae24e560cd",
+  "head": "work/sunset-ayric-rigid-head-v1/prod-texture-v001/sunset-ayric-rigid-head-v1_production.fbx",
+  "head_sha256": "2eba3696943ffc5754ccebd04d3ed074aa039dcae25aad87400f02d1320c207d",
+  "body_texture": "work/sunset-ayric-v2/prod-calibrated-v001/T_sunset-ayric-v2_BaseColor.png",
+  "body_texture_sha256": "5dda5e319d5aa94f6703f33bae3b1398e4d19531b68b06503adc506deed1c0e5",
+  "head_island_min_z_m": 1.54,
+  "head_island_max_abs_x_m": 0.115,
+  "head_island_top_z_m": 1.665,
+  "skin_red_green_ratio": 1.25,
+  "extra_skin_island_first_faces": [2800, 3324],
+  "head_translation_m": [0, 0, 1.52],
+  "head_yaw_degrees": 0,
+  "authority": "Measured fit of existing AI-acquired surfaces. Region IDs are invalid if the source hashes change."
+}

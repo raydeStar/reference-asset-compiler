@@ -1,0 +1,19 @@
+{
+  "schema": "reference-asset-compiler.scene-atmosphere.v1",
+  "engine_adapter": "ue5.8",
+  "source_map": "/Game/SunsetWorkshop/L_WorkshopNight_v026",
+  "source_map_sha256": "9c6275ad0234c279939c2f8f942691a19e7bbed6410ab224c508356be2988e5c",
+  "target_map": "/Game/SunsetWorkshop/L_WorkshopNight_recipe_candidate",
+  "fog": [
+    {
+      "actor": "Night_DesertDust_00",
+      "radius_cm": 2400,
+      "ground_z_cm": -400,
+      "height_above_ground_cm": 120,
+      "e_fold_height_cm": 200,
+      "density": 0.5,
+      "albedo_linear": [0.45, 0.31, 0.18],
+      "emissive_linear": [0.0001, 0.000075, 0.000045]
+    }
+  ]
+}

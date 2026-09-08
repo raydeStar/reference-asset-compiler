@@ -57,7 +57,7 @@ class CrankFromImageTests(unittest.TestCase):
         write_passthrough_retopology(
             cleaned,
             {"roundtrip": {"boundary_edges": 0, "non_manifold_edges": 0}},
-            {"vertices": 8000, "tris": 12000},
+            {"verts": 8000, "tris": 12000},
             report,
         )
         payload = json.loads(report.read_text(encoding="utf-8"))

@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory = $true)][string] $InputMesh,
     [Parameter(Mandatory = $true)][string] $OutputDirectory,
-    [string] $Blender = $env:RAC_BLENDER
+    [string] $Blender = $env:RAC_BLENDER,
+    [switch] $AllowTriangulatedGlb
 )
 
 Set-StrictMode -Version Latest
@@ -26,8 +27,10 @@ $report = Join-Path $outputPath 'uv-transport-report.json'
 $log = Join-Path $outputPath 'uv-prep.log'
 
 Write-Host 'RAC_TEXTURE_UV_PREP_BEGIN -- coordinates stay put; only the map may unfold.'
-& $blenderPath '--background' '--python-exit-code' '1' '--python' $driver '--' `
-    $inputPath $blend $obj $report 2>&1 | Tee-Object -FilePath $log
+$uvArguments = @($inputPath, $blend, $obj, $report)
+if ($AllowTriangulatedGlb) { $uvArguments += '--allow-triangulated-glb' }
+& $blenderPath '--background' '--factory-startup' '--python-exit-code' '1' '--python' $driver '--' `
+    @uvArguments 2>&1 | Tee-Object -FilePath $log
 if ($LASTEXITCODE -ne 0) {
     throw "Texture UV preparation failed. Evidence: $log"
 }

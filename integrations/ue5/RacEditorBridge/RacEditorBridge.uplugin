@@ -1,0 +1,10 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "RAC Editor Bridge",
+  "Description": "Explicit editor operations missing from UE Python. No runtime module.",
+  "Category": "Editor",
+  "CanContainContent": false,
+  "Modules": [{"Name": "RacEditorBridge", "Type": "Editor", "LoadingPhase": "Default"}]
+}

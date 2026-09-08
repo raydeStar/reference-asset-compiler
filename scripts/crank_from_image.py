@@ -324,7 +324,7 @@ def write_passthrough_retopology(
         "output": {
             "path": str(cleaned),
             "sha256": sha256_file(cleaned),
-            "vertices": int(description["vertices"]),
+            "vertices": int(description["verts"]),
             "triangles": int(description["tris"]),
             "quad_fraction": 0.0,
             "boundary_edges": int(after.get("boundary_edges", -1)),
@@ -415,21 +415,39 @@ def ensure_retopology(
     return retopo, report, review
 
 
+def recovered_paint_maps(directory: Path, paint_obj: Path, uv_obj: Path, reference: Path):
+    receipt = read_json(directory / "recovery.json")
+    if (receipt.get("schema") != "reference-asset-compiler.fullsize-paint-recovery.v1"
+            or receipt.get("source_validation_sha256") != sha256_file(paint_obj.with_suffix(".validation.json"))
+            or receipt.get("source_obj_sha256") != sha256_file(paint_obj)
+            or receipt.get("source_uv_transport_sha256") != sha256_file(uv_obj)
+            or receipt.get("reference_sha256") != sha256_file(reference)):
+        raise ValueError("Recovered maps do not belong to this exact paint/UV/reference authority")
+    selected = {}
+    for channel in ("BaseColor", "Metallic", "Roughness"):
+        path = directory / (channel + ".png")
+        if receipt["output_maps"][channel]["sha256"] != sha256_file(path):
+            raise ValueError("Recovered map hash changed: " + channel)
+        selected[channel] = path
+    return selected
+
+
 def ensure_texture(
     args: argparse.Namespace, job: Path, intake: dict[str, Any], retopo: Path
 ) -> Path:
-    uv_dir = job / "texture" / "operator-uv-attempt001"
+    uv_dir = job / "texture" / ("operator-uv-attempt{0:03d}".format(args.uv_attempt))
     uv_blend = uv_dir / "uv-authority.blend"
     uv_obj = uv_dir / "texture-transport.obj"
     uv_report = uv_dir / "uv-transport-report.json"
     if not all(path.is_file() for path in (uv_blend, uv_obj, uv_report)):
         if uv_dir.exists() and any(uv_dir.iterdir()):
-            raise ValueError("UV attempt is partial; preserve it and use a new asset id")
+            raise ValueError("UV attempt is partial; preserve it, diagnose, then explicitly choose a new --uv-attempt")
         run(
             [
                 powershell(), "-NoProfile", "-File",
                 ROOT / "scripts" / "run_texture_uv_prep.ps1",
                 "-InputMesh", retopo, "-OutputDirectory", uv_dir,
+                *(["-AllowTriangulatedGlb"] if args.kind == "static_prop" else []),
             ],
             "geometry-locked UV preparation",
         )
@@ -457,7 +475,13 @@ def ensure_texture(
             args.studio_root,
         )
 
-    prod = job / "prod-v2"
+    maps = {"BaseColor": paint_obj.with_suffix(".jpg"),
+            "Metallic": paint_obj.with_name(paint_obj.stem + "_metallic.jpg"),
+            "Roughness": paint_obj.with_name(paint_obj.stem + "_roughness.jpg")}
+    if args.paint_map_directory:
+        maps = recovered_paint_maps(args.paint_map_directory, paint_obj, uv_obj,
+                                    (job / intake["source"]["path"]).resolve())
+    prod = job / args.texture_package_name
     if not (prod / "retopo.json").is_file():
         run(
             [
@@ -465,11 +489,11 @@ def ensure_texture(
                 ROOT / "scripts" / "package_character_texture.py",
                 args.asset_id,
                 "--uv-authority", uv_blend,
-                "--base-color", paint_obj.with_suffix(".jpg"),
-                "--metallic", paint_obj.with_name(paint_obj.stem + "_metallic.jpg"),
-                "--roughness", paint_obj.with_name(paint_obj.stem + "_roughness.jpg"),
+                "--base-color", maps["BaseColor"],
+                "--metallic", maps["Metallic"],
+                "--roughness", maps["Roughness"],
                 "--profile", ROOT / "profiles" / "skeletons" / "static_prop.json",
-                "--output-name", "prod-v2",
+                "--output-name", args.texture_package_name,
                 "--target-height", args.height,
                 "--height-reason", args.height_reason,
             ],
@@ -486,6 +510,11 @@ def ensure_texture(
     if state["stages"]["unwrap_and_bake"]["status"] == "pending":
         evidence = [uv_blend, uv_obj, uv_report, validation, prod / "retopo.json",
                     prod / "gate-tex.json"]
+        execution_receipt = paint_obj.with_suffix(".execution.json")
+        if execution_receipt.is_file():
+            evidence.append(execution_receipt)
+        if args.paint_map_directory:
+            evidence.append(args.paint_map_directory / "recovery.json")
         evidence.extend(prod / value for value in retopo_payload["baked"].values())
         promote_stage(
             job,
@@ -542,6 +571,9 @@ def write_operator_receipt(
         "source_sha256": sha256_file(args.image.resolve()),
         "geometry_request": str(request),
         "geometry_request_sha256": sha256_file(request),
+        "uv_attempt": args.uv_attempt,
+        "texture_package_name": args.texture_package_name,
+        "paint_map_directory": str(args.paint_map_directory.resolve()) if args.paint_map_directory else None,
         "status": status,
         "next_gate": next_gate,
         "codex_required": False,
@@ -572,6 +604,10 @@ def parse_args() -> argparse.Namespace:
                         if os.environ.get("RAC_LEGACY_ROOT") else None)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--attempt", type=int, default=1)
+    parser.add_argument("--uv-attempt", type=int, default=1)
+    parser.add_argument("--texture-package-name", default="prod-v2")
+    parser.add_argument("--paint-map-directory", type=Path,
+                        help="Full-size maps from recover_fullsize_paint_maps.py, with hash-bound recovery.json")
     parser.add_argument("--steps", type=int, default=40)
     parser.add_argument("--octree-resolution", type=int, choices=(256, 384, 512), default=512)
     parser.add_argument("--chunks", type=int, default=20000)
@@ -600,8 +636,11 @@ def main() -> int:
     if not args.image.resolve().is_file():
         print("[OPERATOR] FAILED: image does not exist: {0}".format(args.image.resolve()))
         return 2
-    if args.attempt < 1:
-        print("[OPERATOR] FAILED: --attempt must be at least 1")
+    if args.attempt < 1 or args.uv_attempt < 1:
+        print("[OPERATOR] FAILED: --attempt and --uv-attempt must be at least 1")
+        return 2
+    if not re.fullmatch(r"prod-[a-z0-9]+(?:-[a-z0-9]+)*", args.texture_package_name):
+        print("[OPERATOR] FAILED: --texture-package-name must be a local prod-* name")
         return 2
     if args.kind == "static_prop" and (not args.height or not args.height_reason):
         print("[OPERATOR] FAILED: static props require --height and --height-reason")
@@ -666,7 +705,8 @@ def main() -> int:
             / (args.asset_id + "-production.ue5import.json")
         )
         if not production_manifest.is_file():
-            run([sys.executable, ROOT / "scripts" / "promote_production.py", args.asset_id],
+            run([sys.executable, ROOT / "scripts" / "promote_production.py", args.asset_id,
+                 "--production-name", args.texture_package_name],
                 "publish production payload")
         if args.import_ue5:
             import_ue5(args)

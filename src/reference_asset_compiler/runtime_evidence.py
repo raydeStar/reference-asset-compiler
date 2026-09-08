@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 from typing import Any
 
@@ -10,6 +11,9 @@ from PIL import Image, ImageStat
 
 from .io import read_json, sha256_file
 from .workspace import AUTOMATION_REVIEWERS, audit_workspace, promote_stage
+from .native_revision import validate_native_revision, validate_matched_native_frames
+from .delegated_review import validate_authorization, record_delegated_review
+from .static_review import SCHEMA as STATIC_REVIEW_SCHEMA, validate_static_frames
 
 
 def _require_clean_workspace(job: Path) -> dict[str, Any]:
@@ -144,6 +148,55 @@ def _gallery_contains_asset(gallery: dict[str, Any], asset_id: str) -> bool:
     return any(needle in str(row.get("asset", "")).lower() for row in gallery.get("placed", []))
 
 
+def record_native_import_revision(job: Path, manifest_path: Path, batch_report_path: Path,
+                                  revision: str) -> Path:
+    """Replace only the active import binding, retaining old receipt and full prior ledger.
+
+    This is an import gate only. A blocked runtime review stays blocked until a
+    separate review binds the replacement; passed downstream work prevents revision.
+    """
+    if not re.fullmatch(r"[a-z0-9][a-z0-9-]{0,63}", revision):
+        raise ValueError("Use a safe lowercase revision identifier")
+    job, manifest_path, batch_report_path = job.resolve(), manifest_path.resolve(), batch_report_path.resolve()
+    state = _require_clean_workspace(job)
+    if state["stages"]["ue5_import"]["status"] != "passed":
+        raise ValueError("A native revision requires an already passed source import")
+    names = list(state["stages"])
+    later = names[names.index("ue5_import") + 1:]
+    if any(state["stages"][name]["status"] in {"passed", "in_progress"} for name in later):
+        raise ValueError("Retire downstream evidence explicitly before revising its import")
+    manifest = read_json(manifest_path)
+    if manifest.get("asset_kind") != "static_prop":
+        raise ValueError("Native reduction revisions currently support static props only")
+    prior_paths = [Path(row["path"]) for row in state["stages"]["ue5_import"]["evidence"]]
+    prior_paths = [p if p.is_absolute() else job / p for p in prior_paths]
+    previous = next((p for p in prior_paths if p.suffix == ".json" and
+                     read_json(p).get("schema") == "reference-asset-compiler.ue5-import-evidence.v1"), None)
+    if previous is None:
+        raise ValueError("Source import receipt is missing")
+    payload = extract_ue5_import_record(manifest_path, batch_report_path)
+    derivative = read_json(batch_report_path).get("native_derivative") or {}
+    payload["native_revision"] = {"id": revision,
+        "previous_import": {"path": str(previous.resolve()), "sha256": sha256_file(previous)},
+        "derivative": derivative}
+    artifacts = [Path(row["path"]) for row in
+                 [*derivative.get("native_files", []), *derivative.get("material_files", []),
+                  *derivative.get("artifacts", [])]]
+    evidence = [manifest_path, batch_report_path, previous, *artifacts]
+    budgets = read_json(job / "intake.json")["budgets"]
+    validate_native_revision(payload, evidence, budgets["maximum_vertices"], budgets["maximum_triangles"])
+    output = job / "validation" / ("ue5-import-" + revision + ".json")
+    snapshot = job / "validation" / ("ledger-before-" + revision + ".json")
+    if output.exists() or snapshot.exists():
+        raise ValueError("Retained native revision already exists")
+    _write_immutable(snapshot, state)
+    _write_immutable(output, payload)
+    promote_stage(job, "ue5_import", [output, *evidence, snapshot],
+                  "Native derivative verified against its explicit geometry/material contract and original runtime budgets; previous import and ledger retained.",
+                  "record_ue5_import.py")
+    return output
+
+
 def _image_stats(path: Path) -> dict[str, Any]:
     if not path.is_file():
         raise ValueError("runtime frame is missing: {0}".format(path))
@@ -177,19 +230,53 @@ def record_runtime_review_stage(
     screenshot_path: Path,
     approved_by: str,
     note: str,
+    authorization: Path | None = None,
 ) -> Path:
-    """Record an identified human review of the imported asset in its UE level."""
+    """Record human review, or explicitly authorized agent review, in its UE level."""
     job = job.resolve()
     state = _require_clean_workspace(job)
     if state["stages"]["ue5_import"]["status"] != "passed":
         raise ValueError("ue5_import has not passed")
-    approved_by = _require_human_reviewer(approved_by, "runtime review")
+    status = state["stages"]["ue5_runtime_review"]["status"]
+    if status not in {"pending", "blocked"}:
+        raise ValueError("Runtime review already recorded or active; retain it before a new review")
+    source_hash = read_json(job / "intake.json")["source"]["sha256"]
+    if authorization is None:
+        approved_by = _require_human_reviewer(approved_by, "runtime review")
+    else:
+        authorization = authorization.resolve()
+        validate_authorization(authorization, approved_by, source_hash, "ue5_runtime_review")
     manifest_path = manifest_path.resolve()
     gallery_report_path = gallery_report_path.resolve()
     screenshot_path = screenshot_path.resolve()
     manifest = read_json(manifest_path)
     gallery = read_json(gallery_report_path)
-    if not _gallery_contains_asset(gallery, manifest["asset_id"]):
+    import_paths = [Path(row["path"]) for row in state["stages"]["ue5_import"]["evidence"]]
+    import_paths = [p if p.is_absolute() else job / p for p in import_paths]
+    import_receipt = next(p for p in import_paths if p.suffix == ".json" and
+                          read_json(p).get("schema") == "reference-asset-compiler.ue5-import-evidence.v1")
+    imported = read_json(import_receipt)
+    extra_evidence = []
+    if "native_revision" in imported:
+        if imported["manifest_sha256"] != sha256_file(manifest_path):
+            raise ValueError("Runtime review manifest differs from current native import")
+        extra_evidence = validate_matched_native_frames(
+            gallery, imported["result"]["mesh"], imported["result"]["native_lods"][0]["vertices"])
+        if screenshot_path not in extra_evidence or not any(
+                row["path"] == str(screenshot_path) and row["mesh"] == imported["result"]["mesh"]
+                for row in gallery["frames"]):
+            raise ValueError("Runtime screenshot is not a verified derivative frame")
+        for path in extra_evidence:
+            _image_stats(path)
+    elif gallery.get("schema") == STATIC_REVIEW_SCHEMA:
+        if manifest.get("asset_kind") != "static_prop":
+            raise ValueError("Static multiview review cannot certify a character")
+        extra_evidence = validate_static_frames(gallery, imported, import_receipt)
+        if screenshot_path not in extra_evidence:
+            raise ValueError("Primary static screenshot is not a bound review frame")
+        for path in extra_evidence:
+            _image_stats(path)
+    elif not _gallery_contains_asset(gallery, manifest["asset_id"]):
         raise ValueError("gallery report does not place {0}".format(manifest["asset_id"]))
     payload = {
         "schema": "reference-asset-compiler.ue5-runtime-review.v1",
@@ -202,19 +289,23 @@ def record_runtime_review_stage(
         "note": note,
         "status": "approved",
     }
+    if "native_revision" in imported:
+        payload["native_import_sha256"] = sha256_file(import_receipt)
+        payload["review_scope"] = "Static editor matched views; not collision or cooked-runtime proof"
+    if authorization:
+        payload["human_visual_review"] = False
+    if gallery.get("schema") == STATIC_REVIEW_SCHEMA:
+        payload["static_multiview_import_sha256"] = sha256_file(import_receipt)
+        payload["review_scope"] = "Static editor multiview fixture; not attachment, collision or cooked proof"
     output = job / "validation" / "ue5-runtime-review.json"
     _write_immutable(output, payload)
-    status = state["stages"]["ue5_runtime_review"]["status"]
-    if status == "pending":
-        promote_stage(
-            job,
-            "ue5_runtime_review",
-            [output, manifest_path, gallery_report_path, screenshot_path],
-            note,
-            approved_by,
-        )
-    elif status != "passed":
-        raise ValueError("ue5_runtime_review is {0}".format(status))
+    evidence = list(dict.fromkeys([output, manifest_path, gallery_report_path, screenshot_path,
+                                  *extra_evidence, import_receipt]))
+    if authorization:
+        evidence = record_delegated_review(
+            job / "validation/ue5-runtime-delegated-review.json", authorization, approved_by,
+            source_hash, "ue5_runtime_review", evidence, note)
+    promote_stage(job, "ue5_runtime_review", evidence, note, approved_by)
     return output
 
 

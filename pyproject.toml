@@ -17,7 +17,7 @@ classifiers = [
   "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: 3.12",
 ]
-dependencies = ["numpy>=1.26", "Pillow>=10.0"]
+dependencies = ["numpy>=1.26", "Pillow>=10.0", "scipy>=1.11"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.3", "jsonschema>=4.23", "ruff>=0.9"]

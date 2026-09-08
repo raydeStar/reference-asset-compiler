@@ -1,0 +1,27 @@
+{
+  "asset_id": "sunset-ayric-v2-production",
+  "kind": "humanoid",
+  "skeleton_profile": "ue5_manny",
+  "source": {
+    "authority_fbx": "work/sunset-ayric-v2/rig/landmark-v001/sunset-ayric-v2_rigged.fbx",
+    "note": "Exact rig_and_skin payload from the sunset-ayric-v2 ledger: the prod-calibrated-v001 mesh (19,588 triangles, 1.85 m, held collar-v001 artwork with region-bounded scalar material calibration) rigged by the portable landmark route (scripts/blender/rig_from_landmarks.py, 86 ue5_manny bones, heat weights, 100% coverage). gate_rig.py and deform_test.py passed in work/sunset-ayric-v2/rig/landmark-v001.",
+    "workspace": "work/sunset-ayric-v2"
+  },
+  "material_textures": {
+    "M_SunsetAyricV2_Body": {
+      "BaseColor": "work/sunset-ayric-v2/prod-calibrated-v001/T_sunset-ayric-v2_BaseColor.png",
+      "ORM": "work/sunset-ayric-v2/prod-calibrated-v001/T_sunset-ayric-v2_ORM.png"
+    }
+  },
+  "normalize": {
+    "target_height_m": null,
+    "target_height_reason": "Already normalized to 1.85 m (approved character size) with the origin on the floor during texture packaging; no rescale.",
+    "recenter": true,
+    "sk_mesh_name": "SK_SunsetAyricV2",
+    "material_renames": {}
+  },
+  "texture_waiver": {
+    "reason": "PROVISIONAL, for in-engine review only. Ayric asked on 2026-09-05 for the rigged character to replace Manny in the workshop demo so he can walk around and judge it; he has not yet seen these numbers. Measured on prod-calibrated-v001 at 1.85 m: baked-light correlation -0.24 against the 0.12 limit (a diagnostic in work/sunset-ayric-v2/texture/lighting-confound-v001.json shows part of it is a material-palette confound, part is real painter shading); texel density 301 texels/cm2 passes; 272 UV islands against the 250 advisory. Two head-detail paint candidates were rejected for doubled features (texture/hy3d21-head-v002/rejection.json). Ayric must confirm or revoke this waiver after the in-engine review before any production claim.",
+    "approved_by": "Ayric (provisional, pending in-engine review)"
+  }
+}

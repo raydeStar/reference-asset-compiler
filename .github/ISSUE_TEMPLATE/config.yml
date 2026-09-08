@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: It worked, or I have a question or an idea
+    url: https://github.com/raydeStar/reference-asset-compiler/discussions
+    about: Discussions is for "it ran on my machine", results, questions, and ideas. Issues are for things that broke.

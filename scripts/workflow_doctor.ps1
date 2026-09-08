@@ -65,12 +65,12 @@ Add-WorkflowCheck -Id 'comfy.node.Hunyuan3DWrapper' -Available (Test-Path -Liter
 Add-WorkflowCheck -Id 'comfy.node.ReActor' -Available ([bool]$reactor) -RequiredFor 'optional legacy face-swap branch only' -Detail $(if ($reactor) { $reactor } else { $reactorCandidates -join ' or ' })
 
 $geometryPython = Join-Root $LegacyRoot '.venv-hy3d\Scripts\python.exe' 'RAC_LEGACY_ROOT'
-$geometryRunner = Join-Root $LegacyRoot 'scripts\run_hy3d_multiview.py' 'RAC_LEGACY_ROOT'
+$geometryRunner = Join-Path $repoRoot 'workflows\geometry\hunyuan3d\run_hy3d_multiview.py'
 $geometryUpstream = Join-Root $LegacyRoot 'upstream\Hunyuan3D-2' 'RAC_LEGACY_ROOT'
 Add-WorkflowCheck -Id 'hy3d2mv.python' -Available (Test-Path -LiteralPath $geometryPython -PathType Leaf) -RequiredFor 'guarded image-conditioned multiview geometry candidate' -Detail $geometryPython
 if (Test-Path -LiteralPath $geometryRunner -PathType Leaf) {
     $geometryRunnerHash = (Get-FileHash -LiteralPath $geometryRunner -Algorithm SHA256).Hash
-    $geometryRunnerExact = $geometryRunnerHash -eq '36C7B72DF2CDAD4CE55CD309F4FB6CA9343521FF078399836F8FA57C6A9320C2'
+    $geometryRunnerExact = $geometryRunnerHash -eq 'EBE3900B671A1A32416CFB650AA57967150ACEB8AE2994FC252DA9C61356C207'
 } else {
     $geometryRunnerHash = 'missing'
     $geometryRunnerExact = $false
