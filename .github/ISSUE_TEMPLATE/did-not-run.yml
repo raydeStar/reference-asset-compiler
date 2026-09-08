@@ -1,0 +1,62 @@
+name: It did not run on my machine
+description: A stage refused to start, crashed, or produced something the docs did not predict.
+title: "[run] "
+labels: ["needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks. Most of this pipeline was verified on exactly one workstation, so a report
+        from a different machine is the most useful thing you can send. Everything below
+        can be pasted from a terminal; no screenshots needed.
+  - type: textarea
+    id: doctor
+    attributes:
+      label: workflow_doctor output
+      description: Run this from the repo root and paste the whole thing. It is read-only and launches no inference.
+      placeholder: |
+        .\scripts\workflow_doctor.ps1
+      render: text
+    validations:
+      required: true
+  - type: input
+    id: gpu
+    attributes:
+      label: GPU and VRAM
+      placeholder: "RTX 3080 10 GB / none"
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: OS, Python, Blender, Unreal versions
+      placeholder: "Windows 11, Python 3.12, Blender 5.2, UE 5.8 (or 'no UE installed')"
+    validations:
+      required: true
+  - type: dropdown
+    id: stage
+    attributes:
+      label: Which stage
+      options:
+        - Clone / install / verify.ps1
+        - Setting up the AI stages (Hunyuan3D weights and environments)
+        - Geometry (image to mesh)
+        - Retopology / UVs (Blender)
+        - Texturing (Hunyuan3D-Paint)
+        - Rigging / deformation test
+        - UE5 import / gallery / cook
+        - Docs were wrong or unclear
+    validations:
+      required: true
+  - type: textarea
+    id: command
+    attributes:
+      label: Exact command and what happened
+      description: The command you ran, then the last 30 or so lines of output. Receipts under work/ are welcome too.
+      render: text
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected instead
