@@ -25,8 +25,6 @@ anything.
 ```text
 $RAC_LEGACY_ROOT\
   scripts\
-    run_hy3d_multiview.py         copy of workflows\geometry\hunyuan3d\run_hy3d_multiview.py
-    run_hy3d_single_view.py       copy of workflows\geometry\hunyuan3d\run_hy3d_single_view.py
     run_hy3d21_pbr.py             copy of workflows\texture\hunyuan3d21\run_hy3d21_pbr.py
   upstream\
     Hunyuan3D-2\                  git clone of Tencent-Hunyuan/Hunyuan3D-2 (geometry)
@@ -39,12 +37,12 @@ $RAC_LEGACY_ROOT\
   .venv-hy3d21\Scripts\python.exe paint environment (Python 3.11, CUDA 12.4 PyTorch)
 ```
 
-The two runner scripts are **hash-pinned**. `scripts\run_hy3d_geometry.ps1`
-and `scripts\run_hy3d21_texture.ps1` compute the SHA-256 of the copy in your
-studio tree and refuse to run if it differs from the pin recorded in
-`workflows\catalog.json`. Copy the files byte-for-byte; do not edit them in
-place. If you need a change, add a versioned wrapper beside them and record the
-new hash and the decision, as `workflows/README.md` explains.
+The runners are **hash-pinned** by their PowerShell launchers. Geometry runs
+directly from this repository's `workflows/geometry/hunyuan3d/` directory,
+using the studio's Python environment and installed upstream package. No
+geometry runner copy is needed in the studio. Paint still executes the pinned
+studio copy. Copy that file byte-for-byte; do not edit it in place. Version
+runner changes and update the corresponding launcher pin.
 
 ## Measured component sizes
 
@@ -86,11 +84,9 @@ payload has not been downloaded yet.
    New-Item -ItemType Directory -Force "$env:RAC_LEGACY_ROOT\scripts", "$env:RAC_LEGACY_ROOT\upstream", "$env:RAC_LEGACY_ROOT\models\hy3d21" | Out-Null
    ```
 
-2. Copy the pinned runners from this repository:
+2. Copy the pinned paint runner (geometry runs from the repository directly):
 
    ```powershell
-   Copy-Item workflows\geometry\hunyuan3d\run_hy3d_multiview.py   "$env:RAC_LEGACY_ROOT\scripts\"
-   Copy-Item workflows\geometry\hunyuan3d\run_hy3d_single_view.py "$env:RAC_LEGACY_ROOT\scripts\"
    Copy-Item workflows\texture\hunyuan3d21\run_hy3d21_pbr.py   "$env:RAC_LEGACY_ROOT\scripts\"
    ```
 

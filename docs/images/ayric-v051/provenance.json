@@ -1,0 +1,35 @@
+{
+  "schema": "reference-asset-compiler.showcase-media.v1",
+  "engine": "5.8.2-56702186+++UE5+Release-5.8",
+  "mesh": "/Game/SunsetWorkshop/RigRepairs/neck_transfer_v012/ayric_body",
+  "blueprint": "/Game/SunsetWorkshop/AyricPlayer/v051/BP_WorkshopAyric_v051",
+  "animation": "/Game/SunsetWorkshop/AyricPlayer/v036/Anims/MF_Unarmed_Walk_Fwd_Ayric.MF_Unarmed_Walk_Fwd_Ayric",
+  "capture_receipt_sha256": "4af2d1d371f56df1dc56048e5b3adb69b521c9f0ea5feb70e663dd6abb96c8d4",
+  "runtime_audit_sha256": "e7d92e298eb5ae20fe9d1398fa3cd65be4a5a597e8cccc0a89c431186ade45d9",
+  "config_sha256": "bbc2cb9e1805a6b4d7f9028058b9c466d4a49a4bcaa6497b24ea4714f8b3f4cb",
+  "cycle_seconds": 1.5,
+  "gif_frames": 24,
+  "gif_duration_ms": 1500,
+  "source_assets_modified": false,
+  "retouching": false,
+  "interpolated_frames": false,
+  "status": "Reviewed demo capture; final neck appearance pending human approval; no facial-animation claim",
+  "files": {
+    "portrait.png": {
+      "sha256": "451bb5b7891026d8156644a4a990489c0a3ae16a04bf1cfc9cdf386e79e9b570",
+      "bytes": 1029584
+    },
+    "hero.png": {
+      "sha256": "848dd3f63adf27d4bf326479e3962ad3ab4ccb3724ac3de1c57adcfd42a1cb75",
+      "bytes": 415083
+    },
+    "opposite.png": {
+      "sha256": "826c3b887de0060550f87ef92308aca9041fef9ae8d752605347e01f9dae07d3",
+      "bytes": 949385
+    },
+    "walk.gif": {
+      "sha256": "a8e558bc509eb2c1009e48e52c3fff0977af47d75b446b9cd856b0a4740ac475",
+      "bytes": 1654751
+    }
+  }
+}

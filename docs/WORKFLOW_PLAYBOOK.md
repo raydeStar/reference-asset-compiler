@@ -144,6 +144,18 @@ shape and VRAM needs.
 
 ## Stage 4 — existing-mesh PBR texture
 
+For large natural scenery, a reference-conditioned repeating surface material
+is also an explicit mapping route after AI geometry and topology approval.
+Do not stretch a small unique atlas over a twelve-metre formation or shrink
+its declared dimensions to pass density. `package_character_texture.py
+--address-mode repeat` measures the actual repeated material with wrapped
+within-triangle sampling and unwrapped UV-edge island counts; legacy atlas
+sampling remains the default. This changes no profile thresholds. Preserve
+the geometry/UV derivation and material-source hashes, identify constant data
+channels honestly, and inspect all lit/unlit views plus native vertex splits.
+It is not Hunyuan-Paint output and must not be described as such. Check scene
+instance scaling separately; scaled-up instances reduce world texel density.
+
 ### Default: Hunyuan3D-Paint 2.1
 
 The tested local environment remains under the legacy studio. Use the wrapper
@@ -173,6 +185,14 @@ It captures the normal and position controls, raw AI multiview PBR images,
 enhanced views, bake coverage, and pre/post-inpaint atlases. This is for locating
 a correspondence failure before changing the method; it does not turn a repeat
 of a visibly rejected candidate into useful evidence.
+
+Retained full-size bake buffers can be recovered without enlarging the smaller
+exported JPEGs. `scripts/recover_fullsize_paint_maps.py <paint-dir> <new-output>`
+defaults to `painted.*` and `<paint-dir>/diagnostics`; use `--stem plant` and
+`--diagnostics <separate-dir>` when the run used another basename/layout. It
+checks geometry/UV validation and downsample correspondence before copying the
+original albedo and splitting the authored data channels. This is not an
+inference retry, and it does not erase an abnormal process-exit receipt.
 
 Hunyuan3D-Paint was the strongest full-body PBR base, not an accepted face
 solution. It improved clothing and material response while degrading facial
@@ -333,10 +353,24 @@ mascot tail stays unmapped), batch-retargets `MM_Idle`, and writes
 `work/ue5-gallery-idle.json`. The project's default game mode is the Third
 Person template, so `-game` drops the reviewer in as Manny. The compile path is verified; it should not be replaced by ComfyUI.
 
-## Current texture task decision
+### Native material fallback check
 
-The remaining texture defects are upstream atlas/projection defects, not UE
-material or rig defects. The correct next experiment is:
+If unwanted relief appears only in UE, inspect the actual material graph and
+fallback textures before regenerating the atlas. On UE 5.8.2 the installed
+`/Engine/EngineMaterials/DefaultNormal` contains noisy tiled-wall relief; it
+is not a neutral tangent-space normal. The v002 importer master uses an
+explicit `(0,0,1)` normal when `HasNormal=0`, and samples an authored normal
+only when that manifest slot is supplied. The old master is preserved;
+existing accepted assets are not automatically migrated. Versioned material
+repairs need their own native visual/lineage review, not the same-material
+LOD-reduction revision gate.
+
+## Historical character texture task decision
+
+The retained character texture defects below are upstream atlas/projection
+defects; that diagnosis is not a blanket claim about every UE material. The
+custom character is currently parked in favor of the Manny demo. If resumed,
+the next experiment is:
 
 1. coherent semantic UV islands on the final-scale runtime mesh;
 2. de-lit source/reference and base color;
@@ -346,3 +380,14 @@ material or rig defects. The correct next experiment is:
 6. only then compile and UE verify.
 
 Do not patch the female by another whole-face stamp or image-space heuristic.
+
+## Reusing a detailed AI head without another portrait stamp
+
+The Ayric workshop follow-up validates a separate existing image-conditioned head
+with real facial geometry, source-bound body trimming, reference-pose socket fit,
+and bounded neck colour/normal transport. The approved face remains untouched.
+Use `CHARACTER_HEAD_AND_NECK.md` and its recipes/runner rather than copying values
+into an ad-hoc Blender script. Different characters require new measured bounds
+and source hashes. Inspect native views and cooked gameplay; a semantic replay
+or vertex budget alone does not approve appearance. Keep auxiliary normal data
+constant outside its support to avoid unnecessary native vertex splits.
