@@ -2,14 +2,6 @@
 
 ![Ayric in the finished night workshop — actual Unreal Engine capture](docs/images/ayric-workshop-v051/hero.png)
 
-Scene utilities: [physical-unit atmosphere recipes, protected UE derivatives,
-and portable pending-approval reviews](docs/SCENE_TOOLS.md). Start with
-`python scripts/scene_tools.py --help`; planning needs no editor or GPU.
-
-Character repair: [source-locked head fitting and repeatable neck blending](docs/CHARACTER_HEAD_AND_NECK.md).
-`./scripts/run_neck_transition.ps1 -Output work/my-neck-review-v001` replays the
-local pinned recipe on CPU; native appearance and human approval remain separate.
-
 [![tests](https://github.com/raydeStar/reference-asset-compiler/actions/workflows/tests.yml/badge.svg)](https://github.com/raydeStar/reference-asset-compiler/actions/workflows/tests.yml)
 ![license](https://img.shields.io/badge/license-MIT-blue.svg)
 ![engine](https://img.shields.io/badge/Unreal%20Engine-5.8-black.svg)
@@ -38,6 +30,15 @@ isolated candidates; an immutable reference image, fixed-view reviews, numeric
 gates, deformation tests, and engine evidence decide what gets promoted. Every
 stage writes a receipt with the SHA-256 of what it consumed and produced, and
 the ledger refuses to advance past a gate that was not actually passed.
+
+**Recently added**
+
+- Scene utilities: [physical-unit atmosphere recipes, protected UE derivatives,
+  and portable pending-approval reviews](docs/SCENE_TOOLS.md). Start with
+  `python scripts/scene_tools.py --help`; planning needs no editor or GPU.
+- Character repair: [source-locked head fitting and repeatable neck blending](docs/CHARACTER_HEAD_AND_NECK.md).
+  `./scripts/run_neck_transition.ps1 -Output work/my-neck-review-v001` replays the
+  local pinned recipe on CPU; native appearance and human approval remain separate.
 
 ## In the workshop — actual UE 5.8 captures
 
@@ -106,10 +107,10 @@ these are labeled as agent reviews and never waive mechanical checks. See
 Windows demo. `scripts/play_workshop_demo.ps1 -Lighting Day` opens v018: Manny with a separate
 back-carried sword, restored sofa and plants, independently placed props, a flat
 rug, corrected support contacts, composed lighting and a real-depth window vista.
-All13 editor and12 packaged-game programmatic movement/collision/jump/attachment
+All 13 editor and 12 packaged-game programmatic movement/collision/jump/attachment
 checks pass. Eight actual cooked frames were visually reviewed, including a
 2.2m paired window baseline. No physical-keyboard test is claimed.
-The package is1,131,307,068bytes across48files; no Codex, model server or editor
+The package is 1,131,307,068 bytes across 48 files; no Codex, model server or editor
 is needed to play. Review panel: `work/sunset-workshop/evidence/final-demo-v018.html`.
 Custom Ayric now has a repaired locomotion rig and a source-locked detailed-head
 candidate; see [current repair evidence](docs/AYRIC_REPAIR_2026-09-06.md).
@@ -154,7 +155,7 @@ with 24 GB of VRAM, a local Hunyuan3D 2.1 checkout, and roughly 60 GB in total;
 see *AI stages* below and the disk tiers in the getting-started guide.
 
 ```powershell
-git clone <this repo> reference-asset-compiler
+git clone https://github.com/raydeStar/reference-asset-compiler.git
 cd reference-asset-compiler
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
@@ -447,6 +448,8 @@ are the honest edge of "99% of the way there":
 configs/        Adapter registry and generation requests; no machine-local paths
 docs/           Playbook, pipeline, decisions, handoff, evidence JSON per asset
 docs/images/    The screenshots in this README
+examples/       Sample requests for the `rac plan` CLI smoke test
+integrations/   Optional UE5 editor plugins: packaged-game audit, socket and seam helpers
 profiles/       Hard gates: skeleton contracts, texture limits, retopology guides
 recipes/        One per compiled asset: source, scale, materials, waivers, and why
 schemas/        Portable JSON contracts

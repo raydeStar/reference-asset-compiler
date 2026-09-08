@@ -15,7 +15,7 @@ the parts that produce new characters.
 | **Python 3.11 or 3.12** | ledger, gates, packaging | `py -3.12` on the PATH. `pip install -e ".[dev]"` pulls numpy, Pillow, scipy. |
 | **Blender 5.2 LTS** | retopology, UVs, rigging, deformation tests, renders | Free. Found automatically in Steam or Program Files; else set `RAC_BLENDER`. |
 | **Unreal Engine 5.8** | import verification, gallery, cook | Free (Epic launcher). Needs the Third Person template that ships with it. |
-| **Disk** | see the tiers below | A fresh one-image AI stack is 34,665,936,452 bytes (32.285 GiB); both shape modes are 39,594,089,622 bytes (36.875 GiB). Keep 45/50 GiB free respectively, or 60 GiB for working room. The no-AI route is about 5 GB. |
+| **Disk** | see the tiers below | About 32 GiB for a fresh one-image AI stack, 37 GiB with both shape modes; keep 45 to 50 GiB free, or 60 GiB for working room. The no-AI route is about 5 GB. Exact byte counts are in `docs/AI_STAGES_SETUP.md`. |
 | **NVIDIA GPU, 24 GB VRAM** | AI geometry and AI texturing only | Verified on an RTX 4090. Texturing refuses to start under 21 GB free. |
 | **Hunyuan3D checkouts + weights** | AI geometry and texturing | A separate studio tree named by `RAC_LEGACY_ROOT`: Hunyuan3D-2/2mv for shape and Hunyuan3D-Paint 2.1 for the existing mesh. Exact sizes and layout are in `docs/AI_STAGES_SETUP.md`. |
 | **ComfyUI + wrapper nodes** (optional) | historical geometry graph or future guidance-view generation | Not required by the one-image operator. The preserved graph is `workflows/geometry/comfyui/hy3d_final_cut.json`. |

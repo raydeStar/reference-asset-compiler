@@ -18,10 +18,20 @@ function Invoke-RepoPython {
         [string[]] $ArgumentList
     )
 
-    if ($usingLauncher) {
-        & $python '-3.12' @ArgumentList
-    } else {
-        & $python @ArgumentList
+    # unittest reports progress on stderr. Under 'Stop', Windows PowerShell 5.1
+    # turns the first stderr line into a terminating NativeCommandError whenever
+    # the caller redirects output (2>&1, a log file, an agent harness), so a
+    # fully passing run came back as a failure. Exit codes still decide below.
+    $previous = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        if ($usingLauncher) {
+            & $python '-3.12' @ArgumentList
+        } else {
+            & $python @ArgumentList
+        }
+    } finally {
+        $ErrorActionPreference = $previous
     }
 }
 
