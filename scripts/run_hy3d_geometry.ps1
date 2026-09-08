@@ -19,7 +19,8 @@ $runnerNames = @{ multiview = 'run_hy3d_multiview.py'; single_view = 'run_hy3d_s
 $generationSchemas = @{ multiview = 'reference-studio.hunyuan3d-multiview.v2'; single_view = 'reference-studio.hunyuan3d-single-view.v1' }
 $compilerPython = $CompilerPython
 $hyPython = Join-Path $LegacyRoot '.venv-hy3d\Scripts\python.exe'
-$runner = Join-Path $LegacyRoot 'scripts\run_hy3d_multiview.py'
+$runnerRoot = Join-Path $RepoRoot 'workflows\geometry\hunyuan3d'
+$runner = Join-Path $runnerRoot 'run_hy3d_multiview.py'
 $expectedRunnerHash = $expectedRunnerHashes.multiview
 $upstream = Join-Path $LegacyRoot 'upstream\Hunyuan3D-2'
 
@@ -52,7 +53,9 @@ if (-not $preflight.launch_ready -or $preflight.inference_launched) {
 }
 $mode = if ($preflight.mode) { [string]$preflight.mode } else { 'multiview' }
 if (-not $runnerNames.ContainsKey($mode)) { throw "Unsupported geometry request mode: $mode" }
-$runner = Join-Path $LegacyRoot ('scripts\' + $runnerNames[$mode])
+# Execute the versioned runner directly. The studio supplies its environment
+# and upstream install, not a second mutable copy of our spellbook.
+$runner = Join-Path $runnerRoot $runnerNames[$mode]
 $expectedRunnerHash = $expectedRunnerHashes[$mode]
 $requiredFreeVramMiB = if ($MinimumFreeVramMiB -gt 0) {
     $MinimumFreeVramMiB
@@ -62,7 +65,7 @@ $requiredFreeVramMiB = if ($MinimumFreeVramMiB -gt 0) {
     18432
 }
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
-    throw "Required Hunyuan3D runner is missing: $runner (copy it from workflows\geometry\hunyuan3d)"
+    throw "Required versioned Hunyuan3D runner is missing: $runner"
 }
 $actualRunnerHash = (Get-FileHash -LiteralPath $runner -Algorithm SHA256).Hash
 if ($actualRunnerHash -ne $expectedRunnerHash) {

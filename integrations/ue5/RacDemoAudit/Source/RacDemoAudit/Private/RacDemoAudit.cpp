@@ -3,11 +3,15 @@
 #include "Engine/World.h"
 #include "Kismet/GameplayStatics.h"
 #include "GameFramework/Character.h"
+#include "GameFramework/CharacterMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Components/StaticMeshComponent.h"
 #include "Engine/StaticMesh.h"
 #include "Engine/SkeletalMesh.h"
+#include "Rendering/SkeletalMeshRenderData.h"
+#include "Rendering/SkeletalMeshLODRenderData.h"
+#include "StaticMeshResources.h"
 #include "Camera/CameraActor.h"
 #include "Camera/CameraComponent.h"
 #include "UnrealClient.h"
@@ -28,6 +32,10 @@ class FRacDemoAuditModule final : public IModuleInterface
     FVector Origin = FVector::ZeroVector;
     float WallX = 0., JumpFloor = 0., JumpPeak = 0.;
     FString Directory;
+    FString ExpectedMesh;
+    FString ExpectedHeadMesh;
+    FVector WalkFoot = FVector::ZeroVector;
+    float SavedWalkSpeed = 0.f;
     TSharedPtr<FJsonObject> Report = MakeShared<FJsonObject>();
     TSharedPtr<FJsonObject> Checks = MakeShared<FJsonObject>();
     TArray<TSharedPtr<FJsonValue>> Frames, Samples;
@@ -40,6 +48,42 @@ class FRacDemoAuditModule final : public IModuleInterface
         Done.Add(Name); return true;
     }
     void Check(const FString& Name, bool Value) { Checks->SetBoolField(Name, Value); }
+    void CountAvatar(ACharacter* Pawn)
+    {
+        TArray<TSharedPtr<FJsonValue>> Parts;
+        int32 TotalTriangles = 0;
+        bool WithinBudget = true;
+        auto Add = [&](const FString& Path, int32 Vertices, int32 Triangles)
+        {
+            auto Part = MakeShared<FJsonObject>();
+            Part->SetStringField(TEXT("mesh"), Path);
+            Part->SetNumberField(TEXT("lod"), 0);
+            Part->SetNumberField(TEXT("vertices"), Vertices);
+            Part->SetNumberField(TEXT("triangles"), Triangles);
+            Parts.Add(MakeShared<FJsonValueObject>(Part));
+            TotalTriangles += Triangles;
+            WithinBudget &= Vertices > 0 && Vertices <= 15000 && Triangles > 0 && Triangles <= 20000;
+        };
+        const USkeletalMesh* Body = Pawn->GetMesh()->GetSkeletalMeshAsset();
+        const FSkeletalMeshRenderData* BodyData = Body ? Body->GetResourceForRendering() : nullptr;
+        if (BodyData && BodyData->LODRenderData.Num())
+        {
+            const FSkeletalMeshLODRenderData& LOD = BodyData->LODRenderData[0];
+            Add(Body->GetPathName(), LOD.GetNumVertices(), LOD.MultiSizeIndexContainer.GetIndexBuffer()->Num() / 3);
+        }
+        TArray<UStaticMeshComponent*> Components;
+        Pawn->GetComponents(Components);
+        for (const UStaticMeshComponent* Component : Components)
+        {
+            const UStaticMesh* Asset = Component->GetStaticMesh();
+            const FStaticMeshRenderData* Data = Asset ? Asset->GetRenderData() : nullptr;
+            if (Data && Data->LODResources.Num())
+                Add(Asset->GetPathName(), Data->LODResources[0].GetNumVertices(), Data->LODResources[0].GetNumTriangles());
+        }
+        Report->SetArrayField(TEXT("avatar_native_lod0_parts"), Parts);
+        Report->SetNumberField(TEXT("avatar_native_lod0_triangles"), TotalTriangles);
+        Check(TEXT("modular_avatar_budget"), Parts.Num() == 3 && WithinBudget && TotalTriangles <= 60000);
+    }
     void Shot(const FString& Name)
     {
         const FString File = FPaths::Combine(Directory, Name + TEXT(".png"));
@@ -67,6 +111,28 @@ class FRacDemoAuditModule final : public IModuleInterface
         Row->SetStringField(TEXT("phase"), Phase);
         Row->SetStringField(TEXT("position_cm"), Pawn->GetActorLocation().ToString());
         Row->SetNumberField(TEXT("attachment_error_cm"), Error);
+        if (!ExpectedHeadMesh.IsEmpty())
+        {
+            int32 HeadCount = 0;
+            bool HeadAttached = false;
+            float HeadError = -1.f;
+            for (UStaticMeshComponent* C : Components)
+            {
+                if (!C->GetStaticMesh() || C->GetStaticMesh()->GetPathName() != ExpectedHeadMesh) continue;
+                ++HeadCount;
+                const FTransform Expected = C->GetRelativeTransform() * Mesh->GetSocketTransform(TEXT("head"));
+                HeadError = FVector::Distance(Expected.GetLocation(), C->GetComponentLocation());
+                HeadAttached = C->GetAttachParent() == Mesh && C->GetAttachSocketName() == TEXT("head")
+                    && HeadError < .1f && Expected.Equals(C->GetComponentTransform(), .001f)
+                    && C->GetComponentScale().Equals(FVector::OneVector, .01f);
+                Row->SetStringField(TEXT("head_world_transform"), C->GetComponentTransform().ToHumanReadableString());
+            }
+            Check(TEXT("head_attached_") + Phase, HeadCount == 1 && HeadAttached);
+            Row->SetNumberField(TEXT("head_attachment_error_cm"), HeadError);
+            Row->SetNumberField(TEXT("head_component_count"), HeadCount);
+        }
+        Row->SetStringField(TEXT("left_foot_world_cm"), Mesh->GetSocketLocation(TEXT("foot_l")).ToString());
+        Row->SetStringField(TEXT("right_foot_world_cm"), Mesh->GetSocketLocation(TEXT("foot_r")).ToString());
         Samples.Add(MakeShared<FJsonValueObject>(Row));
     }
     void View(UWorld* World, APlayerController* PC, const FVector& Position, const FVector& Target)
@@ -79,7 +145,8 @@ class FRacDemoAuditModule final : public IModuleInterface
     void Finish(const FString& Error = TEXT(""))
     {
         Finished = true;
-        const int32 ExpectedFrames = FParse::Param(FCommandLine::Get(), TEXT("RACDemoAuditSky")) ? 9 : 8;
+        const int32 ExpectedFrames = (FParse::Param(FCommandLine::Get(), TEXT("RACDemoAuditSky")) ? 9 : 8)
+            + (FParse::Param(FCommandLine::Get(), TEXT("RACDemoAuditCharacter")) ? 2 : 0);
         bool Files = Frames.Num() == ExpectedFrames;
         for (const auto& Frame : Frames) Files &= FPaths::FileExists(Frame->AsString());
         Check(TEXT("frames_written"), Files);
@@ -111,15 +178,30 @@ class FRacDemoAuditModule final : public IModuleInterface
         {
             Origin = Pawn->GetActorLocation();
             Check(TEXT("possessed"), Pawn->GetController() == PC);
-            Check(TEXT("actually_manny"), Pawn->GetMesh()->GetSkeletalMeshAsset() && Pawn->GetMesh()->GetSkeletalMeshAsset()->GetName() == TEXT("SKM_Manny_Simple"));
+            const USkeletalMesh* ActualMesh = Pawn->GetMesh()->GetSkeletalMeshAsset();
+            Check(ExpectedMesh.IsEmpty() ? TEXT("actually_manny") : TEXT("expected_character_mesh"), ActualMesh &&
+                (ExpectedMesh.IsEmpty() ? ActualMesh->GetName() == TEXT("SKM_Manny_Simple") : ActualMesh->GetPathName() == ExpectedMesh));
+            Report->SetStringField(TEXT("skeletal_mesh"), ActualMesh ? ActualMesh->GetPathName() : TEXT("None"));
+            if (!ExpectedHeadMesh.IsEmpty()) CountAvatar(Pawn);
+            SavedWalkSpeed = Pawn->GetCharacterMovement()->MaxWalkSpeed;
+            // Leave time to witness a stride before the pawn reaches the wall.
+            Pawn->GetCharacterMovement()->MaxWalkSpeed = 120.f;
             Check(TEXT("spawn_on_floor"), Origin.Z > 70. && Origin.Z < 120.);
             Sample(Pawn, TEXT("idle")); Shot(TEXT("01-idle"));
         }
         if (T >= 20. && T < 27.) Pawn->AddMovementInput(FVector(1.,0.,0.), 1.f);
+        if (T > 20.2 && Once(TEXT("stride_start"))) WalkFoot = Pawn->GetMesh()->GetSocketTransform(TEXT("foot_l"), RTS_Component).GetLocation();
+        if (T > 20.7 && Once(TEXT("stride_end")))
+        {
+            const float Distance = FVector::Distance(WalkFoot, Pawn->GetMesh()->GetSocketTransform(TEXT("foot_l"), RTS_Component).GetLocation());
+            Report->SetNumberField(TEXT("stride_foot_displacement_cm"), Distance);
+            Check(TEXT("leg_animation_changes"), Distance > .5f);
+        }
         if (T > 21. && Once(TEXT("walking"))) { Sample(Pawn, TEXT("walking")); Shot(TEXT("02-walking")); }
         if (T > 24. && Once(TEXT("wall_start"))) { WallX = Pawn->GetActorLocation().X; Check(TEXT("walked_forward"), WallX-Origin.X > 100.); }
         if (T > 27. && Once(TEXT("wall_end")))
         {
+            Pawn->GetCharacterMovement()->MaxWalkSpeed = SavedWalkSpeed;
             Check(TEXT("east_collision"), FMath::Abs(Pawn->GetActorLocation().X-WallX)<5. && Pawn->GetActorLocation().X<440.);
             JumpFloor = JumpPeak = Pawn->GetActorLocation().Z; Pawn->Jump(); JumpStarted = true;
         }
@@ -144,12 +226,23 @@ class FRacDemoAuditModule final : public IModuleInterface
         const bool SkyReview = FParse::Param(FCommandLine::Get(), TEXT("RACDemoAuditSky"));
         if (SkyReview && T > 71. && Once(TEXT("sky_view"))) View(World,PC,FVector(0,0,170),FVector(180,0,1100));
         if (SkyReview && T > 77. && Once(TEXT("sky_shot"))) Shot(TEXT("09-skylight"));
-        if (T > (SkyReview ? 82. : 73.)) Finish();
+        const bool CharacterReview = FParse::Param(FCommandLine::Get(), TEXT("RACDemoAuditCharacter"));
+        if (CharacterReview && T > 82. && Once(TEXT("character_front_view")))
+        {
+            Pawn->SetActorLocation(Origin);
+            View(World,PC,Origin+FVector(175,-110,25),Origin+FVector(0,0,0));
+        }
+        if (CharacterReview && T > 88. && Once(TEXT("character_front_shot"))) Shot(TEXT("10-character-front"));
+        if (CharacterReview && T > 91. && Once(TEXT("character_side_view"))) View(World,PC,Origin+FVector(0,-185,25),Origin);
+        if (CharacterReview && T > 97. && Once(TEXT("character_side_shot"))) Shot(TEXT("11-character-side"));
+        if (T > (CharacterReview ? 102. : (SkyReview ? 82. : 73.))) Finish();
     }
 public:
     virtual void StartupModule() override
     {
         if (!FParse::Param(FCommandLine::Get(), TEXT("RACDemoAudit"))) return;
+        FParse::Value(FCommandLine::Get(), TEXT("RACDemoExpectedMesh="), ExpectedMesh);
+        FParse::Value(FCommandLine::Get(), TEXT("RACDemoExpectedHeadMesh="), ExpectedHeadMesh);
         Directory = FPaths::Combine(FPaths::ProjectSavedDir(), TEXT("RacDemoAudit"), FDateTime::UtcNow().ToString(TEXT("%Y%m%d-%H%M%S")));
         FParse::Value(FCommandLine::Get(), TEXT("RACDemoAuditDir="), Directory);
         Directory = FPaths::ConvertRelativePathToFull(Directory);

@@ -109,6 +109,48 @@ def fit_baked_light(normals, luma, weights):
     return best
 
 
+def sample_repeat_triangle_colours(rgb, uv, indices):
+    """Sample a repeating material inside each triangle, including negative UVs.
+
+    This explicit mode is for tiled environmental materials, never a way to
+    reinterpret a failed unique atlas. Keep the unwrapped UVs for area/density.
+    A fixed triangular lattice avoids sampling unrelated bounding-box pixels.
+    """
+    if not np.isfinite(uv).all():
+        raise ValueError("Repeating UVs must be finite")
+    weights = np.array([(i / 8, j / 8, 1 - (i + j) / 8)
+                        for i in range(9) for j in range(9 - i)])
+    points = np.einsum("sc,tcd->tsd", weights, uv[indices])
+    wrapped = np.mod(points, 1.0)
+    height, width = rgb.shape[:2]
+    x = np.floor(wrapped[..., 0] * width).astype(int) % width
+    y = np.floor((1 - wrapped[..., 1]) * height).astype(int) % height
+    return np.median(rgb[y, x], axis=1)
+
+
+def repeat_uv_islands(uv, indices):
+    """Count connected UV edge islands before wrapping, not clipped tile pixels."""
+    parent = list(range(len(indices)))
+    edges = {}
+
+    def find(i):
+        while parent[i] != i:
+            parent[i] = parent[parent[i]]
+            i = parent[i]
+        return i
+
+    for local, index in enumerate(indices):
+        points = [tuple(np.round(p, 7)) for p in uv[index]]
+        for a, b in ((0, 1), (1, 2), (2, 0)):
+            edge = tuple(sorted((points[a], points[b])))
+            if edge in edges:
+                parent[find(local)] = find(edges[edge])
+            else:
+                edges[edge] = local
+    return {"islands": len({find(i) for i in range(len(indices))}),
+            "measurement": "connected unwrapped UV edges; no unit-square clipping"}
+
+
 def uv_islands(uv, indices, size=1024):
     """Island count and area distribution, rasterised coarsely."""
     mask = np.zeros((size, size), dtype=bool)
@@ -144,6 +186,8 @@ def main() -> int:
     parser.add_argument("profile", type=Path)
     parser.add_argument("report", type=Path)
     parser.add_argument("--material-name")
+    parser.add_argument("--address-mode", choices=("clamp", "repeat"), default="clamp",
+                        help="Match the actual material: unique atlas (legacy clamp) or tiled repeat.")
     args = parser.parse_args()
 
     profile = json.loads(args.profile.read_text(encoding="utf-8-sig"))
@@ -165,7 +209,8 @@ def main() -> int:
         keep = np.ones(len(uv), dtype=bool)
     indices = np.flatnonzero(keep)
 
-    colours = sample_triangle_colours(rgb, uv, indices)
+    sampler = sample_repeat_triangle_colours if args.address_mode == "repeat" else sample_triangle_colours
+    colours = sampler(rgb, uv, indices)
     finite = ~np.isnan(colours).any(axis=1)
     indices = indices[finite]
     colours = colours[finite]
@@ -178,6 +223,7 @@ def main() -> int:
         "material": args.material_name,
         "atlas_size": int(rgb.shape[0]),
         "triangles_sampled": int(len(indices)),
+        "address_mode": args.address_mode,
     }
 
     # --- baked lighting -----------------------------------------------------
@@ -187,8 +233,10 @@ def main() -> int:
     if limit is not None and abs(light["correlation"]) > limit:
         failures.append(
             "baked lighting: albedo luminance correlates {0:+.2f} with a "
-            "directional light from {1}; limit is {2:.2f}. A delight pass was "
-            "skipped.".format(light["correlation"], light["direction"], limit)
+            "directional light from {1}; limit is {2:.2f}. Inspect albedo "
+            "lighting and material-color correlations; this measurement "
+            "cannot establish whether a delight pass ran.".format(
+                light["correlation"], light["direction"], limit)
         )
 
     # --- skin on clothed geometry -------------------------------------------
@@ -276,7 +324,7 @@ def main() -> int:
             )
 
     # --- fragmentation ------------------------------------------------------
-    islands = uv_islands(uv, indices)
+    islands = repeat_uv_islands(uv, indices) if args.address_mode == "repeat" else uv_islands(uv, indices)
     report["uv_islands"] = islands
     limit = limits.get("max_uv_islands")
     if limit is not None and islands.get("islands", 0) > limit:

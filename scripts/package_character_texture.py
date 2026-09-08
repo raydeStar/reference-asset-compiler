@@ -87,6 +87,8 @@ def main() -> int:
     parser.add_argument("--waiver-approved-by", default=None)
     parser.add_argument("--blender", type=Path, default=None)
     parser.add_argument("--render-resolution", type=int, default=1024)
+    parser.add_argument("--address-mode", choices=("clamp", "repeat"), default="clamp",
+                        help="Explicit tiled-material sampling; leaves legacy atlas behavior unchanged.")
     args = parser.parse_args()
 
     if (args.waiver_reason is None) != (args.waiver_approved_by is None):
@@ -178,6 +180,7 @@ def main() -> int:
         sys.executable, str(ROOT / "scripts" / "gate_texture.py"),
         str(regions_path), str(staged["BaseColor"]), str(gate_profile_path), str(gate_path),
         "--material-name", material_name,
+        "--address-mode", args.address_mode,
     ], "texture gate", allow_failure=True)
     gate = json.loads(gate_path.read_text(encoding="utf-8-sig"))
 
@@ -219,6 +222,7 @@ def main() -> int:
         },
         "baked": {channel: path.name for channel, path in staged.items()},
         "texture_lineage": {
+            "address_mode": args.address_mode,
             "operation": "stage accepted AI maps as PNG and bind to the unchanged UV authority",
             "sources": {channel: {"path": str(source), "sha256": sha256(source)}
                         for channel, source in sources.items()},

@@ -1,0 +1,21 @@
+{
+  "schema": "reference-asset-compiler.neck-transition.v1",
+  "source_blend": "work/sunset-ayric-v2/rig/head-assembly-v006/assembly-fit.blend",
+  "source_blend_sha256": "780dce6c8b448791e21a049969a73178fef0dba1675448b9b54d868abd4e3d3c",
+  "body_object": "SK_SunsetAyricV2",
+  "head_object": "SM_SunsetAyricRigidHeadV1",
+  "body_texture": "work/sunset-ayric-v2/prod-calibrated-v001/T_sunset-ayric-v2_BaseColor.png",
+  "body_texture_sha256": "5dda5e319d5aa94f6703f33bae3b1398e4d19531b68b06503adc506deed1c0e5",
+  "head_texture": "work/sunset-ayric-rigid-head-v1/prod-texture-v001/T_sunset-ayric-rigid-head-v1_BaseColor.png",
+  "head_texture_sha256": "1b44e5d6dbcf00936d90fe1c313fbee90fc66c9fbafff3bce56d33f2e1866cbf",
+  "bounds_min_m": [-0.13, -0.11, 1.50],
+  "bounds_max_m": [0.13, 0.13, 1.65],
+  "fade_bottom_m": [1.50, 1.535],
+  "pixel_fade_bottom_m": [1.545, 1.565],
+  "maximum_surface_distance_m": 0.06,
+  "attribute": "RAC_NeckTransfer",
+  "target_roughness": 0.72,
+  "target_metallic": 0.0,
+  "authority": "Existing AI-acquired detailed head; do not redraw its face",
+  "approval": "candidate_requires_native_neck_and_motion_review"
+}

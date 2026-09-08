@@ -10,6 +10,7 @@ from PIL import Image
 
 from .io import read_json, sha256_file
 from .workspace import AUTOMATION_REVIEWERS, audit_workspace
+from .delegated_review import validate_authorization
 
 REPORT_SCHEMA = "reference-asset-compiler.production-retopology-candidate.v1"
 RECEIPT_SCHEMA = "reference-asset-compiler.production-retopology.v1"
@@ -97,6 +98,7 @@ def record_retopology_receipt(
     note: str,
     topology_views: list[Path] | None = None,
     output: Path | None = None,
+    authorization: Path | None = None,
 ) -> dict[str, Any]:
     """Approve an under-budget, deformation-aware derivative of semantic cleanup."""
     job = job.resolve()
@@ -104,8 +106,14 @@ def record_retopology_receipt(
     if not audit["ok"]:
         raise ValueError("workspace audit failed: {0}".format("; ".join(audit["failures"])))
     reviewer = approved_by.strip()
-    if not reviewer or reviewer.lower() in AUTOMATION_REVIEWERS:
+    if not reviewer:
         raise ValueError("production_retopology requires an identified human reviewer")
+    if reviewer.lower() in AUTOMATION_REVIEWERS:
+        if authorization is None:
+            raise ValueError("production_retopology requires an identified human reviewer or delegation")
+        validate_authorization(authorization, reviewer,
+                               read_json(job / "intake.json")["source"]["sha256"],
+                               "production_retopology")
     if not note.strip():
         raise ValueError("production_retopology requires a review note")
 

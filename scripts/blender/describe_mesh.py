@@ -10,7 +10,7 @@ has to answer and stops.
 
 Usage:
   blender -b --factory-startup --python scripts/blender/describe_mesh.py \
-      -- <mesh.glb|fbx|obj> <out_dir> <report.json>
+      -- <mesh.blend|glb|fbx|obj> <out_dir> <report.json>
 """
 
 from __future__ import annotations
@@ -25,7 +25,10 @@ from mathutils import Vector
 
 def import_any(path: Path):
     suffix = path.suffix.lower()
-    if suffix in (".glb", ".gltf"):
+    if suffix == ".blend":
+        # Native cleanup keeps shared topology intact; no export detour required.
+        bpy.ops.wm.open_mainfile(filepath=str(path))
+    elif suffix in (".glb", ".gltf"):
         bpy.ops.import_scene.gltf(filepath=str(path))
     elif suffix == ".fbx":
         bpy.ops.import_scene.fbx(filepath=str(path))

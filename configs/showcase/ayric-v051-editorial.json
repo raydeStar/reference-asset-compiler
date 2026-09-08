@@ -1,0 +1,17 @@
+{
+  "blueprint": "/Game/SunsetWorkshop/AyricPlayer/v051/BP_WorkshopAyric_v051",
+  "mesh": "/Game/SunsetWorkshop/RigRepairs/neck_transfer_v012/ayric_body",
+  "animations": "/Game/SunsetWorkshop/AyricPlayer/v036/Anims",
+  "runtime_audit": "work/sunset-workshop/evidence/cooked-ayric-v051/audit.json",
+  "animation": "MF_Unarmed_Walk_Fwd_Ayric",
+  "frames_per_cycle": 24,
+  "shots": [
+    {"name": "portrait", "camera": [18, 27, 174], "target": [0, 0, 170], "width": 1200, "height": 1200},
+    {"name": "hero", "camera": [-38, 105, 103], "target": [0, 0, 95], "width": 1000, "height": 1200, "time": 0.25, "animation": "MM_Idle_Ayric"},
+    {"name": "opposite", "camera": [-20, 30, 173], "target": [0, 0, 169], "width": 1200, "height": 1200}
+  ],
+  "walk_camera": [48, 95, 102],
+  "walk_target": [0, 0, 95],
+  "walk_width": 640,
+  "walk_height": 800
+}

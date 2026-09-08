@@ -46,7 +46,7 @@ def sha256(path):
     return digest.hexdigest()
 
 
-def verify(manifest, root):
+def verify(manifest, root, mesh_path=None, budgets=None):
     """Inspect what the engine built, and compare it to what was promised."""
     result = {"asset_id": manifest["asset_id"], "package_root": root, "checks": []}
 
@@ -62,13 +62,17 @@ def verify(manifest, root):
     # reasons. What does not apply is the bone count.
     static = manifest.get("ue5_mesh_type") == "StaticMesh"
     kind = "StaticMesh" if static else "SkeletalMesh"
-    mesh_path = (import_asset.find_static_mesh(root) if static
-                 else import_asset.find_skeletal_mesh(root))
+    mesh_path = mesh_path or (import_asset.find_static_mesh(root) if static
+                             else import_asset.find_skeletal_mesh(root))
     if not mesh_path:
         check("mesh_exists", False, "no {0} under {1}".format(kind, root))
         result["ok"] = False
         return result
     mesh = unreal.EditorAssetLibrary.load_asset(mesh_path)
+    if mesh is None or not isinstance(mesh, unreal.StaticMesh if static else unreal.SkeletalMesh):
+        check("mesh_exists", False, "requested asset is not a " + kind)
+        result["ok"] = False
+        return result
     result["mesh"] = mesh_path
     result["mesh_type"] = kind
     if not static:
@@ -182,23 +186,41 @@ def verify(manifest, root):
         check("lods", expected_lods is None or (lod_count or 0) >= expected_lods,
               "engine built {0} LODs, manifest asked for {1}".format(
                   lod_count, expected_lods))
-        result["ok"] = all(c["ok"] for c in result["checks"])
-        return result
-
-    lod_count = None
-    try:
-        if hasattr(unreal, "SkeletalMeshEditorSubsystem"):
-            lod_count = unreal.get_editor_subsystem(
-                unreal.SkeletalMeshEditorSubsystem).get_lod_count(mesh)
-        else:
-            lod_count = unreal.EditorSkeletalMeshLibrary.get_lod_count(mesh)
-    except Exception:
+        # Count the built payload, including splits at UV and normal seams.
+        # An FBX can be under budget while its engine result is not.
+        limits = budgets or {"maximum_vertices": 15000, "maximum_triangles": 20000}
+        result["runtime_budgets"] = limits
+        result["native_lods"] = []
+        try:
+            for lod in range(lod_count or 0):
+                result["native_lods"].append({
+                    "lod": lod,
+                    "vertices": unreal.EditorStaticMeshLibrary.get_number_verts(mesh, lod),
+                    "triangles": mesh.get_num_triangles(lod),
+                    "sections": mesh.get_num_sections(lod),
+                })
+            rows = result["native_lods"]
+            check("native_runtime_budget", bool(rows) and all(
+                0 < row["vertices"] <= limits["maximum_vertices"]
+                and 0 < row["triangles"] <= limits["maximum_triangles"]
+                for row in rows), {"lods": rows, "limits": limits})
+        except Exception as error:
+            check("native_runtime_budget", False, "native counts unavailable: " + str(error))
+    else:
         lod_count = None
-    result["lod_count"] = lod_count
-    expected_lods = len(manifest.get("lods", [])) or None
-    check("lods_built",
-          lod_count is None or expected_lods is None or lod_count >= expected_lods,
-          "engine reports {0} LODs, manifest declared {1}".format(lod_count, expected_lods))
+        try:
+            if hasattr(unreal, "SkeletalMeshEditorSubsystem"):
+                lod_count = unreal.get_editor_subsystem(
+                    unreal.SkeletalMeshEditorSubsystem).get_lod_count(mesh)
+            else:
+                lod_count = unreal.EditorSkeletalMeshLibrary.get_lod_count(mesh)
+        except Exception:
+            lod_count = None
+        result["lod_count"] = lod_count
+        expected_lods = len(manifest.get("lods", [])) or None
+        check("lods_built",
+              lod_count is None or expected_lods is None or lod_count >= expected_lods,
+              "engine reports {0} LODs, manifest declared {1}".format(lod_count, expected_lods))
 
     # Texture import settings are per-asset and silently wrong by default.
     tex_issues = []
@@ -274,4 +296,5 @@ def main():
     unreal.log("RAC_UE5_VERIFY_WRITTEN {0} ok={1}".format(out_path, report["ok"]))
 
 
-main()
+if __name__ == "__main__":
+    main()

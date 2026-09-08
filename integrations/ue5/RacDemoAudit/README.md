@@ -14,6 +14,27 @@ Add `-RACDemoAuditSky` to include a ninth, upward-looking skylight capture.
 This extends the audit from 73 to 82 game seconds; the default eight-view audit
 and all gameplay checks remain unchanged. Stars deserve an actual runtime receipt.
 
+For a custom workshop pawn, supply `-RACDemoExpectedMesh=/Game/path/Asset.Asset`.
+The audit requires that exact native mesh path; without it the Manny check
+remains. `-RACDemoAuditCharacter` adds two full-character camera views and ends
+at 102 game seconds. The portrait fixture returns the pawn to its starting
+position after the movement tests; this reposition is not movement evidence.
+
+During the audit only, walking speed is temporarily 120 cm/s so the walking
+capture precedes wall contact. It is restored after that segment. A separate
+check measures changing component-space foot positions during the stride;
+moving a rigid mesh along with its capsule no longer passes as animation.
+This does not replace visual deformation or foot-contact review.
+
+For the modular Ayric avatar, also supply
+`-RACDemoExpectedHeadMesh=/Game/path/Head.Head`. This requires exactly one
+matching static head, attached to the skeletal `head` bone with matching world
+position, rotation and scale during idle, walking, jump and landing. It also
+records built LOD0 vertex/triangle counts for body, head and sword, requires
+three components within 15,000 vertices / 20,000 triangles apiece and at most
+60,000 triangles in total. These checks remain opt-in; they do not constrain
+other characters or silently grant appearance approval.
+
 Run a Development package with these additional arguments:
 
 ```text

@@ -202,7 +202,7 @@ def apply_texture_settings(root, texture_name, settings):
 
 
 MASTER_PATH = "/Game/Compiled/Materials"
-MASTER_NAME = "M_RAC_CharacterMaster"
+MASTER_NAME = "M_RAC_CharacterMaster_v002"
 TEXTURE_PARAMETERS = ("BaseColor", "ORM", "Normal")
 
 
@@ -257,8 +257,9 @@ def ensure_master_material(masks_default=None):
         "/Engine/EngineMaterials/DefaultDiffuse"))
     lib.connect_material_property(base, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
 
-    # Normal needs no guard: the default IS the correct fallback, because a
-    # flat normal map and no normal map are the same surface.
+    # Engine DefaultNormal is a bumpy tiled wall, not a flat normal. Keep a
+    # valid sampler default for compilation, but never apply it to an asset
+    # without an authored normal map. The new master name preserves old assets.
     normal = lib.create_material_expression(
         master, unreal.MaterialExpressionTextureSampleParameter2D, -700, 500)
     normal.set_editor_property("parameter_name", "Normal")
@@ -266,7 +267,19 @@ def ensure_master_material(masks_default=None):
         "/Engine/EngineMaterials/DefaultNormal"))
     normal.set_editor_property(
         "sampler_type", unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL)
-    lib.connect_material_property(normal, "RGB", unreal.MaterialProperty.MP_NORMAL)
+    flat_normal = lib.create_material_expression(
+        master, unreal.MaterialExpressionConstant3Vector, -450, 620)
+    flat_normal.set_editor_property("constant", unreal.LinearColor(0.0, 0.0, 1.0, 1.0))
+    has_normal = lib.create_material_expression(
+        master, unreal.MaterialExpressionScalarParameter, -700, 720)
+    has_normal.set_editor_property("parameter_name", "HasNormal")
+    has_normal.set_editor_property("default_value", 0.0)
+    normal_blend = lib.create_material_expression(
+        master, unreal.MaterialExpressionLinearInterpolate, -200, 520)
+    lib.connect_material_expressions(flat_normal, "", normal_blend, "A")
+    lib.connect_material_expressions(normal, "RGB", normal_blend, "B")
+    lib.connect_material_expressions(has_normal, "", normal_blend, "Alpha")
+    lib.connect_material_property(normal_blend, "", unreal.MaterialProperty.MP_NORMAL)
 
     # ORM does need one. There is no stock texture that reads as "no occlusion,
     # cloth roughness, not metal", so a material without an ORM map would take
@@ -418,6 +431,8 @@ def build_material(root, material_name, textures_by_slot):
             wanted[slot] = textures_by_slot[slot]
     lib.set_material_instance_scalar_parameter_value(
         instance, "HasORM", 1.0 if "ORM" in textures_by_slot else 0.0)
+    lib.set_material_instance_scalar_parameter_value(
+        instance, "HasNormal", 1.0 if "Normal" in textures_by_slot else 0.0)
     lib.update_material_instance(instance)
 
     wrong = []

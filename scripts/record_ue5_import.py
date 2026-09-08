@@ -9,19 +9,23 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from reference_asset_compiler.runtime_evidence import record_ue5_import_stage  # noqa: E402
+from reference_asset_compiler.runtime_evidence import (  # noqa: E402
+    record_ue5_import_stage, record_native_import_revision,
+)
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("asset", help="source asset id, without -production")
     parser.add_argument("--report", type=Path, default=ROOT / "work" / "ue5-verify.json")
+    parser.add_argument("--native-revision", help="Versioned static native derivative; preserves old import and downstream holds")
     args = parser.parse_args()
     job = ROOT / "work" / args.asset
     production_id = args.asset + "-production"
     manifest = ROOT / "out" / production_id / (production_id + ".ue5import.json")
     try:
-        output = record_ue5_import_stage(job, manifest, args.report)
+        output = (record_native_import_revision(job, manifest, args.report, args.native_revision)
+                  if args.native_revision else record_ue5_import_stage(job, manifest, args.report))
     except (OSError, KeyError, ValueError) as error:
         print("RAC_UE5_IMPORT_EVIDENCE_REFUSED {0}".format(error))
         return 2

@@ -1,8 +1,8 @@
 """Create a geometry-locked UV/OBJ transport for AI existing-mesh painting.
 
-This stage changes UV coordinates only.  The approved retopology BLEND remains
-the geometry authority; the triangulated OBJ is a transport derivative for
-Hunyuan3D-Paint, which cannot consume BLEND directly.
+This stage changes UV coordinates only. The approved BLEND (or explicitly
+enabled static triangle GLB) remains the geometry authority. The OBJ is a
+transport derivative for Hunyuan3D-Paint, not a newly modeled surface.
 """
 
 from __future__ import annotations
@@ -29,6 +29,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--angle-degrees", type=float, default=66.0)
     parser.add_argument("--margin", type=float, default=0.006)
     parser.add_argument("--maximum-delta-m", type=float, default=1.0e-6)
+    parser.add_argument("--allow-triangulated-glb", action="store_true",
+                        help="Accept an already-approved static triangle GLB without welding or remeshing.")
     return parser.parse_args(values)
 
 
@@ -123,21 +125,37 @@ def public(value: dict[str, object]) -> dict[str, object]:
     }
 
 
+def load_authority(source: Path, allow_triangulated_glb: bool):
+    glb_input = source.suffix.lower() == ".glb" and allow_triangulated_glb
+    if source.suffix.lower() != ".blend" and not glb_input:
+        raise RuntimeError("UV preparation requires BLEND, or explicitly enabled static triangle GLB")
+    if glb_input:
+        bpy.ops.wm.read_factory_settings(use_empty=True)
+        bpy.ops.import_scene.gltf(filepath=str(source))
+        if any(item.type == "ARMATURE" for item in bpy.context.scene.objects):
+            raise RuntimeError("GLB UV preparation is for static props, not articulated authorities")
+    else:
+        bpy.ops.wm.open_mainfile(filepath=str(source))
+    obj = mesh_object()
+    if glb_input and any(len(poly.vertices) != 3 for poly in obj.data.polygons):
+        raise RuntimeError("GLB authority must already be triangulated")
+    return obj
+
+
 def main() -> int:
     args = parse_args()
     source = args.source.resolve()
     output_blend = args.output_blend.resolve()
     output_obj = args.output_obj.resolve()
     report_path = args.report.resolve()
-    if source.suffix.lower() != ".blend" or not source.is_file():
-        raise RuntimeError("UV preparation requires the approved BLEND authority")
+    if not source.is_file():
+        raise RuntimeError("UV preparation source is missing")
     if output_obj.suffix.lower() != ".obj":
         raise RuntimeError("Texture transport output must be OBJ")
     if any(path.exists() for path in (output_blend, output_obj, report_path)):
         raise RuntimeError("UV preparation refuses to overwrite evidence")
 
-    bpy.ops.wm.open_mainfile(filepath=str(source))
-    obj = mesh_object()
+    obj = load_authority(source, args.allow_triangulated_glb)
     before = snapshot(obj)
     while obj.data.uv_layers:
         obj.data.uv_layers.remove(obj.data.uv_layers[0])
@@ -240,6 +258,8 @@ def main() -> int:
             "angle_degrees": args.angle_degrees,
             "margin": args.margin,
             "triangulated_transport_only": True,
+            "source_format": source.suffix.lower(),
+            "static_triangle_glb_enabled": args.allow_triangulated_glb,
         },
         "failures": failures,
     }

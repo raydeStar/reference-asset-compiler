@@ -20,6 +20,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -86,8 +87,10 @@ def pack_orm(ao_path, base_path, out_path, roughness_path=None, metallic_path=No
             "metallic_source": metallic_source}
 
 
-def promote(asset):
-    prod = ROOT / "work" / asset / "prod-v2"
+def promote(asset, production_name="prod-v2"):
+    if not re.fullmatch(r"prod-[a-z0-9]+(?:-[a-z0-9]+)*", production_name):
+        raise ValueError("Production name must be a local prod-* directory name")
+    prod = ROOT / "work" / asset / production_name
     report_path = prod / "retopo.json"
     if not report_path.exists():
         print("[PROMOTE] {0}: no build at {1}".format(asset, prod))
@@ -248,8 +251,9 @@ def promote(asset):
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("assets", nargs="+")
+    parser.add_argument("--production-name", default="prod-v2")
     args = parser.parse_args()
-    published = [promote(a) for a in args.assets]
+    published = [promote(a, args.production_name) for a in args.assets]
     ok = [p for p in published if p]
     print("[PROMOTE] published {0} of {1}".format(len(ok), len(published)))
     return 0 if len(ok) == len(published) else 1

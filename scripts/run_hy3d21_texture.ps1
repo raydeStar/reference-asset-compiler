@@ -48,6 +48,11 @@ if ($freeMiB -lt $MinimumFreeVramMiB) {
 }
 
 Write-Host "HY3D21_LAUNCH_READY free_mib=$freeMiB utilization=$utilization% runner_sha256=$actualRunnerHash"
+$executionPath = [System.IO.Path]::ChangeExtension($outputPath, '.execution.json')
+if (Test-Path -LiteralPath $executionPath) {
+    throw "Execution receipt already exists; preserve it and choose a new attempt: $executionPath"
+}
+$startedUtc = [DateTime]::UtcNow.ToString('o')
 $runnerArgs = @($runner, $meshPath, $referencePath, $outputPath, '--views', $Views, '--resolution', $Resolution)
 if ($DiagnosticsDir) {
     $diagnosticsPath = [System.IO.Path]::GetFullPath($DiagnosticsDir)
@@ -56,9 +61,40 @@ if ($DiagnosticsDir) {
     }
     $runnerArgs += @('--diagnostics-dir', $diagnosticsPath)
 }
-& $python @runnerArgs
-$exitCode = $LASTEXITCODE
+# The runner and its dependencies write ordinary progress and warnings to
+# stderr. Under $ErrorActionPreference = 'Stop', any caller that redirects our
+# output to a log (2>&1, *>) would turn the first such line into a terminating
+# error and kill the paint before a receipt exists. Relax only around the call.
+$previousPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
+try {
+    & $python @runnerArgs
+    $exitCode = $LASTEXITCODE
+} finally {
+    $ErrorActionPreference = $previousPreference
+}
 $report = [System.IO.Path]::ChangeExtension($outputPath, '.validation.json')
+$execution = [ordered]@{
+    schema = 'reference-asset-compiler.paint-execution.v1'
+    started_utc = $startedUtc
+    completed_utc = [DateTime]::UtcNow.ToString('o')
+    runner_sha256 = $actualRunnerHash.ToLowerInvariant()
+    input_mesh = $meshPath
+    input_mesh_sha256 = (Get-FileHash -LiteralPath $meshPath).Hash.ToLowerInvariant()
+    reference = $referencePath
+    reference_sha256 = (Get-FileHash -LiteralPath $referencePath).Hash.ToLowerInvariant()
+    views = $Views
+    resolution = $Resolution
+    initial_free_vram_mib = $freeMiB
+    exit_code = $exitCode
+    clean_process_exit = ($exitCode -eq 0)
+    validation_present = (Test-Path -LiteralPath $report -PathType Leaf)
+    retry_performed = $false
+}
+$execution | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $executionPath -Encoding utf8
+if ($exitCode -ne 0) {
+    Write-Warning "Painter exited abnormally ($exitCode). Retaining outputs and receipt; no retry. Geometry/UV validation below is separate from process health."
+}
 if (-not (Test-Path -LiteralPath $report -PathType Leaf)) {
     throw "Hunyuan3D-Paint exited $exitCode without a validation report; it will not be auto-retried"
 }

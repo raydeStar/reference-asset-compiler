@@ -1,0 +1,27 @@
+# Isolated inference-only subset of upstream e1287870d88fd51d310b8fcd2250057dad8d320e.
+# Python 3.10; do not install into the compiler or Hunyuan environments.
+# CUDA 11.8 wheels supply the upstream torch/torchvision versions on Windows.
+--extra-index-url https://download.pytorch.org/whl/cu118
+torch==2.0.1+cu118
+torchvision==0.15.2+cu118
+numpy==1.24.4
+scipy==1.10.1
+matplotlib==3.7.5
+carvekit-colab==4.1.0
+pillow==10.4.0
+opencv-python-headless==4.9.0.80
+imageio==2.9.0
+pytorch-lightning==1.5.2
+omegaconf==2.1.1
+einops==0.3.0
+transformers==4.22.2
+kornia==0.6.0
+torchmetrics==0.6.0
+diffusers==0.12.1
+huggingface-hub==0.25.2
+setuptools==59.5.0
+loguru==0.7.3
+clip @ git+https://github.com/openai/CLIP.git@d05afc436d78f1c48dc0dbf8e5980a9d471f35f6
+# Upstream taming uses namespace directories but setup.py find_packages produces
+# an empty wheel. Clone 3ba01b241669f5ade541ce990f7650a3b8f65318 and pass --taming
+# to the probe wrapper; it verifies the checkout and adds it to sys.path.
