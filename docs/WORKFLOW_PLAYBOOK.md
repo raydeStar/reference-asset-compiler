@@ -126,8 +126,17 @@ rac retopology-receipt <workspace> <cleaned.blend> <runtime.blend> <report.json>
   --topology-view <wireframe-three-quarter.png> `
   --topology-view <wireframe-side.png> `
   --topology-view <wireframe-back.png> `
+  --deformation-topology-reviewed `
   --approved-by <human-name> --note <review-note>
 ```
+
+`--deformation-topology-reviewed` is the reviewer's explicit attestation that
+joint edge flow was inspected in the wireframe views; the command refuses an
+articulated kind without it, and static props omit it. When the user has
+expressly delegated the visual gate to an agent, pass `--authorization
+<review-delegation.v1.json>` alongside an automation reviewer name; the ledger
+then requires that hash-bound delegation (see the delegated-review exception in
+`docs/PIPELINE.md`).
 
 The ledger revalidates the receipt instead of trusting the command that wrote
 it. It requires exact semantic-cleanup lineage, the workspace vertex/triangle

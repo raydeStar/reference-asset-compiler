@@ -102,7 +102,12 @@ Pass `-Python C:\path\to\python.exe` to select explicitly. For the remaining
 For ledger-only use, install the release wheel with `python -m pip install
 <wheel-file>` and run `rac --help` from any directory. External pipeline stages
 still require the source checkout; installed `rac geometry-preflight` requires
-`--repo-root` pointing at it. A wheel does not bundle Blender, Unreal or models.
+`--repo-root` pointing at it, and `--workspace-root` when your asset workspaces
+live somewhere other than `<checkout>/work` (the same root you gave `rac new`).
+A wheel does not bundle Blender, Unreal or models.
+
+`.\scriptsootstrap.ps1` performs the venv creation and editable install
+above in one step; `-PythonVersion 3.11` selects another interpreter.
 
 ## 2. Create the UE5 validation project
 

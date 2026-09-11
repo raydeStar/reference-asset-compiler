@@ -39,7 +39,9 @@ requires evidence files, a note and a reviewer.
 ledger, including an incomplete one; read its separate `production_ready` field.
 `cohort-audit` exits 0 only when every asset is complete. Both exit
 1 when the audit or cohort fails, 2 for usage errors or `RAC_ERROR`. Only a
-fully passed ledger reports `production_ready: true`.
+fully passed ledger reports `production_ready: true`. `rac promote` refuses to
+change a stage that already passed; `--replace` is the one sanctioned override
+and snapshots the prior ledger first (see below).
 
 Texture payload reports bind `source_uv_authority_sha256` to the approved
 retopology, directly or through retained UV transport receipts. They also bind

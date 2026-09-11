@@ -174,7 +174,8 @@ A single-view request looks like this (`configs/generation/<asset>-attempt001.js
 `rac geometry-preflight --repo-root <checkout>` substitutes (the launcher passes
 its own repository root); `${RAC_LEGACY_ROOT}` in a request is substituted from
 `--legacy-root` the same way. Checked-in requests therefore carry no
-machine-local paths.
+machine-local paths. Workspaces created with `rac new --workspace-root <dir>`
+are found by passing the same `--workspace-root <dir>` to the preflight.
 
 The preflight refuses a single-view request whose input is not the immutable
 source itself, and refuses a derivation report on it; the receipt is bound by
