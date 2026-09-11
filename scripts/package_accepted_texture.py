@@ -32,7 +32,8 @@ from PIL import Image
 import rac_env
 
 ROOT = Path(__file__).resolve().parents[1]
-BLENDER = rac_env.find_blender()
+sys.path.insert(0, str(ROOT / "src"))
+from reference_asset_compiler.prop_publication import normalization_report  # noqa: E402
 
 
 def sha256(path: Path) -> str:
@@ -65,9 +66,10 @@ def main() -> int:
     parser.add_argument("--source-albedo", type=Path, required=True)
     parser.add_argument("--source-mr", type=Path, required=True)
     parser.add_argument("--profile", type=Path, required=True)
-    parser.add_argument("--blender", type=Path, default=BLENDER)
+    parser.add_argument("--blender", type=Path)
     parser.add_argument("--resolution", type=int, default=4096)
     args = parser.parse_args()
+    args.blender = args.blender or rac_env.find_blender()
 
     work = ROOT / "work" / args.asset
     prod = work / "prod-v2"
@@ -92,7 +94,7 @@ def main() -> int:
     if len(materials) != 1:
         raise ValueError(f"accepted texture remediation requires one material, found {materials}")
     material_name = materials[0]
-    normalise_report_path = require_file(work / "normalize-prop-report.json")
+    normalise_report_path = normalization_report(work, source_manifest_path)
     normalise_report = json.loads(normalise_report_path.read_text(encoding="utf-8-sig"))
     scale = float(normalise_report["uniform_scale_applied"])
     height = float(normalise_report["after"]["height_m"])

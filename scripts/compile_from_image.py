@@ -62,6 +62,7 @@ from reference_asset_compiler.approvals import (  # noqa: E402
 )
 from reference_asset_compiler.io import read_json  # noqa: E402
 from reference_asset_compiler.workspace import promote_stage  # noqa: E402
+from reference_asset_compiler.prop_publication import normalization_report  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -348,6 +349,7 @@ def main() -> int:
     normalized = ROOT / "out" / args.asset_id / (args.asset_id + ".fbx")
     manifest_path = ROOT / "out" / args.asset_id / (args.asset_id + ".ue5import.json")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
+    normalization_evidence = normalization_report(work, manifest_path)
     if description["tris"] <= args.triangle_budget:
         views = work / "authority-fixed-views"
         if run(blender("render_turnaround.py", normalized, views, 900),
@@ -361,7 +363,7 @@ def main() -> int:
         }
         modeling_candidate = normalized
         modeling_operations = ["normalize_scale_origin"]
-        modeling_artifacts = [work / "normalize-prop-report.json"]
+        modeling_artifacts = [normalization_evidence]
     else:
         reduction_dir = work / "reduction-v1"
         reduction_report = reduction_dir / "reduction-report.json"
@@ -411,7 +413,7 @@ def main() -> int:
         modeling_operations = ["normalize_scale_origin", "voxel_remesh", "collapse_qem"]
         modeling_artifacts = [
             normalized,
-            work / "normalize-prop-report.json",
+            normalization_evidence,
             reduction_report,
         ]
 

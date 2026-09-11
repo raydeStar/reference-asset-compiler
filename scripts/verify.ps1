@@ -1,84 +1,16 @@
 [CmdletBinding()]
-param()
-
+param([string] $Python, [string] $WheelDir)
 $ErrorActionPreference = 'Stop'
-$repoRoot = Split-Path -Parent $PSScriptRoot
-$venvPython = Join-Path $repoRoot '.venv\Scripts\python.exe'
-$python = if (Test-Path -LiteralPath $venvPython -PathType Leaf) {
-    $venvPython
-} else {
-    (Get-Command py -ErrorAction Stop).Source
-}
-$usingLauncher = [System.IO.Path]::GetFileName($python) -ieq 'py.exe'
-$previousPythonPath = $env:PYTHONPATH
-
-function Invoke-RepoPython {
-    param(
-        [Parameter(Mandatory = $true)]
-        [string[]] $ArgumentList
-    )
-
-    # unittest reports progress on stderr. Under 'Stop', Windows PowerShell 5.1
-    # turns the first stderr line into a terminating NativeCommandError whenever
-    # the caller redirects output (2>&1, a log file, an agent harness), so a
-    # fully passing run came back as a failure. Exit codes still decide below.
-    $previous = $ErrorActionPreference
-    $ErrorActionPreference = 'Continue'
-    try {
-        if ($usingLauncher) {
-            & $python '-3.12' @ArgumentList
-        } else {
-            & $python @ArgumentList
-        }
-    } finally {
-        $ErrorActionPreference = $previous
-    }
-}
-
+$selectedPython = & (Join-Path $PSScriptRoot 'resolve_python.ps1') -Python $Python
+$arguments = @((Join-Path $PSScriptRoot 'verify.py'))
+if ($WheelDir) { $arguments += @('--wheel-dir', $WheelDir) }
+# PowerShell 5.1 treats redirected native stderr as errors under Stop. Preserve
+# progress output and decide using the process exit code, as any decent butler would.
+$previousPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 try {
-    $env:PYTHONPATH = Join-Path $repoRoot 'src'
-    Invoke-RepoPython -ArgumentList @(
-        '-m', 'compileall', '-q', (Join-Path $repoRoot 'src')
-    )
-    if ($LASTEXITCODE -ne 0) {
-        throw "Python compilation failed with exit code $LASTEXITCODE"
-    }
-    # The Blender stage scripts import bpy and cannot be executed outside
-    # Blender, but a syntax error in one costs a full headless round trip to
-    # discover. Byte-compiling them here is cheap and catches that.
-    Invoke-RepoPython -ArgumentList @(
-        '-m', 'compileall', '-q', (Join-Path $repoRoot 'scripts\blender')
-    )
-    if ($LASTEXITCODE -ne 0) {
-        throw "Blender stage scripts failed to compile with exit code $LASTEXITCODE"
-    }
-    # Native adapters import unreal at runtime, but their Python syntax can
-    # still be checked without opening the editor. No royal summons required.
-    Invoke-RepoPython -ArgumentList @(
-        '-m', 'compileall', '-q', (Join-Path $repoRoot 'scripts\ue5')
-    )
-    if ($LASTEXITCODE -ne 0) {
-        throw "UE stage scripts failed to compile with exit code $LASTEXITCODE"
-    }
-    Invoke-RepoPython -ArgumentList @(
-        '-m', 'unittest', 'discover', '-s', (Join-Path $repoRoot 'tests'), '-v'
-    )
-    if ($LASTEXITCODE -ne 0) {
-        throw "Contract tests failed with exit code $LASTEXITCODE"
-    }
-    Invoke-RepoPython -ArgumentList @(
-        '-m',
-        'reference_asset_compiler.cli',
-        'plan',
-        (Join-Path $repoRoot 'examples\humanoid.json'),
-        '--output',
-        (Join-Path $repoRoot 'output\verify-routing.json')
-    )
-    if ($LASTEXITCODE -ne 0) {
-        throw "CLI smoke test failed with exit code $LASTEXITCODE"
-    }
-} finally {
-    $env:PYTHONPATH = $previousPythonPath
+    & $selectedPython @arguments 2>&1 | ForEach-Object { $_.ToString() }
+    $verifyExit = $LASTEXITCODE
 }
-
-Write-Host 'RAC_VERIFY_OK -- every gatekeeper is awake, and none accepted a flattering render as identification.'
+finally { $ErrorActionPreference = $previousPreference }
+exit $verifyExit

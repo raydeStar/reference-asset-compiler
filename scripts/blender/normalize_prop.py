@@ -28,6 +28,7 @@ Usage:
 from __future__ import annotations
 
 import json
+import hashlib
 import sys
 from pathlib import Path
 
@@ -155,9 +156,18 @@ def rebuild_material(material, textures, constants, report):
         tree.links.new(scalar.outputs["Color"], bsdf.inputs[socket_name])
 
 
+def sha256(path):
+    digest = hashlib.sha256()
+    with Path(path).open("rb") as stream:
+        for block in iter(lambda: stream.read(1024 * 1024), b""):
+            digest.update(block)
+    return digest.hexdigest()
+
+
 def main() -> int:
     argv = sys.argv[sys.argv.index("--") + 1:]
     recipe_path, out_fbx, report_path = (Path(a) for a in argv[:3])
+    recipe_hash = sha256(recipe_path)
     recipe = rac_env.expand_tree(json.loads(recipe_path.read_text(encoding="utf-8-sig")))
     norm = recipe.get("normalize", {})
 
@@ -169,6 +179,9 @@ def main() -> int:
         material_textures = recipe["material_textures"]
 
     source = Path(recipe["source"]["authority_fbx"])
+    source_hash = sha256(source)
+    texture_hashes = {str(Path(path).resolve()): sha256(path)
+                      for slots in material_textures.values() for path in slots.values()}
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.context.scene.unit_settings.system = "METRIC"
     bpy.context.scene.unit_settings.scale_length = 1.0
@@ -185,6 +198,11 @@ def main() -> int:
 
     lo, hi = mesh_bounds(meshes)
     report = {
+        "schema": "reference-asset-compiler.prop-normalization.v1",
+        "run_id": argv[4] if len(argv) > 4 else None,
+        "input_recipe_sha256": recipe_hash,
+        "source_sha256": source_hash,
+        "input_texture_hashes": texture_hashes,
         "asset_id": recipe["asset_id"],
         "asset_kind": recipe.get("kind", "static_prop"),
         "source_authority": str(source),
@@ -269,6 +287,7 @@ def main() -> int:
         bake_anim=False, object_types={"MESH"}, mesh_smooth_type="FACE",
         path_mode="COPY", embed_textures=False)
     report["output_fbx"] = str(out_fbx)
+    report["output_fbx_sha256"] = sha256(out_fbx)
 
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")

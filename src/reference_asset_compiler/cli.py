@@ -14,14 +14,8 @@ from .geometry_request import validate_geometry_request
 from .io import read_json, write_json
 from .planner import plan
 from .retopology import record_retopology_receipt
+from .resources import checkout_root, load_registry
 from .workspace import audit_workspace, create_workspace, promote_stage
-
-ROOT = Path(__file__).resolve().parents[2]
-
-
-def registry_path() -> Path:
-    return ROOT / "configs" / "model-adapters.json"
-
 
 def print_payload(payload: dict) -> None:
     print(json.dumps(payload, indent=2))
@@ -77,7 +71,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     geometry_preflight.add_argument("request", type=Path)
     geometry_preflight.add_argument("--legacy-root", type=Path, required=True)
-    geometry_preflight.add_argument("--repo-root", type=Path, default=ROOT)
+    geometry_preflight.add_argument("--repo-root", type=Path,
+                                    help="Pipeline checkout; required outside a source installation")
     geometry_preflight.add_argument("--output", type=Path)
 
     cleanup_preflight = subcommands.add_parser(
@@ -112,8 +107,9 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
-    registry = read_json(registry_path())
     try:
+        if args.command in {"new", "plan"}:
+            registry = load_registry()
         if args.command == "new":
             job = create_workspace(
                 args.workspace_root,
@@ -157,8 +153,12 @@ def main(argv: list[str] | None = None) -> int:
             print_payload(payload)
             return 0 if payload["production_ready"] else 1
         if args.command == "geometry-preflight":
+            repo_root = args.repo_root or checkout_root()
+            if repo_root is None or not (repo_root / "workflows" / "geometry").is_dir():
+                raise ValueError("Geometry preflight needs pipeline scripts: pass --repo-root "
+                                 "pointing to a Reference Asset Compiler checkout")
             payload = validate_geometry_request(
-                args.request, args.legacy_root, args.repo_root)
+                args.request, args.legacy_root, repo_root)
             if args.output:
                 write_json(args.output, payload)
             print_payload(payload)
@@ -181,7 +181,7 @@ def main(argv: list[str] | None = None) -> int:
                 args.view, args.approved_by, args.note, args.topology_view, args.output,
             ))
             return 0
-    except (FileExistsError, FileNotFoundError, KeyError, ValueError) as error:
+    except (OSError, KeyError, ValueError, TypeError) as error:
         print(f"RAC_ERROR {error}", file=sys.stderr)
         return 2
     return 2

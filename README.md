@@ -159,9 +159,9 @@ git clone https://github.com/raydeStar/reference-asset-compiler.git
 cd reference-asset-compiler
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-python scripts\rac_env.py --all          # where Blender and Unreal were found
-.\scripts\workflow_doctor.ps1            # read-only report of every route
-.\scripts\verify.ps1                     # contract tests; must pass
+.\.venv\Scripts\python.exe scripts\rac_env.py --all
+.\scripts\workflow_doctor.ps1 -Profile ledger  # check the compiler without AI or DCC tools
+.\scripts\verify.ps1                          # full local/CI checks, including installed wheel
 ```
 
 If a tool is not found, point at it:
@@ -170,6 +170,20 @@ If a tool is not found, point at it:
 $env:RAC_BLENDER    = "C:\path\to\blender.exe"
 $env:RAC_UNREAL_CMD = "C:\path\to\UnrealEditor-Cmd.exe"
 ```
+
+Use `-Profile geometry`, `texture`, or `ue` to check that route, or omit the
+profile to inspect everything. `-Json` returns the same readiness and exit
+code as text output: 0 when required components are present, 2 when something
+required is missing. Optional tools are labeled separately. These checks do
+not launch inference; the launchers still check GPU availability before a run.
+
+The PowerShell wrappers prefer `.venv`; `-Python C:\path\to\python.exe`
+selects another interpreter. For the `python` commands below, activate that
+environment first (`.\.venv\Scripts\Activate.ps1`) or use its executable path.
+
+The release wheel supports the ledger CLI outside a checkout (`rac new`,
+`rac plan`, `rac audit` and receipt commands). Blender/Unreal drivers and AI
+workflows still run from a source checkout; weights and engine assets are separate.
 
 ### Run it without Codex
 

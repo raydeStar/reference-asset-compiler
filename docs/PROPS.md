@@ -18,6 +18,30 @@ python scripts\promote_production.py office-chair
 Then the same UE5 import, verify and gallery scripts the characters use — they
 now branch on the manifest's `ue5_mesh_type`.
 
+Each compile now runs in `work/<asset>/compile-attempts/<run-id>/`. The folder
+retains the frozen recipe, input hashes, normalization report, FBX, textures,
+stdout/stderr, and execution status. A Blender failure or a report from another
+run cannot publish a manifest. The current recipe, mesh, textures and FBX must
+match their recorded hashes before the complete payload is published.
+
+`out/<asset>/` must not already exist, including an empty or partial directory.
+Use a new asset id for a derivative and retain the previous result. Failed
+attempts remain available for diagnosis; they are never retried automatically.
+The new payload includes `compile-receipt.json` and `normalize-prop-report.json`;
+the operator and texture packager resolve and verify these via the manifest.
+Historical payloads keep their existing report under `work/<asset>/`; no
+existing authority is rewritten or automatically migrated.
+
+`--help` works without Blender installed. `--blender <executable>` selects an
+explicit installation. To exercise the export path with a synthetic CPU fixture:
+
+```powershell
+python scripts/check_prop_blender.py --work-dir output/prop-export-check-v001
+```
+
+Choose a fresh directory each time. This verifies file export, scale and hashes;
+it does not reconstruct artwork or approve an asset for Unreal runtime use.
+
 | Stage | Characters | Props |
 |---|---|---|
 | Intake | `scripts/compile_asset.ps1` -> `normalize_ue5.py` | `scripts/compile_prop.py` -> `normalize_prop.py` |

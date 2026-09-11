@@ -23,6 +23,20 @@ def articulation_required(asset_kind: str, mode: str) -> bool:
     return asset_kind in ARTICULATED_DEFAULTS
 
 
+def required_stages(manifest: dict[str, Any]) -> list[str]:
+    """The intake decides the gates; a damaged ledger cannot vote them away."""
+    kind = manifest.get("asset_kind")
+    mode = manifest.get("articulation", "auto")
+    if not isinstance(kind, str) or kind not in ASSET_KINDS:
+        raise ValueError("Unsupported asset_kind in intake")
+    if not isinstance(mode, str) or mode not in ARTICULATION_MODES:
+        raise ValueError("Unsupported articulation mode in intake")
+    if kind == "unknown" and mode == "auto":
+        raise ValueError("Unknown assets require an explicit articulation decision")
+    tail = ARTICULATED_STAGES if articulation_required(kind, mode) else STATIC_STAGES
+    return [*BASE_STAGES, *tail]
+
+
 def plan(manifest: dict[str, Any], registry: dict[str, Any]) -> dict[str, Any]:
     asset_id = manifest.get("asset_id")
     if not asset_id:
@@ -140,7 +154,7 @@ def plan(manifest: dict[str, Any], registry: dict[str, Any]) -> dict[str, Any]:
                     "{0}.".format(rig_backbone)
                 )
 
-    stages = [*BASE_STAGES, *(ARTICULATED_STAGES if articulated else STATIC_STAGES)]
+    stages = required_stages(manifest)
     return {
         "schema": "reference-asset-compiler.routing.v1",
         "generated_at": datetime.now(UTC).isoformat(),

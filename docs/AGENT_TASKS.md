@@ -109,4 +109,5 @@ crash, never kill GPU processes) apply to every task below.
 - Human gates stay human: `modeling_approval`, `production_retopology`,
   `texture_approval`, `ue5_motion_review`, `cook`.
 - Prefer a versioned derivative over an in-place fix.
-- Run `scripts\verify.ps1` before committing; CI also runs ruff on `scripts/`.
+- Run `scripts\verify.ps1` before committing; it shares the CI test, lint,
+  syntax, wheel-build and isolated installed-CLI checks. No inference is launched.
