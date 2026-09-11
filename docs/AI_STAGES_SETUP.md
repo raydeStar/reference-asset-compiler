@@ -1,5 +1,7 @@
 # Setting up the AI stages
 
+*Type: reference*
+
 Everything in the compiler runs without a GPU except two stages: AI geometry
 (Hunyuan3D shape generation) and AI texturing (Hunyuan3D-Paint 2.1). Both live
 in a separate "studio tree" outside this repository, named by the environment
@@ -17,7 +19,7 @@ when a required component is missing.
 
 | | Requirement |
 |---|---|
-| GPU | NVIDIA, 24 GB VRAM (verified on an RTX 4090). Texturing refuses to start under 21 GB free. |
+| GPU | NVIDIA, 24 GB card (verified on an RTX 4090). The launchers measure free VRAM in MiB: texturing refuses to start under 21 GiB (21,504 MiB) free, multiview geometry under 18 GiB (18,432 MiB), single-view geometry under 12 GiB (12,288 MiB). |
 | CUDA | 12.4 toolchain for the Hunyuan3D-Paint rasterizer build, plus Visual Studio Build Tools with the C++ workload. |
 | Python | 3.11 for the paint environment (`.venv-hy3d21`); the geometry environment (`.venv-hy3d`) follows the upstream Hunyuan3D-2 requirements. |
 | Disk | 34,665,936,452 bytes (32.285 GiB) for a fresh one-image stack; 39,594,089,622 bytes (36.875 GiB) with both pinned shape models. Keep 45/50 GiB free respectively, or 60 GiB with room for attempts. |
@@ -130,19 +132,22 @@ payload has not been downloaded yet.
    .\scripts\workflow_doctor.ps1
    ```
 
-   Every `hy3d2mv.*` and `hy3d21.*` line should read `[OK]`. The first real
+   Every `hy3d2mv.*`, `hy3d2.runner_exact` and `hy3d21.*` line should read
+   `[OK]` (`hy3d2.runner_exact` is the single-view runner hash). The first real
    paint run downloads the weights into `models\hy3d21` and takes several
    minutes longer than later runs.
 
 ## Geometry from one image, or from three
 
 Two Hunyuan3D geometry runners share one wrapper, `scripts\run_hy3d_geometry.ps1`,
-selected by the request's `mode`:
+selected by the request's `mode`. A request that omits `mode` runs multiview
+(`geometry_request.py` and the launcher both default to it); write
+`"mode": "single_view"` explicitly when only the picture exists:
 
 | Mode | Runner | Model | Inputs | When |
 |---|---|---|---|---|
-| `single_view` (default when you only have the picture) | `run_hy3d_single_view.py` | `tencent/Hunyuan3D-2` `hunyuan3d-dit-v2-0` | the reference image alone | Any agent or person can run it with nothing but the approved image. The far side is inferred. |
-| `multiview` | `run_hy3d_multiview.py` | `tencent/Hunyuan3D-2mv` | front, left, back guidance views bound to the source by a derivation report | When consistent guidance views exist (the cat's were produced by an image model). Better tails, backs, and silhouettes. |
+| `single_view` (choose it explicitly when you only have the picture) | `run_hy3d_single_view.py` | `tencent/Hunyuan3D-2` `hunyuan3d-dit-v2-0` | the reference image alone | Any agent or person can run it with nothing but the approved image. The far side is inferred. |
+| `multiview` (what runs when `mode` is omitted) | `run_hy3d_multiview.py` | `tencent/Hunyuan3D-2mv` | front, left, back guidance views bound to the source by a derivation report | When consistent guidance views exist (the cat's were produced by an image model). Better tails, backs, and silhouettes. |
 
 Both runners pin the model revision and fetch only the config plus the FP16
 safetensors they actually open. This matters most for single-view: the upstream
@@ -165,9 +170,16 @@ A single-view request looks like this (`configs/generation/<asset>-attempt001.js
 }
 ```
 
+`${RAC_REPO_ROOT}` is not an environment variable. It is a placeholder that
+`rac geometry-preflight --repo-root <checkout>` substitutes (the launcher passes
+its own repository root); `${RAC_LEGACY_ROOT}` in a request is substituted from
+`--legacy-root` the same way. Checked-in requests therefore carry no
+machine-local paths.
+
 The preflight refuses a single-view request whose input is not the immutable
 source itself, and refuses a derivation report on it; the receipt is bound by
-the source image hash. Single view needs about 12 GB of free VRAM, multiview 18.
+the source image hash. Single view needs 12 GiB (12,288 MiB) of free VRAM,
+multiview 18 GiB (18,432 MiB).
 
 ## Optional historical geometry through ComfyUI
 
@@ -190,7 +202,7 @@ it is not required for the single-view route and is not silently implied here.
 - That your GPU driver and the CUDA wheel agree; the first run tells you.
 - That the rasterizer extension built; the paint runner fails at import if not.
 - That another process owns the GPU. The wrappers read `nvidia-smi` and refuse
-  to launch under 21 GB free; they never kill anything.
+  to launch under their MiB floors (21 GiB for paint); they never kill anything.
 
 ## Known limits
 

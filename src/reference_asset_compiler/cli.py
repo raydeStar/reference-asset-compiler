@@ -52,6 +52,10 @@ def build_parser() -> argparse.ArgumentParser:
     promote.add_argument(
         "--status", choices=("passed", "rejected", "blocked", "in_progress"), default="passed"
     )
+    promote.add_argument(
+        "--replace", action="store_true",
+        help="Supersede an already passed stage; the prior ledger is snapshotted first",
+    )
 
     audit = subcommands.add_parser(
         "audit", help="Verify source and evidence hashes plus stage order"
@@ -73,6 +77,8 @@ def build_parser() -> argparse.ArgumentParser:
     geometry_preflight.add_argument("--legacy-root", type=Path, required=True)
     geometry_preflight.add_argument("--repo-root", type=Path,
                                     help="Pipeline checkout; required outside a source installation")
+    geometry_preflight.add_argument("--workspace-root", type=Path,
+                                    help="Directory holding asset workspaces (default: <repo-root>/work)")
     geometry_preflight.add_argument("--output", type=Path)
 
     cleanup_preflight = subcommands.add_parser(
@@ -102,6 +108,11 @@ def build_parser() -> argparse.ArgumentParser:
     retopology_receipt.add_argument("--approved-by", required=True)
     retopology_receipt.add_argument("--note", required=True)
     retopology_receipt.add_argument("--output", type=Path)
+    retopology_receipt.add_argument("--authorization", type=Path,
+                                    help="Hash-bound user delegation for an automation reviewer")
+    retopology_receipt.add_argument(
+        "--deformation-topology-reviewed", action="store_true",
+        help="Attest that joint edge flow was inspected; required for articulated kinds")
     return parser
 
 
@@ -136,7 +147,8 @@ def main(argv: list[str] | None = None) -> int:
             return 0
         if args.command == "promote":
             state = promote_stage(
-                args.job, args.stage, args.evidence, args.note, args.approved_by, args.status
+                args.job, args.stage, args.evidence, args.note, args.approved_by, args.status,
+                replace=args.replace,
             )
             print(f"RAC_STAGE_RECORDED {args.stage}={state['stages'][args.stage]['status']}")
             return 0
@@ -145,20 +157,20 @@ def main(argv: list[str] | None = None) -> int:
             if args.output:
                 write_json(args.output, payload)
             print_payload(payload)
-            return 0 if payload["ok"] else 2
+            return 0 if payload["ok"] else 1
         if args.command == "cohort-audit":
             payload = audit_cohort(args.manifest, args.workspace_root)
             if args.output:
                 write_json(args.output, payload)
             print_payload(payload)
-            return 0 if payload["production_ready"] else 1
+            return 0 if payload["ok"] and payload["production_ready"] else 1
         if args.command == "geometry-preflight":
             repo_root = args.repo_root or checkout_root()
             if repo_root is None or not (repo_root / "workflows" / "geometry").is_dir():
                 raise ValueError("Geometry preflight needs pipeline scripts: pass --repo-root "
                                  "pointing to a Reference Asset Compiler checkout")
             payload = validate_geometry_request(
-                args.request, args.legacy_root, repo_root)
+                args.request, args.legacy_root, repo_root, args.workspace_root)
             if args.output:
                 write_json(args.output, payload)
             print_payload(payload)
@@ -179,6 +191,7 @@ def main(argv: list[str] | None = None) -> int:
             print_payload(record_retopology_receipt(
                 args.job, args.input_mesh, args.output_mesh, args.report,
                 args.view, args.approved_by, args.note, args.topology_view, args.output,
+                args.authorization, args.deformation_topology_reviewed,
             ))
             return 0
     except (OSError, KeyError, ValueError, TypeError) as error:

@@ -1,5 +1,7 @@
 # Decisions, failures, and retained lessons
 
+*Type: chronological log*
+
 This is a concise experiment record for future agents. It captures the useful
 rationale behind the current workflow so rejected paths are not repeated.
 
@@ -625,3 +627,23 @@ A successfully built wheel could not run the CLI because it lacked the adapter
 registry. Packaging now includes that resource and verification installs the
 wheel with its declared dependencies in an isolated environment outside the
 checkout. An editable-install test is not an installed-package test.
+
+## 2026-09-11 — Maintenance integration needs real producers and a runnable fixture
+
+The inherited maintenance branch passed 325 unit tests while its stricter
+texture validator still lacked matching production-builder fields. A new
+integration test runs the builder with bounded stand-ins and then passes its
+real receipts through the ledger. Source hashes alone also left the exported
+FBX substitutable; payload reports now bind that FBX, maps and gate result.
+
+The first public crate fixture used a different color per face. Its native bake
+failed the baked-light correlation check, despite the unit suite being green.
+Use a neutral synthetic texture for this mechanical fixture; retain the failed
+attempt, and do not weaken a production gate to admit a demo.
+
+A Windows fixture publication returned WinError 5 while renaming a complete
+staging directory. The lock owner was not identified. Publication now permits
+a short bounded retry of that rename for Windows access/sharing errors, checking
+each time that the destination is still absent. It never retries the compiler
+or inference. A new fixture passed the complete route and refusal checks; the
+original staging directory remains evidence of the failure.

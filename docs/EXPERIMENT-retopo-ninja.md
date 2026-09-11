@@ -1,5 +1,7 @@
 # Retopology rejected on ninja-man
 
+*Type: retained experiment*
+
 Run 2026-08-31. Every attempt to reduce ninja-man's triangle count passes the
 automated gates and **fails visual review on the head**. Retopology is rejected
 for this character.

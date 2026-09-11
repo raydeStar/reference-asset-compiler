@@ -22,8 +22,11 @@ state, not exact prose.
 ## Where to start
 
 - `docs/AGENT_TASKS.md` lists scoped open work with acceptance criteria and
-  says which tasks need a GPU. Most do not.
+  says which tasks need a GPU. Most do not. `docs/STATUS.md` is the current
+  state; `docs/README.md` indexes every document by type.
 - `AGENTS.md` and `CLAUDE.md` hold the rules every change is measured against.
+- Pull requests use `.github/PULL_REQUEST_TEMPLATE.md`; paste the
+  `RAC_VERIFY_OK` line. Security reports follow `SECURITY.md`.
 - Something did not run on your machine? Open an issue with the *It did not run
   on my machine* form. It asks for the read-only `scripts\workflow_doctor.ps1`
   report, which is usually enough to diagnose without a follow-up question.

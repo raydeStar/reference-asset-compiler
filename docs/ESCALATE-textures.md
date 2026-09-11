@@ -1,5 +1,7 @@
 # Escalation: the texture stage, not the assets
 
+*Type: escalation*
+
 Raised 2026-08-30 by the compiler after direct investigation. This is the
 `ESCALATE.md` the brief asks for when a rubric item cannot be met within three
 iterations. It is filed once for all four characters because they share one

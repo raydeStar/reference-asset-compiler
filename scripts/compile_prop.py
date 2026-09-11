@@ -18,7 +18,7 @@ NORMALIZE_SCRIPT = ROOT / "scripts" / "blender" / "normalize_prop.py"
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "src"))
 import rac_env  # noqa: E402
-from reference_asset_compiler.io import read_json, sha256_file, write_json  # noqa: E402
+from reference_asset_compiler.io import publish_directory, read_json, sha256_file, write_json  # noqa: E402
 
 
 def slug(name: str) -> str:
@@ -185,17 +185,22 @@ def compile_prop(recipe_path: Path, blender: Path) -> Path:
         write_json(map_path, texture_map)
         staged_inputs.extend([snapshot(frozen_recipe), snapshot(map_path)])
         fbx, report = payload / f"{asset}.fbx", attempt / "normalize-prop-report.json"
-        command = [str(blender), "-b", "--factory-startup", "--python-exit-code", "1",
-                   "--python", str(NORMALIZE_SCRIPT), "--",
-                   str(frozen_recipe), str(fbx), str(report), str(map_path), run_id]
+        command = rac_env.blender_command(
+            NORMALIZE_SCRIPT, frozen_recipe, fbx, report, map_path, run_id, blender=blender)
         execution["command"] = command
         write_json(attempt / "execution.json", execution)
-        done = subprocess.run(command, capture_output=True, text=True, errors="replace", cwd=ROOT)
-        (attempt / "stdout.log").write_text(done.stdout, encoding="utf-8")
-        (attempt / "stderr.log").write_text(done.stderr, encoding="utf-8")
+        # Decoded as UTF-8 with replacement, never the console code page: one
+        # non-ASCII byte in a Blender warning must not become a UnicodeDecodeError
+        # after the normalization already succeeded.
+        done = subprocess.run(command, capture_output=True, encoding="utf-8", errors="replace",
+                              cwd=ROOT, timeout=rac_env.BLENDER_STEP_TIMEOUT)
+        (attempt / "stdout.log").write_text(done.stdout or "", encoding="utf-8")
+        (attempt / "stderr.log").write_text(done.stderr or "", encoding="utf-8")
         execution["exit_code"] = done.returncode
         if done.returncode:
             raise RuntimeError(f"Blender failed with exit {done.returncode}; logs: {attempt}")
+        # A missing report raises FileNotFoundError here: with --python-exit-code 1
+        # that means Blender exited 0 without writing it, and the attempt fails.
         measured = read_json(report)
         require_unchanged(execution["inputs"] + staged_inputs)
         validate_output(measured, run_id, frozen_recipe, source, texture_map, fbx, asset)
@@ -219,7 +224,7 @@ def compile_prop(recipe_path: Path, blender: Path) -> Path:
                 raise ValueError("Publication copy hash mismatch")
         if out.exists():
             raise FileExistsError(f"Authority appeared during compile; retained candidate at {attempt}")
-        publish.rename(out)
+        publish_directory(publish, out)
         execution.update(status="published", output=str(out), receipt_sha256=sha256_file(
             out / "compile-receipt.json"))
         print(f"[PROP] {asset}: {manifest['triangles']} tris -> {out}; the receipts check out.")

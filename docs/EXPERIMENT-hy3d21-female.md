@@ -1,5 +1,7 @@
 # Texture experiment: Hunyuan3D-Paint 2.1 on field-scout-female
 
+*Type: retained experiment*
+
 Run 2026-08-30 against `docs/CLAUDE_RESUME_TEXTURES.md`. Four iterations.
 **Rejected on quality**, after both of its infrastructure defects were
 fixed and proven fixed. The two contract failures are gone; the generated

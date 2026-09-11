@@ -1,5 +1,7 @@
 # UE5 validation contract
 
+*Type: reference*
+
 ## Humanoid
 
 The default target is the declared existing UE5 Manny-compatible skeleton. The

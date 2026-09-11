@@ -60,6 +60,23 @@ class PlannerTests(unittest.TestCase):
         self.assertTrue(ready["execution_ready"])
         self.assertEqual("mascot_biped", ready["execution_profile"])
 
+    def test_mascot_default_backbone_is_the_registered_custom_rig(self) -> None:
+        result = plan(
+            {
+                "asset_id": "fox",
+                "asset_kind": "mascot",
+                "articulation": "required",
+                "skeleton_profile": "mascot_biped_tail",
+            },
+            REGISTRY,
+        )
+        adapter = next(row for row in REGISTRY["adapters"] if row["id"] == "blender_custom_rig")
+        self.assertEqual("blender_custom_rig", result["rig_backbone"])
+        self.assertIn("blender_custom_rig", result["existing_mesh_rig_candidates"])
+        self.assertEqual(adapter["driver"], result["rig_driver"])
+        self.assertEqual(adapter["driver_status"] == "production", result["automation_ready"])
+        self.assertNotIn("not a compatible registered adapter", result["automation_blocker"] or "")
+
     def test_arbitrary_creature_articulation_fails_closed(self) -> None:
         result = plan(
             {"asset_id": "spider", "asset_kind": "creature", "articulation": "required"},

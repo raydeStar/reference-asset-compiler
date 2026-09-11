@@ -82,7 +82,8 @@ class RetopologyTests(unittest.TestCase):
         output, report, views, topology_views = self.result()
         receipt = record_retopology_receipt(
             self.job, self.cleaned, output, report, views, "Ayric", "Loops approved.",
-            topology_views)
+            topology_views, deformation_topology_reviewed=True)
+        self.assertTrue(receipt["deformation_topology_reviewed"])
         receipt_path = Path(receipt["receipt"])
         promote_stage(
             self.job, "production_retopology",
@@ -90,6 +91,35 @@ class RetopologyTests(unittest.TestCase):
             "Loops approved.", "Ayric")
         self.assertEqual("passed", json.loads((self.job / "state.json").read_text())
                          ["stages"]["production_retopology"]["status"])
+
+    def test_cli_delegation_and_attestation_reach_a_real_promotion(self):
+        from reference_asset_compiler.cli import main
+        from reference_asset_compiler.delegated_review import AUTH_SCHEMA, record_delegated_review
+        output, report, views, topology = self.result()
+        source_hash = json.loads((self.job / "intake.json").read_text())["source"]["sha256"]
+        authorization = self.job / "authorization.json"
+        authorization.write_text(json.dumps({
+            "schema": AUTH_SCHEMA, "authorized_by": "Ayric", "reviewer": "codex",
+            "source_sha256": source_hash, "stages": ["production_retopology"],
+            "mechanical_gates_waived": False,
+            "user_instruction": "Review topology for this test fixture only.",
+        }))
+        receipt = self.job / "retopology/cli-receipt.json"
+        argv = ["retopology-receipt", str(self.job), str(self.cleaned), str(output), str(report),
+                "--approved-by", "codex", "--note", "Reviewed joint flow and views.",
+                "--authorization", str(authorization), "--deformation-topology-reviewed",
+                "--output", str(receipt)]
+        for view in views:
+            argv += ["--view", str(view)]
+        for view in topology:
+            argv += ["--topology-view", str(view)]
+        self.assertEqual(0, main(argv))
+        evidence = [self.cleaned, output, report, receipt, *views, *topology]
+        delegated = record_delegated_review(self.job / "delegated-topology.json", authorization,
+            "codex", source_hash, "production_retopology", evidence, "Reviewed all evidence.")
+        state = promote_stage(self.job, "production_retopology", [*evidence, *delegated],
+                              "Reviewed joint flow and views.", "codex")
+        self.assertEqual("passed", state["stages"]["production_retopology"]["status"])
 
     def test_humanoid_all_triangle_candidate_is_rejected(self) -> None:
         output, report, views, topology_views = self.result(quad_fraction=0.0)
@@ -105,11 +135,19 @@ class RetopologyTests(unittest.TestCase):
                 self.job, self.cleaned, output, report, views, "codex", "Review.",
                 topology_views)
 
+    def test_articulated_receipt_requires_explicit_deformation_attestation(self) -> None:
+        output, report, views, topology_views = self.result()
+        with self.assertRaisesRegex(ValueError, "deformation_topology_reviewed"):
+            record_retopology_receipt(
+                self.job, self.cleaned, output, report, views, "Ayric", "Loops approved.",
+                topology_views)
+        self.assertFalse((self.job / "retopology" / "production-retopology-receipt.json").exists())
+
     def test_ledger_rejects_receipt_that_contradicts_its_report(self) -> None:
         output, report, views, topology_views = self.result()
         payload = record_retopology_receipt(
             self.job, self.cleaned, output, report, views, "Ayric", "Loops approved.",
-            topology_views)
+            topology_views, deformation_topology_reviewed=True)
         receipt = Path(payload["receipt"])
         report_payload = json.loads(report.read_text())
         report_payload["output"]["triangles"] = 18000
@@ -127,7 +165,8 @@ class RetopologyTests(unittest.TestCase):
         output, report, views, _topology_views = self.result()
         with self.assertRaisesRegex(ValueError, "four wireframe views"):
             record_retopology_receipt(
-                self.job, self.cleaned, output, report, views, "Ayric", "Review.")
+                self.job, self.cleaned, output, report, views, "Ayric", "Review.",
+                deformation_topology_reviewed=True)
 
 
 if __name__ == "__main__":

@@ -40,9 +40,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
-import os
 import re
 import shutil
 import subprocess
@@ -60,23 +58,46 @@ from reference_asset_compiler.approvals import (  # noqa: E402
     validate_modeling_approval,
     validate_texture_approval,
 )
-from reference_asset_compiler.io import read_json  # noqa: E402
+from reference_asset_compiler.io import read_json, sha256_file  # noqa: E402
 from reference_asset_compiler.workspace import promote_stage  # noqa: E402
 from reference_asset_compiler.prop_publication import normalization_report  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
+sha256 = sha256_file
+camel = rac_env.camel
+child_env = rac_env.child_env
 
 
-def sha256(path):
-    digest = hashlib.sha256()
-    with Path(path).open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
+def load_json(path):
+    """Receipts written by the PowerShell launchers may carry a UTF-8 BOM."""
+    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
+
+
+def write_once(path, text, what):
+    """Write a file the first time; refuse to change it silently afterwards.
+
+    A recipe or manifest that differs from the retained one is a different
+    asset, not a correction. Say so and let the person pick a new id.
+    """
+    path = Path(path)
+    if path.is_file():
+        if path.read_text(encoding="utf-8-sig") == text:
+            return path
+        raise FileExistsError(
+            "{0} already exists with different content: {1}\n"
+            "        Preserve it and choose a new asset id rather than overwriting it.".format(
+                what, path))
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(text, encoding="utf-8")
+    return path
 
 
 def portable_path(path):
     resolved = Path(path).resolve()
+    try:
+        return resolved.relative_to(ROOT).as_posix()
+    except ValueError:
+        pass
     legacy = rac_env.legacy_root(required=False)
     if legacy:
         legacy = legacy.resolve()
@@ -89,23 +110,6 @@ def portable_path(path):
     return str(resolved).replace("\\", "/")
 
 
-def camel(asset_id: str) -> str:
-    return "".join(part.capitalize() for part in re.split(r"[-_]+", asset_id) if part)
-
-
-def child_env():
-    """Put src/ on the path so this runs from a checkout, not just an install.
-
-    `pip install -e .` is one more step between a person and their first
-    compiled asset, and the tests already run without it.
-    """
-    env = dict(os.environ)
-    existing = env.get('PYTHONPATH', '')
-    src = str(ROOT / 'src')
-    env['PYTHONPATH'] = src + (os.pathsep + existing if existing else '')
-    return env
-
-
 def run(command, label):
     print("\n[CHAIN] {0}".format(label))
     done = subprocess.run([str(c) for c in command], cwd=str(ROOT), env=child_env())
@@ -115,8 +119,53 @@ def run(command, label):
 
 
 def blender(script, *script_args):
-    return [rac_env.find_blender(), "-b", "--factory-startup", "--python",
-            ROOT / "scripts" / "blender" / script, "--", *script_args]
+    """The argv for one Blender stage; `--python-exit-code 1` comes with it."""
+    return rac_env.blender_command(script, *script_args)
+
+
+def run_blender_stage(script, label, outputs, *script_args, timeout=None):
+    """Run a Blender stage that must leave `outputs` behind.
+
+    The outputs are deleted first so a crash cannot be read as last run's
+    success, then required back. Returns True only when both held.
+    """
+    for path in outputs:
+        if Path(path).is_file():
+            Path(path).unlink()
+    print("\n[CHAIN] {0}".format(label))
+    code, stdout, stderr = rac_env.run_blender(script, *script_args, cwd=ROOT,
+                                               env=child_env(), timeout=timeout)
+    if code != 0:
+        for line in (stdout + "\n" + stderr).splitlines()[-20:]:
+            print("        " + line)
+        print("[CHAIN] STOPPED at {0} (exit {1})".format(label, code))
+        return False
+    missing = [str(path) for path in outputs if not Path(path).is_file()]
+    if missing:
+        print("[CHAIN] STOPPED at {0}: Blender exited 0 without writing {1}".format(
+            label, ", ".join(missing)))
+        return False
+    return True
+
+
+def render_fixed_views(mesh, views, label):
+    """Four neutral fixed views, rendered once.
+
+    The PNGs are what the human modeling approval is hash-bound to. Rendering
+    them again would change the bytes the ledger recorded and quietly
+    invalidate an approval that was already given, so an existing complete set
+    is kept as-is.
+    """
+    expected = [views / name for name in MODELING_VIEW_NAMES]
+    if all(path.is_file() for path in expected):
+        print("\n[CHAIN] {0}: retained fixed views are complete; not re-rendering".format(label))
+        return True
+    if views.exists() and any(views.iterdir()):
+        print("[CHAIN] {0}: partial retained views; preserve them and use a new asset id.".format(
+            label))
+        return False
+    return run_blender_stage("render_turnaround.py", label, expected, mesh, views, 900,
+                             timeout=rac_env.BLENDER_STEP_TIMEOUT)
 
 
 def geometry_adapter_ids():
@@ -202,8 +251,7 @@ def write_recipe(asset_id, description, mesh, height, reason, texture_dir,
         },
     }
     path = ROOT / "recipes" / "{0}.json".format(asset_id)
-    path.write_text(json.dumps(recipe, indent=2), encoding="utf-8")
-    return path
+    return write_once(path, json.dumps(recipe, indent=2), "recipe")
 
 
 def main() -> int:
@@ -244,7 +292,7 @@ def main() -> int:
     # --- intake: hash the reference and route it -----------------------------
     intake_path = work / "intake.json"
     if intake_path.is_file():
-        intake = json.loads(intake_path.read_text(encoding="utf-8-sig"))
+        intake = load_json(intake_path)
         expected = intake.get("source", {}).get("sha256")
         actual = sha256(image)
         if intake.get("asset_id") != args.asset_id or expected != actual:
@@ -312,10 +360,11 @@ def main() -> int:
     # --- describe: measure it, unpack its textures ---------------------------
     texture_dir = work / "candidate-textures"
     describe_path = work / "candidate-describe.json"
-    if run(blender("describe_mesh.py", candidate, texture_dir, describe_path),
-           "measure the candidate") != 0 or not describe_path.exists():
+    if not run_blender_stage("describe_mesh.py", "measure the candidate", [describe_path],
+                             candidate, texture_dir, describe_path,
+                             timeout=rac_env.BLENDER_STEP_TIMEOUT):
         return 1
-    description = json.loads(describe_path.read_text(encoding="utf-8"))
+    description = load_json(describe_path)
     if description["has_armature"]:
         print("[CHAIN] FAILED: that mesh carries an armature, so it is not a")
         print("        static prop. The character route needs the complete")
@@ -327,9 +376,13 @@ def main() -> int:
         return 1
 
     # --- recipe --------------------------------------------------------------
-    recipe = write_recipe(args.asset_id, description, candidate,
-                          args.height, args.height_reason, texture_dir, image,
-                          candidate_report, lineage)
+    try:
+        recipe = write_recipe(args.asset_id, description, candidate,
+                              args.height, args.height_reason, texture_dir, image,
+                              candidate_report, lineage)
+    except FileExistsError as error:
+        print("[CHAIN] FAILED: {0}".format(error))
+        return 1
     scale = args.height / max(description["height_m"], 1e-6)
     print("\n[CHAIN] wrote {0}".format(recipe))
     print("[CHAIN] {0} tris, {1} material(s), {2:.3f} m generated -> {3:.3f} m "
@@ -348,12 +401,13 @@ def main() -> int:
     # unwraps it and bakes the dense appearance onto it after approval.
     normalized = ROOT / "out" / args.asset_id / (args.asset_id + ".fbx")
     manifest_path = ROOT / "out" / args.asset_id / (args.asset_id + ".ue5import.json")
-    manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
+    manifest = load_json(manifest_path)
+    retained_reduction = manifest.get("production_reduction")
     normalization_evidence = normalization_report(work, manifest_path)
     if description["tris"] <= args.triangle_budget:
         views = work / "authority-fixed-views"
-        if run(blender("render_turnaround.py", normalized, views, 900),
-               "render under-budget authority fixed views") != 0:
+        if not render_fixed_views(normalized, views,
+                                  "render under-budget authority fixed views"):
             return 1
         manifest["production_reduction"] = {
             "status": "not_required",
@@ -371,7 +425,7 @@ def main() -> int:
         if reduction_dir.exists() and any(reduction_dir.iterdir()):
             reusable = False
             if reduction_report.is_file() and reduced.is_file():
-                retained = json.loads(reduction_report.read_text(encoding="utf-8-sig"))
+                retained = load_json(reduction_report)
                 reusable = (
                     retained.get("status") == "mechanical_pass"
                     and retained.get("source", {}).get("sha256") == sha256(normalized)
@@ -389,7 +443,8 @@ def main() -> int:
                 print("[CHAIN] FAILED: PowerShell is required for the durable reduction wrapper")
                 return 1
             if run([
-                shell, "-NoProfile", "-File", ROOT / "scripts" / "run_voxel_qem_reduction.ps1",
+                shell, "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+                ROOT / "scripts" / "run_voxel_qem_reduction.ps1",
                 "-InputMesh", normalized,
                 "-OutputDirectory", reduction_dir,
                 "-TriangleBudget", args.triangle_budget,
@@ -398,10 +453,9 @@ def main() -> int:
                 return 1
 
         views = reduction_dir / "fixed-views"
-        if run(blender("render_turnaround.py", reduced, views, 900),
-               "render reduced fixed views") != 0:
+        if not render_fixed_views(reduced, views, "render reduced fixed views"):
             return 1
-        retained = json.loads(reduction_report.read_text(encoding="utf-8-sig"))
+        retained = load_json(reduction_report)
         manifest["production_reduction"] = {
             "backend": retained["backend"],
             "candidate": str(reduced.resolve()),
@@ -433,6 +487,18 @@ def main() -> int:
         reduction["modeling_approval"] = {"status": "pending", "reason": str(error)}
     else:
         reduction["modeling_approval"] = approval
+    # The authority manifest gains its production_reduction block once. The
+    # only field allowed to move afterwards is the mirrored approval status,
+    # which the ledger owns; a different candidate, backend or view directory
+    # is a different asset and must not overwrite the retained record.
+    if retained_reduction is not None:
+        frozen_before = {k: v for k, v in retained_reduction.items() if k != "modeling_approval"}
+        frozen_now = {k: v for k, v in reduction.items() if k != "modeling_approval"}
+        if frozen_before != frozen_now:
+            print("[CHAIN] FAILED: {0} already records a different production_reduction"
+                  .format(manifest_path))
+            print("        Preserve it and choose a new asset id rather than overwriting it.")
+            return 1
     manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
 
     if approval is None:
@@ -467,11 +533,19 @@ def main() -> int:
         print("        Re-run with --yes to continue through production gates.")
         return 0
 
-    if run([sys.executable, ROOT / "scripts" / "build_production.py", args.asset_id],
-           "heal, remesh, unwrap, bake, gate") != 0:
-        return 1
+    state = read_json(work / "state.json")
+    for stage in ("semantic_cleanup", "production_retopology"):
+        if state["stages"][stage]["status"] != "passed":
+            print("[CHAIN] PAUSE -- {0}. Follow docs/PIPELINE.md before baking; "
+                  "--yes cannot supply this evidence.".format(stage))
+            return 0
+
     prod = work / "prod-v2"
-    retopo = json.loads((prod / "retopo.json").read_text(encoding="utf-8-sig"))
+    if state["stages"]["unwrap_and_bake"]["status"] == "pending":
+        if run([sys.executable, ROOT / "scripts" / "build_production.py", args.asset_id],
+               "unwrap and bake approved retopology") != 0:
+            return 1
+    retopo = load_json(prod / "retopo.json")
     try:
         validate_texture_approval(work, prod, retopo)
     except ValueError as error:

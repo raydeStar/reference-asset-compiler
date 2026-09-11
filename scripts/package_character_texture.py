@@ -31,7 +31,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import subprocess
 import sys
@@ -40,17 +39,13 @@ from pathlib import Path
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import rac_env  # noqa: E402
+from reference_asset_compiler.approvals import TEXTURE_VIEW_NAMES  # noqa: E402
+from reference_asset_compiler.io import sha256_file  # noqa: E402
 
 ROOT = Path(__file__).resolve().parents[1]
-
-
-def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1 << 20), b""):
-            digest.update(block)
-    return digest.hexdigest()
+sha256 = sha256_file
 
 
 def require_file(path: Path) -> Path:
@@ -65,6 +60,25 @@ def run(command: list[str], label: str, allow_failure: bool = False) -> int:
     if completed.returncode and not allow_failure:
         raise RuntimeError(f"{label} failed with exit code {completed.returncode}")
     return completed.returncode
+
+
+def run_blender(script: str, label: str, outputs: list[Path], *arguments: object,
+                blender: Path, timeout: float | None) -> None:
+    """One Blender stage, with `--python-exit-code 1` and its outputs required back.
+
+    Everything here writes into a production directory this run created, so
+    there is nothing retained to clear first; a stage that exits 0 without its
+    report is still a failed stage.
+    """
+    code, stdout, stderr = rac_env.run_blender(script, *arguments, blender=blender,
+                                               timeout=timeout, cwd=ROOT)
+    if code:
+        for line in (stdout + "\n" + stderr).splitlines()[-20:]:
+            print("    " + line, file=sys.stderr)
+        raise RuntimeError(f"{label} failed with exit code {code}")
+    missing = [str(path) for path in outputs if not path.is_file()]
+    if missing:
+        raise RuntimeError(f"{label} exited 0 without writing {', '.join(missing)}")
 
 
 def pascal(asset: str) -> str:
@@ -116,19 +130,25 @@ def main() -> int:
     blender = Path(args.blender) if args.blender else Path(rac_env.find_blender())
     require_file(blender)
 
-    prod.mkdir(parents=True)
-    staged: dict[str, Path] = {}
+    # Validate every map before a single byte lands in the production
+    # directory, so a rejected set leaves no half-written package behind.
+    decoded: dict[str, Image.Image] = {}
     sizes = set()
     for channel, source in sources.items():
         image = Image.open(source)
         image = image.convert("RGB") if channel == "BaseColor" else image.convert("L")
         sizes.add(image.size)
-        target = prod / f"T_{args.asset}_{channel}.png"
-        image.save(target)
-        staged[channel] = target
+        decoded[channel] = image
     if len(sizes) != 1 or len({s for size in sizes for s in size}) != 1:
         raise ValueError(f"texture maps must be one square resolution, found {sorted(sizes)}")
     resolution = next(iter(sizes))[0]
+
+    prod.mkdir(parents=True)
+    staged: dict[str, Path] = {}
+    for channel, image in decoded.items():
+        target = prod / f"T_{args.asset}_{channel}.png"
+        image.save(target)
+        staged[channel] = target
 
     intake = json.loads((work / "intake.json").read_text(encoding="utf-8-sig"))
     asset_kind = intake.get("asset_kind")
@@ -142,25 +162,23 @@ def main() -> int:
 
     production_fbx = prod / f"{args.asset}_production.fbx"
     bind_report_path = prod / "texture-payload-binding.json"
-    bind_command = [
-        str(blender), "-b", "--python-exit-code", "1", "--python",
-        str(ROOT / "scripts" / "blender" / "bind_texture_payload.py"), "--",
-        str(uv_authority), str(production_fbx), str(bind_report_path), str(textures_json),
+    bind_arguments: list[object] = [
+        uv_authority, production_fbx, bind_report_path, textures_json,
         "--material-name", material_name, "--mesh-name", mesh_name,
     ]
     if args.target_height is not None:
-        bind_command += ["--target-height", str(args.target_height)]
+        bind_arguments += ["--target-height", str(args.target_height)]
     if not args.no_recenter:
-        bind_command.append("--recenter")
-    run(bind_command, "texture payload binding")
+        bind_arguments.append("--recenter")
+    run_blender("bind_texture_payload.py", "texture payload binding",
+                [production_fbx, bind_report_path], *bind_arguments,
+                blender=blender, timeout=rac_env.BLENDER_STEP_TIMEOUT)
     bind_report = json.loads(bind_report_path.read_text(encoding="utf-8-sig"))
 
     regions_path = prod / "uv-regions.npz"
-    run([
-        str(blender), "-b", "--factory-startup", "--python",
-        str(ROOT / "scripts" / "blender" / "export_uv_regions.py"), "--",
-        str(production_fbx), str(regions_path),
-    ], "UV region export")
+    run_blender("export_uv_regions.py", "UV region export", [regions_path],
+                production_fbx, regions_path,
+                blender=blender, timeout=rac_env.BLENDER_STEP_TIMEOUT)
 
     profile = json.loads(profile_path.read_text(encoding="utf-8-sig"))
     gate_profile_path = profile_path
@@ -184,12 +202,11 @@ def main() -> int:
     ], "texture gate", allow_failure=True)
     gate = json.loads(gate_path.read_text(encoding="utf-8-sig"))
 
-    run([
-        str(blender), "-b", "--factory-startup", "--python",
-        str(ROOT / "scripts" / "blender" / "render_turnaround.py"), "--",
-        str(production_fbx), str(prod / "turn"), str(args.render_resolution),
-        "albedo", "smooth", "calibrated",
-    ], "fixed-view render")
+    turn = prod / "turn"
+    run_blender("render_turnaround.py", "fixed-view render",
+                [turn / name for name in TEXTURE_VIEW_NAMES],
+                production_fbx, turn, args.render_resolution, "albedo", "smooth", "calibrated",
+                blender=blender, timeout=rac_env.BLENDER_STEP_TIMEOUT)
 
     # Hunyuan3D-Paint emits base color, metallic and roughness but no AO map.
     # White is the physically neutral AO value: it adds no invented shadowing
@@ -233,6 +250,8 @@ def main() -> int:
                          "profile": str(gate_profile_path)},
         "ok": bool(gate.get("ok")),
     }
+    from reference_asset_compiler.texture_payload import bind_texture_payload
+    retopo = bind_texture_payload(retopo, uv_authority, production_fbx, gate_path)
     retopo_path = prod / "retopo.json"
     retopo_path.write_text(json.dumps(retopo, indent=2) + "\n", encoding="utf-8")
 

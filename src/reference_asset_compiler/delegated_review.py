@@ -7,11 +7,11 @@ This records consent supplied by an operator; it is not an authentication system
 from pathlib import Path
 from typing import Any
 
+from .contracts import DELEGATED_REVIEWERS
 from .io import read_json, sha256_file, write_json
 
 AUTH_SCHEMA = "reference-asset-compiler.review-delegation.v1"
 REVIEW_SCHEMA = "reference-asset-compiler.delegated-review.v1"
-DELEGATED_REVIEWERS = {"codex", "claude", "agent", "automation"}
 
 
 def validate_authorization(path: Path, reviewer: str, source_hash: str | None,

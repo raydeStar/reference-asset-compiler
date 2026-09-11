@@ -1,5 +1,7 @@
 # Reusable scene tools
 
+*Type: reference*
+
 The workshop exposed expensive repetition: per-version Python replacements,
 opaque fog units, unchecked property setters, and evidence pages that blurred
 technical success with approval. These tools extract those mechanics without

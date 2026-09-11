@@ -6,18 +6,15 @@ tools used during the reference-studio experiments. The compiler under
 show how candidates were generated or painted before that point.
 
 Read [the workflow playbook](../docs/WORKFLOW_PLAYBOOK.md) before running any
-GPU stage. Run `scripts\workflow_doctor.ps1` first; it is read-only and does
-not launch ComfyUI, Blender, inference, or Unreal.
+GPU stage. `scripts/workflow_doctor.ps1 -Profile ledger` checks the compiler
+without launching inference or creative applications. Broader profiles inspect
+their own dependencies; the `all` profile may run short Blender add-on probes.
 
-## Routing summary
-
-| Need | Default on this workstation | Alternative | Never assume |
-|---|---|---|---|
-| Initial image-to-3D geometry | Original Hunyuan3D ComfyUI graph, stopped at `Hy3DExportMesh`; compare against Pixal3D | Pixal3D wrapper | That ComfyUI is the texture production path |
-| Existing-mesh PBR texture | Hunyuan3D-Paint 2.1 source-locked runner | TRELLIS.2 isolated challenger | That either candidate is accepted without fixed-view review |
-| Humanoid rig | User-supplied Auto-Rig Pro in a compatible Blender, followed by compiler gates | AniGen challenger | That the compiler authors a new rig |
-| Mascot rig | Explicit custom Blender skeleton/profile | AniGen challenger | That Manny is suitable for a fox or arbitrary creature |
-| UE5 packaging | `scripts\compile_asset.ps1`, then UE import/verify/cook | none | That an FBX import alone is production proof |
+[`catalog.json`](catalog.json) is the canonical routing and runner-hash registry.
+Its `workstation_contract` identifies the defaults and challengers; each workflow
+entry gives its deployment path and promotion boundary. Command recipes live in
+[`docs/WORKFLOW_PLAYBOOK.md`](../docs/WORKFLOW_PLAYBOOK.md). There is no second
+hand-maintained routing table here to disagree with the registry.
 
 ## Included provenance copies
 
@@ -27,13 +24,21 @@ weights, licensed add-ons, and generated assets are intentionally not bundled.
 
 - `geometry/comfyui/hy3d_final_cut.json` — the user's original 64-node graph.
 - `geometry/hunyuan3d/run_hy3d_multiview.py` — the source-locked Hunyuan3D-2mv
-  geometry runner that `scripts/run_hy3d_geometry.ps1` hash-pins.
+  geometry runner that `scripts/run_hy3d_geometry.ps1` hash-pins and runs in
+  place (no studio copy).
 - `geometry/hunyuan3d/run_hy3d_single_view.py` — the single-image Hunyuan3D-2
-  runner for requests with `"mode": "single_view"`; no guidance views needed.
+  runner for requests with `"mode": "single_view"`; run in place likewise.
 - `geometry/pixal3d/run_pixal3d.py` — alpha-locked Pixal3D candidate wrapper.
-- `texture/hunyuan3d21/` — topology/UV-locked Hunyuan3D-Paint 2.1 runner and
-  Windows rasterizer patch.
+- `texture/hunyuan3d21/run_hy3d21_pbr.py` — topology/UV-locked Hunyuan3D-Paint
+  2.1 runner. This one is copied byte-for-byte to the studio and verified there.
+- `texture/hunyuan3d21/patch_hy3d21_windows.py` — Windows rasterizer build patch.
+- `texture/hunyuan3d21/run_hy3d21_hires.py` — a retained variant that loads the
+  mesh without vertex merging and saves the 4096 atlas without downsampling.
+  Provenance for the female texture experiment; not the launcher default.
 - `texture/trellis2/` — topology/UV-locked TRELLIS.2 challenger.
+- `texture/intrinsicanything/` — README and pinned requirements for the
+  IntrinsicAnything albedo challenger, stopped on 2026-09-05 after three bounded
+  failures (see its README and `docs/ESCALATE-sunset-lighting.md`).
 - `rigging/anigen/run_anigen_candidate.py` — immutable rig challenger wrapper.
 
 Do not edit the provenance copies to make a local run pass. Add a versioned

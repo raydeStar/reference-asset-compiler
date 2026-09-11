@@ -17,28 +17,47 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
+import re
+import shutil
 import subprocess
 import sys
+import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 import rac_env  # noqa: E402
 from reference_asset_compiler.approvals import validate_modeling_approval  # noqa: E402
-from reference_asset_compiler.io import read_json  # noqa: E402
-from reference_asset_compiler.workspace import promote_stage  # noqa: E402
+from reference_asset_compiler.io import read_json, sha256_file  # noqa: E402
+from reference_asset_compiler.evidence import record_evidence_paths, stage_receipt  # noqa: E402
+from reference_asset_compiler.texture_payload import bind_texture_payload  # noqa: E402
+from reference_asset_compiler.workspace import audit_workspace, promote_stage  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
+sha256 = sha256_file
 
 
-def sha256(path):
-    digest = hashlib.sha256()
-    with Path(path).open("rb") as stream:
-        for block in iter(lambda: stream.read(1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
+def load_json(path):
+    """Receipts written by the PowerShell launchers may carry a UTF-8 BOM."""
+    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
+
+
+def clear_outputs(*paths):
+    """Delete the per-run files a stage is about to rewrite, and nothing else.
+
+    A stage that crashes leaves no report behind -- and the driver must then
+    notice, rather than read the report of the previous run. Only the outputs
+    the SAME call regenerates are removed; retained evidence is never touched.
+    """
+    for path in paths:
+        path = Path(path)
+        if path.is_file():
+            path.unlink()
+
+
+def missing_outputs(*paths):
+    return [str(path) for path in paths if not Path(path).is_file()]
 
 # Strategy per asset, where visual review overrides what the gates allow.
 #
@@ -160,29 +179,39 @@ def normalise(name):
     return name.replace("_", "").replace("-", "").lower()
 
 
-def blender(script, *script_args, quiet=True):
-    command = [str(BLENDER), "-b", "--factory-startup", "--python",
-               str(ROOT / "scripts" / "blender" / script), "--"]
-    command += [str(a) for a in script_args]
-    done = subprocess.run(command, capture_output=True, text=True, cwd=str(ROOT))
-    text = done.stdout + "\n" + done.stderr
+def blender(script, *script_args, quiet=True, timeout=None, outputs=()):
+    """Run one Blender stage and return (returncode, interesting lines).
+
+    `outputs` are the files this call is expected to (re)write. They are
+    deleted first and required back afterwards; a missing one is reported as
+    a non-zero code even when Blender itself exited 0.
+    """
+    clear_outputs(*outputs)
+    code, stdout, stderr = rac_env.run_blender(
+        script, *script_args, blender=BLENDER, timeout=timeout, cwd=ROOT)
+    text = stdout + "\n" + stderr
     lines = [ln for ln in text.splitlines()
              if ln.startswith("[") or "Error" in ln or "Traceback" in ln
              or ln.strip().startswith("File \"")]
-    if not quiet or done.returncode != 0:
+    missing = missing_outputs(*outputs) if code == 0 else []
+    if missing:
+        code = 1
+        lines.append("[BUILD] {0} exited 0 without writing: {1}".format(
+            script, ", ".join(missing)))
+    if not quiet or code != 0:
         print("\n".join(lines[-25:]))
-    return done.returncode, lines
+    return code, lines
 
 
 def material_slots(fbx):
     """Material names on the mesh, via a throwaway Blender read."""
-    probe = ROOT / "scripts" / "blender" / "_list_materials.py"
-    probe.write_text(PROBE, encoding="utf-8")
-    try:
-        _, lines = blender("_list_materials.py", fbx)
+    with tempfile.TemporaryDirectory(prefix="rac-material-probe-") as temporary:
+        probe = Path(temporary) / "list_materials.py"
+        probe.write_text(PROBE, encoding="utf-8")
+        code, lines = blender(probe, fbx, timeout=rac_env.BLENDER_STEP_TIMEOUT)
+        if code != 0:
+            raise RuntimeError("material probe failed with exit {0}".format(code))
         return [ln.split(" ", 1)[1] for ln in lines if ln.startswith("[SLOT] ")]
-    finally:
-        probe.unlink(missing_ok=True)
 
 
 def build_texmap(asset, fbx, out_path):
@@ -206,10 +235,21 @@ def build_texmap(asset, fbx, out_path):
 
 
 def build(asset, args):
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", asset):
+        raise ValueError("Asset id must be a lowercase slug, not a filesystem path")
     src = ROOT / "out" / asset / (asset + ".fbx")
     work = ROOT / "work" / asset
-    prod = work / "prod-v2"
+    production_name = getattr(args, "production_name", "prod-v2")
+    if not re.fullmatch(r"prod-[a-z0-9]+(?:-[a-z0-9]+)*", production_name):
+        raise ValueError("Production name must be a local prod-* directory name")
+    prod = work / production_name
+    if prod.exists():
+        raise ValueError("Refusing to overwrite retained production attempt: {0}. "
+                         "Choose a new --production-name prod-* directory.".format(prod))
     profile = work / "resolved-profile.json"
+    published_profile = ROOT / "out" / asset / "resolved-profile.json"
+    if published_profile.is_file():
+        profile = published_profile
     if asset_kind(asset) == "static_prop" and not profile.exists():
         # The humanoid intake resolves a skeleton profile per asset and folds
         # in that asset's waivers. A prop has no skeleton to resolve, but the
@@ -220,14 +260,30 @@ def build(asset, args):
     if not src.exists():
         print("[BUILD] {0}: no source at {1}".format(asset, src))
         return None
-    prod.mkdir(parents=True, exist_ok=True)
     result = {"asset": asset, "source": str(src), "out_dir": str(prod)}
     manifest_path = ROOT / "out" / asset / (asset + ".ue5import.json")
     manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
     reduction = manifest.get("production_reduction") or {}
     prebuilt_low = Path(reduction["candidate"]) if reduction.get("candidate") else None
     prebuilt_args = []
-    if reduction:
+    ledgered = (work / "state.json").is_file()
+    if ledgered:
+        audit = audit_workspace(work)
+        if not audit["ok"]:
+            raise ValueError("Workspace audit failed: " + "; ".join(audit["failures"]))
+        state = read_json(work / "state.json")
+        receipt = stage_receipt(work, state, "production_retopology",
+                                "reference-asset-compiler.production-retopology.v1")
+        prebuilt_low = next((path for path in record_evidence_paths(
+            work, state["stages"]["production_retopology"])
+            if sha256(path) == receipt["output_mesh_sha256"]), None)
+        if prebuilt_low is None:
+            raise ValueError("Approved production retopology mesh is missing")
+        if state["stages"]["unwrap_and_bake"]["status"] != "pending":
+            raise ValueError("unwrap_and_bake is already recorded; use a new asset id")
+        prebuilt_args = ["--prebuilt-low", prebuilt_low]
+        result["approved_retopology_sha256"] = receipt["output_mesh_sha256"]
+    elif reduction:
         modeling_candidate = prebuilt_low or src
         fixed_views = Path(reduction.get("fixed_views") or "")
         try:
@@ -237,7 +293,7 @@ def build(asset, args):
                 asset, error))
             return {**result, "ok": False, "stage": "modeling-approval"}
         result["modeling_approval"] = approval
-    if prebuilt_low:
+    if prebuilt_low and not ledgered:
         if not prebuilt_low.is_file():
             print("[BUILD] {0}: declared reduction candidate missing at {1}".format(
                 asset, prebuilt_low))
@@ -259,25 +315,29 @@ def build(asset, args):
     # demand of it, so the stage is told the floor rather than guessing.
     min_density = 0.0
     if profile.exists():
-        limits = json.loads(profile.read_text(encoding="utf-8")).get(
-            "texture_limits", {})
+        limits = load_json(profile).get("texture_limits", {})
         min_density = float(limits.get("min_texel_density_per_cm2", 0.0) or 0.0)
 
-    mapping, unmatched = build_texmap(asset, src, prod / "texmap.json")
+    try:
+        prod.mkdir(parents=True)
+        mapping, unmatched = build_texmap(asset, src, prod / "texmap.json")
+    except RuntimeError as error:
+        print("[BUILD] {0}: {1}".format(asset, error))
+        return {**result, "ok": False, "stage": "material-probe", "failure": str(error)}
     result["texmap"] = mapping
     result["materials_without_texture"] = unmatched
     if unmatched:
         print("[BUILD] {0}: flat-coloured materials, baked from their own "
               "base colour: {1}".format(asset, ", ".join(unmatched)))
 
-    # Blender exits 0 even when the script it was handed raised, so a crashed
-    # stage looks like a successful one and the next step happily reads the
-    # report left behind by the PREVIOUS run. That is how a build that died on
-    # an UnboundLocalError reported PASS with stale numbers. Delete the report
-    # first and require it back.
+    # Without `--python-exit-code 1` Blender exits 0 even when the script it
+    # was handed raised, so a crashed stage looks like a successful one and
+    # the next step happily reads the report left behind by the PREVIOUS run.
+    # That is how a build that died on an UnboundLocalError reported PASS with
+    # stale numbers. Every call below passes the flag through rac_env, deletes
+    # its own report first, and requires it back.
     report_path = prod / "retopo.json"
-    if report_path.exists():
-        report_path.unlink()
+    clear_outputs(report_path)
 
     # Try a couple of budgets and keep whichever lands closest to the original.
     #
@@ -297,8 +357,11 @@ def build(asset, args):
     attempts, best = [], None
     for candidate in candidates:
         print("[BUILD] {0}: retopologising at {1}".format(asset, candidate))
+        trial_dir = prod / ("budget-" + str(candidate))
+        trial_dir.mkdir()
+        trial_report = trial_dir / "retopo.json"
         code, lines = blender(
-            "retopo_bake.py", src, prod, prod / "retopo.json",
+            "retopo_bake.py", src, trial_dir, trial_report,
             "--budget", candidate, "--resolution", args.resolution,
             "--samples", args.samples, "--texmap", prod / "texmap.json",
             "--strategy", STRATEGY.get(asset, args.strategy),
@@ -307,46 +370,37 @@ def build(asset, args):
             "--close-holes", "yes" if CLOSE_HOLES.get(asset) else "",
             "--kind", asset_kind(asset),
             "--min-density", min_density,
-            *prebuilt_args)
+            *prebuilt_args, outputs=(trial_report,))
         for line in lines:
             if line.startswith("[RETOPO]"):
                 print("   " + line)
-        if code != 0 or not report_path.exists():
-            break
-        trial = json.loads(report_path.read_text(encoding="utf-8"))
+        if code != 0 or not trial_report.exists():
+            return {**result, "ok": False, "stage": "retopo",
+                    "failure": "Retopology failed; attempt retained, no automatic retry",
+                    "budget_attempts": attempts}
+        trial = load_json(trial_report)
+        if trial.get("ok") is not True:
+            return {**result, "ok": False, "stage": "retopo",
+                    "failure": "Retopology report did not pass", "budget_attempts": attempts}
         drift = (trial.get("deviation") or {}).get("p99_m")
         attempts.append({"budget": candidate, "tris": trial.get("low_tris"),
                          "deviation_p99_m": drift,
                          "reduced": trial.get("reduced")})
         if best is None or (drift is not None
                             and (best[1] is None or drift < best[1])):
-            best = (candidate, drift)
-            for name in ("retopo.json",):
-                (prod / (name + ".best")).write_bytes(report_path.read_bytes())
+            best = (candidate, drift, trial_dir)
         if not trial.get("reduced"):
             break
     result["budget_attempts"] = attempts
 
-    # Rebuild at the winner if the last run was not it.
-    if best is not None and attempts and attempts[-1]["budget"] != best[0]:
-        print("[BUILD] {0}: {1} measured closest ({2}m); rebuilding".format(
-            asset, best[0], best[1]))
-        code, lines = blender(
-            "retopo_bake.py", src, prod, prod / "retopo.json",
-            "--budget", best[0], "--resolution", args.resolution,
-            "--samples", args.samples, "--texmap", prod / "texmap.json",
-            "--strategy", STRATEGY.get(asset, args.strategy),
-            "--settle-props", SETTLE_PROPS.get(asset, ""),
-            "--preserve-props", PRESERVE_PROPS.get(asset, ""),
-            "--close-holes", "yes" if CLOSE_HOLES.get(asset) else "",
-            "--kind", asset_kind(asset),
-            "--min-density", min_density,
-            *prebuilt_args)
-        for line in lines:
-            if line.startswith("[RETOPO]"):
-                print("   " + line)
-    for stale in prod.glob("*.best"):
-        stale.unlink()
+    # Keep every trial and copy the measured winner; a second bake is new evidence.
+    if best is not None:
+        for path in best[2].iterdir():
+            destination = prod / path.name
+            if path.is_dir():
+                shutil.copytree(path, destination)
+            else:
+                shutil.copy2(path, destination)
     crashed = [ln for ln in lines if "Traceback" in ln or "Error" in ln]
     if code != 0 or not report_path.exists() or crashed:
         result["ok"] = False
@@ -357,26 +411,56 @@ def build(asset, args):
         for line in lines[-12:]:
             print("   " + line)
         return result
-    result["retopo"] = json.loads(report_path.read_text(encoding="utf-8"))
+    result["retopo"] = load_json(report_path)
 
     retopo_fbx = prod / (asset + "_retopo.fbx")
     shipped = prod / (asset + "_production.fbx")
     baked = result["retopo"]["baked"]
-    blender("apply_production_material.py", retopo_fbx,
-            prod / baked["BaseColor"], prod / baked.get("Normal", "none.png"),
-            prod / baked.get("AO", "none.png"),
-            prod / baked.get("Roughness", "none.png"),
-            prod / baked.get("Metallic", "none.png"), shipped)
+
+    def failed(stage, code, lines):
+        result["ok"] = False
+        result["stage"] = stage
+        result["failure"] = "{0} exited {1}".format(stage, code)
+        print("[BUILD] {0}: {1} FAILED (exit {2})".format(asset, stage, code))
+        for line in lines[-12:]:
+            print("   " + line)
+        return result
+
+    code, lines = blender(
+        "apply_production_material.py", retopo_fbx,
+        prod / baked["BaseColor"], prod / baked.get("Normal", "none.png"),
+        prod / baked.get("AO", "none.png"),
+        prod / baked.get("Roughness", "none.png"),
+        prod / baked.get("Metallic", "none.png"), shipped,
+        timeout=rac_env.BLENDER_STEP_TIMEOUT, outputs=(shipped,))
+    if code != 0:
+        return failed("apply-material", code, lines)
     result["shipped"] = str(shipped)
 
     # --- gates, the same ones the source asset already passes ---------------
-    blender("export_uv_regions.py", retopo_fbx, prod / "uv-regions.npz")
-    subprocess.run(
+    regions = prod / "uv-regions.npz"
+    code, lines = blender("export_uv_regions.py", retopo_fbx, regions,
+                          timeout=rac_env.BLENDER_STEP_TIMEOUT, outputs=(regions,))
+    if code != 0:
+        return failed("export-uv-regions", code, lines)
+    gate_tex = prod / "gate-tex.json"
+    clear_outputs(gate_tex)
+    # The texture gate exits non-zero when the texture FAILS the gate, and the
+    # report then carries the reasons; only a missing report is a crash.
+    gate_run = subprocess.run(
         [sys.executable, str(ROOT / "scripts" / "gate_texture.py"),
-         str(prod / "uv-regions.npz"), str(prod / baked["BaseColor"]),
-         str(profile), str(prod / "gate-tex.json"),
+         str(regions), str(prod / baked["BaseColor"]),
+         str(profile), str(gate_tex),
          "--material-name", "M_Retopo"],
-        cwd=str(ROOT), capture_output=True, text=True)
+        cwd=str(ROOT), capture_output=True, encoding="utf-8", errors="replace",
+        timeout=rac_env.BLENDER_STEP_TIMEOUT)
+    if not gate_tex.is_file() or gate_run.returncode not in (0, 1):
+        return failed("gate-texture", gate_run.returncode,
+                      (gate_run.stdout + "\n" + gate_run.stderr).splitlines())
+    texture_gate = load_json(gate_tex)
+    if gate_run.returncode != 0 and texture_gate.get("ok") is True:
+        return failed("gate-texture", gate_run.returncode,
+                      ["A failed process cannot certify a passing gate."])
     if asset_kind(asset) == "static_prop":
         # No skeleton to compare against a profile and no deformation to
         # exercise. Recording them as skipped rather than absent keeps the
@@ -392,7 +476,7 @@ def build(asset, args):
         budget = None
         waiver = None
         if profile.exists():
-            resolved = json.loads(profile.read_text(encoding="utf-8"))
+            resolved = load_json(profile)
             budget = resolved.get("tri_budget")
             waiver = resolved.get("tri_budget_waiver")
         tris = (result.get("retopo") or {}).get("low_tris")
@@ -412,22 +496,38 @@ def build(asset, args):
             print("[BUILD] {0}: {1} triangles against a budget of {2}".format(
                 asset, tris, budget))
         result["deform"] = {"ok": True, "skipped": "static prop does not deform"}
+        for name in ("gate-rig", "deform"):
+            (prod / (name + ".json")).write_text(json.dumps(result[name]), encoding="utf-8")
     else:
-        blender("gate_rig.py", shipped, profile, prod / "gate-rig.json")
-        blender("deform_test.py", shipped, prod / "deform", prod / "deform.json")
+        gate_rig = prod / "gate-rig.json"
+        code, lines = blender("gate_rig.py", shipped, profile, gate_rig,
+                              timeout=rac_env.BLENDER_STEP_TIMEOUT, outputs=(gate_rig,))
+        if code != 0:
+            return failed("gate-rig", code, lines)
+        deform_report = prod / "deform.json"
+        code, lines = blender("deform_test.py", shipped, prod / "deform", deform_report,
+                              timeout=rac_env.BLENDER_STEP_TIMEOUT, outputs=(deform_report,))
+        if code != 0:
+            return failed("deform", code, lines)
 
-    for name in ("gate-tex", "gate-rig", "deform"):
+    for name in (("gate-tex",) if asset_kind(asset) == "static_prop"
+                 else ("gate-tex", "gate-rig", "deform")):
         path = prod / (name + ".json")
         if path.exists():
-            result[name] = json.loads(path.read_text(encoding="utf-8"))
+            result[name] = load_json(path)
 
     if not args.skip_render:
-        blender("render_turnaround.py", shipped, prod / "turn", 900)
+        code, lines = blender("render_turnaround.py", shipped, prod / "turn", 900,
+                              timeout=rac_env.BLENDER_STEP_TIMEOUT)
+        if code != 0:
+            return failed("render-turnaround", code, lines)
         # The close-up frames a sphere around a named bone. A prop has none,
         # and the turnaround already covers it at this size.
         if asset_kind(asset) != "static_prop":
-            blender("render_closeup.py", shipped, prod / "closeup", "head", 0.30,
-                    "beauty,matcap", "0,35")
+            code, lines = blender("render_closeup.py", shipped, prod / "closeup", "head", 0.30,
+                                  "beauty,matcap", "0,35", timeout=rac_env.BLENDER_STEP_TIMEOUT)
+            if code != 0:
+                return failed("render-closeup", code, lines)
 
     # The bake must have reached the UV islands. A texel the rays never hit
     # keeps the pass fill, and for BaseColor that fill is black -- which is
@@ -450,29 +550,17 @@ def build(asset, args):
         and result.get("deform", {}).get("ok", True)
         and (result["bake_reached_islands"] is None
              or result["bake_reached_islands"] >= 0.9))
-    if result["ok"] and (work / "state.json").is_file():
-        state = read_json(work / "state.json")
+    result["retopo"] = bind_texture_payload(
+        result["retopo"], prebuilt_low or retopo_fbx, shipped, gate_tex)
+    report_path.write_text(json.dumps(result["retopo"], indent=2) + "\n", encoding="utf-8")
+    if result["ok"] and ledgered:
         baked_paths = [prod / value for value in result["retopo"].get("baked", {}).values()]
-        stage_evidence = {
-            "semantic_cleanup": [report_path],
-            "production_retopology": [report_path, retopo_fbx],
-            "unwrap_and_bake": [report_path, prod / "gate-tex.json", shipped, *baked_paths],
-        }
-        for stage, evidence in stage_evidence.items():
-            status = state["stages"][stage]["status"]
-            if status == "pending":
-                state = promote_stage(
-                    work,
-                    stage,
-                    evidence,
-                    "Automated mechanical gate passed; human visual gates remain separate.",
-                    "build_production.py",
-                )
-            elif status != "passed":
-                result["ok"] = False
-                result["stage"] = stage
-                result["failure"] = "workspace stage is {0}".format(status)
-                break
+        promote_stage(
+            work, "unwrap_and_bake",
+            [report_path, gate_tex, prebuilt_low, shipped, *baked_paths],
+            "Baked the reviewed retopology; texture approval remains a separate human gate.",
+            "build_production.py",
+        )
     return result
 
 
@@ -484,6 +572,8 @@ def main() -> int:
     parser.add_argument("--resolution", type=int, default=4096)
     parser.add_argument("--samples", type=int, default=24)
     parser.add_argument("--skip-render", action="store_true")
+    parser.add_argument("--production-name", default="prod-v2",
+                        help="New retained prod-* attempt directory; existing attempts are refused")
     parser.add_argument("--strategy", default="auto", choices=("auto", "region", "passthrough"))
     parser.add_argument("--no-sweep", action="store_true",
                         help="use the given budget instead of trying double it")
@@ -493,8 +583,13 @@ def main() -> int:
 
     summary = []
     for asset in args.assets:
-        built = build(asset, args)
+        try:
+            built = build(asset, args)
+        except (OSError, ValueError, KeyError, subprocess.TimeoutExpired) as error:
+            built = {"asset": asset, "ok": False, "failure": str(error)}
+            print("[BUILD] {0}: {1}; retained evidence stays put.".format(asset, error))
         if built is None:
+            summary.append({"asset": asset, "ok": False, "failure": "source missing"})
             continue
         summary.append(built)
         retopo = built.get("retopo", {})
@@ -507,6 +602,7 @@ def main() -> int:
             "PASS" if built["ok"] else "FAIL"))
 
     out = ROOT / "work" / "production-summary.json"
+    out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(json.dumps(summary, indent=2), encoding="utf-8")
     print("[BUILD] summary -> {0}".format(out))
     return 0 if summary and all(b["ok"] for b in summary) else 1

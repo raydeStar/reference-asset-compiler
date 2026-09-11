@@ -1,5 +1,7 @@
 # Nightfall at the workshop
 
+*Type: chronological log*
+
 Verified local night variant, 2026-09-05. Daytime v018 remains intact.
 
 ```powershell

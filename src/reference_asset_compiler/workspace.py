@@ -2,14 +2,25 @@
 
 from __future__ import annotations
 
+import os
 import shutil
-import string
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterator
 
-from .contracts import STAGE_STATUSES
-from .io import read_json, sha256_file, slugify, write_json
+from .contracts import AUTOMATION_REVIEWERS, STAGE_STATUSES
+from .evidence import (
+    IMPORT_SCHEMA,
+    evidence_display_path,
+    find_receipt,
+    is_sha256,
+    load_json_receipts,
+    record_evidence_paths,
+    record_receipt_value,
+    verify_record_evidence,
+)
+from .io import read_json, sha256_file, slugify, write_json, write_retained_json
 from .planner import articulation_required, plan, required_stages
 from .delegated_review import validate_delegated_review
 from .native_revision import validate_native_revision, validate_matched_native_frames
@@ -28,46 +39,25 @@ TEXTURE_VIEWS = {
 }
 HUMAN_STAGES = {"modeling_approval", "production_retopology", "texture_approval", "ue5_runtime_review",
                 "ue5_motion_review", "cook"}
-AUTOMATION_REVIEWERS = {"build_production.py", "compile_from_image.py",
-                        "promote_production.py", "record_ue5_import.py",
-                        "codex", "claude", "agent", "automation"}
+ARTICULATED_KINDS = {"humanoid", "mascot", "creature", "mechanical_articulated"}
+GENERATION_SCHEMA = "reference-asset-compiler.geometry-candidate.v1"
+MODELING_LINEAGE_SCHEMA = "reference-asset-compiler.modeling-derivative-lineage.v1"
+CLEANUP_SCHEMA = "reference-asset-compiler.semantic-cleanup.v1"
+RETOPOLOGY_SCHEMA = "reference-asset-compiler.production-retopology.v1"
+UV_TRANSPORT_SCHEMA = "reference-asset-compiler.texture-uv-transport.v1"
+LEDGER_SNAPSHOT_SCHEMA = "reference-asset-compiler.ledger-snapshot.v1"
+STATE_LOCK_NAME = ".state.lock"
 
 
 def utc_now() -> str:
     return datetime.now(UTC).isoformat()
 
 
-def _receipt(paths: list[Path], schema: str) -> tuple[Path, dict[str, Any]] | None:
-    for path in paths:
-        if path.suffix.lower() != ".json":
-            continue
-        try:
-            payload = read_json(path)
-        except (OSError, ValueError):
-            continue
-        if isinstance(payload, dict) and payload.get("schema") == schema:
-            return path, payload
-    return None
-
-
-def _record_evidence_paths(job: Path, record: dict[str, Any]) -> list[Path]:
-    paths = []
-    for row in record.get("evidence", []):
-        path = Path(row["path"])
-        paths.append(path if path.is_absolute() else job / path)
-    return paths
-
-
-def _record_receipt_value(
-    job: Path, record: dict[str, Any], schema: str, key: str
-) -> Any:
-    found = _receipt(_record_evidence_paths(job, record), schema)
-    return found[1].get(key) if found else None
-
-
-def _is_sha256(value: Any) -> bool:
-    return (isinstance(value, str) and len(value) == 64
-            and all(character in string.hexdigits for character in value))
+# Kept as module names for callers and tests that imported the private helpers.
+_receipt = find_receipt
+_record_evidence_paths = record_evidence_paths
+_record_receipt_value = record_receipt_value
+_is_sha256 = is_sha256
 
 
 def _evidence_hashes(paths: list[Path], receipt_path: Path) -> set[str]:
@@ -159,7 +149,7 @@ def _valid_frame_stats(payload: Any) -> bool:
 
 def _validate_ue5_import_receipt(evidence: list[Path], maximum_vertices=None,
                                 maximum_triangles=None) -> None:
-    found = _receipt(evidence, "reference-asset-compiler.ue5-import-evidence.v1")
+    found = _receipt(evidence, IMPORT_SCHEMA)
     if found is None:
         raise ValueError("ue5_import requires a manifest-bound per-asset UE receipt")
     receipt_path, payload = found
@@ -229,7 +219,8 @@ def _validate_modeling_lineage(
                           "collapse_qem"}
     operations = payload.get("operations")
     artifacts = payload.get("derivation_artifacts")
-    if payload.get("ok") is not True or source_hash != generated_candidate_sha256:
+    if (payload.get("ok") is not True or not _is_sha256(generated_candidate_sha256)
+            or source_hash != generated_candidate_sha256):
         raise ValueError("modeling lineage does not begin at the ledger AI candidate")
     if not _is_sha256(candidate_hash) or candidate_hash not in hashes:
         raise ValueError("modeling lineage is not bound to the reviewed mesh")
@@ -272,7 +263,7 @@ def _validate_runtime_review_receipt(evidence: list[Path], reviewer: str) -> Non
         imported_path = _evidence_path_for_hash(evidence, receipt_path, payload["native_import_sha256"])
         gallery_path = _evidence_path_for_hash(evidence, receipt_path, payload["gallery_report_sha256"])
         imported, gallery = read_json(imported_path), read_json(gallery_path)
-        if (imported.get("schema") != "reference-asset-compiler.ue5-import-evidence.v1"
+        if (imported.get("schema") != IMPORT_SCHEMA
                 or imported.get("manifest_sha256") != payload.get("manifest_sha256")
                 or imported.get("ok") is not True):
             raise ValueError("Native runtime review is not bound to its successful manifest import")
@@ -387,7 +378,8 @@ def _validate_semantic_cleanup_receipt(
         hashes,
         "semantic_cleanup",
     )
-    if payload.get("input_mesh_sha256") != modeling_candidate_sha256:
+    if (not _is_sha256(modeling_candidate_sha256)
+            or payload.get("input_mesh_sha256") != modeling_candidate_sha256):
         raise ValueError("semantic_cleanup does not begin at the approved modeling mesh")
     report_path = _evidence_path_for_hash(
         evidence, receipt_path, payload.get("topology_report_sha256"))
@@ -442,7 +434,8 @@ def _validate_retopology_receipt(
     _require_bound_hashes(
         payload, ("input_mesh_sha256", "output_mesh_sha256", "report_sha256"),
         hashes, "production_retopology")
-    if payload.get("input_mesh_sha256") != cleanup_output_sha256:
+    if (not _is_sha256(cleanup_output_sha256)
+            or payload.get("input_mesh_sha256") != cleanup_output_sha256):
         raise ValueError("production_retopology does not begin at semantic cleanup output")
     report_path = _evidence_path_for_hash(evidence, receipt_path, payload["report_sha256"])
     if report_path is None or report_path.suffix.lower() != ".json":
@@ -480,7 +473,7 @@ def _validate_retopology_receipt(
         "wireframe-front.png", "wireframe-three-quarter.png",
         "wireframe-side.png", "wireframe-back.png",
     }
-    if asset_kind in {"humanoid", "mascot", "creature", "mechanical_articulated"}:
+    if asset_kind in ARTICULATED_KINDS:
         if (not isinstance(topology_views, list)
                 or {row.get("view") for row in topology_views if isinstance(row, dict)}
                 != expected_topology_views):
@@ -497,7 +490,7 @@ def _validate_retopology_receipt(
             or vertices > maximum_vertices or not isinstance(triangles, int)
             or triangles <= 0 or maximum_triangles is None or triangles > maximum_triangles):
         raise ValueError("production_retopology exceeds the workspace runtime budget")
-    if (asset_kind in {"humanoid", "mascot", "creature", "mechanical_articulated"}
+    if (asset_kind in ARTICULATED_KINDS
             and (payload.get("deformation_topology_reviewed") is not True
                  or not isinstance(payload.get("quad_fraction"), (int, float))
                  or payload["quad_fraction"] < 0.8)):
@@ -524,6 +517,171 @@ def _validate_motion_review_receipt(evidence: list[Path], reviewer: str) -> None
             raise ValueError("ue5_motion_review contains an invalid or unbound frame")
 
 
+def _named_report(evidence: list[Path], name: str, stage: str) -> dict[str, Any]:
+    matches = [path for path in evidence if path.name.lower() == name]
+    if len(matches) != 1:
+        raise ValueError("{0} requires exactly one {1}; found {2}".format(
+            stage, name, len(matches)))
+    try:
+        payload = read_json(matches[0])
+    except (OSError, ValueError) as error:
+        raise ValueError("{0} has an unreadable {1}".format(stage, name)) from error
+    if not isinstance(payload, dict):
+        raise ValueError("{0} requires {1} to be a JSON object".format(stage, name))
+    return payload
+
+
+def _lineage_links(receipts: list[tuple[Path, dict[str, Any]]]) -> dict[str, set[str]]:
+    """output hash -> source hashes, from retained derivation receipts."""
+    links: dict[str, set[str]] = {}
+
+    def link(output: Any, source: Any) -> None:
+        if is_sha256(output) and is_sha256(source):
+            links.setdefault(output, set()).add(source)
+
+    for _, payload in receipts:
+        if payload.get("schema") == UV_TRANSPORT_SCHEMA and payload.get("status") == "passed":
+            source = (payload.get("source") or {}).get("sha256")
+            for key in ("uv_authority", "transport"):
+                link((payload.get(key) or {}).get("sha256"), source)
+        link(payload.get("output_sha256"), payload.get("source_sha256"))
+    return links
+
+
+def _require_uv_authority_lineage(
+    payload: dict[str, Any], retopology_output_sha256: str | None,
+    lineage_evidence: list[Path], stage: str,
+) -> None:
+    """retopo.json must name the approved retopology mesh, directly or via retained UV receipts."""
+    authority = payload.get("source_uv_authority_sha256")
+    if not is_sha256(authority):
+        raise ValueError(
+            "{0} retopo.json lacks a hash-bound source_uv_authority_sha256; the texture "
+            "payload cannot be tied to the approved production retopology".format(stage))
+    if not is_sha256(retopology_output_sha256):
+        raise ValueError("{0} cannot bind retopo.json: production_retopology has no "
+                         "hash-bound output mesh".format(stage))
+    links = _lineage_links(load_json_receipts(lineage_evidence))
+    frontier, seen = {authority}, set()
+    while frontier:
+        if retopology_output_sha256 in frontier:
+            return
+        seen |= frontier
+        frontier = {source for output in frontier for source in links.get(output, ())} - seen
+    raise ValueError(
+        "{0} retopo.json source_uv_authority_sha256 {1} does not derive from the approved "
+        "production retopology output {2}".format(
+            stage, authority[:12], retopology_output_sha256[:12]))
+
+
+def _validate_unwrap_and_bake(
+    evidence: list[Path], retopology_output_sha256: str | None,
+) -> None:
+    if not any(path.suffix.lower() == ".png" for path in evidence):
+        raise ValueError("unwrap_and_bake requires at least one baked PNG map")
+    payload = _named_report(evidence, "retopo.json", "unwrap_and_bake")
+    _require_uv_authority_lineage(payload, retopology_output_sha256, evidence, "unwrap_and_bake")
+    _validate_texture_payload_files(payload, evidence, require_output=False)
+
+
+def _validate_texture_payload_files(
+    payload: dict[str, Any], evidence: list[Path], *, require_output: bool,
+) -> None:
+    report = next(path for path in evidence if path.name.lower() == "retopo.json")
+    retained = {path.resolve() for path in evidence}
+    baked = payload.get("baked")
+    hashes = payload.get("baked_sha256")
+    if not isinstance(baked, dict) or not baked or not isinstance(hashes, dict):
+        raise ValueError("texture payload requires baked maps with baked_sha256 hashes")
+    bindings = [(filename, hashes.get(channel)) for channel, filename in baked.items()]
+    if require_output:
+        bindings += [(payload.get("output_fbx"), payload.get("output_fbx_sha256")),
+                     ("gate-tex.json", payload.get("gate_texture_sha256"))]
+    for filename, expected in bindings:
+        if not isinstance(filename, str) or not filename or not is_sha256(expected):
+            raise ValueError("texture payload lacks a file or SHA-256 binding: {0}".format(filename))
+        path = (report.parent / filename).resolve()
+        if path not in retained or not path.is_file() or sha256_file(path) != expected:
+            raise ValueError("texture payload does not bind the retained file: {0}".format(filename))
+
+
+def _validate_texture_approval(
+    evidence: list[Path], retopology_output_sha256: str | None,
+    lineage_evidence: list[Path],
+) -> None:
+    names = {path.name.lower() for path in evidence}
+    missing = sorted(TEXTURE_VIEWS - names)
+    production = [path for path in evidence if path.name.lower().endswith("_production.fbx")]
+    baked = [path for path in evidence
+             if path.suffix.lower() == ".png" and path.name.lower() not in TEXTURE_VIEWS]
+    required_reports = {"retopo.json", "gate-tex.json"}
+    if missing or len(production) != 1 or not baked or not required_reports.issubset(names):
+        raise ValueError("texture_approval requires production FBX, baked maps, reports, "
+                         "and four lit views; missing views {0}".format(missing))
+    gate = _named_report(evidence, "gate-tex.json", "texture_approval")
+    if gate.get("ok") is not True:
+        raise ValueError("texture_approval gate-tex.json does not record ok: true; "
+                         "failures: {0}".format(gate.get("failures")))
+    payload = _named_report(evidence, "retopo.json", "texture_approval")
+    _require_uv_authority_lineage(
+        payload, retopology_output_sha256, [*evidence, *lineage_evidence], "texture_approval")
+    if payload.get("output_fbx") != production[0].name:
+        raise ValueError("texture_approval production FBX differs from the texture payload")
+    _validate_texture_payload_files(payload, evidence, require_output=True)
+
+
+def _static_manifest(evidence: list[Path], stage: str) -> tuple[Path, dict[str, Any]]:
+    matches = [path for path in evidence if path.name.lower().endswith(".ue5import.json")]
+    if len(matches) != 1:
+        raise ValueError("{0} requires exactly one published *.ue5import.json manifest; "
+                         "found {1}".format(stage, len(matches)))
+    try:
+        manifest = read_json(matches[0])
+    except (OSError, ValueError) as error:
+        raise ValueError("{0} manifest is unreadable".format(stage)) from error
+    if (not isinstance(manifest, dict) or manifest.get("asset_kind") != "static_prop"
+            or not str(manifest.get("asset_id", "")).strip()
+            or not isinstance(manifest.get("fbx"), str) or not manifest["fbx"]):
+        raise ValueError("{0} requires a static_prop manifest naming its asset and FBX".format(
+            stage))
+    return matches[0], manifest
+
+
+def _validate_collision_receipt(evidence: list[Path]) -> None:
+    _, manifest = _static_manifest(evidence, "collision_optional")
+    settings = manifest.get("ue5_import")
+    if not isinstance(settings, dict) or not isinstance(settings.get("generate_collision"), bool):
+        raise ValueError("collision_optional requires the manifest to declare "
+                         "ue5_import.generate_collision explicitly")
+
+
+def _validate_static_validation(evidence: list[Path]) -> None:
+    manifest_path, manifest = _static_manifest(evidence, "static_validation")
+    hashes = _evidence_hashes(evidence, manifest_path)
+    root = manifest_path.parent
+    payloads = {"fbx": root / manifest["fbx"]}
+    textures = manifest.get("textures")
+    if not isinstance(textures, dict):
+        raise ValueError("static_validation requires the manifest to declare its textures")
+    for material, slots in textures.items():
+        if not isinstance(slots, dict):
+            raise ValueError("static_validation manifest has a malformed material: {0}".format(
+                material))
+        for channel, spec in slots.items():
+            file = spec.get("file") if isinstance(spec, dict) else None
+            if not isinstance(file, str) or not file:
+                raise ValueError("static_validation manifest texture lacks a file: {0}/{1}".format(
+                    material, channel))
+            payloads["{0}/{1}".format(material, channel)] = root / file
+    for label, path in payloads.items():
+        if not path.is_file() or sha256_file(path) not in hashes:
+            raise ValueError("static_validation payload is not retained as hash-bound "
+                             "evidence: {0}".format(label))
+    declared = manifest.get("fbx_sha256")
+    if declared is not None and str(declared).lower() != sha256_file(payloads["fbx"]):
+        raise ValueError("static_validation manifest fbx_sha256 disagrees with the retained FBX")
+
+
 def validate_passed_stage_contract(
     stage: str,
     evidence: list[Path],
@@ -537,6 +695,8 @@ def validate_passed_stage_contract(
     maximum_vertices: int | None = None,
     maximum_triangles: int | None = None,
     asset_kind: str | None = None,
+    retopology_output_sha256: str | None = None,
+    lineage_evidence: list[Path] | None = None,
 ) -> None:
     """Reject ledger passes that do not contain the proof their stage claims."""
     if stage in {"intake", "route"}:
@@ -571,16 +731,14 @@ def validate_passed_stage_contract(
         _validate_retopology_receipt(
             evidence, cleanup_output_sha256, reviewer,
             maximum_vertices, maximum_triangles, asset_kind)
+    elif stage == "unwrap_and_bake":
+        _validate_unwrap_and_bake(evidence, retopology_output_sha256)
     elif stage == "texture_approval":
-        missing = sorted(TEXTURE_VIEWS - names)
-        production = [path for path in evidence
-                      if path.name.lower().endswith("_production.fbx")]
-        baked = [path for path in evidence
-                 if path.suffix.lower() == ".png" and path.name.lower() not in TEXTURE_VIEWS]
-        required_reports = {"retopo.json", "gate-tex.json"}
-        if missing or not production or not baked or not required_reports.issubset(names):
-            raise ValueError("texture_approval requires production FBX, baked maps, reports, "
-                             "and four lit views; missing views {0}".format(missing))
+        _validate_texture_approval(evidence, retopology_output_sha256, lineage_evidence or [])
+    elif stage == "collision_optional":
+        _validate_collision_receipt(evidence)
+    elif stage == "static_validation":
+        _validate_static_validation(evidence)
     elif stage == "rig_and_skin":
         _validate_rig_receipt(evidence)
     elif stage == "deformation_validation":
@@ -608,6 +766,7 @@ def create_workspace(
     maximum_vertices: int = 15_000,
     maximum_triangles: int = 20_000,
 ) -> Path:
+    """Validate everything first; the filesystem is touched only once the plan is sound."""
     reference = reference.resolve()
     if not reference.is_file():
         raise FileNotFoundError(f"Reference image does not exist: {reference}")
@@ -617,11 +776,7 @@ def create_workspace(
     job = root.resolve() / slug
     if job.exists() and any(job.iterdir()):
         raise FileExistsError(f"Asset workspace already exists and is not empty: {job}")
-    references = job / "references"
-    references.mkdir(parents=True, exist_ok=True)
-    copied_reference = references / f"primary{reference.suffix.lower()}"
-    shutil.copy2(reference, copied_reference)
-
+    source_path = "references/primary{0}".format(reference.suffix.lower())
     manifest: dict[str, Any] = {
         "schema_version": 1,
         "asset_id": asset_id,
@@ -633,8 +788,8 @@ def create_workspace(
         "skeleton_profile": skeleton_profile,
         "source": {
             "primary_view": "front",
-            "path": str(copied_reference.relative_to(job)).replace("\\", "/"),
-            "sha256": sha256_file(copied_reference),
+            "path": source_path,
+            "sha256": sha256_file(reference),
             "original_filename": reference.name,
         },
         "budgets": {
@@ -662,6 +817,12 @@ def create_workspace(
             for stage in routing["stages"]
         },
     }
+
+    copied_reference = job / source_path
+    copied_reference.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copy2(reference, copied_reference)
+    if sha256_file(copied_reference) != manifest["source"]["sha256"]:
+        raise ValueError("Reference image changed while it was being copied")
     write_json(job / "intake.json", manifest)
     write_json(job / "routing.json", routing)
     write_json(job / "state.json", state)
@@ -742,6 +903,109 @@ def _load_workspace_contract(job: Path) -> tuple[dict, dict, dict, list[str]]:
     return manifest, routing, state, stages
 
 
+def _verify_ledger_integrity(
+    job: Path, manifest: dict[str, Any], state: dict[str, Any], stage_names: list[str]
+) -> list[str]:
+    """Source, evidence hash/size, and pass-order checks shared by audit and promotion."""
+    failures: list[str] = []
+    source = job / manifest["source"]["path"]
+    if not source.is_file():
+        failures.append(f"Missing immutable source: {source}")
+    elif sha256_file(source) != manifest["source"]["sha256"]:
+        failures.append("Immutable source hash changed")
+    seen_unpassed = False
+    for stage in stage_names:
+        record = state["stages"][stage]
+        status = record["status"]
+        if status not in STAGE_STATUSES:
+            failures.append(f"Invalid status for {stage}: {status}")
+        if status != "passed":
+            seen_unpassed = True
+        elif seen_unpassed:
+            failures.append(f"Stage {stage} passed before an earlier stage")
+        failures.extend(verify_record_evidence(job, stage, record))
+    return failures
+
+
+def _stage_context(job: Path, state: dict[str, Any]) -> dict[str, Any]:
+    """Hashes and retained derivation receipts that later gates must chain to."""
+    records = state["stages"]
+    unwrap = records.get("unwrap_and_bake", {})
+    return {
+        "generated_candidate_sha256": record_receipt_value(
+            job, records.get("generate_candidates", {}), GENERATION_SCHEMA, "candidate_sha256"),
+        "modeling_candidate_sha256": record_receipt_value(
+            job, records.get("modeling_approval", {}), MODELING_LINEAGE_SCHEMA,
+            "modeling_candidate_sha256"),
+        "cleanup_output_sha256": record_receipt_value(
+            job, records.get("semantic_cleanup", {}), CLEANUP_SCHEMA, "output_mesh_sha256"),
+        "retopology_output_sha256": record_receipt_value(
+            job, records.get("production_retopology", {}), RETOPOLOGY_SCHEMA,
+            "output_mesh_sha256"),
+        "lineage_evidence": (record_evidence_paths(job, unwrap)
+                             if unwrap.get("status") == "passed" else []),
+    }
+
+
+def _validate_stage(
+    stage: str, evidence: list[Path], note: Any, approved_by: Any,
+    manifest: dict[str, Any], routing: dict[str, Any], context: dict[str, Any],
+) -> None:
+    validate_passed_stage_contract(
+        stage,
+        evidence,
+        note,
+        approved_by,
+        manifest.get("source", {}).get("sha256"),
+        set(routing.get("geometry_candidates", [])),
+        maximum_vertices=manifest.get("budgets", {}).get("maximum_vertices"),
+        maximum_triangles=manifest.get("budgets", {}).get("maximum_triangles"),
+        asset_kind=manifest.get("asset_kind"),
+        **context,
+    )
+
+
+@contextmanager
+def _state_lock(job: Path) -> Iterator[None]:
+    """Serialize state.json read-modify-write across processes on one host."""
+    lock_path = job / STATE_LOCK_NAME
+    handle = open(lock_path, "a+b")
+    try:
+        if os.name == "nt":
+            import msvcrt
+            handle.seek(0)
+            msvcrt.locking(handle.fileno(), msvcrt.LK_LOCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX)
+        try:
+            yield
+        finally:
+            if os.name == "nt":
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+    finally:
+        handle.close()
+
+
+def _snapshot_replaced_stage(job: Path, stage: str, state: dict[str, Any]) -> Path:
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%S%fZ")
+    snapshot = job / "validation" / "ledger-before-{0}-{1}.json".format(stage, stamp)
+    if snapshot.exists():
+        raise ValueError("Ledger snapshot already exists: {0}".format(snapshot))
+    write_retained_json(snapshot, {
+        "schema": LEDGER_SNAPSHOT_SCHEMA,
+        "asset_id": state.get("asset_id"),
+        "stage": stage,
+        "snapshot_at": utc_now(),
+        "record": state["stages"][stage],
+        "state": state,
+    })
+    return snapshot
+
+
 def promote_stage(
     job: Path,
     stage: str,
@@ -749,14 +1013,32 @@ def promote_stage(
     note: str,
     approved_by: str,
     status: str = "passed",
+    replace: bool = False,
 ) -> dict[str, Any]:
     job = job.resolve()
+    with _state_lock(job):
+        return _promote_stage_locked(job, stage, evidence, note, approved_by, status, replace)
+
+
+def _promote_stage_locked(
+    job: Path, stage: str, evidence: list[Path], note: str, approved_by: str,
+    status: str, replace: bool,
+) -> dict[str, Any]:
     state_path = job / "state.json"
     manifest, routing, state, stage_names = _load_workspace_contract(job)
     if stage not in state["stages"]:
         raise ValueError(f"Unknown stage for this asset: {stage}")
     if status not in STAGE_STATUSES:
         raise ValueError(f"Unsupported stage status: {status}")
+    integrity = _verify_ledger_integrity(job, manifest, state, stage_names)
+    if integrity:
+        raise ValueError("Cannot record {0}; existing ledger evidence failed verification: "
+                         "{1}".format(stage, "; ".join(integrity)))
+    current = state["stages"][stage]
+    if current["status"] == "passed" and not replace:
+        raise ValueError(
+            f"{stage} is already passed; pass replace=True (rac promote --replace) to "
+            "supersede it, which retains a ledger snapshot first")
     index = stage_names.index(stage)
     if status == "passed":
         unfinished = [
@@ -764,62 +1046,45 @@ def promote_stage(
         ]
         if unfinished:
             raise ValueError(f"Cannot pass {stage}; earlier stages are not passed: {unfinished}")
+    resolved_evidence = []
     evidence_rows = []
     for path in evidence:
         resolved = path.resolve()
         if not resolved.is_file():
             raise FileNotFoundError(f"Evidence file does not exist: {resolved}")
-        try:
-            display_path = str(resolved.relative_to(job)).replace("\\", "/")
-        except ValueError:
-            display_path = str(resolved)
+        resolved_evidence.append(resolved)
         evidence_rows.append(
             {
-                "path": display_path,
+                "path": evidence_display_path(job, resolved),
                 "sha256": sha256_file(resolved),
                 "bytes": resolved.stat().st_size,
             }
         )
     if status == "passed":
-        generated_hash = _record_receipt_value(
-            job,
-            state["stages"].get("generate_candidates", {}),
-            "reference-asset-compiler.geometry-candidate.v1",
-            "candidate_sha256",
-        )
-        modeling_hash = _record_receipt_value(
-            job,
-            state["stages"].get("modeling_approval", {}),
-            "reference-asset-compiler.modeling-derivative-lineage.v1",
-            "modeling_candidate_sha256",
-        )
-        cleanup_hash = _record_receipt_value(
-            job,
-            state["stages"].get("semantic_cleanup", {}),
-            "reference-asset-compiler.semantic-cleanup.v1",
-            "output_mesh_sha256",
-        )
-        validate_passed_stage_contract(
-            stage,
-            [path.resolve() for path in evidence],
-            note,
-            approved_by,
-            manifest.get("source", {}).get("sha256"),
-            set(routing.get("geometry_candidates", [])),
-            generated_hash,
-            modeling_hash,
-            cleanup_hash,
-            manifest.get("budgets", {}).get("maximum_vertices"),
-            manifest.get("budgets", {}).get("maximum_triangles"),
-            manifest.get("asset_kind"),
-        )
-    state["stages"][stage] = {
+        _validate_stage(stage, resolved_evidence, note, approved_by, manifest, routing,
+                        _stage_context(job, state))
+    replacement = {
         "status": status,
         "evidence": evidence_rows,
         "note": note,
         "approved_by": approved_by,
         "recorded_at": utc_now(),
     }
+    if current["status"] == "passed":
+        # Validate the proposed chain before retaining a replacement. A new
+        # upstream mesh cannot inherit yesterday's downstream approvals.
+        proposed = {**state, "stages": {**state["stages"], stage: replacement}}
+        failures = _verify_ledger_integrity(job, manifest, proposed, stage_names)
+        if failures:
+            raise ValueError("Replacement would invalidate downstream stages: " + "; ".join(failures))
+        context = _stage_context(job, proposed)
+        for later in stage_names[index + 1:]:
+            record = proposed["stages"][later]
+            if record["status"] == "passed":
+                _validate_stage(later, record_evidence_paths(job, record), record.get("note"),
+                                record.get("approved_by"), manifest, routing, context)
+        _snapshot_replaced_stage(job, stage, state)
+    state["stages"][stage] = replacement
     state["updated_at"] = utc_now()
     write_json(state_path, state)
     return state
@@ -845,72 +1110,21 @@ def audit_workspace(job: Path) -> dict[str, Any]:
 def _audit_workspace(job: Path) -> dict[str, Any]:
     job = job.resolve()
     manifest, routing, state, stage_names = _load_workspace_contract(job)
-    generated_hash = _record_receipt_value(
-        job,
-        state["stages"].get("generate_candidates", {}),
-        "reference-asset-compiler.geometry-candidate.v1",
-        "candidate_sha256",
-    )
-    modeling_hash = _record_receipt_value(
-        job,
-        state["stages"].get("modeling_approval", {}),
-        "reference-asset-compiler.modeling-derivative-lineage.v1",
-        "modeling_candidate_sha256",
-    )
-    cleanup_hash = _record_receipt_value(
-        job,
-        state["stages"].get("semantic_cleanup", {}),
-        "reference-asset-compiler.semantic-cleanup.v1",
-        "output_mesh_sha256",
-    )
-    failures: list[str] = []
-    source = job / manifest["source"]["path"]
-    if not source.is_file():
-        failures.append(f"Missing immutable source: {source}")
-    elif sha256_file(source) != manifest["source"]["sha256"]:
-        failures.append("Immutable source hash changed")
-
-    seen_unpassed = False
+    failures = _verify_ledger_integrity(job, manifest, state, stage_names)
+    try:
+        context = _stage_context(job, state)
+    except ValueError as error:
+        failures.append(str(error))
+        context = None
     for stage in stage_names:
         record = state["stages"][stage]
-        status = record["status"]
-        if status not in STAGE_STATUSES:
-            failures.append(f"Invalid status for {stage}: {status}")
-        if status != "passed":
-            seen_unpassed = True
-        elif seen_unpassed:
-            failures.append(f"Stage {stage} passed before an earlier stage")
-        for row in record.get("evidence", []):
-            path = Path(row["path"])
-            resolved = path if path.is_absolute() else job / path
-            if not resolved.is_file():
-                failures.append(f"Missing evidence for {stage}: {row['path']}")
-            elif sha256_file(resolved) != row["sha256"]:
-                failures.append(f"Evidence hash changed for {stage}: {row['path']}")
-            elif resolved.stat().st_size != row["bytes"]:
-                failures.append(f"Evidence size changed for {stage}: {row['path']}")
-        if status == "passed":
-            resolved_evidence = []
-            for row in record.get("evidence", []):
-                path = Path(row["path"])
-                resolved_evidence.append(path if path.is_absolute() else job / path)
-            try:
-                validate_passed_stage_contract(
-                    stage,
-                    resolved_evidence,
-                    record.get("note"),
-                    record.get("approved_by"),
-                    manifest.get("source", {}).get("sha256"),
-                    set(routing.get("geometry_candidates", [])),
-                    generated_hash,
-                    modeling_hash,
-                    cleanup_hash,
-                    manifest.get("budgets", {}).get("maximum_vertices"),
-                    manifest.get("budgets", {}).get("maximum_triangles"),
-                    manifest.get("asset_kind"),
-                )
-            except ValueError as error:
-                failures.append(str(error))
+        if record["status"] != "passed" or context is None:
+            continue
+        try:
+            _validate_stage(stage, record_evidence_paths(job, record), record.get("note"),
+                            record.get("approved_by"), manifest, routing, context)
+        except ValueError as error:
+            failures.append(str(error))
 
     all_passed = all(record["status"] == "passed" for record in state["stages"].values())
     return {

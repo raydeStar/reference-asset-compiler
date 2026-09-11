@@ -1,5 +1,7 @@
 # Exact resume instruction: texture stage
 
+*Type: reference*
+
 Paste or point Claude Code to this file:
 
 > Work in your clone of this repository. Read

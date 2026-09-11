@@ -88,14 +88,9 @@ def audit_cohort(manifest_path: Path, workspace_root: Path) -> dict[str, Any]:
             failures.append(message)
             member_results.append(result)
             continue
-        try:
-            asset_audit = audit_workspace(workspace)
-        except (FileNotFoundError, KeyError, ValueError) as error:
-            message = "Invalid workspace for {0}: {1}".format(asset_id, error)
-            result["failures"].append(message)
-            failures.append(message)
-            member_results.append(result)
-            continue
+        # audit_workspace never raises; a broken ledger comes back as ok=False with
+        # asset_id/asset_kind unknown, so identity is only compared for a clean audit.
+        asset_audit = audit_workspace(workspace)
         result["audit"] = asset_audit
         if maximum_vertices is not None:
             try:
@@ -120,19 +115,20 @@ def audit_cohort(manifest_path: Path, workspace_root: Path) -> dict[str, Any]:
                         actual_triangles, maximum_triangles)
                     result["failures"].append(message)
                     failures.append(message)
-        if asset_audit.get("asset_id") != asset_id:
-            message = "Workspace asset mismatch: expected {0}, found {1}".format(
-                asset_id, asset_audit.get("asset_id")
-            )
-            result["failures"].append(message)
-            failures.append(message)
-        if asset_audit.get("asset_kind") != asset_kind:
-            message = "Workspace kind mismatch for {0}: expected {1}, found {2}".format(
-                asset_id, asset_kind, asset_audit.get("asset_kind")
-            )
-            result["failures"].append(message)
-            failures.append(message)
-        if not asset_audit.get("ok"):
+        if asset_audit.get("ok"):
+            if asset_audit.get("asset_id") != asset_id:
+                message = "Workspace asset mismatch: expected {0}, found {1}".format(
+                    asset_id, asset_audit.get("asset_id")
+                )
+                result["failures"].append(message)
+                failures.append(message)
+            if asset_audit.get("asset_kind") != asset_kind:
+                message = "Workspace kind mismatch for {0}: expected {1}, found {2}".format(
+                    asset_id, asset_kind, asset_audit.get("asset_kind")
+                )
+                result["failures"].append(message)
+                failures.append(message)
+        else:
             for failure in asset_audit.get("failures", []):
                 message = "{0}: {1}".format(asset_id, failure)
                 result["failures"].append(message)

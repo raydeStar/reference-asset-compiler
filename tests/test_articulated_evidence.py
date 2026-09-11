@@ -29,6 +29,7 @@ from support import (  # noqa: E402
     promote_cleanup,
     promote_generated,
     promote_retopology,
+    promote_texture_approval,
 )
 
 REGISTRY = json.loads((ROOT / "configs" / "model-adapters.json").read_text())
@@ -45,8 +46,6 @@ class ArticulatedEvidenceTests(unittest.TestCase):
             skeleton_profile="ue5_manny",
         )
         candidate, _ = promote_generated(self.job)
-        token = self.job / "logs" / "stage.json"
-        token.write_text("{}", encoding="utf-8")
         views: list[Path] = []
         for name in ("matcap-front.png", "matcap-three-quarter.png",
                      "matcap-side.png", "matcap-back.png"):
@@ -57,17 +56,9 @@ class ArticulatedEvidenceTests(unittest.TestCase):
             self.job, "modeling_approval", modeling_evidence(self.job, candidate, views),
             "Approved.", "Ayric")
         cleaned = promote_cleanup(self.job, candidate)
-        promote_retopology(self.job, cleaned)
-        promote_stage(self.job, "unwrap_and_bake", [token], "Passed.", "system")
-        self.approved = self.job / "textures" / "hero_production.fbx"
-        texture_evidence = []
-        for name in ("hero_production.fbx", "retopo.json", "gate-tex.json", "base.png",
-                     "beauty-front.png", "beauty-three-quarter.png",
-                     "beauty-side.png", "beauty-back.png"):
-            path = self.job / "textures" / name
-            path.write_bytes(name.encode())
-            texture_evidence.append(path)
-        promote_stage(self.job, "texture_approval", texture_evidence, "Approved.", "Ayric")
+        retopology = promote_retopology(self.job, cleaned)
+        production, retopo, _ = promote_texture_approval(self.job, retopology)
+        self.approved = production / retopo["output_fbx"]
         self.rigged = self.root / "hero-rigged.fbx"
         self.rigged.write_bytes(b"rigged")
         self.profile = self.root / "ue5-manny.json"

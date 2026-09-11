@@ -3,30 +3,50 @@ param(
     [Parameter(Mandatory = $true)][string] $Job,
     [Parameter(Mandatory = $true)][string] $InputMesh,
     [string] $OutputDirectory,
+    [string] $CompilerPython,
     [string] $Blender = $env:RAC_BLENDER
 )
 
 $ErrorActionPreference = 'Stop'
+function Write-Utf8NoBom {
+    param(
+        [Parameter(Mandatory = $true)][string] $Path,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string] $Text
+    )
+    # Windows PowerShell 5.1's Set-Content writes a byte-order mark for utf8,
+    # and every Python reader of these receipts then sees "\ufeff{" and
+    # rejects the JSON. Receipts are UTF-8 without a BOM, always.
+    [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
+}
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$compilerPython = $(& py -3.12 -c 'import sys; print(sys.executable)')
+# The compiler's own interpreter (.venv, then py launcher, then PATH), not a
+# hard-coded `py -3.12` that only exists on the machine this was written on.
+$compilerPython = & (Join-Path $PSScriptRoot 'resolve_python.ps1') -Python $CompilerPython
 $jobPath = (Resolve-Path -LiteralPath $Job).Path
 $inputPath = (Resolve-Path -LiteralPath $InputMesh).Path
 if (-not $Blender) {
-    $Blender = (& $compilerPython (Join-Path $PSScriptRoot 'rac_env.py') --blender) |
-        Select-Object -Last 1
+    $Blender = (& $compilerPython (Join-Path $PSScriptRoot 'rac_env.py') --blender) | Select-Object -Last 1
+    if ($LASTEXITCODE -ne 0 -or -not $Blender) {
+        throw 'Blender could not be resolved; set RAC_BLENDER or pass -Blender <path>.'
+    }
 }
 if (-not (Test-Path -LiteralPath $Blender -PathType Leaf)) {
     throw "Blender is unavailable: $Blender"
 }
 
+# 2>&1 under Stop turns the first stderr warning into a terminating error in
+# Windows PowerShell 5.1. Relax only around the native call.
 $previousPythonPath = $env:PYTHONPATH
+$previousPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 try {
     $env:PYTHONPATH = Join-Path $repoRoot 'src'
     $preflightLines = @(& $compilerPython -m reference_asset_compiler.cli `
-        cleanup-preflight $jobPath $inputPath 2>&1)
+        cleanup-preflight $jobPath $inputPath 2>&1 | ForEach-Object { $_.ToString() })
     $preflightExit = $LASTEXITCODE
 }
 finally {
+    $ErrorActionPreference = $previousPreference
     $env:PYTHONPATH = $previousPythonPath
 }
 if ($preflightExit -ne 0) {
@@ -66,8 +86,7 @@ $attempt = [ordered]@{
     status = 'running'
     retry = $false
 }
-$attempt | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $attemptPath -Encoding utf8
-
+Write-Utf8NoBom -Path $attemptPath -Text ($attempt | ConvertTo-Json -Depth 6)
 try {
     & $Blender --background --factory-startup --python-exit-code 1 `
         --python (Join-Path $PSScriptRoot 'blender\semantic_cleanup.py') -- `
@@ -101,13 +120,13 @@ try {
     $attempt.completed_at = [DateTimeOffset]::Now.ToString('o')
     $attempt.output_mesh_sha256 = (Get-FileHash -LiteralPath $outputMesh -Algorithm SHA256).Hash.ToLowerInvariant()
     $attempt.receipt = $receipt
-    $attempt | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $attemptPath -Encoding utf8
+    Write-Utf8NoBom -Path $attemptPath -Text ($attempt | ConvertTo-Json -Depth 6)
 }
 catch {
     $attempt.status = 'failed'
     $attempt.completed_at = [DateTimeOffset]::Now.ToString('o')
     $attempt.failure = $_.Exception.Message
-    $attempt | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $attemptPath -Encoding utf8
+    Write-Utf8NoBom -Path $attemptPath -Text ($attempt | ConvertTo-Json -Depth 6)
     throw
 }
 

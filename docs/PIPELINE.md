@@ -1,5 +1,58 @@
 # Pipeline and promotion gates
 
+*Type: reference*
+
+## Ledger stages
+
+This is the canonical stage list. The names are exactly those in
+`src/reference_asset_compiler/contracts.py`: every workspace has the eight
+`BASE_STAGES`; articulated assets (humanoid, mascot, creature,
+mechanical_articulated, or `--articulation required`) add `ARTICULATED_STAGES`,
+static assets add `STATIC_STAGES`. "Human gate" is `HUMAN_STAGES` in
+`workspace.py`: an automation identity (`codex`, `claude`, `agent`, a script
+name) is refused there unless a hash-bound user delegation receipt accompanies
+it. The receipt schema is what `validate_passed_stage_contract` requires before
+the stage can be marked passed; where no schema exists yet, the ledger still
+requires evidence files, a note and a reviewer.
+
+| Stage | Route | Human gate | Required receipt / evidence | Recorded by |
+|---|---|---|---|---|
+| `intake` | both | no | none; passed when `rac new` copies and hashes the reference | `rac new` |
+| `route` | both | no | none; passed by the routing decision at creation | `rac new` (`rac plan` previews it) |
+| `generate_candidates` | both | no | `reference-asset-compiler.geometry-candidate.v1`, bound to the source hash and an allowed geometry adapter | `scripts/run_hy3d_geometry.ps1` writes it; `scripts/crank_from_image.py` or `rac promote` records it |
+| `modeling_approval` | both | **yes** | a mesh (`.fbx`/`.glb`), `matcap-front/three-quarter/side/back.png`, and `reference-asset-compiler.modeling-derivative-lineage.v1` bound to the generated candidate | `rac promote`; `crank_from_image.py --approve-modeling-by` |
+| `semantic_cleanup` | both | no | `reference-asset-compiler.semantic-cleanup.v1` with a `semantic-cleanup-topology.v1` report bound to input and output | `rac cleanup-receipt` (driven by `scripts/run_semantic_cleanup.ps1`), then `rac promote` / `crank_from_image.py` |
+| `production_retopology` | both | **yes** | `reference-asset-compiler.production-retopology.v1` with a `production-retopology-candidate.v1` report, budgets, closed manifold, 80% quads for articulated kinds, four views | `rac retopology-receipt`; `crank_from_image.py --approve-retopology-by` |
+| `unwrap_and_bake` | both | no | `retopo.json` binding the approved retopology or its UV transport, and every baked map by hash | `crank_from_image.py` |
+| `texture_approval` | both | **yes** | `*_production.fbx`, baked PNG maps, `retopo.json` binding source mesh, production FBX, maps and passing `gate-tex.json` by hash, plus `beauty-front/three-quarter/side/back.png` | `rac promote`; `crank_from_image.py --approve-texture-by`; `scripts/compile_from_image.py` |
+| `rig_and_skin` | articulated | no | `reference-asset-compiler.rig-and-skin-evidence.v1` | `scripts/record_rig_and_skin.py` |
+| `deformation_validation` | articulated | no | `reference-asset-compiler.deformation-evidence.v1` | `scripts/record_deformation.py` |
+| `collision_optional` | static | no | one static `*.ue5import.json` explicitly declaring `ue5_import.generate_collision` | `scripts/promote_production.py` |
+| `static_validation` | static | no | one static import manifest plus its actual FBX and declared textures, all retained by hash | `scripts/promote_production.py` |
+| `ue5_import` | both | no | `reference-asset-compiler.ue5-import-evidence.v1`, manifest-bound, within the intake budgets | `scripts/record_ue5_import.py` (also `--native-revision` for a saved native derivative) |
+| `ue5_motion_review` | articulated | **yes** | `reference-asset-compiler.ue5-motion-review.v1` | `scripts/record_ue5_motion_review.py` |
+| `ue5_runtime_review` | static | **yes** | `reference-asset-compiler.ue5-runtime-review.v1` (or the `ue-static-multiview-review.v1` report described below) | `scripts/record_runtime_review.py` |
+| `cook` | both | **yes** | `reference-asset-compiler.cooked-runtime-evidence.v1` | `scripts/record_cook_evidence.py` |
+
+`rac audit <job>` verifies hashes and stage order for one workspace and
+`rac cohort-audit <manifest>` for a release cohort. `audit` exits 0 for an intact
+ledger, including an incomplete one; read its separate `production_ready` field.
+`cohort-audit` exits 0 only when every asset is complete. Both exit
+1 when the audit or cohort fails, 2 for usage errors or `RAC_ERROR`. Only a
+fully passed ledger reports `production_ready: true`.
+
+Texture payload reports bind `source_uv_authority_sha256` to the approved
+retopology, directly or through retained UV transport receipts. They also bind
+`output_fbx_sha256`, `baked_sha256` and `gate_texture_sha256` to the actual
+export, maps and passing gate report. Old filenames alone do not satisfy these
+checks. Historical receipts with missing bindings fail audit until the missing
+evidence is supplied and reviewed; the compiler does not migrate approvals.
+
+`rac promote --replace` snapshots the previous ledger before replacing a passed
+stage. Replacement must preserve the validity of downstream passed stages.
+State updates are locked, and retained receipt publication cannot overwrite a
+concurrent recorder's evidence.
+
 ## 1. Intake
 
 The approved image or turnaround is the artistic contract. `rac new` copies it

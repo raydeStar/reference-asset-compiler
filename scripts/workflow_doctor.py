@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import argparse
-from datetime import UTC, datetime
+# `datetime.UTC` is 3.11+. Spelled the 3.10 way so an older interpreter reaches
+# the version check below and is told about it, instead of dying on import.
+from datetime import datetime, timezone
 import importlib.util
 import json
 from pathlib import Path
@@ -106,7 +108,7 @@ def collect(profile="all", legacy_root=None, comfy_root=None, blender=None,
         add(identifier, available, (), detail)
     missing = [c["id"] for c in checks if c["required"] and not c["available"]]
     return {"schema": "reference-asset-compiler.workflow-doctor.v1",
-            "timestamp": datetime.now(UTC).isoformat(), "profile": profile,
+            "timestamp": datetime.now(timezone.utc).isoformat(), "profile": profile,
             "ok": not missing, "required_missing": missing, "inference_launched": False,
             "checks": checks, "routing": {
                 "geometry": "guarded direct Hunyuan single-view or multiview runner",

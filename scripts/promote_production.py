@@ -18,33 +18,34 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import re
 import shutil
 import sys
+import uuid
 from pathlib import Path
 
 import numpy as np
 from PIL import Image
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
+import rac_env  # noqa: E402
 from reference_asset_compiler.approvals import validate_texture_approval  # noqa: E402
+from reference_asset_compiler.io import publish_directory, sha256_file  # noqa: E402
 from reference_asset_compiler.runtime_evidence import record_static_publish_stages  # noqa: E402
 
 ROOT = Path(__file__).resolve().parent.parent
+camel = rac_env.camel
+# Lower-case hex like every other receipt in the repository. This used to be
+# the one place that wrote upper-case, which is why the manifest's fbx_sha256
+# never compared equal to anything else that hashed the same file.
+sha256 = sha256_file
 
 
-def camel(asset_id):
-    return "".join(part.capitalize() for part in asset_id.replace("_", "-").split("-"))
-
-
-def sha256(path):
-    digest = hashlib.sha256()
-    with open(path, "rb") as handle:
-        for block in iter(lambda: handle.read(1 << 20), b""):
-            digest.update(block)
-    return digest.hexdigest().upper()
+def load_json(path):
+    """Reports may come from the PowerShell launchers and carry a UTF-8 BOM."""
+    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
 
 
 def _mask_channel(path, size):
@@ -88,6 +89,8 @@ def pack_orm(ao_path, base_path, out_path, roughness_path=None, metallic_path=No
 
 
 def promote(asset, production_name="prod-v2"):
+    if not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", asset):
+        raise ValueError("Asset id must be a lowercase slug, not a filesystem path")
     if not re.fullmatch(r"prod-[a-z0-9]+(?:-[a-z0-9]+)*", production_name):
         raise ValueError("Production name must be a local prod-* directory name")
     prod = ROOT / "work" / asset / production_name
@@ -95,8 +98,8 @@ def promote(asset, production_name="prod-v2"):
     if not report_path.exists():
         print("[PROMOTE] {0}: no build at {1}".format(asset, prod))
         return None
-    retopo = json.loads(report_path.read_text(encoding="utf-8"))
-    texture = json.loads((prod / "gate-tex.json").read_text(encoding="utf-8"))
+    retopo = load_json(report_path)
+    texture = load_json(prod / "gate-tex.json")
     # A static prop has no rig gate and no deformation suite to read, because
     # the build never ran them. Say so in the manifest rather than leaving the
     # keys absent: an absent gate and a passed one are both falsy, and the
@@ -104,13 +107,15 @@ def promote(asset, production_name="prod-v2"):
     # what the manifest exists to record.
     prop = retopo.get("asset_kind") == "static_prop"
     if prop:
-        rig = {"profile": "static_prop", "ok": True, "failures": [],
+        rig = (load_json(prod / "gate-rig.json") if (prod / "gate-rig.json").is_file() else
+               {"profile": "static_prop", "ok": True, "failures": [],
                "warnings": [], "skipped": "a static prop has no skeleton"}
+               )
         deform = {"ok": True, "skipped": "a static prop does not deform"}
     else:
-        rig = json.loads((prod / "gate-rig.json").read_text(encoding="utf-8"))
-        deform = json.loads((prod / "deform.json").read_text(encoding="utf-8"))
-    if not (retopo.get("ok") and rig.get("ok") and texture.get("ok")):
+        rig = load_json(prod / "gate-rig.json")
+        deform = load_json(prod / "deform.json")
+    if not (retopo.get("ok") and rig.get("ok") and texture.get("ok") and deform.get("ok")):
         print("[PROMOTE] {0}: refusing to publish a build that did not pass".format(asset))
         return None
     job = ROOT / "work" / asset
@@ -123,16 +128,18 @@ def promote(asset, production_name="prod-v2"):
             return None
 
     new_id = asset + "-production"
-    dest = ROOT / "out" / new_id
-    (dest / "textures").mkdir(parents=True, exist_ok=True)
-    source = json.loads((ROOT / "out" / asset / (asset + ".ue5import.json"))
-                        .read_text(encoding="utf-8-sig"))
+    published = ROOT / "out" / new_id
+    if published.exists():
+        raise ValueError("Refusing to overwrite published authority: {0}; use a new asset id".format(
+            published))
+    dest = published.parent / ("." + new_id + "-" + uuid.uuid4().hex)
+    (dest / "textures").mkdir(parents=True)
+    source = load_json(ROOT / "out" / asset / (asset + ".ue5import.json"))
 
     fbx = dest / (new_id + ".fbx")
     shutil.copy2(prod / (asset + "_production.fbx"), fbx)
     fbm_src = prod / (asset + "_production.fbm")
     if fbm_src.is_dir():
-        shutil.rmtree(dest / (new_id + ".fbm"), ignore_errors=True)
         shutil.copytree(fbm_src, dest / (new_id + ".fbm"))
 
     name = camel(asset)
@@ -236,6 +243,12 @@ def promote(asset, production_name="prod-v2"):
 
     out_manifest = dest / (new_id + ".ue5import.json")
     out_manifest.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    # Rename the complete package; a concurrent publisher keeps its own authority.
+    if published.exists():
+        raise ValueError("Published authority appeared during packaging: {0}".format(published))
+    publish_directory(dest, published)
+    dest = published
+    out_manifest = dest / out_manifest.name
     if texture_approval is not None:
         try:
             record_static_publish_stages(job, out_manifest)

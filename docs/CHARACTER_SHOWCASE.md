@@ -1,5 +1,7 @@
 # Reproducible native character showcase
 
+*Type: reference*
+
 The README media stages the v051 character inside the finished night workshop,
 not an AI-generated advertisement or a black-background studio. Still images
 are copied byte-for-byte from Unreal screenshots. The saved room and original

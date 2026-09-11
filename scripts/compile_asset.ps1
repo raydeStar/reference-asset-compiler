@@ -17,17 +17,34 @@
 param(
     [Parameter(Mandatory = $true)][string] $Recipe,
     [string] $Blender,
+    [string] $CompilerPython,
     [switch] $SkipRender
 )
 
-# Tool paths come from scripts/rac_env.py rather than a default that is only
-# right on one machine. Set RAC_BLENDER to override.
-if (-not $Blender) {
-    $Blender = (& python (Join-Path $PSScriptRoot 'rac_env.py') --blender) | Select-Object -Last 1
-}
-
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+function Write-Utf8NoBom {
+    param(
+        [Parameter(Mandatory = $true)][string] $Path,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string] $Text
+    )
+    # Windows PowerShell 5.1's Set-Content writes a byte-order mark for utf8,
+    # and every Python reader of these receipts then sees "\ufeff{" and
+    # rejects the JSON. Receipts are UTF-8 without a BOM, always.
+    [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
+}
+
+# Tool paths come from scripts/rac_env.py rather than a default that is only
+# right on one machine. Set RAC_BLENDER to override. The interpreter is the
+# repository's own (.venv, then py -3.12/-3.11, then python), never bare
+# `python`, which on a fresh machine is the Microsoft Store stub.
+$compilerPython = & (Join-Path $PSScriptRoot 'resolve_python.ps1') -Python $CompilerPython
+if (-not $Blender) {
+    $Blender = (& $compilerPython (Join-Path $PSScriptRoot 'rac_env.py') --blender) | Select-Object -Last 1
+    if ($LASTEXITCODE -ne 0 -or -not $Blender) {
+        throw 'Blender could not be resolved; set RAC_BLENDER or pass -Blender <path>.'
+    }
+}
 
 if (-not (Test-Path -LiteralPath $Blender -PathType Leaf)) {
     throw "Blender not found at '$Blender'. Pass -Blender <path>."
@@ -37,20 +54,36 @@ $recipePath = Resolve-Path -LiteralPath $Recipe
 $recipeData = Get-Content -LiteralPath $recipePath -Raw | ConvertFrom-Json
 $assetId = $recipeData.asset_id
 $profileId = $recipeData.skeleton_profile
+if ($assetId -notmatch '^[a-z0-9]+(?:-[a-z0-9]+)*$') {
+    throw 'Recipe asset_id must be a lowercase slug; paths do not belong on the guest list.'
+}
 
-$workDir = Join-Path $repoRoot "work\$assetId"
+$assetWork = Join-Path $repoRoot "work\$assetId"
+$workDir = Join-Path $assetWork ('compile-attempts\' + [guid]::NewGuid().ToString('N'))
 $outDir = Join-Path $repoRoot "out\$assetId"
 $evidenceDir = Join-Path $workDir 'evidence'
-New-Item -ItemType Directory -Force -Path $workDir, $outDir, $evidenceDir | Out-Null
+# A published authority is never overwritten. Refuse before any Blender work
+# rather than after twenty minutes of it; an empty leftover directory is fine.
+if (Test-Path -LiteralPath $outDir) {
+    throw "Published authority already exists: $outDir. This compiler never overwrites it; compile under a new asset id, or remove it deliberately yourself first."
+}
+New-Item -ItemType Directory -Force -Path $workDir, $evidenceDir | Out-Null
 
 function Invoke-Blender {
-    param([string] $Script, [string[]] $ScriptArgs, [string] $Label)
+    param([string] $Script, [string[]] $ScriptArgs, [string] $Label, [string[]] $ExpectedOutputs = @())
 
     Write-Host "[$assetId] $Label" -ForegroundColor Cyan
     $scriptPath = Join-Path $repoRoot "scripts\blender\$Script"
     $logDir = Join-Path $workDir 'logs'
     New-Item -ItemType Directory -Force -Path $logDir | Out-Null
     $stderrLog = Join-Path $logDir "$Script.stderr.log"
+
+    # Delete what this call is about to rewrite, so a crashed stage cannot be
+    # read as the previous run's success. Only per-run outputs under work\,
+    # never retained evidence.
+    foreach ($expected in $ExpectedOutputs) {
+        if (Test-Path -LiteralPath $expected -PathType Leaf) { Remove-Item -LiteralPath $expected -Force }
+    }
 
     # Redirect stderr to a file rather than merging with 2>&1. In Windows
     # PowerShell 5.1 a merged native stderr line becomes an ErrorRecord, and
@@ -61,7 +94,8 @@ function Invoke-Blender {
     $previousPreference = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        $output = & $Blender -b --factory-startup --python $scriptPath -- @ScriptArgs 2>$stderrLog
+        # --python-exit-code 1: without it Blender exits 0 when the stage raised.
+        $output = & $Blender -b --factory-startup --python-exit-code 1 --python $scriptPath -- @ScriptArgs 2>$stderrLog
         $code = $LASTEXITCODE
     } finally {
         $ErrorActionPreference = $previousPreference
@@ -75,6 +109,11 @@ function Invoke-Blender {
         Get-Content -LiteralPath $stderrLog -ErrorAction SilentlyContinue |
             Select-Object -Last 30 | ForEach-Object { Write-Host "  $_" }
         throw "$Label failed with exit code $code"
+    }
+    foreach ($expected in $ExpectedOutputs) {
+        if (-not (Test-Path -LiteralPath $expected -PathType Leaf)) {
+            throw "$Label exited 0 without writing $expected"
+        }
     }
 }
 
@@ -97,9 +136,10 @@ $resolvedProfile = Join-Path $workDir 'resolved-profile.json'
 # --- Stage B0: stage textures under their shipped names ----------------------
 # This happens before the export, not after, so the FBX can carry a relative
 # reference to the exact files that ship beside it.
+# work\<asset>\staged is this run's scratch copy of what gets published; the
+# retained evidence lives in work\<asset>\evidence and out\. Recreating it is fine.
 $stageDir = Join-Path $workDir 'staged'
 $stageTextures = Join-Path $stageDir 'textures'
-if (Test-Path -LiteralPath $stageDir) { Remove-Item -Recurse -Force $stageDir }
 New-Item -ItemType Directory -Force -Path $stageTextures | Out-Null
 
 # An asset may texture more than one material -- a body atlas plus a separate
@@ -142,13 +182,14 @@ $textureMapPath = Join-Path $workDir 'texture-map.json'
 
 # --- Stage B: normalize scale, origin, and naming ----------------------------
 $normalizedFbx = Join-Path $stageDir "$assetId.fbx"
-Invoke-Blender -Script 'normalize_ue5.py' -Label 'normalize' -ScriptArgs @(
-    $recipePath.Path, $normalizedFbx, (Join-Path $workDir 'normalize-report.json'), $textureMapPath
+$normalizeReport = Join-Path $workDir 'normalize-report.json'
+Invoke-Blender -Script 'normalize_ue5.py' -Label 'normalize' -ExpectedOutputs @($normalizedFbx, $normalizeReport) -ScriptArgs @(
+    $recipePath.Path, $normalizedFbx, $normalizeReport, $textureMapPath
 )
 
 # --- Stage C: gate the exported file -----------------------------------------
 $gateReport = Join-Path $workDir 'gate-rig-report.json'
-Invoke-Blender -Script 'gate_rig.py' -Label "gate rig ($profileId)" -ScriptArgs @(
+Invoke-Blender -Script 'gate_rig.py' -Label "gate rig ($profileId)" -ExpectedOutputs @($gateReport) -ScriptArgs @(
     $normalizedFbx, $resolvedProfile, $gateReport
 )
 
@@ -156,7 +197,7 @@ Invoke-Blender -Script 'gate_rig.py' -Label "gate rig ($profileId)" -ScriptArgs 
 # Skeleton gates say the character will animate. This one says whether it will
 # look like anything. Both numbers land in the shipped manifest.
 $uvRegions = Join-Path $workDir 'uv-regions.npz'
-Invoke-Blender -Script 'export_uv_regions.py' -Label 'export uv regions' -ScriptArgs @(
+Invoke-Blender -Script 'export_uv_regions.py' -Label 'export uv regions' -ExpectedOutputs @($uvRegions) -ScriptArgs @(
     $normalizedFbx, $uvRegions
 )
 
@@ -175,7 +216,7 @@ if ($recipeData.clean_clothing_atlas) {
         $previous = $ErrorActionPreference
         $ErrorActionPreference = 'Continue'
         try {
-            $cleanOut = & python (Join-Path $repoRoot 'scripts\clean_clothing_atlas.py') `
+            $cleanOut = & $compilerPython (Join-Path $repoRoot 'scripts\clean_clothing_atlas.py') `
                 $target $uvRegions $target `
                 --material $mat.Name `
                 --regions $opts.regions `
@@ -212,7 +253,7 @@ if ($recipeData.bake_pbr) {
         if ($opts.resolution) { $pbrArgs += @('--resolution', $opts.resolution) }
         if ($opts.samples)    { $pbrArgs += @('--samples', $opts.samples) }
 
-        Invoke-Blender -Script 'bake_pbr.py' -Label "bake PBR ($($mat.Name))" -ScriptArgs $pbrArgs
+        Invoke-Blender -Script 'bake_pbr.py' -Label "bake PBR ($($mat.Name))" -ExpectedOutputs @($pbrReport, $ormPath) -ScriptArgs $pbrArgs
         $pbrReports[$mat.Name] = (Get-Content -LiteralPath $pbrReport -Raw | ConvertFrom-Json)
 
         # The freshly baked ORM replaces whatever the recipe declared.
@@ -231,7 +272,7 @@ foreach ($mat in $textureMap.Keys) {
     $previous = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
     try {
-        $texOut = & python (Join-Path $repoRoot 'scripts\gate_texture.py') `
+        $texOut = & $compilerPython (Join-Path $repoRoot 'scripts\gate_texture.py') `
             $uvRegions $baseColor $resolvedProfile $texReport --material-name $mat 2>&1
         $texCode = $LASTEXITCODE
     } finally {
@@ -255,18 +296,22 @@ if (-not $SkipRender) {
 # --- Stage D2: deformation suite ---------------------------------------------
 # A bind-pose render proves nothing. This is the gate that catches a mirrored
 # rig or a joint that drives no geometry.
+$deformPath = Join-Path $workDir 'deform-report.json'
 if (-not $SkipRender) {
-    Invoke-Blender -Script 'deform_test.py' -Label 'deformation suite' -ScriptArgs @(
-        $normalizedFbx, (Join-Path $evidenceDir 'deform'), (Join-Path $workDir 'deform-report.json')
+    Invoke-Blender -Script 'deform_test.py' -Label 'deformation suite' -ExpectedOutputs @($deformPath) -ScriptArgs @(
+        $normalizedFbx, (Join-Path $evidenceDir 'deform'), $deformPath
     )
 }
 
 # --- Stage E: package --------------------------------------------------------
 # Publish only after every gate has passed, and publish the staged directory
-# whole so the FBX keeps its relative texture references.
-if (Test-Path -LiteralPath $outDir) { Remove-Item -Recurse -Force $outDir }
-New-Item -ItemType Directory -Force -Path $outDir | Out-Null
-Copy-Item -Path (Join-Path $stageDir '*') -Destination $outDir -Recurse -Force
+# whole so the FBX keeps its relative texture references. The payload is built
+# in a hidden sibling and renamed into place only if out\<asset> is still
+# absent, the way compile_prop.py does it: the published authority is never a
+# scratch pad, and never deleted.
+$publishDir = Join-Path (Split-Path -Parent $outDir) ('.{0}-{1}' -f $assetId, [guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Path $publishDir | Out-Null
+Copy-Item -Path (Join-Path $stageDir '*') -Destination $publishDir -Recurse -Force
 $textureManifest = $textureFiles
 
 # --- Stage F: UE5 import manifest --------------------------------------------
@@ -280,12 +325,11 @@ $importSettings = @{
 }
 
 $gate = Get-Content -LiteralPath $gateReport -Raw | ConvertFrom-Json
-$deformPath = Join-Path $workDir 'deform-report.json'
 $deform = if (Test-Path -LiteralPath $deformPath) {
     $d = Get-Content -LiteralPath $deformPath -Raw | ConvertFrom-Json
     [ordered]@{ ok = $d.ok; failures = @($d.failures); warnings = @($d.warnings); poses = $d.poses }
 } else { 'not run (-SkipRender)' }
-$normalize = Get-Content -LiteralPath (Join-Path $workDir 'normalize-report.json') -Raw | ConvertFrom-Json
+$normalize = Get-Content -LiteralPath $normalizeReport -Raw | ConvertFrom-Json
 
 $textures = [ordered]@{}
 foreach ($mat in $textureManifest.Keys) {
@@ -305,9 +349,9 @@ $manifest = [ordered]@{
     skeleton_profile      = $profileId
     retarget_note         = $profile.retarget_note
     fbx                   = "$assetId.fbx"
-    fbx_sha256            = (Get-FileHash -LiteralPath (Join-Path $outDir "$assetId.fbx") -Algorithm SHA256).Hash
+    fbx_sha256            = (Get-FileHash -LiteralPath (Join-Path $publishDir "$assetId.fbx") -Algorithm SHA256).Hash.ToLowerInvariant()
     source_authority      = $recipeData.source.authority_fbx
-    source_authority_sha256 = (Get-FileHash -LiteralPath $recipeData.source.authority_fbx -Algorithm SHA256).Hash
+    source_authority_sha256 = (Get-FileHash -LiteralPath $recipeData.source.authority_fbx -Algorithm SHA256).Hash.ToLowerInvariant()
     blender_version       = $normalize.blender_version
     ue5_import = [ordered]@{
         import_uniform_scale = 1.0
@@ -354,8 +398,16 @@ $manifest = [ordered]@{
     pbr_bake = $pbrReports
 }
 
+Write-Utf8NoBom -Path (Join-Path $publishDir "$assetId.ue5import.json") -Text ($manifest | ConvertTo-Json -Depth 10)
+Copy-Item -LiteralPath $resolvedProfile -Destination (Join-Path $publishDir 'resolved-profile.json')
+
+# Rename into place. If an authority appeared while this ran, keep it and
+# leave the fresh payload beside it for the person to compare.
+if (Test-Path -LiteralPath $outDir) {
+    throw "Published authority appeared during the compile: $outDir. It was not touched; the fresh payload is retained at $publishDir."
+}
+[System.IO.Directory]::Move($publishDir, $outDir)
 $manifestPath = Join-Path $outDir "$assetId.ue5import.json"
-[System.IO.File]::WriteAllText($manifestPath, ($manifest | ConvertTo-Json -Depth 10), (New-Object System.Text.UTF8Encoding $false))
 
 Write-Host ""
 Write-Host "[$assetId] RAC_COMPILE_OK" -ForegroundColor Green

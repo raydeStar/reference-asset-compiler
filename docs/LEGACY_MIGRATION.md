@@ -1,5 +1,7 @@
 # Legacy studio migration plan
 
+*Type: reference*
+
 The compiler repository is intentionally separate from the experimental
 studio. Do not copy the entire `${RAC_LEGACY_ROOT}` tree: it
 contains generated bulk, machine-local paths, licensed integrations, Unreal

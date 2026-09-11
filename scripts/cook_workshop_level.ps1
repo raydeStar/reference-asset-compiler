@@ -21,7 +21,8 @@ param(
     [Parameter(Mandatory = $true)][string] $Archive,
     [Parameter(Mandatory = $true)][string] $Receipt,
     [string] $Project = 'work/ue5-validate/RacValidate.uproject',
-    [ValidateSet('Development', 'Shipping')][string] $Configuration = 'Development'
+    [ValidateSet('Development', 'Shipping')][string] $Configuration = 'Development',
+    [string] $CompilerPython
 )
 
 $ErrorActionPreference = 'Stop'
@@ -39,7 +40,9 @@ if (Test-Path -LiteralPath $archivePath) { throw "Retained archive exists: $arch
 $projectPath = Join-Path $repoRoot $Project
 if (-not (Test-Path -LiteralPath $projectPath)) { throw "Project not found: $projectPath" }
 
-$unrealCmd = (& python (Join-Path $PSScriptRoot 'rac_env.py') --unreal-cmd) | Select-Object -Last 1
+$compilerPython = & (Join-Path $PSScriptRoot 'resolve_python.ps1') -Python $CompilerPython
+$unrealCmd = (& $compilerPython (Join-Path $PSScriptRoot 'rac_env.py') --unreal-cmd) | Select-Object -Last 1
+if ($LASTEXITCODE -ne 0 -or -not $unrealCmd) { throw 'UnrealEditor-Cmd.exe could not be resolved; set RAC_UNREAL_CMD.' }
 # <Engine>/Binaries/Win64/UnrealEditor-Cmd.exe -> <Engine>/Build/BatchFiles/RunUAT.bat
 $engineRoot = Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $unrealCmd))
 $uat = Join-Path $engineRoot 'Build\BatchFiles\RunUAT.bat'

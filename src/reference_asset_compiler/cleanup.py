@@ -2,20 +2,20 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from .io import read_json, sha256_file
+from .evidence import record_receipt, resolve_evidence_path, verified_evidence_hashes
+from .io import read_json, sha256_file, write_retained_json
 from .workspace import audit_workspace
 
 CLEANUP_REPORT_SCHEMA = "reference-asset-compiler.semantic-cleanup-topology.v1"
 CLEANUP_RECEIPT_SCHEMA = "reference-asset-compiler.semantic-cleanup.v1"
+LINEAGE_SCHEMA = "reference-asset-compiler.modeling-derivative-lineage.v1"
 
 
 def _resolve_evidence(job: Path, row: dict[str, Any]) -> Path:
-    path = Path(str(row.get("path") or ""))
-    return path if path.is_absolute() else job / path
+    return resolve_evidence_path(job, row.get("path"))
 
 
 def validate_cleanup_input(job: Path, input_mesh: Path) -> dict[str, Any]:
@@ -30,24 +30,9 @@ def validate_cleanup_input(job: Path, input_mesh: Path) -> dict[str, Any]:
     if modeling.get("status") != "passed":
         raise ValueError("modeling_approval has not passed")
     input_hash = sha256_file(input_mesh)
-    evidence_hashes = {
-        row.get("sha256")
-        for row in modeling.get("evidence", [])
-        if _resolve_evidence(job, row).is_file()
-        and sha256_file(_resolve_evidence(job, row)) == row.get("sha256")
-    }
-    lineage = None
-    for row in modeling.get("evidence", []):
-        path = _resolve_evidence(job, row)
-        if path.suffix.lower() != ".json" or not path.is_file():
-            continue
-        try:
-            payload = read_json(path)
-        except (OSError, ValueError):
-            continue
-        if payload.get("schema") == "reference-asset-compiler.modeling-derivative-lineage.v1":
-            lineage = payload
-            break
+    evidence_hashes = verified_evidence_hashes(job, modeling)
+    found = record_receipt(job, modeling, LINEAGE_SCHEMA)
+    lineage = found[1] if found else None
     if lineage is None or lineage.get("modeling_candidate_sha256") != input_hash:
         raise ValueError("cleanup input is not the lineage-approved modeling mesh")
     if input_hash not in evidence_hashes:
@@ -106,9 +91,8 @@ def record_cleanup_receipt(
         "status": "conservative cleanup derivative -- modeling authority remains immutable",
     }
     receipt_path = (output or (job / "cleanup" / "semantic-cleanup-receipt.json")).resolve()
-    encoded = json.dumps(receipt, indent=2) + "\n"
-    if receipt_path.exists() and receipt_path.read_text(encoding="utf-8") != encoded:
-        raise ValueError("refusing to overwrite different semantic cleanup evidence")
-    receipt_path.parent.mkdir(parents=True, exist_ok=True)
-    receipt_path.write_text(encoded, encoding="utf-8")
+    try:
+        write_retained_json(receipt_path, receipt)
+    except ValueError as error:
+        raise ValueError("refusing to overwrite different semantic cleanup evidence") from error
     return {**receipt, "receipt": str(receipt_path)}
