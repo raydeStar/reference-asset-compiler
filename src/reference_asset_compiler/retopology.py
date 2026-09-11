@@ -2,14 +2,15 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
 from PIL import Image
 
-from .io import read_json, sha256_file
-from .workspace import AUTOMATION_REVIEWERS, audit_workspace
+from .contracts import AUTOMATION_REVIEWERS
+from .evidence import stage_receipt
+from .io import read_json, sha256_file, write_retained_json
+from .workspace import audit_workspace
 from .delegated_review import validate_authorization
 
 REPORT_SCHEMA = "reference-asset-compiler.production-retopology-candidate.v1"
@@ -30,18 +31,7 @@ ARTICULATED_KINDS = {"humanoid", "mascot", "creature", "mechanical_articulated"}
 
 
 def _stage_receipt(job: Path, stage: str, schema: str) -> dict[str, Any]:
-    state = read_json(job / "state.json")
-    record = state["stages"][stage]
-    if record.get("status") != "passed":
-        raise ValueError("{0} has not passed".format(stage))
-    for row in record.get("evidence", []):
-        path = Path(row["path"])
-        path = path if path.is_absolute() else job / path
-        if path.suffix.lower() == ".json" and path.is_file():
-            payload = read_json(path)
-            if payload.get("schema") == schema:
-                return payload
-    raise ValueError("{0} receipt is missing".format(stage))
+    return stage_receipt(job, read_json(job / "state.json"), stage, schema)
 
 
 def _validate_views(views: list[Path]) -> list[dict[str, Any]]:
@@ -99,8 +89,13 @@ def record_retopology_receipt(
     topology_views: list[Path] | None = None,
     output: Path | None = None,
     authorization: Path | None = None,
+    deformation_topology_reviewed: bool = False,
 ) -> dict[str, Any]:
-    """Approve an under-budget, deformation-aware derivative of semantic cleanup."""
+    """Approve an under-budget, deformation-aware derivative of semantic cleanup.
+
+    ``deformation_topology_reviewed`` is the reviewer's explicit attestation that
+    joint edge flow was inspected; articulated kinds cannot pass without it.
+    """
     job = job.resolve()
     audit = audit_workspace(job)
     if not audit["ok"]:
@@ -153,6 +148,9 @@ def record_retopology_receipt(
     if (manifest["asset_kind"] in ARTICULATED_KINDS
             and (not isinstance(quad_fraction, (int, float)) or quad_fraction < 0.8)):
         raise ValueError("articulated production retopology requires at least 80% quads")
+    if manifest["asset_kind"] in ARTICULATED_KINDS and deformation_topology_reviewed is not True:
+        raise ValueError("articulated production retopology requires the reviewer to attest "
+                         "deformation_topology_reviewed (--deformation-topology-reviewed)")
 
     view_rows = _validate_views(views)
     topology_view_rows = (
@@ -172,16 +170,16 @@ def record_retopology_receipt(
         "quad_fraction": quad_fraction,
         "fixed_views": view_rows,
         "topology_views": topology_view_rows,
-        "deformation_topology_reviewed": manifest["asset_kind"] in ARTICULATED_KINDS,
+        "deformation_topology_reviewed": bool(deformation_topology_reviewed),
         "approved_by": reviewer,
         "note": note.strip(),
         "status": "approved",
         "production_grade": False,
     }
     receipt_path = (output or (job / "retopology" / "production-retopology-receipt.json")).resolve()
-    encoded = json.dumps(receipt, indent=2) + "\n"
-    if receipt_path.exists() and receipt_path.read_text(encoding="utf-8") != encoded:
-        raise ValueError("refusing to overwrite different production retopology evidence")
-    receipt_path.parent.mkdir(parents=True, exist_ok=True)
-    receipt_path.write_text(encoded, encoding="utf-8")
+    try:
+        write_retained_json(receipt_path, receipt)
+    except ValueError as error:
+        raise ValueError(
+            "refusing to overwrite different production retopology evidence") from error
     return {**receipt, "receipt": str(receipt_path)}

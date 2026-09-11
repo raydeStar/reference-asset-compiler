@@ -2,15 +2,16 @@
 
 from __future__ import annotations
 
-import json
 import re
 from pathlib import Path
 from typing import Any
 
 from PIL import Image, ImageStat
 
-from .io import read_json, sha256_file
-from .workspace import AUTOMATION_REVIEWERS, audit_workspace, promote_stage
+from .contracts import AUTOMATION_REVIEWERS
+from .evidence import IMPORT_SCHEMA, find_receipt, record_evidence_paths
+from .io import read_json, sha256_file, write_retained_json
+from .workspace import audit_workspace, promote_stage
 from .native_revision import validate_native_revision, validate_matched_native_frames
 from .delegated_review import validate_authorization, record_delegated_review
 from .static_review import SCHEMA as STATIC_REVIEW_SCHEMA, validate_static_frames
@@ -99,7 +100,7 @@ def extract_ue5_import_record(
     if not engine:
         raise ValueError("UE report does not identify the engine version")
     return {
-        "schema": "reference-asset-compiler.ue5-import-evidence.v1",
+        "schema": IMPORT_SCHEMA,
         "asset_id": asset_id,
         "engine_version": engine,
         "manifest": str(manifest_path),
@@ -124,11 +125,10 @@ def record_ue5_import_stage(
         raise ValueError("{0} has not passed".format(prerequisite))
     payload = extract_ue5_import_record(manifest_path, batch_report_path)
     output = job / "validation" / "ue5-import.json"
-    encoded = json.dumps(payload, indent=2) + "\n"
-    if output.exists() and output.read_text(encoding="utf-8") != encoded:
-        raise ValueError("refusing to overwrite different retained UE import evidence")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(encoded, encoding="utf-8")
+    try:
+        write_retained_json(output, payload)
+    except ValueError as error:
+        raise ValueError("refusing to overwrite different retained UE import evidence") from error
     status = state["stages"]["ue5_import"]["status"]
     if status == "pending":
         promote_stage(
@@ -168,12 +168,10 @@ def record_native_import_revision(job: Path, manifest_path: Path, batch_report_p
     manifest = read_json(manifest_path)
     if manifest.get("asset_kind") != "static_prop":
         raise ValueError("Native reduction revisions currently support static props only")
-    prior_paths = [Path(row["path"]) for row in state["stages"]["ue5_import"]["evidence"]]
-    prior_paths = [p if p.is_absolute() else job / p for p in prior_paths]
-    previous = next((p for p in prior_paths if p.suffix == ".json" and
-                     read_json(p).get("schema") == "reference-asset-compiler.ue5-import-evidence.v1"), None)
-    if previous is None:
+    found = find_receipt(record_evidence_paths(job, state["stages"]["ue5_import"]), IMPORT_SCHEMA)
+    if found is None:
         raise ValueError("Source import receipt is missing")
+    previous = found[0]
     payload = extract_ue5_import_record(manifest_path, batch_report_path)
     derivative = read_json(batch_report_path).get("native_derivative") or {}
     payload["native_revision"] = {"id": revision,
@@ -191,9 +189,11 @@ def record_native_import_revision(job: Path, manifest_path: Path, batch_report_p
         raise ValueError("Retained native revision already exists")
     _write_immutable(snapshot, state)
     _write_immutable(output, payload)
+    # This is the one sanctioned replacement of a passed stage: the previous
+    # receipt stays in evidence and the pre-revision ledger is retained above.
     promote_stage(job, "ue5_import", [output, *evidence, snapshot],
                   "Native derivative verified against its explicit geometry/material contract and original runtime budgets; previous import and ledger retained.",
-                  "record_ue5_import.py")
+                  "record_ue5_import.py", replace=True)
     return output
 
 
@@ -216,11 +216,7 @@ def _image_stats(path: Path) -> dict[str, Any]:
 
 
 def _write_immutable(path: Path, payload: dict[str, Any]) -> None:
-    encoded = json.dumps(payload, indent=2) + "\n"
-    if path.exists() and path.read_text(encoding="utf-8") != encoded:
-        raise ValueError("refusing to overwrite different retained evidence: {0}".format(path))
-    path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(encoded, encoding="utf-8")
+    write_retained_json(path, payload)
 
 
 def record_runtime_review_stage(
@@ -251,11 +247,10 @@ def record_runtime_review_stage(
     screenshot_path = screenshot_path.resolve()
     manifest = read_json(manifest_path)
     gallery = read_json(gallery_report_path)
-    import_paths = [Path(row["path"]) for row in state["stages"]["ue5_import"]["evidence"]]
-    import_paths = [p if p.is_absolute() else job / p for p in import_paths]
-    import_receipt = next(p for p in import_paths if p.suffix == ".json" and
-                          read_json(p).get("schema") == "reference-asset-compiler.ue5-import-evidence.v1")
-    imported = read_json(import_receipt)
+    found = find_receipt(record_evidence_paths(job, state["stages"]["ue5_import"]), IMPORT_SCHEMA)
+    if found is None:
+        raise ValueError("ue5_import receipt is missing")
+    import_receipt, imported = found
     extra_evidence = []
     if "native_revision" in imported:
         if imported["manifest_sha256"] != sha256_file(manifest_path):

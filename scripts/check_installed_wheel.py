@@ -23,16 +23,19 @@ def check_wheel(wheel: Path) -> dict:
         for key in ("PYTHONPATH", "PYTHONHOME"):
             env.pop(key, None)
 
-        def run(args, expected=0):
+        def run(args, expected=0, timeout=90):
             result = subprocess.run([str(v) for v in args], cwd=root, env=env,
-                                    capture_output=True, text=True, errors="replace", timeout=90)
+                                    capture_output=True, text=True, errors="replace",
+                                    timeout=timeout)
             if result.returncode != expected:
                 raise RuntimeError(f"Installed CLI check failed ({result.returncode}): {args}\n"
                                    f"{result.stdout}\n{result.stderr}")
             return result
 
         # Install declared runtime dependencies too, with no inherited editable install.
-        run([python, "-m", "pip", "install", wheel])
+        # numpy, Pillow and scipy come from the index on a cold cache; 90 s is the
+        # budget for the CLI calls below, not for a download.
+        run([python, "-m", "pip", "install", wheel], timeout=600)
         location = run([python, "-I", "-c", "import reference_asset_compiler as p; "
                         "from importlib.metadata import version; "
                         "assert p.__version__ == version('reference-asset-compiler'); "

@@ -43,14 +43,19 @@ param(
     [string] $HandLandmarks,
     [string] $RingProfile,
     [string] $BindingReport,
+    [string] $CompilerPython,
     [string] $Blender = $env:RAC_BLENDER
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+$compilerPython = & (Join-Path $PSScriptRoot 'resolve_python.ps1') -Python $CompilerPython
 if (-not $Blender) {
-    $Blender = (& python (Join-Path $PSScriptRoot 'rac_env.py') --blender) | Select-Object -Last 1
+    $Blender = (& $compilerPython (Join-Path $PSScriptRoot 'rac_env.py') --blender) | Select-Object -Last 1
+    if ($LASTEXITCODE -ne 0 -or -not $Blender) {
+        throw 'Blender could not be resolved; set RAC_BLENDER or pass -Blender <path>.'
+    }
 }
 $blenderPath = (Resolve-Path -LiteralPath $Blender).Path
 $inputPath = (Resolve-Path -LiteralPath $InputMesh).Path
@@ -125,9 +130,14 @@ $landmarks = $null
 
 if ($route -eq 'arp') {
     $arpDir = Join-Path $outputPath 'arp'
-    & (Join-Path $PSScriptRoot 'run_arp_rig_candidate.ps1') -InputMesh $inputPath -OutputDirectory $arpDir -HandLandmarks $HandLandmarks -Blender $blenderPath
-    if ($LASTEXITCODE -ne 0) { throw 'Auto-Rig Pro candidate failed' }
+    # A dot-invoked script does not set $LASTEXITCODE; that variable only
+    # reflects native executables. The sub-script throws on failure and the
+    # throw propagates here under Stop, so the verdict is its output on disk.
+    & (Join-Path $PSScriptRoot 'run_arp_rig_candidate.ps1') -InputMesh $inputPath -OutputDirectory $arpDir -HandLandmarks $HandLandmarks -Blender $blenderPath -CompilerPython $compilerPython
     $candidate = Join-Path $arpDir 'arp-rig-candidate.blend'
+    if (-not (Test-Path -LiteralPath $candidate -PathType Leaf)) {
+        throw "Auto-Rig Pro candidate returned without writing $candidate"
+    }
     Write-Host "[rig] Auto-Rig Pro candidate at $candidate; export its FBX with the ARP game exporter, then gate with gate_rig.py and deform_test.py."
     $riggedFbx = $candidate
 } else {

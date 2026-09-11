@@ -1,5 +1,7 @@
 # Sunset character lighting route: retained failure, not an approved texture
 
+*Type: escalation*
+
 2026-09-05. The user wants the entire polished workshop demo and recognizable
 playable Ayric. That objective remains active. This escalation concerns the
 IntrinsicAnything lighting-estimation route, not permission to reduce scope.

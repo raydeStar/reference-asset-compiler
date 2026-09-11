@@ -1,5 +1,7 @@
 # Sunset workshop
 
+*Type: chronological log*
+
 Requested on 2026-09-04: a playable, modular UE5 scene inspired by the supplied
 sunlit illustrated workshop. Individual tools, circuit boards, cups, instruments,
 furniture, and plants should remain independently placed objects.

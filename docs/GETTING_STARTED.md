@@ -1,5 +1,7 @@
 # Getting started
 
+*Type: reference*
+
 This walks you from a fresh clone to a playable UE5 gallery. Nothing here is
 hidden behind chat history: every command is one you can run again.
 
@@ -16,7 +18,7 @@ the parts that produce new characters.
 | **Blender 5.2 LTS** | retopology, UVs, rigging, deformation tests, renders | Free. Found automatically in Steam or Program Files; else set `RAC_BLENDER`. |
 | **Unreal Engine 5.8** | import verification, gallery, cook | Free (Epic launcher). Needs the Third Person template that ships with it. |
 | **Disk** | see the tiers below | About 32 GiB for a fresh one-image AI stack, 37 GiB with both shape modes; keep 45 to 50 GiB free, or 60 GiB for working room. The no-AI route is about 5 GB. Exact byte counts are in `docs/AI_STAGES_SETUP.md`. |
-| **NVIDIA GPU, 24 GB VRAM** | AI geometry and AI texturing only | Verified on an RTX 4090. Texturing refuses to start under 21 GB free. |
+| **NVIDIA GPU, 24 GB card** | AI geometry and AI texturing only | Verified on an RTX 4090. Texturing refuses to start under 21 GiB (21,504 MiB) free; geometry needs 18 GiB multiview or 12 GiB single view. |
 | **Hunyuan3D checkouts + weights** | AI geometry and texturing | A separate studio tree named by `RAC_LEGACY_ROOT`: Hunyuan3D-2/2mv for shape and Hunyuan3D-Paint 2.1 for the existing mesh. Exact sizes and layout are in `docs/AI_STAGES_SETUP.md`. |
 | **ComfyUI + wrapper nodes** (optional) | historical geometry graph or future guidance-view generation | Not required by the one-image operator. The preserved graph is `workflows/geometry/comfyui/hy3d_final_cut.json`. |
 | **Auto-Rig Pro** (optional, paid) | better humanoid binding | Not required. `run_rig_candidate.ps1` uses it when present and falls back to the free landmark rig otherwise; see *Rigging with or without Auto-Rig Pro*. |
@@ -41,7 +43,10 @@ run their pinned Python entrypoints directly. `work/ue5-validate/Saved` and
 ### Flexibility
 
 - **Tool locations** are discovered, then overridable with `RAC_BLENDER`,
-  `RAC_UNREAL_CMD`, `RAC_UNREAL_EDITOR`, and `RAC_LEGACY_ROOT`.
+  `RAC_UNREAL_CMD`, `RAC_UNREAL_EDITOR`, and `RAC_LEGACY_ROOT`. Recipes may
+  write `${RAC_LEGACY_ROOT}`; `rac_env.py` expands it. `${RAC_REPO_ROOT}` in a
+  geometry request is not an environment variable: `rac geometry-preflight
+  --repo-root` substitutes it.
 - **Unreal version**: verified on 5.8. `setup_ue5_project.ps1` reads your
   install's `Build.version` and writes the matching engine association, with a
   warning if it is not 5.8; the editor Python calls it relies on exist from
@@ -112,17 +117,22 @@ existing project without `-Force`.
 
 ## 3. Compile a prop you already have (no AI, no GPU)
 
-Copy `recipes/office-chair-ai-v2.json` to `recipes/my-crate.json` and point it
-at any mesh and base-color texture on your disk. Then:
+`examples/crate/` is a complete, CC0 example: a generated OBJ cube with
+normals and UVs, a 64x64 base color, and the recipe `examples/crate/crate.json`
+with paths relative to the repository root. From the repository root:
 
 ```powershell
-python scripts\compile_prop.py recipes\my-crate.json
-python scripts\build_production.py my-crate
-python scripts\promote_production.py my-crate
+python scripts\compile_prop.py examples\crate\crate.json
+python scripts\build_production.py example-crate --no-sweep --strategy passthrough --resolution 256 --samples 4 --skip-render
+python scripts\promote_production.py example-crate
 ```
 
-You now have `out\my-crate-production\` with an FBX, PNG maps, and a
-`.ue5import.json` manifest. `docs/PROPS.md` explains each step.
+You now have `out\example-crate-production\` with an FBX, PNG maps, and a
+`.ue5import.json` manifest. For your own prop, copy `examples/crate/crate.json`
+to `recipes/my-crate.json` and point it at any FBX, GLB or OBJ mesh and
+base-color texture on your disk (`recipes/office-chair-ai-v2.json` is the
+same shape, bound to workstation paths). `examples/crate/README.md` and
+`docs/PROPS.md` explain each step.
 
 ## 4. Compile a rigged character you already have
 
@@ -167,7 +177,7 @@ It needs the AI stages; `docs/AI_STAGES_SETUP.md` says exactly what to install
 and where. The short version:
 
 1. `rac new <id> <image.png> --kind mascot --articulation required --skeleton-profile mascot_biped_tail`
-2. Write a geometry request (`mode: single_view` needs only the picture; `multiview` needs front/left/back guidance views), run `run_hy3d_geometry.ps1`, review four clay views; `rac promote modeling_approval`.
+2. Write a geometry request (omitting `mode` runs multiview, which needs front/left/back guidance views; write `"mode": "single_view"` when only the picture exists), run `run_hy3d_geometry.ps1`, review four clay views; `rac promote modeling_approval`.
 3. Cleanup and retopology scripts; review matcaps and wireframes; `rac promote production_retopology`.
 4. `run_texture_uv_prep.ps1`, then `run_hy3d21_texture.ps1`; review **calibrated** lit views and unlit albedo; fix landmarks with `project_ai_reference_region.py` or channels with `clamp_region_roughness.py` if needed; `package_character_texture.py`; `rac promote texture_approval`.
 5. `run_rig_candidate.ps1` (Auto-Rig Pro or the free landmark rig, then `gate_rig.py` and `deform_test.py`), then `record_rig_and_skin.py` and `record_deformation.py`.

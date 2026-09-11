@@ -1,19 +1,29 @@
 # Static props
 
+*Type: reference*
+
 The compiler was built for characters, and every stage of it assumed one. This
 is the route for things that do not have a skeleton, and what it did and did
 not take to add it.
 
-First asset through it: `office-chair`, the lineage `HANDOFF.md` records as
-explicitly passed.
+First asset through it: the hand-authored `office-chair`, now regression
+evidence only; the AI-conditioned `office-chair-ai-v2` is the one the ledger
+tracks (`STATUS.md`). The example below is `examples/crate/`, a CC0 cube that
+runs from a fresh clone; `recipes/office-chair-ai-v2.json` is the same shape
+pointing at workstation-bound `work/` paths.
 
 ## The route
 
 ```powershell
-python scripts\compile_prop.py recipes\office-chair.json
-python scripts\build_production.py office-chair
-python scripts\promote_production.py office-chair
+python scripts\compile_prop.py examples\crate\crate.json
+python scripts\build_production.py example-crate
+python scripts\promote_production.py example-crate
 ```
+
+`compile_prop.py` accepts FBX, GLB/glTF or OBJ as `source.authority_fbx`.
+Relative paths in a recipe resolve against the directory you run from, so run
+it from the repository root; `${RAC_LEGACY_ROOT}` is expanded when a recipe
+names the studio tree.
 
 Then the same UE5 import, verify and gallery scripts the characters use — they
 now branch on the manifest's `ue5_mesh_type`.
@@ -180,21 +190,28 @@ All three are fixed. None of them was visible while there was one prop.
 
 ## What is not done
 
-- **The shipped chair is not V1-eligible geometry.** Its 38-part source was
-  hand-authored. A preserved Hunyuan multiview generation is now hash-bound to
-  the approved turnaround and all three conditioned views in
-  `work/office-chair-ai-v2`; it still requires a reviewed runtime derivative,
-  human modeling approval, a new texture approval, and fresh UE/cook proof.
-- **The currently shipped chair still loses per-material metallic.** The new
-  production route now bakes the authority's six roughness constants and its
-  0.18 frame/0.25 rust metallic values through the UV layout, packs them into
-  ORM, and wires the same maps into the review FBX. The isolated canary passed
-  mechanics and agent fixed-view review; human texture approval plus fresh UE
-  import/cook proof remain before replacing the shipped chair.
+- **The hand-authored chair is not V1-eligible geometry.** Its 38-part source
+  was not image-conditioned, so it is regression evidence only.
+- **The AI chair (`office-chair-ai-v2`) has passed modeling, retopology and
+  texture by Ayric and headless UE import**, from the Hunyuan multiview
+  candidate hash-bound in `work/office-chair-ai-v2`
+  (`recipes/office-chair-ai-v2.json`, `docs/evidence/office-chair-ai-v2-*.json`).
+  Its 1.019 m, 18,000-triangle payload has three UE LODs and samples BaseColor
+  plus packed ORM. What remains is the human `ue5_runtime_review` in the live
+  editor, and `cook` stays blocked until that passes. It is not
+  production-ready.
+- **Per-material metallic on the hand-authored chair** was recovered by a
+  later canary that bakes the authority's six roughness constants and its
+  0.18 frame / 0.25 rust metallic values into ORM
+  (`docs/evidence/office-chair-authored-pbr-canary-v1.json`). It passed
+  mechanics and agent fixed-view review only; the asset is regression evidence
+  and was not replaced.
 - **Collision is a convex hull**, so you cannot walk between the spokes of the
   base. Fine for review, wrong for a chair you can push around.
-- **One prop has been through this.** The sword and the guitar in `HANDOFF.md`
-  have not. The guitar's melted generated mesh remains a recorded rejection;
-  the later procedural Blender replacement was also rejected because the image
-  did not condition its geometry. A new AI-derived candidate is required and is
-  not yet eligible for UV, texture, or compiler work.
+- **The other cohort props are behind the chair.** `weathered-longsword` still
+  needs a formal pass through the static gates; `sunburst-guitar-ai-v2` needs
+  a new AI-derived candidate after its melted generation and the rejected
+  procedural Blender replacement (the image did not condition that geometry).
+  The Sunset workshop props (plant, sofa, circuit board, scene sword) were
+  compiled on the workstation for the demo and are tracked in `STATUS.md`, not
+  in the cohort ledger.

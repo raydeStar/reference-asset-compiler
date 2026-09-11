@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 from typing import Any
 
-from .io import read_json, sha256_file
+from .contracts import AUTOMATION_REVIEWERS
+from .delegated_review import validate_delegated_review
+from .evidence import record_evidence_paths, verified_evidence_hashes
+from .io import read_json, sha256_file, write_retained_json
 from .workspace import audit_workspace
 
 MODELING_VIEW_NAMES = (
@@ -61,22 +63,30 @@ def record_modeling_derivative(
         "ok": True,
     }
     output = job / "modeling" / "modeling-lineage.json"
-    encoded = json.dumps(payload, indent=2) + "\n"
-    if output.exists() and output.read_text(encoding="utf-8") != encoded:
-        raise ValueError("refusing to overwrite different modeling lineage evidence")
-    output.parent.mkdir(parents=True, exist_ok=True)
-    output.write_text(encoded, encoding="utf-8")
+    try:
+        write_retained_json(output, payload)
+    except ValueError as error:
+        raise ValueError("refusing to overwrite different modeling lineage evidence") from error
     return output, artifacts
 
 
-def _evidence_hashes(job: Path, record: dict[str, Any]) -> set[str]:
-    hashes: set[str] = set()
-    for row in record.get("evidence", []):
-        evidence = Path(row["path"])
-        resolved = evidence if evidence.is_absolute() else job / evidence
-        if resolved.is_file() and sha256_file(resolved) == row.get("sha256"):
-            hashes.add(row["sha256"])
-    return hashes
+_evidence_hashes = verified_evidence_hashes
+
+
+def _require_identified_reviewer(job: Path, record: dict[str, Any], stage: str) -> str:
+    """Same rule as promote_stage: automation identities need hash-bound delegation."""
+    approved_by = str(record.get("approved_by") or "").strip()
+    if not approved_by:
+        raise ValueError("{0} requires an identified human reviewer".format(stage))
+    if approved_by.lower() in AUTOMATION_REVIEWERS:
+        source_hash = read_json(job / "intake.json").get("source", {}).get("sha256")
+        try:
+            validate_delegated_review(
+                record_evidence_paths(job, record), approved_by, source_hash, stage)
+        except ValueError as error:
+            raise ValueError("{0} requires an identified human reviewer or explicit "
+                             "hash-bound user delegation: {1}".format(stage, error)) from error
+    return approved_by
 
 
 def validate_generated_candidate(job: Path, candidate: Path, report: Path) -> dict[str, Any]:
@@ -106,9 +116,7 @@ def validate_modeling_approval(
     record = read_json(job / "state.json")["stages"]["modeling_approval"]
     if record.get("status") != "passed":
         raise ValueError("modeling_approval has not passed")
-    approved_by = str(record.get("approved_by") or "").strip()
-    if not approved_by or approved_by == "compile_from_image.py":
-        raise ValueError("modeling_approval requires an identified human reviewer")
+    _require_identified_reviewer(job, record, "modeling_approval")
 
     candidate = candidate.resolve()
     view_directory = fixed_view_directory.resolve()
@@ -158,9 +166,7 @@ def validate_texture_approval(
     record = read_json(job / "state.json")["stages"]["texture_approval"]
     if record.get("status") != "passed":
         raise ValueError("texture_approval has not passed")
-    approved_by = str(record.get("approved_by") or "").strip()
-    if not approved_by or approved_by in {"build_production.py", "compile_from_image.py"}:
-        raise ValueError("texture_approval requires an identified human reviewer")
+    _require_identified_reviewer(job, record, "texture_approval")
     required_paths = texture_evidence_paths(production_directory, retopo)
     missing = [str(path) for path in required_paths if not path.is_file()]
     if missing:

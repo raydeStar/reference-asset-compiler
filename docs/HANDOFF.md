@@ -1,8 +1,12 @@
 # Cross-agent handoff: V1 checkpoint
 
-Last updated: 2026-09-06. The sections up to *Definition of V1 completion*
+*Type: chronological log*
+
+Last updated: 2026-09-11. This file is the append-only chronological log.
+The current state lives in [docs/STATUS.md](STATUS.md), which is rewritten in
+place; read that first. The sections up to *Definition of V1 completion*
 describe the 2026-08-30 checkpoint; everything after them is a dated log
-appended in order, so the current state is the last dated section.
+appended in order, so the newest entry is the last dated section.
 
 ## What this checkpoint is
 
@@ -740,7 +744,7 @@ then render four clay views of the candidate for modeling approval. Expect the
 back of the cape to be inferred from the single view; if it reads wrong, that
 is the case for the multiview route with guidance views.
 
-## 2026-09-04: non-Codex single-image operator route
+## 2026-09-04 — non-Codex single-image operator route
 
 `scripts/crank_from_image.py` is now the user-facing, resumable entrypoint for
 people who do not want a coding agent in the loop. It creates a hash-bound
@@ -1050,7 +1054,7 @@ Blender render or Hunyuan inference process remains; 22,342 MiB VRAM and about
 331 GiB disk were free. Existing MCP/LM Studio/UI processes were preserved.
 Verify ownership again before the next run. Goal remains active and unfinished.
 
-### 2026-09-04: user requests face-only repair, preserve everything else
+## 2026-09-04 — user requests face-only repair, preserve everything else
 
 User: "Man, face texture isn't great, definitely needs work. Everything else
 is great though." Preserve the rest of the design. The full-demo completion
@@ -1097,7 +1101,7 @@ completeness/hash tests. Early packaging invocations refused missing pending
 CPU transfer output before creating a package; later runs used completed
 inputs. These were not inference crashes. No automatic inference retry.
 
-### 2026-09-04: density repaired without changing the face or body design
+## 2026-09-04 — density repaired without changing the face or body design
 
 Previous goal turn was progress (bounded facial mapping). This continuation
 repacks existing islands and transfers all three PBR maps, rather than scaling
@@ -1149,7 +1153,7 @@ Preflight/doctor passed; original MCP and LM Studio UI were preserved. Final
 verification: 122 tests, scoped ruff and compile checks pass. Full goal remains
 active, not blocked or complete. Workshop remains the early v003 preview.
 
-### 2026-09-04: official delight rejected; separate board budget candidate
+## 2026-09-04 — official delight rejected; separate board budget candidate
 
 The installed official Hunyuan3D-2 `Light_Shadow_Remover` was tested once on
 one retained painter view, then on the remaining five after inspecting the
@@ -1211,7 +1215,7 @@ demo still needs character texture/rig/deformation, sword attachment, remaining
 props, scene polish and cooked-runtime proof. Full verification: 126 tests,
 scoped ruff and diff checks pass; no mechanical waiver or production claim.
 
-### 2026-09-04: forehead registration and skin PBR improve the preferred face
+## 2026-09-04 — forehead registration and skin PBR improve the preferred face
 
 Previous turn was progress (retained delight rejection and native UE board
 evidence). This turn returned to the user's face complaint. No AI inference,
@@ -1266,7 +1270,7 @@ hold, then rig/deformation, UE back sword and complete workshop/cooked runtime.
 Do not repeat the rejected broad delight or forehead/brow variants. Full suite
 129 tests and scoped ruff pass; the entire demo goal remains active.
 
-### 2026-09-04: bilateral neck donor and pixel-depth projection
+## 2026-09-04 — bilateral neck donor and pixel-depth projection
 
 Previous turn was progress (preferred forehead/skin repair). This turn acquired
 one built-in ImageGen donor conditioned directly on the actual v006 unlit
@@ -1340,7 +1344,7 @@ diagnose the independent lighting hold causally before another broad paint
 attempt; never tune artwork to the score. Full rig/deformation, sword attachment,
 workshop polish and cooked-runtime contract remain outstanding.
 
-### 2026-09-04 — lighting falsification and matched native board review
+## 2026-09-04 — lighting falsification and matched native board review
 
 Added read-only `scripts/diagnose_lighting_confound.py` and three synthetic
 tests. `work/sunset-ayric-v2/texture/lighting-confound-v001.json` binds the
@@ -1378,7 +1382,7 @@ failed import collection because it omitted the repo root; explicit installed
 Python `-m pytest` is the working invocation. No GPU inference ran this turn.
 Full demo still outstanding; no goal completion or production-ready claim.
 
-### 2026-09-04 — board native import and visual hold resolved
+## 2026-09-04 — board native import and visual hold resolved
 
 Previous goal turn classified as progress: the matched comparison and lighting
 falsification changed the next actions. This pass addressed the board's exact
@@ -1456,7 +1460,7 @@ README updated to 19 independent props / seven types and removes the resolved
 board hold. Source-pinned board and Ayric ledger audits both pass integrity;
 neither is production-ready. No UE process remained after these captures.
 
-### 2026-09-04 — bounded bilateral nape repair, texture gate still held
+## 2026-09-04 — bounded bilateral nape repair, texture gate still held
 
 Previous goal turn: progress (board import/runtime review, separate placement
 and v004 PIE proof). This turn returned to the character's actual side-view
@@ -1521,7 +1525,7 @@ material/collar construction and independent lighting hold causally, not repeat
 whole-body delight or tune colors to the score. Rig/deformation, sword attachment,
 room polish and cooked-runtime evidence remain genuinely outstanding.
 
-### 2026-09-04 — collar surface repair and separate sword UE import
+## 2026-09-04 — collar surface repair and separate sword UE import
 
 Previous goal turn classified as progress: bilateral nape repair changed the
 preferred held package. Current pass inspected actual nape-package front/side
@@ -1588,7 +1592,7 @@ authorities remain unchanged. No UE/Blender processes remained after work.
 Next independent sword gate is actual UE static visual review; character
 material construction and causal lighting resolution remain before rigging.
 
-### 2026-09-04 — sword six-view review; alternative albedo checkpoint staged
+## 2026-09-04 — sword six-view review; alternative albedo checkpoint staged
 
 Current pass is progress, not demo completion. No character texture changes,
 rigging, inference or process termination. Ayric remains `prod-collar-v001`,
@@ -1642,7 +1646,7 @@ before one probe; preserve current face/mesh/UV authority and reject failures
 without repeated blind inference. Character still needs material resolution
 before rigging; full room polish and cooked demo remain open.
 
-### 2026-09-05 — isolated intrinsic-albedo runtime and two-view probes
+## 2026-09-05 — isolated intrinsic-albedo runtime and two-view probes
 
 Previous turn: progress (sword static review). Current turn: progress, not
 completion. Installed an isolated inference environment and produced new,
@@ -1716,7 +1720,7 @@ repeat the same direct full-face replacement or quietly tune colors to pass
 the correlation score. Character rigging, back attachment, room polish and
 cooked demo remain genuinely outstanding.
 
-### 2026-09-05 — complete orbit falsifies IntrinsicAnything transfer route
+## 2026-09-05 — complete orbit falsifies IntrinsicAnything transfer route
 
 Previous turn: progress (working isolated estimator plus front-only evidence).
 Current turn: progress through new negative evidence and tested downstream
@@ -1772,7 +1776,7 @@ advance an independent actual demo asset gate (foliage/sofa/scene), not loop
 on this same failed lighting estimator. Character face/material hold, rigging,
 back-carried sword, scene polish and cooked proof all remain outstanding.
 
-### 2026-09-05 — plant acquisition repaired; runtime topology still held
+## 2026-09-05 — plant acquisition repaired; runtime topology still held
 
 Previous turn: progress through falsified character-lighting orbit and retained
 transfer safeguards. This turn: progress on independent plant modeling and
@@ -1831,7 +1835,7 @@ or choose a materially different retopology route, not another normal-only
 rerun. Character face/material hold, rigging, sword attachment, sofa, scene
 polish and cooked-demo proof remain genuinely unfinished.
 
-### 2026-09-05 — renewed face feedback; head paint trials rejected
+## 2026-09-05 — renewed face feedback; head paint trials rejected
 
 User calls the face texture poor and likes everything else. Returned to the
 character without changing props, UE map, rig state or held package. Read
@@ -1869,7 +1873,7 @@ They are not a claimed pipeline default. Doctor passed installed direct
 routes;159tests passed. CPU renders finished normally, no local inference
 or process termination. Full demo goal active, not complete.
 
-### 2026-09-05 — detailed AI head acquired; both runtime reductions rejected
+## 2026-09-05 — detailed AI head acquired; both runtime reductions rejected
 
 Continued the face repair in new isolated `work/sunset-ayric-head-v1`.
 Front reference derives from original identity photo; ImageGen inferred
@@ -1917,7 +1921,7 @@ or pretend boundary closure restores identity. Body-region budget probe
 Head/body integration, full UV/textures, rigging, sword carry, scene polish
 and cooked runtime proof remain incomplete. Full goal remains active.
 
-### 2026-09-05 — surface-preserving head diagnostics locate the next defect
+## 2026-09-05 — surface-preserving head diagnostics locate the next defect
 
 Previous goal turn classified as progress: detailed component acquired and
 two remesh failures recorded. This turn preserved body/scene/authorities,
@@ -1964,7 +1968,7 @@ One-off drivers `reduce_face_priority*.py`, `reduce_protected_face*.py`,
 All launched processes terminal, no automatic crash retry. Full Ayric
 integration/texture/rig and complete workshop/cooked demo remain unfinished.
 
-### 2026-09-05 — source normals remove under-eye darkness; global transfer rejected
+## 2026-09-05 — source normals remove under-eye darkness; global transfer rejected
 
 Previous turn is progress: reduction controls isolated the intermediate
 defect. This turn tested the actual cause, no GPU inference or authority edits.
@@ -2006,7 +2010,7 @@ topology, valid full-character allocation, UV/texture, assembly/deformation,
 rigging, sword carry and finished/cooked workshop remain unresolved.
 All current Blender sessions terminal; no active generators or automatic retry.
 
-### 2026-09-05 — localized normals and explicit modular head route
+## 2026-09-05 — localized normals and explicit modular head route
 
 Previous turn made progress by identifying source normals as the under-eye
 shading repair. Added hash-bound `--region-config` to normal transfer: a
@@ -2054,7 +2058,7 @@ compares dense acquisition,20k candidate and coarse5k case and states the
 full component/assembly requirements. README/completion contract updated.
 Body/UE scene unchanged. All launched processes terminal; no GPU inference.
 
-### 2026-09-05 — rigid head cleanup and static topology accepted
+## 2026-09-05 — rigid head cleanup and static topology accepted
 
 `work/sunset-ayric-rigid-head-v1` now passes semantic_cleanup and
 production_retopology. Next gate: UV preparation / unwrap_and_bake, then
@@ -2098,7 +2102,7 @@ README and face-resume note updated. Textures, head/body assembly, rig/motion,
 sword attachment and polished cooked workshop remain unfinished. All processes
 launched this turn exited; no GPU inference. Existing body/scene unchanged.
 
-### 2026-09-05 — first detailed-head paint and coherent UV repair; texture held
+## 2026-09-05 — first detailed-head paint and coherent UV repair; texture held
 
 Concrete progress: first Hunyuan head-only maps generated and inspected in
 eight actual native CPU lit/unlit views; shader calibration separates bad
@@ -2165,7 +2169,7 @@ All launched render/bake processes are terminal. GPU back to22,768MiB free;
 no competing process stopped, no AI inference retried. No shared pipeline
 code changed this turn; candidate UV/rebake drivers remain isolated in the job.
 
-### 2026-09-05 — AI donor artwork and bounded eye/temple mapping
+## 2026-09-05 — AI donor artwork and bounded eye/temple mapping
 
 Two built-in ImageGen edits are retained in the rigid-head job's `texture/`:
 `donor-front-v001.png` (SHA39f95c42864e88ced6631dac976bee92f466fb49737ab4daf2cd88927ce9e6f6)
@@ -2217,7 +2221,7 @@ Opposite-view coverage and remaining skin/neck/mouth defects must be resolved
 before texture approval. All assembly, body-lighting, rig and cooked-demo
 requirements remain active. The full goal is not complete.
 
-### 2026-09-05 — Coherent face mapping and exact visibility repair
+## 2026-09-05 — Coherent face mapping and exact visibility repair
 
 Preferred working head texture: `work/sunset-ayric-rigid-head-v1/texture/coherent-skin-v003`.
 BaseColor SHA c2392c736b068353f1206a2a8cf94f889e8c7b0c84a829ade5fe03f903311baf.
@@ -2268,7 +2272,7 @@ Then full-view texture verification at fitted size. Assembly, body lighting,
 rigging, sword attachment, scene polish and cooked runtime remain outstanding.
 Full goal remains active, with concrete face progress and no genuine blocker.
 
-### 2026-09-05 — Rigid-head texture accepted and FBX packaged
+## 2026-09-05 — Rigid-head texture accepted and FBX packaged
 
 Previous goal turn was progress; this turn clears the head texture gate.
 `work/sunset-ayric-rigid-head-v1/prod-texture-v001` is the accepted component
@@ -2331,7 +2335,7 @@ final custom body texture, collar fit/old-head removal, rig/deformation,
 head-bone attachment, independent diagonal sword, full workshop polish and
 cooked gameplay proof are still outstanding. Full goal stays active; no blocker.
 
-### 2026-09-05 — Head native UE review passed; body luminance canary retained
+## 2026-09-05 — Head native UE review passed; body luminance canary retained
 
 This goal turn made concrete component progress; full demo remains active.
 No shared pipeline source edits, installations, local inference reruns or
@@ -2417,7 +2421,7 @@ scene dressing and cooked gameplay. The head and sword have independent native
 appearance proof; the custom assembled avatar still does not. No genuine
 blocker or full-goal completion is claimed.
 
-### 2026-09-05 — Latest user correction: face texture needs work
+## 2026-09-05 — Latest user correction: face texture needs work
 
 Direct user feedback reopens the face artistic review, superseding the earlier
 "leave the resolved head artwork alone" direction. Everything else is to stay
@@ -2435,7 +2439,7 @@ unlit and lit actual-mesh views, then in UE. Preserve geometry, UVs, hair and
 all non-face work. No new replacement texture generated in this feedback pass;
 no inference launched, no app closed, no native payload or ledger rewritten.
 
-### 2026-09-05 — HARD PIVOT: park Ayric, finish the Manny workshop
+## 2026-09-05 — HARD PIVOT: park Ayric, finish the Manny workshop
 
 The latest user explicitly stopped character work after the overnight head
 effort: "Let's just stop there and move on. I'll keep at it later. I want to
@@ -2496,7 +2500,7 @@ finished; no local AI inference launched. Prior verification167tests passed;
 new job-local scripts compile/run, git diff --check passes. Goal remains active;
 the security UI pause is new, not a repeated blocker and not completion.
 
-### 2026-09-05 — Manny/sword gameplay verified; real-depth exterior required
+## 2026-09-05 — Manny/sword gameplay verified; real-depth exterior required
 
 Latest user feedback: the window still looks like a painting. Do not finalize
 with the old panorama or replace it with another flat landscape. Required:
@@ -2552,7 +2556,7 @@ Do not repeat whole-atlas editing. Potted plant topology remains held at v010
 (9 boundary/nonmanifold edges). No gates waived. Latest verify run167tests pass;
 new editor bridge build and v005 gameplay pass. Full demo/cook remains unfinished.
 
-### 2026-09-05 continuation: real exterior depth accepted in editor, v008
+## 2026-09-05 — continuation: real exterior depth accepted in editor, v008
 
 Latest scene is `/Game/SunsetWorkshop/L_WorkshopDemo_v008`, preserving v005
 Manny/sword. The old flat landscape actor is absent. Five real instances of the
@@ -2614,7 +2618,7 @@ updated for v008 PIE/package/load truth. Remaining: cooked physical-input and
 parallax visual review, sofa/plant holds and any final scene polish. Do not
 restart the custom head, claim full completion, or close the user's game.
 
-### 2026-09-05 plant progress and placement feedback pivot
+## 2026-09-05 — plant progress and placement feedback pivot
 
 Previous goal turn was progress: v008 build/package/load. Current resume verified
 171 tests/routing pass, C free318GB, RTX4090 free21782MiB and live v008 game
@@ -2702,7 +2706,7 @@ The v008 user game was preserved. No generation/inference job is active from thi
 turn. Plant regional-union-v017 remains a reviewed but unpromoted topology
 candidate; sofa hold persists. Custom character stays parked. Goal unfinished.
 
-### 2026-09-05 interior repair v013, exterior correction honored
+## 2026-09-05 — interior repair v013, exterior correction honored
 
 Latest process checks found no user game or creative app running before the
 new helper. No user process was stopped or relaunched. GPU free22321MiB at that
@@ -2740,7 +2744,7 @@ dense side/three-quarter were inspected again: same foliage silhouette, smoother
 pot than old QEM, but underside simplification remains visible. No new plant
 approval or texture job was issued. Sofa hold and final demo requirements remain.
 
-### 2026-09-05 plant texture progress, sofa rejection, native material correction
+## 2026-09-05 — plant texture progress, sofa rejection, native material correction
 
 User correction remains authoritative: leave mountains at v008 transforms;
 final lighting/shadows/atmosphere pass comes after composition, preserve moon.
@@ -2812,7 +2816,7 @@ Next: warmed native plant review and explicit material-derivative lineage;
 sofa mapping repair; merge accepted dressing into v013; final composition
 lighting/atmosphere without mountain lowering; fresh cook/playable evidence.
 
-## 2026-09-05 resumed demo completion: accepted sofa and native plant materials
+## 2026-09-05 — resumed demo completion: accepted sofa and native plant materials
 
 The user asked why work stopped. It was a premature handoff, not an instruction
 to pause. Continue to the complete Manny demo; custom Ayric work stays parked.
@@ -2853,7 +2857,7 @@ verification. It will prove programmatic movement and capture actual packaged
 frames; it does not claim physical keyboard input or automatically grant any
 asset production-ready gate. Official launcher still v008 until final verification.
 
-## 2026-09-05 final delivery — Manny demo v018 complete
+## 2026-09-05 — final delivery — Manny demo v018 complete
 
 Final map `/Game/SunsetWorkshop/L_WorkshopDemo_v018`, SHA
 `5698a91d255e54b4f2a6937fca7030c3528306207c7e6d0e9e77b6f7701a8c44`.
@@ -2914,7 +2918,7 @@ with explicit `-Lighting Day` retaining the old demo. The user's day game stayed
 open; the separate night audit exited itself. No commit/push or cleanup.
 
 
-### 2026-09-05 (Claude) — Ayric body textured, rigged, imported, and driving the workshop demo
+## 2026-09-05 — Ayric body textured, rigged, imported, and driving the workshop demo (Claude)
 
 Ayric asked for the character texture Codex could not finish, then for the
 rigged Ayric to replace Manny in the workshop with the base UE5 locomotion.
@@ -3041,7 +3045,7 @@ Its cooked budget failure is genuine; do not relabel it passed. v051 bounds
 auxiliary data to the neck and passes. This is not useful extra head detail.
 The next visible decision is the user's approval or rejection of the v051 neck.
 
-### 2026-09-06 — README native showcase (no character asset changes)
+## 2026-09-06 — README native showcase (no character asset changes)
 
 Added three actual UE studio stills and a 24-frame, 1.5-second walk GIF under
 `docs/images/ayric-v051`, with hash-bound `provenance.json`. Source capture:
@@ -3060,7 +3064,7 @@ pose evaluation. Nine packaging regression tests cover these failure gates.
 Full `scripts/verify.ps1` passes. Media and documentation are local workspace
 changes, not a claim of GitHub publication or final texture approval.
 
-### 2026-09-06 — User correction: glamour belongs in the workshop
+## 2026-09-06 — User correction: glamour belongs in the workshop
 
 README showcase now targets `docs/images/ayric-workshop-v051`, with the actual
 v051 room, staged idle character, moon/window portrait, room-wide composition,
@@ -3112,3 +3116,49 @@ Follow-up work remains the separately scoped AI setup installer, agent status/
 resume improvements, skeleton unit-scale export, semantic UVs and retarget roll.
 Release publication is verified against the GitHub release/tag and CI when shipped;
 this implementation record alone is not remote-publication evidence.
+
+## 2026-09-11 — Fable maintenance review completed, v0.1.2
+
+Resumed the inherited `claude/maintenance-review-2026-09-11` checkout after
+Fable reached its usage limit. Recovered the full accepted review and checked
+its 19 bugs, hardening batch and documentation work against the implementation.
+The item-by-item record is `docs/MAINTENANCE_REVIEW_2026-09-11.md`; release notes
+are `docs/releases/v0.1.2.md`.
+
+Completed the producer/validator integration: production reports bind the
+approved topology/UV authority, actual production FBX, maps and texture gate.
+Regression tests substitute meshes and reports and require rejection. Ledgered
+production bakes consume approved retopology and advance only `unwrap_and_bake`.
+Explicit replacements preserve the old ledger and cannot invalidate passed
+downstream gates. State updates are locked; retained receipts publish atomically
+without replacing concurrent evidence.
+
+Character compiles, production bakes and publication retain separate attempts
+and refuse existing authorities. Budget trials stay separate; the measured
+winner is copied rather than rebaked. The shared Windows GPU/ComfyUI guard
+covers direct geometry, paint and the optional Pixal3D challenger. PowerShell
+5.1 runtime checks exercise redirected stderr and native failures, including
+the neck driver whose previous .NET path API was unavailable on 5.1. Moved
+experiment wrappers remain covered by recursive parsing and path checks.
+
+The new CC0 crate is a compile-mechanics fixture only. Its first face-colored
+texture failed the baked-light gate; the neutral fixture passed without a gate
+waiver. Final native receipt: `output/fable-completion/native-final.json`, asset
+`example-crate-maintenance-final-v2`, Blender 5.2.1, 12 triangles, 0.6 m after
+FBX reimport. Compile, bake, texture hashes, publication and repeat-run refusal
+passed. An earlier Windows publication failure retained its staging directory
+and is summarized in `native-v1-publication-failure.json`; a bounded rename-only
+retry handles transient Windows sharing errors. No inference process is retried.
+
+Local verification: 351 tests on Python 3.11 and 3.12 (109 reported subtests on
+the newer pytest), Ruff, 158 parsed stage files, wheel build and isolated CLI
+installation. Logs: `output/fable-completion/verify-v012-py311.log` and
+`verify-v012-py312.log`. All 53 Markdown documents passed a local file-link
+check. GitHub CI and release/tag/attachment verification are checked separately
+when publishing, rather than inferred from these local results.
+
+Private vulnerability reporting is enabled and matches SECURITY.md. Existing
+asset sources, recipes, profiles, pinned model runners and approval receipts
+were not modified. The separate checkout owning local `main` stays untouched.
+The user's other workload retained the GPU throughout; no inference or actual
+asset visual/runtime review was performed.

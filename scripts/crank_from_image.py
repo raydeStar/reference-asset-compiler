@@ -51,22 +51,36 @@ SUPPORTED_COMPLETE_KINDS = {"static_prop"}
 ARTICULATED_KINDS = {"humanoid", "mascot"}
 
 
-def child_env(studio_root: Path | None = None) -> dict[str, str]:
-    env = dict(os.environ)
-    existing = env.get("PYTHONPATH", "")
-    env["PYTHONPATH"] = str(ROOT / "src") + (os.pathsep + existing if existing else "")
-    if studio_root is not None:
-        env["RAC_LEGACY_ROOT"] = str(studio_root)
-    return env
+child_env = rac_env.child_env
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    """Receipts written by the PowerShell launchers may carry a UTF-8 BOM."""
+    return json.loads(Path(path).read_text(encoding="utf-8-sig"))
 
 
 def run(command: list[Any], label: str, studio_root: Path | None = None) -> None:
     print("\n[OPERATOR] {0}".format(label), flush=True)
+    # Bound short direct Blender steps; inference wrappers keep their own lifecycle.
+    timeout = (rac_env.BLENDER_STEP_TIMEOUT if "--python-exit-code" in command else None)
     completed = subprocess.run(
-        [str(value) for value in command], cwd=ROOT, env=child_env(studio_root)
+        [str(value) for value in command], cwd=ROOT, env=child_env(studio_root), timeout=timeout,
     )
     if completed.returncode:
         raise RuntimeError("{0} failed with exit code {1}".format(label, completed.returncode))
+
+
+def run_stage(command: list[Any], label: str, outputs: list[Path],
+              studio_root: Path | None = None) -> None:
+    """Run a stage that must leave every path in `outputs` behind.
+
+    Blender exits 0 when it is not told otherwise, so the exit code alone is
+    not evidence that a report was written; require the files back.
+    """
+    run(command, label, studio_root)
+    missing = [str(path) for path in outputs if not Path(path).is_file()]
+    if missing:
+        raise RuntimeError("{0} exited 0 without writing: {1}".format(label, ", ".join(missing)))
 
 
 def powershell() -> str:
@@ -74,6 +88,17 @@ def powershell() -> str:
     if not executable:
         raise RuntimeError("PowerShell 5.1 or 7 is required on the current Windows route")
     return executable
+
+
+def powershell_command(script: Path, *arguments: Any) -> list[Any]:
+    """Launch one wrapper the same way on every machine.
+
+    -NoProfile keeps a user's profile out of the launch; -ExecutionPolicy
+    Bypass keeps a machine's default Restricted policy from refusing a script
+    the repository ships. Neither changes what the wrapper does.
+    """
+    return [powershell(), "-NoProfile", "-ExecutionPolicy", "Bypass", "-File",
+            script, *arguments]
 
 
 def require_source_match(job: Path, image: Path) -> dict[str, Any]:
@@ -111,12 +136,47 @@ def ensure_workspace(args: argparse.Namespace) -> tuple[Path, dict[str, Any]]:
     return created, read_json(created / "intake.json")
 
 
-def generation_request(
-    args: argparse.Namespace, job: Path, intake: dict[str, Any]
-) -> tuple[Path, Path, Path]:
+def attempt_paths(args: argparse.Namespace, job: Path) -> tuple[str, Path, Path]:
     attempt_name = "hy3d-single-seed{0}-attempt{1:03d}".format(args.seed, args.attempt)
     output = job / "candidates" / attempt_name
     request = job / "requests" / (attempt_name + ".json")
+    return attempt_name, output, request
+
+
+def require_ledgered_attempt(args: argparse.Namespace, job: Path) -> None:
+    """A second geometry attempt cannot join a ledger that already passed.
+
+    `generate_candidates` is recorded once, hash-bound to one candidate. Every
+    later stage hangs off that hash, so `--attempt 2` after attempt 1 passed
+    would generate a mesh nothing downstream can ever reference -- GPU time
+    spent on a dead end. Refuse up front, before a request file is written.
+    """
+    state = read_json(job / "state.json")
+    stage = state["stages"].get("generate_candidates") or {}
+    if stage.get("status") != "passed":
+        return
+    _, output, _ = attempt_paths(args, job)
+    candidate = (output / "candidate.glb").resolve()
+    try:
+        display = str(candidate.relative_to(job.resolve())).replace("\\", "/")
+    except ValueError:
+        display = str(candidate)
+    recorded = [row.get("path") for row in stage.get("evidence", [])]
+    if display in recorded:
+        return
+    raise ValueError(
+        "generate_candidates already passed for this asset with {0}; --attempt {1} "
+        "(seed {2}) can never be ledgered here. Use a new asset id to generate "
+        "another candidate.".format(
+            ", ".join(path for path in recorded if path and path.endswith(".glb")) or
+            "a retained candidate",
+            args.attempt, args.seed))
+
+
+def generation_request(
+    args: argparse.Namespace, job: Path, intake: dict[str, Any]
+) -> tuple[Path, Path, Path]:
+    attempt_name, output, request = attempt_paths(args, job)
     payload = {
         "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
         "mode": "single_view",
@@ -160,27 +220,22 @@ def ensure_geometry(
 ) -> None:
     state = read_json(job / "state.json")
     if candidate.is_file() and receipt.is_file():
-        if read_json(receipt).get("candidate_sha256") != sha256_file(candidate):
+        if load_json(receipt).get("candidate_sha256") != sha256_file(candidate):
             raise ValueError("retained geometry candidate no longer matches its receipt")
     elif candidate.exists() or receipt.exists() or candidate.parent.exists():
         raise ValueError(
             "geometry attempt is partial; preserve it and choose --attempt {0}".format(args.attempt + 1)
         )
     else:
-        run(
-            [
-                powershell(),
-                "-NoProfile",
-                "-File",
+        run_stage(
+            powershell_command(
                 ROOT / "scripts" / "run_hy3d_geometry.ps1",
-                "-Request",
-                request,
-                "-LegacyRoot",
-                args.studio_root,
-                "-CompilerPython",
-                sys.executable,
-            ],
+                "-Request", request,
+                "-LegacyRoot", args.studio_root,
+                "-CompilerPython", sys.executable,
+            ),
             "direct Hunyuan3D single-view geometry",
+            [candidate, receipt],
             args.studio_root,
         )
     if state["stages"]["generate_candidates"]["status"] == "pending":
@@ -194,17 +249,8 @@ def ensure_geometry(
 
 
 def blender(script: str, *values: Any) -> list[Any]:
-    return [
-        rac_env.find_blender(),
-        "-b",
-        "--factory-startup",
-        "--python-exit-code",
-        "1",
-        "--python",
-        ROOT / "scripts" / "blender" / script,
-        "--",
-        *values,
-    ]
+    """The argv for one Blender stage; `--python-exit-code 1` comes with it."""
+    return rac_env.blender_command(script, *values)
 
 
 def write_static_recipe(
@@ -270,7 +316,8 @@ def ensure_modeling_review(
         describe = job / "operator" / "candidate-description.json"
         texture_dir = job / "operator" / "candidate-textures"
         if not describe.is_file():
-            run(blender("describe_mesh.py", candidate, texture_dir, describe), "measure geometry")
+            run_stage(blender("describe_mesh.py", candidate, texture_dir, describe),
+                      "measure geometry", [describe])
         description = read_json(describe)
         if description.get("has_armature"):
             raise ValueError("generated candidate unexpectedly contains an armature")
@@ -292,7 +339,8 @@ def ensure_modeling_review(
     if not all((views / name).is_file() for name in MODELING_VIEW_NAMES):
         if views.exists() and any(views.iterdir()):
             raise ValueError("modeling review directory is partial; preserve it and use a new asset id")
-        run(blender("render_turnaround.py", modeling, views, 1024), "render modeling review")
+        run_stage(blender("render_turnaround.py", modeling, views, 1024), "render modeling review",
+                  [views / name for name in MODELING_VIEW_NAMES])
     lineage, lineage_artifacts = record_modeling_derivative(
         job, candidate, modeling, operations, artifacts
     )
@@ -348,21 +396,23 @@ def ensure_retopology(
     if not cleaned.is_file() or not cleanup_report.is_file():
         if cleanup_dir.exists() and any(cleanup_dir.iterdir()):
             raise ValueError("cleanup attempt is partial; preserve it and use a new asset id")
-        run(
-            [
-                powershell(), "-NoProfile", "-File",
+        run_stage(
+            powershell_command(
                 ROOT / "scripts" / "run_semantic_cleanup.ps1",
                 "-Job", job, "-InputMesh", modeling,
                 "-OutputDirectory", cleanup_dir,
-            ],
+                "-CompilerPython", sys.executable,
+            ),
             "semantic cleanup",
+            [cleaned, cleanup_report],
         )
 
     description_path = cleanup_dir / "description.json"
     if not description_path.is_file():
-        run(
+        run_stage(
             blender("describe_mesh.py", cleaned, cleanup_dir / "textures", description_path),
             "measure cleaned geometry",
+            [description_path],
         )
     description = read_json(description_path)
     retopo_dir = job / "retopology" / "operator-attempt001"
@@ -372,27 +422,29 @@ def ensure_retopology(
         if not retopo.is_file() or not report.is_file():
             if retopo_dir.exists() and any(retopo_dir.iterdir()):
                 raise ValueError("retopology attempt is partial; preserve it and choose a new asset id")
-            run(
-                [
-                    powershell(), "-NoProfile", "-File",
+            run_stage(
+                powershell_command(
                     ROOT / "scripts" / "run_voxel_qem_reduction.ps1",
                     "-InputMesh", cleaned, "-OutputDirectory", retopo_dir,
                     "-TriangleBudget", args.maximum_triangles,
                     "-TargetTriangles", args.target_triangles,
-                ],
+                    "-CompilerPython", sys.executable,
+                ),
                 "voxel/QEM runtime reduction",
+                [retopo, report],
             )
     else:
         retopo = cleaned
         report = retopo_dir / "passthrough-report.json"
         if not report.is_file():
-            write_passthrough_retopology(cleaned, read_json(cleanup_report), description, report)
+            write_passthrough_retopology(cleaned, load_json(cleanup_report), description, report)
 
     review = retopo_dir / "fixed-views"
     if not all((review / name).is_file() for name in MODELING_VIEW_NAMES):
         if review.exists() and any(review.iterdir()):
             raise ValueError("retopology review is partial; preserve it and use a new asset id")
-        run(blender("render_turnaround.py", retopo, review, 1024), "render topology review")
+        run_stage(blender("render_turnaround.py", retopo, review, 1024), "render topology review",
+                  [review / name for name in MODELING_VIEW_NAMES])
 
     if args.approve_retopology_by:
         state = read_json(job / "state.json")
@@ -435,6 +487,30 @@ def recovered_paint_maps(directory: Path, paint_obj: Path, uv_obj: Path, referen
     return selected
 
 
+def require_matching_texture_package(
+    prod: Path, uv_blend: Path, maps: dict[str, Path], package_name: str
+) -> None:
+    """A retained package is reused only if it was built from THESE inputs.
+
+    retopo.json records the UV authority hash and the source map hashes it was
+    bound to. If the current UV attempt or paint maps differ, the retained
+    package belongs to a different texture and must not be promoted as this one.
+    """
+    retopo = load_json(prod / "retopo.json")
+    mismatched = []
+    if retopo.get("source_uv_authority_sha256") != sha256_file(uv_blend):
+        mismatched.append("UV authority")
+    sources = (retopo.get("texture_lineage") or {}).get("sources") or {}
+    for channel, path in maps.items():
+        recorded = (sources.get(channel) or {}).get("sha256")
+        if not path.is_file() or recorded != sha256_file(path):
+            mismatched.append(channel)
+    if mismatched:
+        raise ValueError(
+            "retained texture package {0} was built from a different {1}; preserve it and "
+            "pick a new --texture-package-name".format(prod, ", ".join(mismatched)))
+
+
 def ensure_texture(
     args: argparse.Namespace, job: Path, intake: dict[str, Any], retopo: Path
 ) -> Path:
@@ -445,14 +521,15 @@ def ensure_texture(
     if not all(path.is_file() for path in (uv_blend, uv_obj, uv_report)):
         if uv_dir.exists() and any(uv_dir.iterdir()):
             raise ValueError("UV attempt is partial; preserve it, diagnose, then explicitly choose a new --uv-attempt")
-        run(
-            [
-                powershell(), "-NoProfile", "-File",
+        run_stage(
+            powershell_command(
                 ROOT / "scripts" / "run_texture_uv_prep.ps1",
                 "-InputMesh", retopo, "-OutputDirectory", uv_dir,
+                "-CompilerPython", sys.executable,
                 *(["-AllowTriangulatedGlb"] if args.kind == "static_prop" else []),
-            ],
+            ),
             "geometry-locked UV preparation",
+            [uv_blend, uv_obj, uv_report],
         )
 
     paint_dir = job / "texture" / "operator-hy3d21-attempt001"
@@ -462,9 +539,8 @@ def ensure_texture(
         if paint_dir.exists() and any(paint_dir.iterdir()):
             raise ValueError("paint attempt is partial; preserve it and use a new asset id")
         paint_dir.mkdir(parents=True, exist_ok=True)
-        run(
-            [
-                powershell(), "-NoProfile", "-File",
+        run_stage(
+            powershell_command(
                 ROOT / "scripts" / "run_hy3d21_texture.ps1",
                 "-Mesh", uv_obj,
                 "-Reference", (job / intake["source"]["path"]).resolve(),
@@ -473,8 +549,9 @@ def ensure_texture(
                 "-Views", args.texture_views,
                 "-Resolution", args.texture_resolution,
                 "-DiagnosticsDir", paint_dir / "diagnostics",
-            ],
+            ),
             "direct Hunyuan3D-Paint PBR texturing",
+            [validation],
             args.studio_root,
         )
 
@@ -485,7 +562,9 @@ def ensure_texture(
         maps = recovered_paint_maps(args.paint_map_directory, paint_obj, uv_obj,
                                     (job / intake["source"]["path"]).resolve())
     prod = job / args.texture_package_name
-    if not (prod / "retopo.json").is_file():
+    if (prod / "retopo.json").is_file():
+        require_matching_texture_package(prod, uv_blend, maps, args.texture_package_name)
+    else:
         run(
             [
                 sys.executable,
@@ -548,6 +627,15 @@ def import_ue5(args: argparse.Namespace) -> None:
     unreal = Path(rac_env.find_unreal_cmd())
     env = child_env(args.studio_root)
     env["RAC_ROOT"] = str(ROOT)
+    # Import this asset's production payload alone, and keep its verification
+    # report inside its own workspace. import_and_verify.py otherwise walks every
+    # manifest under out/ and writes one shared work/ue5-verify.json, so two
+    # assets imported in turn would each overwrite the other's evidence.
+    env["RAC_ASSET_IDS"] = args.asset_id + "-production"
+    verify_report = ROOT / "work" / args.asset_id / "ue5-verify.json"
+    if verify_report.is_file():
+        verify_report.unlink()
+    env["RAC_VERIFY_REPORT"] = str(verify_report)
     completed = subprocess.run(
         [
             str(unreal), str(project),
@@ -559,7 +647,10 @@ def import_ue5(args: argparse.Namespace) -> None:
     )
     if completed.returncode:
         raise RuntimeError("UE5 import and verification failed")
-    run([sys.executable, ROOT / "scripts" / "record_ue5_import.py", args.asset_id],
+    if not verify_report.is_file():
+        raise RuntimeError("UE5 exited 0 without writing {0}".format(verify_report))
+    run([sys.executable, ROOT / "scripts" / "record_ue5_import.py", args.asset_id,
+         "--report", verify_report],
         "record manifest-bound UE5 import")
 
 
@@ -662,6 +753,7 @@ def main() -> int:
         return 2
     try:
         job, intake = ensure_workspace(args)
+        require_ledgered_attempt(args, job)
         request, candidate, candidate_receipt = generation_request(args, job, intake)
         if args.prepare_only:
             write_operator_receipt(args, job, request, "prepared", "geometry")

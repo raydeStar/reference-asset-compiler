@@ -12,7 +12,6 @@ sys.path.insert(0, str(ROOT / "tests"))
 
 from reference_asset_compiler.approvals import (  # noqa: E402
     MODELING_VIEW_NAMES,
-    TEXTURE_VIEW_NAMES,
     texture_evidence_paths,
     validate_generated_candidate,
     validate_modeling_approval,
@@ -24,6 +23,8 @@ from support import (  # noqa: E402
     promote_cleanup,
     promote_generated,
     promote_retopology,
+    promote_unwrap_and_bake,
+    texture_payload_evidence,
 )
 
 REGISTRY = json.loads((ROOT / "configs" / "model-adapters.json").read_text())
@@ -84,18 +85,9 @@ class ApprovalTests(unittest.TestCase):
     def prepare_texture_gate(self) -> tuple[Path, dict]:
         self.approve()
         cleaned = promote_cleanup(self.job, self.candidate)
-        promote_retopology(self.job, cleaned)
-        production = self.job / "prod-v2"
-        production.mkdir()
-        baked = {"BaseColor": "base.png", "AO": "ao.png", "Roughness": "rough.png"}
-        retopo = {"production_fbx": "prop_production.fbx", "baked": baked}
-        for name in ["prop_production.fbx", "retopo.json", "gate-tex.json", *baked.values()]:
-            (production / name).write_bytes(name.encode())
-        (production / "turn").mkdir()
-        for name in TEXTURE_VIEW_NAMES:
-            (production / "turn" / name).write_bytes(name.encode())
-        promote_stage(self.job, "unwrap_and_bake", [production / "retopo.json"],
-                      "Mechanical pass.", "build_production.py")
+        retopology = promote_retopology(self.job, cleaned)
+        production, retopo = promote_unwrap_and_bake(self.job, retopology)
+        texture_payload_evidence(production, retopo)
         return production, retopo
 
     def test_texture_approval_requires_payload_maps_and_lit_views(self) -> None:

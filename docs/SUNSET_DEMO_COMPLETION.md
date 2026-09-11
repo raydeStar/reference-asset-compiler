@@ -1,5 +1,7 @@
 # Sunset demo completion contract
 
+*Type: chronological log*
+
 ## Night lighting follow-up complete — 2026-09-05
 
 Separate night v026 is now built and verified, including stars and the user's

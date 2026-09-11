@@ -31,12 +31,14 @@ def _require_hash(path: Path, expected: Any, label: str) -> None:
 
 
 def validate_geometry_request(
-    request_path: Path, legacy_root: Path, repo_root: Path
+    request_path: Path, legacy_root: Path, repo_root: Path,
+    workspace_root: Path | None = None,
 ) -> dict[str, Any]:
     """Resolve and verify a one-attempt multiview generation request without launching it."""
     request_path = request_path.resolve()
     legacy_root = legacy_root.resolve()
     repo_root = repo_root.resolve()
+    work_root = (workspace_root or repo_root / "work").resolve()
     request = read_json(request_path)
     if request.get("schema") != REQUEST_SCHEMA:
         raise ValueError("Unsupported geometry request schema")
@@ -45,11 +47,10 @@ def validate_geometry_request(
         raise ValueError("Geometry request requires asset_id")
 
     workspace = _expand_path(request.get("workspace"), legacy_root, repo_root)
-    work_root = (repo_root / "work").resolve()
     try:
         workspace.relative_to(work_root)
     except ValueError as error:
-        raise ValueError("Geometry request workspace escapes repository work root") from error
+        raise ValueError("Geometry request workspace escapes the workspace root") from error
     intake_path = workspace / "intake.json"
     intake = read_json(intake_path)
     if intake.get("asset_id") != asset_id:

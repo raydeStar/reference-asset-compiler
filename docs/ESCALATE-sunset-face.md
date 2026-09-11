@@ -1,5 +1,7 @@
 # Ayric face: paint repair is insufficient
 
+*Type: escalation*
+
 2026-09-05. User feedback: "Man, face texture isn't great, definitely needs
 work. Everything else is great though." Keep the body and scene unchanged.
 

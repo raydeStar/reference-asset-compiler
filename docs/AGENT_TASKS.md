@@ -1,9 +1,12 @@
 # Open tasks for agents and contributors
 
+*Type: reference*
+
 Well-scoped work with acceptance criteria, so a Claude Code or Codex session can
 pick one up without chat history. Each task names what it touches, what "done"
-means, and whether it needs a GPU. Record outcomes in `docs/HANDOFF.md`; add a
-lesson to `docs/DECISIONS.md` if something surprising happened.
+means, and whether it needs a GPU. Record outcomes as a dated entry in
+`docs/HANDOFF.md` and update `docs/STATUS.md` in place; add a lesson to
+`docs/DECISIONS.md` if something surprising happened.
 
 Read `CLAUDE.md` and `AGENTS.md` first. The non-negotiables there (image
 conditions AI, one gate at a time, receipts with hashes, never auto-retry a
@@ -76,9 +79,9 @@ crash, never kill GPU processes) apply to every task below.
   repositories at the pinned commits, creates the two virtual environments,
   applies `patch_hy3d21_windows.py`, and downloads the weights with
   `huggingface_hub`.
-- **Done when:** `workflow_doctor.ps1` reports every `hy3d21.*` and `hy3d2mv.*`
-  route `[OK]` on a machine that started with none of them. Network and about
-  40 GB of disk; no GPU until the first run.
+- **Done when:** `workflow_doctor.ps1` reports every `hy3d21.*`, `hy3d2mv.*`
+  and `hy3d2.runner_exact` line `[OK]` on a machine that started with none of
+  them. Network and about 40 GiB of disk; no GPU until the first run.
 
 ## GPU needed
 
@@ -107,7 +110,9 @@ crash, never kill GPU processes) apply to every task below.
 - One attempt directory per run; never overwrite one.
 - Every new script writes a JSON receipt with input and output SHA-256 values.
 - Human gates stay human: `modeling_approval`, `production_retopology`,
-  `texture_approval`, `ue5_motion_review`, `cook`.
+  `texture_approval`, `ue5_runtime_review`, `ue5_motion_review`, `cook`. The
+  full stage table with receipt schemas is in
+  [PIPELINE.md](PIPELINE.md#ledger-stages).
 - Prefer a versioned derivative over an in-place fix.
 - Run `scripts\verify.ps1` before committing; it shares the CI test, lint,
   syntax, wheel-build and isolated installed-CLI checks. No inference is launched.

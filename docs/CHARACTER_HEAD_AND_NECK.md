@@ -1,5 +1,7 @@
 # Source-locked character head and neck workflow
 
+*Type: reference*
+
 The reusable rule is **geometry fit first, approved face locked, body transition
 last**. Merely reversing two image stamps does not register a face to a mesh.
 Use an image-conditioned AI head with modeled facial features and coherent UVs;

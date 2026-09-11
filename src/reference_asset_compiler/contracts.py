@@ -46,3 +46,11 @@ STATIC_STAGES = (
 
 TERMINAL_STATUSES = {"passed", "rejected", "blocked"}
 STAGE_STATUSES = {"pending", "in_progress", *TERMINAL_STATUSES}
+
+# Identities that may record mechanical passes but never stand in for a human
+# visual review. A delegated reviewer needs an explicit hash-bound authorization.
+DELEGATED_REVIEWERS = frozenset({"codex", "claude", "agent", "automation"})
+AUTOMATION_REVIEWERS = frozenset({
+    "build_production.py", "compile_from_image.py", "promote_production.py",
+    "record_ue5_import.py", *DELEGATED_REVIEWERS,
+})

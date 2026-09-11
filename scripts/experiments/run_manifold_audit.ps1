@@ -2,15 +2,21 @@
 param(
     [Parameter(Mandatory = $true)][string] $InputMesh,
     [Parameter(Mandatory = $true)][string] $Report,
+    [string] $CompilerPython,
     [string] $Blender = $env:RAC_BLENDER
 )
+# Retained experiment: lives under scripts/experiments; shared helpers stay in scripts/.
+$scriptsRoot = Split-Path -Parent $PSScriptRoot
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
-$repoRoot = Split-Path -Parent $PSScriptRoot
+$repoRoot = Split-Path -Parent $scriptsRoot
+$compilerPython = & (Join-Path $scriptsRoot 'resolve_python.ps1') -Python $CompilerPython
 if (-not $Blender) {
-    $Blender = (& python (Join-Path $PSScriptRoot 'rac_env.py') --blender) |
-        Select-Object -Last 1
+    $Blender = (& $compilerPython (Join-Path $scriptsRoot 'rac_env.py') --blender) | Select-Object -Last 1
+    if ($LASTEXITCODE -ne 0 -or -not $Blender) {
+        throw 'Blender could not be resolved; set RAC_BLENDER or pass -Blender <path>.'
+    }
 }
 $inputPath = (Resolve-Path -LiteralPath $InputMesh).Path
 $blenderPath = (Resolve-Path -LiteralPath $Blender).Path

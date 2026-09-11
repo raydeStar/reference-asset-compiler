@@ -6,9 +6,12 @@ import re
 from pathlib import Path
 from typing import Any
 
+from .evidence import record_receipt, verified_evidence_hashes
 from .io import read_json, sha256_file
 from .runtime_evidence import _image_stats, _require_human_reviewer, _write_immutable
 from .workspace import audit_workspace, promote_stage
+
+RIG_SCHEMA = "reference-asset-compiler.rig-and-skin-evidence.v1"
 
 REQUIRED_POSES = {
     "arms_forward", "left_arm_only", "elbows_bent", "knees_bent", "spine_twist",
@@ -22,8 +25,8 @@ def _state(job: Path) -> dict[str, Any]:
     return read_json(job / "state.json")
 
 
-def _stage_hashes(state: dict[str, Any], stage: str) -> set[str]:
-    return {row["sha256"] for row in state["stages"][stage].get("evidence", [])}
+def _stage_hashes(job: Path, state: dict[str, Any], stage: str) -> set[str]:
+    return verified_evidence_hashes(job, state["stages"][stage])
 
 
 def _same_report_asset(report: dict[str, Any], asset: Path) -> bool:
@@ -56,7 +59,7 @@ def record_rig_and_skin_stage(
     if missing:
         raise ValueError("rig evidence is incomplete: {0}".format(missing))
     approved_hash = sha256_file(approved_mesh_path)
-    if approved_hash not in _stage_hashes(state, "texture_approval"):
+    if approved_hash not in _stage_hashes(job, state, "texture_approval"):
         raise ValueError("rig input is not the exact texture-approved production mesh")
     profile = read_json(skeleton_profile_path)
     gate = read_json(gate_report_path)
@@ -65,7 +68,7 @@ def record_rig_and_skin_stage(
             or not _same_report_asset(gate, rigged_fbx_path)):
         raise ValueError("rigged FBX did not pass its declared skeleton profile")
     payload = {
-        "schema": "reference-asset-compiler.rig-and-skin-evidence.v1",
+        "schema": RIG_SCHEMA,
         "approved_mesh_sha256": approved_hash,
         "rigged_fbx_sha256": sha256_file(rigged_fbx_path),
         "skeleton_profile": profile["profile_id"],
@@ -109,11 +112,10 @@ def record_deformation_stage(
     report_path = report_path.resolve()
     render_directory = render_directory.resolve()
     report = read_json(report_path)
-    rig_receipts = [job / row["path"] for row in state["stages"]["rig_and_skin"]["evidence"]
-                    if row["path"].endswith("rig-and-skin.json")]
-    if len(rig_receipts) != 1:
+    found = record_receipt(job, state["stages"]["rig_and_skin"], RIG_SCHEMA)
+    if found is None:
         raise ValueError("rig_and_skin receipt is missing")
-    rig_receipt = read_json(rig_receipts[0])
+    rig_receipt = found[1]
     if sha256_file(rigged_fbx_path) != rig_receipt.get("rigged_fbx_sha256"):
         raise ValueError("deformation suite is not bound to the approved rigged FBX")
     poses = report.get("poses")

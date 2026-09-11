@@ -21,8 +21,19 @@ looked at. A missing tool is a setup problem and should read like one.
 from __future__ import annotations
 
 import os
+import re
 import shutil
+import subprocess
 from pathlib import Path
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+BLENDER_SCRIPTS = REPO_ROOT / "scripts" / "blender"
+
+# Short Blender steps -- describe, gate, export regions, fixed-view renders --
+# finish in minutes. A step that has not returned after this long is hung, and
+# a hung Blender that nothing ever waits out is a build that never reports.
+# Inference and long bakes pass timeout=None and are deliberately unbounded.
+BLENDER_STEP_TIMEOUT = 30 * 60
 
 BLENDER_ENV = "RAC_BLENDER"
 UNREAL_ENV = "RAC_UNREAL_CMD"
@@ -204,6 +215,104 @@ def expand_tree(node):
     if isinstance(node, list):
         return [expand_tree(item) for item in node]
     return expand(node)
+
+
+def child_env(studio_root=None):
+    """Environment for a compiler subprocess: src/ on PYTHONPATH, one studio root.
+
+    Every driver used to carry its own copy of this. `pip install -e .` is one
+    more step between a person and their first compiled asset, and the tests
+    already run without it.
+    """
+    env = dict(os.environ)
+    existing = env.get("PYTHONPATH", "")
+    env["PYTHONPATH"] = str(REPO_ROOT / "src") + (os.pathsep + existing if existing else "")
+    if studio_root is not None:
+        env[LEGACY_ENV] = str(studio_root)
+    return env
+
+
+def camel(asset_id):
+    """field-scout_male -> FieldScoutMale; the name UE material and mesh slugs use."""
+    return "".join(part.capitalize() for part in re.split(r"[-_]+", asset_id) if part)
+
+
+def require_available_gpu(minimum_free_mib):
+    """Use the same ownership/queue gate as the direct Windows AI launchers."""
+    import json
+    shell = shutil.which("pwsh") or shutil.which("powershell")
+    if not shell:
+        raise RuntimeError("PowerShell is required to verify GPU ownership on this route")
+    result = subprocess.run([
+        shell, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File",
+        str(REPO_ROOT / "scripts/assert_gpu_available.ps1"),
+        "-MinimumFreeVramMiB", str(minimum_free_mib), "-Json",
+    ], capture_output=True, encoding="utf-8", errors="replace", timeout=30)
+    if result.returncode:
+        raise RuntimeError("GPU preflight refused inference: " + result.stderr.strip())
+    return json.loads(result.stdout)
+
+
+def blender_script_path(script):
+    """A bare stage name resolves under scripts/blender; a path is used as given."""
+    candidate = Path(script)
+    if candidate.suffix == ".py" and len(candidate.parts) == 1:
+        return BLENDER_SCRIPTS / candidate.name
+    return candidate
+
+
+def blender_command(script, *args, blender=None, factory_startup=True, background=True):
+    """The argv for one Blender stage, with the two flags a stage must never lose.
+
+    `--python-exit-code 1` is what makes a stage that raised exit non-zero.
+    Without it Blender exits 0 having done nothing, and the driver reads the
+    report the PREVIOUS run left behind. `--factory-startup` keeps a user's
+    add-ons and start-up file out of a pipeline that has to be repeatable on a
+    different machine.
+    """
+    executable = Path(blender) if blender else find_blender()
+    command = [str(executable)]
+    if background:
+        command.append("--background")
+    if factory_startup:
+        command.append("--factory-startup")
+    command += ["--python-exit-code", "1", "--python", str(blender_script_path(script)), "--"]
+    command += [str(value) for value in args]
+    return command
+
+
+def run_blender_command(command, timeout=None, capture=True, cwd=None, env=None):
+    """Run an already-built Blender argv; return (returncode, stdout, stderr).
+
+    Output is decoded as UTF-8 with replacement: Blender prints file names and
+    material names verbatim, and one non-ASCII byte in a warning must not turn a
+    finished bake into a UnicodeDecodeError in the driver. A timeout kills the
+    child and reports as a failure (exit 124) rather than propagating, so every
+    caller's "non-zero means failed" check covers it.
+    """
+    kwargs = {"cwd": str(cwd or REPO_ROOT), "env": env}
+    if capture:
+        kwargs.update(capture_output=True, encoding="utf-8", errors="replace")
+    try:
+        done = subprocess.run([str(part) for part in command], timeout=timeout, **kwargs)
+    except subprocess.TimeoutExpired as expired:
+        def _text(value):
+            if value is None:
+                return ""
+            if isinstance(value, bytes):
+                return value.decode("utf-8", errors="replace")
+            return str(value)
+        return (124, _text(expired.stdout),
+                _text(expired.stderr) + "\nBlender exceeded {0} s and was killed".format(timeout))
+    return done.returncode, done.stdout or "", done.stderr or ""
+
+
+def run_blender(script, *args, blender=None, timeout=None, capture=True, cwd=None, env=None,
+                factory_startup=True, background=True):
+    """Build and run one Blender stage; return (returncode, stdout, stderr)."""
+    command = blender_command(script, *args, blender=blender,
+                              factory_startup=factory_startup, background=background)
+    return run_blender_command(command, timeout=timeout, capture=capture, cwd=cwd, env=env)
 
 
 def _main(argv):

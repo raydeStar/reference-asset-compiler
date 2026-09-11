@@ -1,5 +1,7 @@
 # Generation workflow playbook
 
+*Type: reference*
+
 This is the missing operational bridge between an approved picture and the
 compiler. It is deliberately explicit about what runs where.
 
@@ -33,13 +35,19 @@ RGBA cutout for Pixal3D/TRELLIS paths.
 
 ## Stage 2 — geometry candidates
 
-### Default: guarded Hunyuan3D-2mv
+### Default: guarded direct Hunyuan3D runner
 
-Use a checked-in request under `configs/generation/`. The preflight hash-binds
-the immutable intake image, every conditioned view, the multiview lineage
-report, model parameters, and a brand-new attempt directory. The launcher then
-checks the exact legacy runner, GPU owners and free VRAM, and any live ComfyUI
-queue before running exactly once:
+Use a checked-in request under `configs/generation/`. One wrapper,
+`scripts\run_hy3d_geometry.ps1`, hash-pins and runs the repository copy of the
+runner under `workflows/geometry/hunyuan3d/`; the request's `mode` selects it.
+A request without `mode` runs the multiview runner (Hunyuan3D-2mv, three
+guidance views bound to the source by a derivation report). Write
+`"mode": "single_view"` explicitly when only the approved picture exists; see
+*Geometry from a single image* below. The preflight hash-binds the immutable
+intake image, every conditioned view, the multiview lineage report, model
+parameters, and a brand-new attempt directory. The launcher then checks the
+exact runner hash, GPU owners and free VRAM (18,432 MiB multiview, 12,288 MiB
+single view), and any live ComfyUI queue before running exactly once:
 
 ```powershell
 .\scripts\run_hy3d_geometry.ps1 `

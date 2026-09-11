@@ -1,13 +1,14 @@
 {
   "schema": "reference-asset-compiler.workflow-catalog.v1",
-  "updated": "2026-09-04",
+  "updated": "2026-09-11",
   "workstation_contract": {
     "comfyui_role": "optional_historical_geometry_route_and_live_gpu_queue_guard",
     "geometry_default": "hash_pinned_direct_hunyuan3d_python_runner",
     "texture_default": "hunyuan3d21_existing_mesh_pbr",
     "texture_challenger": "trellis2_existing_mesh_pbr",
-    "humanoid_rig_default": "user_licensed_auto_rig_pro_existing_mesh_authoring_then_compiler_gates",
-    "compiler_role": "normalize_gate_package_and_ue5_verify_existing_authorities"
+    "humanoid_rig_default": "run_rig_candidate_auto_rig_pro_when_installed_else_free_landmark_rig_then_compiler_gates",
+    "compiler_role": "normalize_gate_package_and_ue5_verify_existing_authorities",
+    "texture_stopped_challenger": "intrinsicanything_albedo_estimation"
   },
   "workflows": [
     {
@@ -34,7 +35,7 @@
       "runtime": "Windows_Python_CUDA_venv_.venv-hy3d_with_upstream_Hunyuan3D-2",
       "model_revision": "3a761b539b29fe4ff64714813aa9560fd66f5de0",
       "model_download": "config plus model.fp16.safetensors only; 4928153170 bytes",
-      "deployment": "copy this file to ${RAC_LEGACY_ROOT}/scripts/run_hy3d_multiview.py; scripts/run_hy3d_geometry.ps1 verifies that copy against this sha256 before launching",
+      "deployment": "no studio copy is needed; scripts/run_hy3d_geometry.ps1 hashes and executes this repository copy under workflows/geometry/hunyuan3d/ with the studio's .venv-hy3d interpreter and upstream/Hunyuan3D-2 install",
       "input_contract": "immutable reference image plus optional front/left/back guidance views",
       "promotion": "fixed_view_modeling_review_required"
     },
@@ -48,7 +49,7 @@
       "model": "tencent/Hunyuan3D-2:hunyuan3d-dit-v2-0",
       "model_revision": "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf",
       "model_download": "config plus model.fp16.safetensors only; 4928153166 bytes",
-      "deployment": "copy this file to ${RAC_LEGACY_ROOT}/scripts/run_hy3d_single_view.py; scripts/run_hy3d_geometry.ps1 selects it for requests with mode single_view and verifies this sha256",
+      "deployment": "no studio copy is needed; scripts/run_hy3d_geometry.ps1 selects this repository copy for requests with mode single_view, verifies this sha256, and executes it with the studio's .venv-hy3d interpreter",
       "input_contract": "the immutable reference image alone; the request's single input must hash-match the workspace source authority",
       "known_limit": "one view cannot disambiguate the far side; prefer the multiview runner when consistent front/left/back guidance exists",
       "promotion": "fixed_view_modeling_review_required"
@@ -79,6 +80,17 @@
       "deployment": "copy this file to ${RAC_LEGACY_ROOT}/scripts/run_hy3d21_pbr.py; scripts/run_hy3d21_texture.ps1 verifies that copy against this sha256 before launching"
     },
     {
+      "id": "hunyuan3d21_hires_variant",
+      "stage": "texture_candidate",
+      "path": "texture/hunyuan3d21/run_hy3d21_hires.py",
+      "sha256": "1990BE712F588068B74031F85FEA561F8BC9DD220FF639340311162EFBBF6410",
+      "selection": "retained_variant_not_launcher_default",
+      "runtime": "Windows_Python_3.11_CUDA_12.4",
+      "method": "loads the mesh with trimesh process=False so UV-seam vertices are not merged, and saves the computed 4096 atlas without the upstream downsample",
+      "known_result": "used for the field-scout-female experiment in docs/EXPERIMENT-hy3d21-female.md; scripts/run_hy3d21_texture.ps1 still pins run_hy3d21_pbr.py",
+      "deployment": "provenance copy only; run it deliberately from a studio copy with a recorded hash if an experiment needs it"
+    },
+    {
       "id": "trellis2_existing_mesh_pbr",
       "stage": "texture_challenger",
       "path": "texture/trellis2/run_trellis2_texturing.py",
@@ -88,6 +100,19 @@
       "runtime": "WSL_Python_3.10_CUDA_12.4",
       "input_contract": "presegmented_nonopaque_RGBA_and_existing_UVs",
       "known_limit": "whole_body_trial_showed_face_bands_identity_loss_and_triangle_speckling"
+    },
+    {
+      "id": "intrinsicanything_albedo_challenger",
+      "stage": "texture_challenger",
+      "path": "texture/intrinsicanything/README.md",
+      "sha256": "98E8B614937609D314703F482544FCC1A4BCB5BA8A073BF5C0CA57F690416B6F",
+      "selection": "stopped_challenger_not_default",
+      "runtime": "isolated_uv_Python_3.10_environment_under_work/toolchains",
+      "input_contract": "presegmented_RGBA_object_views; estimates albedo only, no geometry, UV, rig or UE changes",
+      "known_result": "2026-09-05: exact side views collapsed to black, an oblique orbit lost one side, tiled estimates introduced bands; no Ayric atlas was changed",
+      "promotion": "stopped pending a causal defect diagnosis or a materially different method; see docs/ESCALATE-sunset-lighting.md",
+      "requirements_path": "texture/intrinsicanything/requirements-inference.txt",
+      "requirements_sha256": "4970F27B10971EA96AEB51387FAD956B612340C5FF6F7548A2E7F1CE8F66C23D"
     },
     {
       "id": "anigen_rig_candidate",

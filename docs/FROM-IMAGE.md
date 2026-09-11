@@ -1,5 +1,7 @@
 # One image to a compiled prop
 
+*Type: reference*
+
 For the direct Hunyuan, non-Codex route, start here:
 
 ```powershell

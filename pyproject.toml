@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "reference-asset-compiler"
-version = "0.1.1"
+dynamic = ["version"]
 description = "Evidence-gated orchestration for reference-image to game-ready 3D assets"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -24,6 +24,9 @@ dev = ["pytest>=8.3", "jsonschema>=4.23", "ruff>=0.9"]
 
 [project.scripts]
 rac = "reference_asset_compiler.cli:main"
+
+[tool.hatch.version]
+path = "src/reference_asset_compiler/__init__.py"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/reference_asset_compiler"]

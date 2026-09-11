@@ -9,6 +9,16 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+function Write-Utf8NoBom {
+    param(
+        [Parameter(Mandatory = $true)][string] $Path,
+        [Parameter(Mandatory = $true)][AllowEmptyString()][string] $Text
+    )
+    # Windows PowerShell 5.1's Set-Content writes a byte-order mark for utf8,
+    # and every Python reader of these receipts then sees "\ufeff{" and
+    # rejects the JSON. Receipts are UTF-8 without a BOM, always.
+    [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
+}
 # Two hash-pinned runners: multiview (three guidance views) and single view
 # (the reference image alone). The request's mode selects one after preflight.
 $expectedRunnerHashes = @{
@@ -34,14 +44,20 @@ foreach ($required in @($hyPython, $upstream)) {
 $requestPath = (Resolve-Path -LiteralPath $Request).Path
 $repoPath = (Resolve-Path -LiteralPath $RepoRoot).Path
 $legacyPath = (Resolve-Path -LiteralPath $LegacyRoot).Path
+# Native stderr merged with 2>&1 becomes an ErrorRecord in Windows PowerShell
+# 5.1, and under Stop the first warning line would terminate this launcher.
+# Relax only around each native call; exit codes decide, as they always did.
 $previousPythonPath = $env:PYTHONPATH
+$previousPreference = $ErrorActionPreference
+$ErrorActionPreference = 'Continue'
 try {
     $env:PYTHONPATH = Join-Path $repoPath 'src'
     $preflightLines = @(& $compilerPython -m reference_asset_compiler.cli geometry-preflight `
-        $requestPath --legacy-root $legacyPath --repo-root $repoPath 2>&1)
+        $requestPath --legacy-root $legacyPath --repo-root $repoPath 2>&1 | ForEach-Object { $_.ToString() })
     $preflightExit = $LASTEXITCODE
 }
 finally {
+    $ErrorActionPreference = $previousPreference
     $env:PYTHONPATH = $previousPythonPath
 }
 if ($preflightExit -ne 0) {
@@ -72,36 +88,13 @@ if ($actualRunnerHash -ne $expectedRunnerHash) {
     throw "Hunyuan runner changed: expected $expectedRunnerHash, found $actualRunnerHash"
 }
 
-$gpuLines = @(& nvidia-smi --query-gpu=memory.free,utilization.gpu --format=csv,noheader,nounits 2>&1)
-if ($LASTEXITCODE -ne 0 -or $gpuLines.Count -ne 1) {
-    throw 'Unable to read one unambiguous GPU state; inference was not launched'
-}
-$gpuParts = $gpuLines[0].Split(',')
-$freeMiB = [int]$gpuParts[0].Trim()
-$utilization = [int]$gpuParts[1].Trim()
-$computeApps = @(& nvidia-smi --query-compute-apps=pid,process_name,used_memory --format=csv,noheader,nounits 2>&1)
-
-$comfyProcesses = @(Get-CimInstance Win32_Process | Where-Object {
-    $_.CommandLine -and $_.CommandLine -match '(?i)ComfyUI[\\/]main\.py'
-})
-$queueRunning = 0
-$queuePending = 0
-if ($comfyProcesses.Count -gt 0) {
-    try {
-        $queue = Invoke-RestMethod -Uri ($ComfyUrl.TrimEnd('/') + '/queue') -TimeoutSec 4
-        $queueRunning = @($queue.queue_running).Count
-        $queuePending = @($queue.queue_pending).Count
-    }
-    catch {
-        throw "ComfyUI owns a live process but its queue could not be verified; inference was not launched: $($_.Exception.Message)"
-    }
-    if ($queueRunning -gt 0 -or $queuePending -gt 0) {
-        throw "ComfyUI queue is busy (running=$queueRunning pending=$queuePending); inference was not launched"
-    }
-}
-if ($freeMiB -lt $requiredFreeVramMiB) {
-    throw "GPU has $freeMiB MiB free; $requiredFreeVramMiB MiB is required for $mode. ComfyUI queue was checked (running=$queueRunning pending=$queuePending). No process was killed and inference was not launched. Owners: $($computeApps -join '; ')"
-}
+$gpuState = & (Join-Path $PSScriptRoot 'assert_gpu_available.ps1') -MinimumFreeVramMiB $requiredFreeVramMiB -ComfyUrl $ComfyUrl
+$freeMiB = $gpuState.free_mib
+$utilization = $gpuState.utilization
+$computeApps = $gpuState.compute_owners
+$comfyProcessCount = $gpuState.comfy_process_count
+$queueRunning = $gpuState.queue_running
+$queuePending = $gpuState.queue_pending
 
 $outputDirectory = [System.IO.Path]::GetFullPath([string]$preflight.output_directory)
 if (Test-Path -LiteralPath $outputDirectory) {
@@ -126,13 +119,12 @@ $attempt = [ordered]@{
     free_vram_mib = $freeMiB
     gpu_utilization_percent = $utilization
     gpu_compute_owners = $computeApps
-    comfy_process_count = $comfyProcesses.Count
+    comfy_process_count = $comfyProcessCount
     comfy_queue_running = $queueRunning
     comfy_queue_pending = $queuePending
     retry = $false
 }
-$attempt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $attemptReport -Encoding utf8
-
+Write-Utf8NoBom -Path $attemptReport -Text ($attempt | ConvertTo-Json -Depth 8)
 $inputByView = @{}
 foreach ($input in $preflight.inputs) { $inputByView[[string]$input.view] = $input }
 $parameters = $preflight.parameters
@@ -144,15 +136,25 @@ try {
     } else {
         @('--front', [string]$inputByView.front.path, '--left', [string]$inputByView.left.path, '--back', [string]$inputByView.back.path)
     }
-    & $hyPython $runner @viewArguments `
-        --output $candidate `
-        --report $generationReport `
-        --prepared-dir $preparedDirectory `
-        --steps ([int]$parameters.steps) `
-        --octree-resolution ([int]$parameters.octree_resolution) `
-        --chunks ([int]$parameters.chunks) `
-        --seed ([int]$parameters.seed)
-    $runnerExit = $LASTEXITCODE
+    # The runner and its dependencies write ordinary progress to stderr. If a
+    # caller redirects this launcher's output (2>&1, *>), Stop would turn the
+    # first such line into a terminating error while the child kept running on
+    # the GPU. Relax only around the call; the exit code is the verdict.
+    $previousPreference = $ErrorActionPreference
+    $ErrorActionPreference = 'Continue'
+    try {
+        & $hyPython $runner @viewArguments `
+            --output $candidate `
+            --report $generationReport `
+            --prepared-dir $preparedDirectory `
+            --steps ([int]$parameters.steps) `
+            --octree-resolution ([int]$parameters.octree_resolution) `
+            --chunks ([int]$parameters.chunks) `
+            --seed ([int]$parameters.seed)
+        $runnerExit = $LASTEXITCODE
+    } finally {
+        $ErrorActionPreference = $previousPreference
+    }
     if ($runnerExit -ne 0) {
         throw "Hunyuan3D multiview exited $runnerExit; the attempt is retained and will not be auto-retried"
     }
@@ -191,18 +193,18 @@ try {
         parameters = $parameters
         status = 'candidate -- not approved, not an asset'
     }
-    $receipt | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $candidateReceipt -Encoding utf8
+    Write-Utf8NoBom -Path $candidateReceipt -Text ($receipt | ConvertTo-Json -Depth 10)
     $attempt.status = 'succeeded'
     $attempt.completed_at = [DateTimeOffset]::Now.ToString('o')
     $attempt.candidate_sha256 = $receipt.candidate_sha256
     $attempt.candidate_receipt = $candidateReceipt
-    $attempt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $attemptReport -Encoding utf8
+    Write-Utf8NoBom -Path $attemptReport -Text ($attempt | ConvertTo-Json -Depth 8)
 }
 catch {
     $attempt.status = 'failed'
     $attempt.completed_at = [DateTimeOffset]::Now.ToString('o')
     $attempt.failure = $_.Exception.Message
-    $attempt | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $attemptReport -Encoding utf8
+    Write-Utf8NoBom -Path $attemptReport -Text ($attempt | ConvertTo-Json -Depth 8)
     throw
 }
 

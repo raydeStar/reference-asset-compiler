@@ -107,7 +107,7 @@ def plan(manifest: dict[str, Any], registry: dict[str, Any]) -> dict[str, Any]:
     elif articulated and asset_kind == "mascot":
         profile = "mascot_biped"
         ready = bool(manifest.get("skeleton_profile"))
-        rig_backbone = manifest.get("rig_backbone") or "custom_blender"
+        rig_backbone = manifest.get("rig_backbone") or "blender_custom_rig"
         blocker = None if ready else "Mascots require an explicit skeleton_profile."
     elif articulated:
         profile = "articulated_nonhumanoid"

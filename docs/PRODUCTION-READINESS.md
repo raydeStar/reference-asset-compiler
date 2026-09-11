@@ -1,5 +1,7 @@
 # Production readiness, end to end
 
+*Type: reference*
+
 Run 2026-08-31 against UE 5.8.2. Every claim below is a measurement, and the
 script that produced it is named.
 

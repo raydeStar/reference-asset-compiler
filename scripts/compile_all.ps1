@@ -13,17 +13,21 @@
 [CmdletBinding()]
 param(
     [string] $Blender,
+    [string] $CompilerPython,
     [switch] $SkipRender
 )
 
-# Tool paths come from scripts/rac_env.py rather than a default that is only
-# right on one machine. Set RAC_BLENDER to override.
-if (-not $Blender) {
-    $Blender = (& python (Join-Path $PSScriptRoot 'rac_env.py') --blender) | Select-Object -Last 1
-}
-
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
+# Tool paths come from scripts/rac_env.py rather than a default that is only
+# right on one machine. Set RAC_BLENDER to override.
+$compilerPython = & (Join-Path $PSScriptRoot 'resolve_python.ps1') -Python $CompilerPython
+if (-not $Blender) {
+    $Blender = (& $compilerPython (Join-Path $PSScriptRoot 'rac_env.py') --blender) | Select-Object -Last 1
+    if ($LASTEXITCODE -ne 0 -or -not $Blender) {
+        throw 'Blender could not be resolved; set RAC_BLENDER or pass -Blender <path>.'
+    }
+}
 $recipes = Get-ChildItem -LiteralPath (Join-Path $repoRoot 'recipes') -Filter *.json | Sort-Object Name
 
 $results = @()
@@ -32,7 +36,7 @@ foreach ($recipe in $recipes) {
     $detail = ''
     try {
         & (Join-Path $PSScriptRoot 'compile_asset.ps1') `
-            -Recipe $recipe.FullName -Blender $Blender -SkipRender:$SkipRender
+            -Recipe $recipe.FullName -Blender $Blender -CompilerPython $compilerPython -SkipRender:$SkipRender
     } catch {
         $status = 'FAIL'
         $detail = $_.Exception.Message

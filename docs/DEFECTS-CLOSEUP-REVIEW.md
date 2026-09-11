@@ -1,5 +1,7 @@
 # Close-up review: three defects, and what each one turned out to be
 
+*Type: retained experiment*
+
 A reviewer looking at the UE5 gallery at close range reported three things:
 
 1. Something sticking out of the man's face.

@@ -25,6 +25,7 @@
 param(
     [string] $Destination,
     [string] $UnrealEditor = $env:RAC_UNREAL_EDITOR,
+    [string] $CompilerPython,
     [switch] $Force
 )
 
@@ -32,8 +33,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 if (-not $Destination) { $Destination = Join-Path $repoRoot 'work\ue5-validate' }
+$compilerPython = & (Join-Path $PSScriptRoot 'resolve_python.ps1') -Python $CompilerPython
 if (-not $UnrealEditor) {
-    $UnrealEditor = (& python (Join-Path $PSScriptRoot 'rac_env.py') --unreal-editor) | Select-Object -Last 1
+    $UnrealEditor = (& $compilerPython (Join-Path $PSScriptRoot 'rac_env.py') --unreal-editor) | Select-Object -Last 1
+    if ($LASTEXITCODE -ne 0 -or -not $UnrealEditor) {
+        throw 'UnrealEditor.exe could not be resolved; set RAC_UNREAL_EDITOR.'
+    }
 }
 if (-not (Test-Path -LiteralPath $UnrealEditor -PathType Leaf)) {
     throw "UnrealEditor.exe not found at '$UnrealEditor'. Set RAC_UNREAL_EDITOR."

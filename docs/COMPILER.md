@@ -1,5 +1,7 @@
 # The asset compiler
 
+*Type: reference*
+
 One command, no MCP server, no interactive application:
 
 ```powershell
@@ -9,6 +11,15 @@ One command, no MCP server, no interactive application:
 It compiles every recipe in `recipes\` into a gated UE5 package under
 `out\<asset_id>\`, and prints a pass/fail matrix. A failing asset does not
 block the others.
+
+The checked-in recipes are workstation-bound: their `source` and
+`material_textures` paths point into the ignored `work/` tree or into the
+studio named by `${RAC_LEGACY_ROOT}`, so they document what was compiled
+rather than run on a fresh clone. The runnable newcomer example is
+`examples/crate/` (see `examples/README.md`). `fox-mascot` below is a 2026-08
+asset retired by Ayric on 2026-09-01; its lessons are kept because they still
+apply. Dated measurements have moved to the *Historical results* appendix at
+the bottom of this page; the current state per asset is `STATUS.md`.
 
 ## What it does and why each step exists
 
@@ -27,6 +38,20 @@ The gate runs against the **exported** FBX, not the pre-export scene. The FBX
 round trip is exactly where scale and skinning quietly change, so gating the
 scene you are about to export proves nothing about the file you ship.
 
+Character compiles retain each run under `work/<asset>/compile-attempts/<id>/`,
+including reports, staged files and logs. They publish a complete new
+`out/<asset>/` directory and refuse any existing destination. The resolved
+skeleton profile travels with the published package; historical profiles under
+`work/<asset>/resolved-profile.json` remain readable.
+
+Production bakes similarly refuse an existing `prod-*` attempt directory.
+Use `build_production.py <asset> --production-name prod-v3` to retain a new bake;
+budget trials remain in separate subdirectories and the measured winner is
+copied, not baked again. For an asset with a ledger, semantic cleanup and human
+production-retopology approval must already pass. The builder bakes that exact
+reviewed retopology and can record only the mechanical `unwrap_and_bake` stage.
+Texture approval remains a separate gate.
+
 ## Skeleton profiles
 
 `profiles\skeletons\*.json` declare the bone contract: required bones, expected
@@ -36,7 +61,7 @@ parents, permitted extras, influence cap, triangle budget.
 |---|---|---|---|---|
 | `ue5_manny` | `spine_01..05`, `neck_01/02` | 2 per segment | 30 | field-scout-male |
 | `ue4_mannequin` | `spine_01..03`, `neck_01` | 1 per segment | 30 | ninja-man |
-| `mascot_biped_tail` | `spine_01..03`, `neck_01` | none | none | fox-mascot |
+| `mascot_biped_tail` | `spine_01..03`, `neck_01` | none | none | orange-adventurer-cat-ai-v2-production (26 bones; earlier the retired fox-mascot) |
 
 `ue5_manny` is used by both field-scout characters.
 
@@ -106,11 +131,12 @@ Then `.\scripts\compile_asset.ps1 -Recipe recipes\my-character.json`.
 environment. It applies the texture settings that are easy to get wrong by
 hand: sRGB off and `TC_Normalmap` for Normal, sRGB off and `TC_Masks` for ORM.
 
-Verified against **UE 5.8.2** on 2026-08-30, headless:
+Run it headless (verified against **UE 5.8.2**; `rac_env.py --unreal-cmd`
+finds the editor executable):
 
 ```powershell
 $env:RAC_ROOT = (Get-Location).Path
-& "C:\Program Files\Epic Games\UE_5.8\Engine\Binaries\Win64\UnrealEditor-Cmd.exe" `
+& (python scripts\rac_env.py --unreal-cmd) `
     .\work\ue5-validate\RacValidate.uproject `
     -ExecutePythonScript="$env:RAC_ROOT\scripts\ue5\import_and_verify.py" `
     -unattended -nop4 -nosplash -stdout
@@ -120,19 +146,8 @@ $env:RAC_ROOT = (Get-Location).Path
 engine actually built and writes `work\ue5-verify.json`. Checking the imported
 payload rather than the import call's return value is the point: an import that
 "succeeds" and produces a mesh at the wrong scale, or with the material
-unassigned, is a failure this project has already shipped once.
-
-Measured result, all four passing:
-
-| Asset | Imported height | LODs | Material slots |
-|---|---|---|---|
-| field-scout-female | 200.0 cm | 3 | Body + Face |
-| field-scout-male | 199.9 cm | 3 | Body x5 |
-| fox-mascot | 199.4 cm | 3 | Body x5 |
-| ninja-man | 180.0 cm | 3 | Body x2 |
-
-Every height matches its manifest exactly, which validates the whole normalize
-chain end to end. sRGB and compression verified correct on every texture.
+unassigned, is a failure this project has already shipped once. The 2026-08-30
+measured result for the four legacy characters is in *Historical results*.
 
 Two engine traps this cost, both now handled:
 
@@ -184,7 +199,7 @@ Not uniformly, and the difference is deliberate:
 | field-scout-male | UE5 Manny (86 bones) | direct, no retarget |
 | field-scout-female | UE5 Manny (86 bones) | direct, no retarget |
 | ninja-man | UE4 Mannequin (75 bones) | needs the stock UE4→UE5 IK Retargeter |
-| fox-mascot | custom 26-bone mascot | IK Retargeter, tail excluded from the chain map |
+| orange-adventurer-cat-ai-v2-production (and, before it, the retired fox-mascot) | custom 26-bone `mascot_biped_tail` | IK Retargeter, tail excluded from the chain map |
 
 The ninja was exported from Auto-Rig Pro with the UE4 preset: `spine_01..03`,
 one twist joint per segment, `neck_01` only. UE5 imports that skeleton as a
@@ -398,42 +413,22 @@ the normal map, because with no denser surface to capture there is nothing to
 put in one, and it bakes the mesh against itself rather than selected-to-active,
 which against a coincident copy bakes fully-occluded AO and a black albedo.
 
-### Results, 2026-08-31
+### Results
 
-| Asset | Triangles | Mode | Deviation p99 | Influences | Maps |
-|---|---|---|---|---|---|
-| field-scout-female | 70,000 -> **40,232** | whole | 1.8 mm | 7 -> 4 | BaseColor, Normal, AO |
-| field-scout-male | 67,907 -> 67,939 | passthrough | 0.5 mm | 8 -> 4 | BaseColor, AO |
-| fox-mascot | 69,545 -> **48,042** | whole | 3.4 mm | 7 -> 4 | BaseColor, Normal, AO |
-| ninja-man | 54,220 -> 54,341 | passthrough | 0.04 mm | 7 -> 4 | BaseColor, AO |
-
-Two geometry repairs run inside this stage, both opt-in per asset because the
-geometric description of each fits assets that are correct as they are:
-
-| Asset | Repair | Measured |
-|---|---|---|
-| field-scout-male | eyeballs set back until they stop breaking the head's silhouette | 46.5 mm |
-| fox-mascot | eye plates held out of the remesh, then boundary loops capped | 960 tris held, 181 -> 0 boundary edges |
-
-Both were reported by a reviewer at close range and were invisible to every
-gate here; `docs/DEFECTS-CLOSEUP-REVIEW.md` has the evidence and the two false
-starts that preceded each fix.
+Per-asset numbers from the 2026-08-31 run of this stage are in *Historical
+results* below. Two geometry repairs run inside the stage, both opt-in per
+asset because the geometric description of each fits assets that are correct
+as they are: eyeballs set back until they stop breaking the head's silhouette
+(field-scout-male), and eye plates held out of the remesh with their boundary
+loops capped (the retired fox-mascot). Both were reported by a reviewer at
+close range and were invisible to every gate here;
+`docs/DEFECTS-CLOSEUP-REVIEW.md` has the evidence and the two false starts that
+preceded each fix.
 
 Static props go through this same stage with `--kind static_prop`, which turns
 off weight transfer, the influence cap, the armature modifier and the semantic
 UV charts, and leaves healing, unwrapping, atlas sizing, baking and export
-alone. `docs/PROPS.md` covers the route and what differs; the first asset
-through it is `office-chair`, 6 materials and 5,464 triangles in, 1 material
-and 5,336 out.
-
-All four pass the retopology, texture, rig and deformation gates, and all four
-are promoted to `out/<asset>-production/`. The authorities are untouched.
-
-Verified in **UE 5.8.2**, headless, beside the originals: eight packages, zero
-failed checks, every height within tolerance, 3 LODs each, and one material
-slot per production asset against two to five on the authorities. Cook: **546
-packages, 0 errors, 0 warnings**, with 23 production packages in
-`Metadata/ReferencedSet.txt`.
+alone. `docs/PROPS.md` covers the route and what differs.
 
 ### The face gets a chart sized by what it costs
 
@@ -489,3 +484,52 @@ zero exit, read the `retopo.json` left behind by the PREVIOUS run, and reported
 PASS with stale numbers -- which is how a build that died on an
 `UnboundLocalError` looked healthy. The report is now deleted before the stage
 runs and required back afterwards, and stderr is scanned for tracebacks.
+
+## Historical results (dated; superseded by `STATUS.md`)
+
+These measurements are from the 2026-08 legacy cohort (field-scout-female,
+field-scout-male, ninja-man and the since-retired fox-mascot). They validated
+the compiler mechanics. None of those assets is V1-eligible: their runtime
+authorities lack a receipt-complete chain back to image-conditioned AI
+geometry (`HANDOFF.md`, *Current asset matrix*), and the fox was retired by
+Ayric on 2026-09-01.
+
+### UE 5.8.2 import, 2026-08-30
+
+Measured result, all four passing:
+
+| Asset | Imported height | LODs | Material slots |
+|---|---|---|---|
+| field-scout-female | 200.0 cm | 3 | Body + Face |
+| field-scout-male | 199.9 cm | 3 | Body x5 |
+| fox-mascot | 199.4 cm | 3 | Body x5 |
+| ninja-man | 180.0 cm | 3 | Body x2 |
+
+Every height matched its manifest exactly, which validated the whole normalize
+chain end to end. sRGB and compression verified correct on every texture.
+
+### Production stage, 2026-08-31
+
+| Asset | Triangles | Mode | Deviation p99 | Influences | Maps |
+|---|---|---|---|---|---|
+| field-scout-female | 70,000 -> **40,232** | whole | 1.8 mm | 7 -> 4 | BaseColor, Normal, AO |
+| field-scout-male | 67,907 -> 67,939 | passthrough | 0.5 mm | 8 -> 4 | BaseColor, AO |
+| fox-mascot | 69,545 -> **48,042** | whole | 3.4 mm | 7 -> 4 | BaseColor, Normal, AO |
+| ninja-man | 54,220 -> 54,341 | passthrough | 0.04 mm | 7 -> 4 | BaseColor, AO |
+
+| Asset | Repair | Measured |
+|---|---|---|
+| field-scout-male | eyeballs set back until they stop breaking the head's silhouette | 46.5 mm |
+| fox-mascot | eye plates held out of the remesh, then boundary loops capped | 960 tris held, 181 -> 0 boundary edges |
+
+The first prop through the stage was the hand-authored `office-chair`: 6
+materials and 5,464 triangles in, 1 material and 5,336 out. It is regression
+evidence only; the AI-conditioned `office-chair-ai-v2` superseded it.
+
+All four characters passed the retopology, texture, rig and deformation gates
+and were promoted to `out/<asset>-production/`; the authorities were untouched.
+Verified in UE 5.8.2, headless, beside the originals: eight packages, zero
+failed checks, every height within tolerance, 3 LODs each, and one material
+slot per production asset against two to five on the authorities. Cook: 546
+packages, 0 errors, 0 warnings, with 23 production packages in
+`Metadata/ReferencedSet.txt`.

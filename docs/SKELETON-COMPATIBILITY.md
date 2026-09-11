@@ -1,5 +1,7 @@
 # Skeleton compatibility, measured against Epic's Manny
 
+*Type: reference*
+
 Run 2026-08-31 by `scripts/ue5/verify_manny_compatibility.py`, headless in
 UE 5.8.2 against `/Game/Mannequins/Meshes/SKM_Manny_Simple` as Epic ships it.
 

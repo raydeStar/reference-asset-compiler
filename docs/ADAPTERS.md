@@ -1,5 +1,7 @@
 # Adapter policy
 
+*Type: reference*
+
 The adapter registry describes capabilities, not quality rankings. Each adapter
 is externally installed and configured; the compiler does not redistribute
 weights or licensed software.

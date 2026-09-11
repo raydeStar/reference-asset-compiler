@@ -20,7 +20,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import subprocess
 import sys
@@ -33,15 +32,11 @@ import rac_env
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
+from reference_asset_compiler.approvals import TEXTURE_VIEW_NAMES  # noqa: E402
+from reference_asset_compiler.io import sha256_file  # noqa: E402
 from reference_asset_compiler.prop_publication import normalization_report  # noqa: E402
 
-
-def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(1 << 20), b""):
-            digest.update(block)
-    return digest.hexdigest()
+sha256 = sha256_file
 
 
 def require_file(path: Path) -> Path:
@@ -55,6 +50,20 @@ def run(command: list[str], label: str) -> None:
     completed = subprocess.run(command, cwd=ROOT, text=True)
     if completed.returncode:
         raise RuntimeError(f"{label} failed with exit code {completed.returncode}")
+
+
+def run_blender(script: str, label: str, outputs: list[Path], *arguments: object,
+                blender: Path, timeout: float | None) -> None:
+    """One Blender stage, with `--python-exit-code 1` and its outputs required back."""
+    code, stdout, stderr = rac_env.run_blender(script, *arguments, blender=blender,
+                                               timeout=timeout, cwd=ROOT)
+    if code:
+        for line in (stdout + "\n" + stderr).splitlines()[-20:]:
+            print("    " + line, file=sys.stderr)
+        raise RuntimeError(f"{label} failed with exit code {code}")
+    missing = [str(path) for path in outputs if not path.is_file()]
+    if missing:
+        raise RuntimeError(f"{label} exited 0 without writing {', '.join(missing)}")
 
 
 def main() -> int:
@@ -153,13 +162,12 @@ def main() -> int:
     production_texture_map_path.write_text(
         json.dumps(production_textures, indent=2) + "\n", encoding="utf-8"
     )
-    run([
-        str(blender), "-b", "--factory-startup", "--python",
-        str(ROOT / "scripts" / "blender" / "normalize_prop.py"), "--",
-        str(production_recipe_path.resolve()), str(production_fbx.resolve()),
-        str(production_normalise_report_path.resolve()),
-        str(production_texture_map_path.resolve()),
-    ], "production FBX texture binding")
+    run_blender("normalize_prop.py", "production FBX texture binding",
+                [production_fbx, production_normalise_report_path],
+                production_recipe_path.resolve(), production_fbx.resolve(),
+                production_normalise_report_path.resolve(),
+                production_texture_map_path.resolve(),
+                blender=blender, timeout=rac_env.BLENDER_STEP_TIMEOUT)
     production_normalise = json.loads(
         production_normalise_report_path.read_text(encoding="utf-8-sig")
     )
@@ -212,11 +220,15 @@ def main() -> int:
         material_name,
     ], "texture gate")
 
-    run([
-        str(blender), "-b", "--factory-startup", "--python",
-        str(ROOT / "scripts" / "blender" / "render_turnaround.py"), "--",
-        str(production_fbx.resolve()), str((prod / "turn").resolve()), "1024",
-    ], "fixed-view render")
+    turn = (prod / "turn").resolve()
+    run_blender("render_turnaround.py", "fixed-view render",
+                [turn / name for name in TEXTURE_VIEW_NAMES],
+                production_fbx.resolve(), turn, 1024,
+                blender=blender, timeout=rac_env.BLENDER_STEP_TIMEOUT)
+
+    from reference_asset_compiler.texture_payload import bind_texture_payload
+    retopo = bind_texture_payload(retopo, source_fbx, production_fbx, gate_path)
+    retopo_path.write_text(json.dumps(retopo, indent=2) + "\n", encoding="utf-8")
 
     receipt = {
         "schema": "reference-asset-compiler.accepted-texture-remediation.v1",

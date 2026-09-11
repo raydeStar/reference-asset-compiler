@@ -109,6 +109,22 @@ class GeometryRequestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "not bound to view: front"):
             validate_geometry_request(self.request, self.legacy, self.repo)
 
+    def test_workspace_root_can_live_outside_the_checkout(self) -> None:
+        jobs = self.root / "jobs"
+        (jobs / "fox").mkdir(parents=True)
+        for name in ("references", "candidates"):
+            (jobs / "fox" / name).mkdir()
+        for relative in ("intake.json", "references/primary.png"):
+            (jobs / "fox" / relative).write_bytes((self.workspace / relative).read_bytes())
+        payload = json.loads(self.request.read_text(encoding="utf-8"))
+        payload["workspace"] = str(jobs / "fox")
+        payload["output_directory"] = str(jobs / "fox" / "candidates" / "attempt-001")
+        self.request.write_text(json.dumps(payload), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "escapes the workspace root"):
+            validate_geometry_request(self.request, self.legacy, self.repo)
+        result = validate_geometry_request(self.request, self.legacy, self.repo, jobs)
+        self.assertEqual(str((jobs / "fox").resolve()), result["workspace"])
+
     def test_output_cannot_escape_workspace(self) -> None:
         self.write_request("${RAC_REPO_ROOT}/work/elsewhere")
         with self.assertRaisesRegex(ValueError, "escapes workspace candidates"):

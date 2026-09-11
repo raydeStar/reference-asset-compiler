@@ -27,6 +27,7 @@ from support import (  # noqa: E402
     promote_cleanup,
     promote_generated,
     promote_retopology,
+    promote_texture_approval,
 )
 
 REGISTRY = json.loads((ROOT / "configs" / "model-adapters.json").read_text())
@@ -42,8 +43,6 @@ class RuntimeEvidenceTests(unittest.TestCase):
             self.root / "work", source, "Test Prop", "static_prop", "static", REGISTRY
         )
         candidate, _ = promote_generated(self.job)
-        evidence = self.job / "logs" / "stage.json"
-        evidence.write_text("{}")
         modeling_views = []
         for name in ("matcap-front.png", "matcap-three-quarter.png",
                      "matcap-side.png", "matcap-back.png"):
@@ -53,17 +52,8 @@ class RuntimeEvidenceTests(unittest.TestCase):
         modeling = modeling_evidence(self.job, candidate, modeling_views)
         promote_stage(self.job, "modeling_approval", modeling, "Approved.", "Ayric")
         cleaned = promote_cleanup(self.job, candidate)
-        promote_retopology(self.job, cleaned)
-        promote_stage(self.job, "unwrap_and_bake", [evidence], "Passed.", "system")
-        texture_dir = self.job / "textures"
-        texture_evidence = []
-        for name in ("prop_production.fbx", "retopo.json", "gate-tex.json", "base.png",
-                     "beauty-front.png", "beauty-three-quarter.png",
-                     "beauty-side.png", "beauty-back.png"):
-            path = texture_dir / name
-            path.write_bytes(name.encode())
-            texture_evidence.append(path)
-        promote_stage(self.job, "texture_approval", texture_evidence, "Approved.", "Ayric")
+        retopology = promote_retopology(self.job, cleaned)
+        promote_texture_approval(self.job, retopology)
 
         self.published = self.root / "out" / "test-prop-production"
         (self.published / "textures").mkdir(parents=True)

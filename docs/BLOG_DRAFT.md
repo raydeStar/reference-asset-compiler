@@ -1,5 +1,7 @@
 # I gave an AI one drawing of a cat and asked for a UE5 character. Here's what it actually took.
 
+*Type: draft*
+
 *Draft. Images are in `docs/images/` of the repo; swap the relative paths for
 wherever you host them. Cut freely.*
 

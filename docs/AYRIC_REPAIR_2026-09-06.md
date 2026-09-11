@@ -1,5 +1,7 @@
 # Ayric rig and bounded face repair, 2026-09-06
 
+*Type: chronological log*
+
 User scope: repair locomotion first; then spend at most two hours on facial
 texturing, including its research. Preserve Claude's calibrated artwork and
 the v034 character/demo. This is candidate work, not a texture waiver or a

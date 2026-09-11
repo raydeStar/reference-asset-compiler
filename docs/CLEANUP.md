@@ -1,5 +1,7 @@
 # Retention and cleanup
 
+*Type: reference*
+
 Image-to-3D work can consume hundreds of gigabytes quickly. Cleanup is a stage,
 not an emergency ritual performed after the disk fills.
 
