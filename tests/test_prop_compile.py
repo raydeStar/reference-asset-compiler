@@ -69,8 +69,10 @@ class PropCompileTests(unittest.TestCase):
         self.assertEqual(1, len(attempts))
         self.assertEqual("published", read_json(attempts[0] / "execution.json")["status"])
         self.assertTrue((attempts[0] / "payload/test-prop.fbx").is_file())
-        self.assertEqual(self.out / "normalize-prop-report.json", normalization_report(
-            self.root / "work/test-prop", self.out / "test-prop.ue5import.json"))
+        # Windows CI may use an 8.3 temporary path; compare file identity, not spelling.
+        self.assertTrue(normalization_report(
+            self.root / "work/test-prop", self.out / "test-prop.ue5import.json"
+        ).samefile(self.out / "normalize-prop-report.json"))
 
     def test_consumers_refuse_modified_published_payload(self):
         self.compile(self.fake_blender)
