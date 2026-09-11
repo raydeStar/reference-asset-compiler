@@ -61,8 +61,8 @@ git clone https://github.com/raydeStar/reference-asset-compiler.git
 cd reference-asset-compiler
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -e ".[dev]"
-python scripts\rac_env.py --all
-.\scripts\workflow_doctor.ps1
+.\.venv\Scripts\python.exe scripts\rac_env.py --all
+.\scripts\workflow_doctor.ps1 -Profile ledger
 .\scripts\verify.ps1
 ```
 
@@ -75,10 +75,29 @@ $env:RAC_UNREAL_CMD     = "C:\path\to\UnrealEditor-Cmd.exe"
 $env:RAC_UNREAL_EDITOR  = "C:\path\to\UnrealEditor.exe"
 ```
 
-`workflow_doctor.ps1` is read-only and reports every route. On a machine
-without the AI stages it will list them as `[MISSING]` and exit non-zero; that
-is information, not a failure of the compiler. `verify.ps1` runs the contract
-tests and must end with `RAC_VERIFY_OK`.
+`workflow_doctor.ps1 -Profile ledger` checks the compiler without requiring AI,
+Blender or Unreal installations. Choose `geometry`, `texture`, or `ue` for those
+routes; the default `all` checks every required route and probes optional add-ons.
+Missing optional tools do not block a profile. Text and `-Json` both exit 0 for
+ready, or 2 for missing required components; JSON includes `ok` and
+`required_missing`. `-SkipAddonProbes` avoids opening background Blender probes.
+The doctor checks installation readiness, not asset quality or permission to
+use a busy GPU. Inference launchers retain their live GPU guards.
+
+`verify.ps1` runs tests, Ruff, stage syntax, builds a wheel, and installs it in
+a fresh temporary environment to exercise the CLI outside the checkout. It
+must end with `RAC_VERIFY_OK`; building and testing the wheel may download Python
+build/runtime dependencies. No models or inference are involved.
+
+Both wrappers use `.venv` when available, then Python 3.12/3.11, then PATH.
+Pass `-Python C:\path\to\python.exe` to select explicitly. For the remaining
+`python` examples, activate `.venv` with `.\.venv\Scripts\Activate.ps1` or use
+`.\.venv\Scripts\python.exe` in place of `python`.
+
+For ledger-only use, install the release wheel with `python -m pip install
+<wheel-file>` and run `rac --help` from any directory. External pipeline stages
+still require the source checkout; installed `rac geometry-preflight` requires
+`--repo-root` pointing at it. A wheel does not bundle Blender, Unreal or models.
 
 ## 2. Create the UE5 validation project
 

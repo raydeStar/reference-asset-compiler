@@ -10,7 +10,7 @@ from typing import Any
 
 from .contracts import STAGE_STATUSES
 from .io import read_json, sha256_file, slugify, write_json
-from .planner import plan
+from .planner import articulation_required, plan, required_stages
 from .delegated_review import validate_delegated_review
 from .native_revision import validate_native_revision, validate_matched_native_frames
 
@@ -45,7 +45,7 @@ def _receipt(paths: list[Path], schema: str) -> tuple[Path, dict[str, Any]] | No
             payload = read_json(path)
         except (OSError, ValueError):
             continue
-        if payload.get("schema") == schema:
+        if isinstance(payload, dict) and payload.get("schema") == schema:
             return path, payload
     return None
 
@@ -680,6 +680,68 @@ def create_workspace(
     return job
 
 
+def _load_workspace_contract(job: Path) -> tuple[dict, dict, dict, list[str]]:
+    """Validate ledger shape before either auditing or recording a transition."""
+    manifest, routing, state = (read_json(job / name) for name in
+                                ("intake.json", "routing.json", "state.json"))
+    for name, payload in (("intake", manifest), ("routing", routing), ("state", state)):
+        if not isinstance(payload, dict):
+            raise ValueError(f"{name}.json must contain an object")
+    if type(manifest.get("schema_version")) is not int or manifest["schema_version"] != 1:
+        raise ValueError("Unsupported intake schema_version")
+    for name, payload in (("routing", routing), ("state", state)):
+        if payload.get("schema") != f"reference-asset-compiler.{name}.v1":
+            raise ValueError(f"Unsupported {name} schema")
+    asset_id = manifest.get("asset_id")
+    if not isinstance(asset_id, str) or not asset_id.strip():
+        raise ValueError("Intake requires an asset_id")
+    if any(payload.get("asset_id") != asset_id for payload in (routing, state)):
+        raise ValueError("Intake, routing and state asset_id must agree")
+    stages = required_stages(manifest)
+    if routing.get("stages") != stages:
+        raise ValueError("Routing stages disagree with the required intake pipeline")
+    if (routing.get("asset_kind") != manifest["asset_kind"]
+            or routing.get("articulation_mode") != manifest.get("articulation", "auto")
+            or routing.get("articulated") is not articulation_required(
+                manifest["asset_kind"], manifest.get("articulation", "auto"))):
+        raise ValueError("Routing disagrees with the intake kind/articulation")
+    source = manifest.get("source")
+    if (not isinstance(source, dict) or not isinstance(source.get("path"), str)
+            or not source["path"] or not _is_sha256(source.get("sha256"))):
+        raise ValueError("Intake requires a source path and SHA-256")
+    budgets = manifest.get("budgets")
+    if not isinstance(budgets, dict) or any(
+        type(budgets.get(key)) is not int or budgets[key] <= 0
+        for key in ("maximum_vertices", "maximum_triangles")
+    ):
+        raise ValueError("Intake requires positive integer runtime budgets")
+    candidates = routing.get("geometry_candidates")
+    if not isinstance(candidates, list) or not candidates or any(
+        not isinstance(item, str) or not item for item in candidates
+    ):
+        raise ValueError("Routing requires geometry candidate identifiers")
+    records = state.get("stages")
+    if not isinstance(records, dict):
+        raise ValueError("State stages must be an object")
+    missing, unexpected = sorted(set(stages) - records.keys()), sorted(records.keys() - set(stages))
+    if missing or unexpected:
+        raise ValueError(f"State stage set is invalid; missing={missing}; unexpected={unexpected}")
+    for stage in stages:
+        record = records[stage]
+        if (not isinstance(record, dict) or not isinstance(record.get("status"), str)
+                or record["status"] not in STAGE_STATUSES):
+            raise ValueError(f"Invalid stage record/status for {stage}")
+        evidence = record.get("evidence")
+        if not isinstance(evidence, list):
+            raise ValueError(f"Evidence for {stage} must be a list")
+        for row in evidence:
+            if (not isinstance(row, dict) or not isinstance(row.get("path"), str)
+                    or not row["path"] or not _is_sha256(row.get("sha256"))
+                    or type(row.get("bytes")) is not int or row["bytes"] < 0):
+                raise ValueError(f"Invalid evidence record for {stage}")
+    return manifest, routing, state, stages
+
+
 def promote_stage(
     job: Path,
     stage: str,
@@ -690,12 +752,11 @@ def promote_stage(
 ) -> dict[str, Any]:
     job = job.resolve()
     state_path = job / "state.json"
-    state = read_json(state_path)
+    manifest, routing, state, stage_names = _load_workspace_contract(job)
     if stage not in state["stages"]:
         raise ValueError(f"Unknown stage for this asset: {stage}")
     if status not in STAGE_STATUSES:
         raise ValueError(f"Unsupported stage status: {status}")
-    stage_names = list(state["stages"])
     index = stage_names.index(stage)
     if status == "passed":
         unfinished = [
@@ -720,8 +781,6 @@ def promote_stage(
             }
         )
     if status == "passed":
-        manifest = read_json(job / "intake.json")
-        routing = read_json(job / "routing.json")
         generated_hash = _record_receipt_value(
             job,
             state["stages"].get("generate_candidates", {}),
@@ -767,10 +826,25 @@ def promote_stage(
 
 
 def audit_workspace(job: Path) -> dict[str, Any]:
+    """Malformed or missing evidence is a failed audit, never a readiness claim."""
+    try:
+        return _audit_workspace(job)
+    except (OSError, ValueError, KeyError, TypeError, AttributeError) as error:
+        return {
+            "schema": "reference-asset-compiler.audit.v1",
+            "asset_id": job.name,
+            "asset_kind": None,
+            "ok": False,
+            "all_stages_passed": False,
+            "production_ready": False,
+            "failures": [f"Cannot audit workspace: {error}"],
+            "stages": {},
+        }
+
+
+def _audit_workspace(job: Path) -> dict[str, Any]:
     job = job.resolve()
-    manifest = read_json(job / "intake.json")
-    routing = read_json(job / "routing.json")
-    state = read_json(job / "state.json")
+    manifest, routing, state, stage_names = _load_workspace_contract(job)
     generated_hash = _record_receipt_value(
         job,
         state["stages"].get("generate_candidates", {}),
@@ -797,7 +871,8 @@ def audit_workspace(job: Path) -> dict[str, Any]:
         failures.append("Immutable source hash changed")
 
     seen_unpassed = False
-    for stage, record in state["stages"].items():
+    for stage in stage_names:
+        record = state["stages"][stage]
         status = record["status"]
         if status not in STAGE_STATUSES:
             failures.append(f"Invalid status for {stage}: {status}")
@@ -812,6 +887,8 @@ def audit_workspace(job: Path) -> dict[str, Any]:
                 failures.append(f"Missing evidence for {stage}: {row['path']}")
             elif sha256_file(resolved) != row["sha256"]:
                 failures.append(f"Evidence hash changed for {stage}: {row['path']}")
+            elif resolved.stat().st_size != row["bytes"]:
+                failures.append(f"Evidence size changed for {stage}: {row['path']}")
         if status == "passed":
             resolved_evidence = []
             for row in record.get("evidence", []):

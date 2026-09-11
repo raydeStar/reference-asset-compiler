@@ -3076,3 +3076,39 @@ promoted. The new recipe hash is captured at load time to prevent later edits
 from changing a running capture's provenance. Studio captures remain historical.
 The previous master/main publishing clarification remains unresolved; this
 entry does not claim a remote push or final neck approval.
+
+## 2026-09-11 — Reliability maintenance, v0.1.1
+
+User selected a reliability-first maintenance release for the existing
+Codex-operated workflow, and requested a GitHub release with plain-English notes.
+No UI, new geometry, new paint, or historical authority migration is part of it.
+
+Three reproduced failures are corrected: an audit with omitted pending stages
+reported production-ready; a failed prop normalization could reuse an old report
+and publish a manifest without a fresh FBX; a built/installed wheel lacked its
+adapter registry. Canonical intake-derived stage validation now guards both
+audits and promotions, independent of JSON key order. Malformed ledgers fail
+without repair or writes; JSON writes replace complete files atomically.
+
+Prop compiles use unique retained attempt folders, input/output hashes, explicit
+Blender exception exit codes, and whole-directory publication into a new output
+destination. The operator and packager resolve the published normalization report
+through its manifest-bound receipt; legacy reports retain their original paths.
+PNG naming/encoding is preserved for downstream texture discovery.
+
+The doctor supports ledger/geometry/texture/ue/all profiles with consistent text
+and JSON readiness and exit codes. Optional add-ons do not block other routes.
+Verification wrappers share one Python test/lint/syntax/build/isolated-install
+sequence with CI, and select one explicit or discovered compiler interpreter.
+
+Validation evidence is in `output/reliability-validation/`: the Python 3.11/3.12
+verification logs and `native-prop-v003/smoke.json`. The native synthetic fixture
+passed scale, triangles, FBX reimport, input/payload hashes and refusal to replace
+an existing output. It is a file-export test, not artwork or an asset approval.
+The GPU remains owned by the user's other project; no inference was launched.
+No existing source references, generated authorities or visual approvals changed.
+
+Follow-up work remains the separately scoped AI setup installer, agent status/
+resume improvements, skeleton unit-scale export, semantic UVs and retarget roll.
+Release publication is verified against the GitHub release/tag and CI when shipped;
+this implementation record alone is not remote-publication evidence.

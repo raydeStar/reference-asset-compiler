@@ -607,3 +607,21 @@ pixel use. Import-commandlet success did not catch the grey fallback in v046;
 native rendered views did. Keep rejected v043-v049 diagnostics and use the
 source-bound recipes/commands in `CHARACTER_HEAD_AND_NECK.md`, not source edits
 or renamed rejected receipts, to repeat the method.
+
+## 2026-09-11 — Missing gates and stale files cannot certify completion
+
+A syntactically valid state file with only intake/route passed made the old
+audit return production-ready. Required stages now come from the canonical
+intake contract, and routing/state must agree. State-object key order is not
+execution order. Invalid records yield failed audits without being rewritten.
+
+A simulated Blender Python failure returned process exit zero while an older
+normalization report existed. The old prop driver published a manifest with no
+FBX. A fresh attempt now owns its report and output, both bound to current input
+hashes; publication refuses existing destinations and retains failures. This
+requires updating consumers to resolve new reports without rewriting old ones.
+
+A successfully built wheel could not run the CLI because it lacked the adapter
+registry. Packaging now includes that resource and verification installs the
+wheel with its declared dependencies in an isolated environment outside the
+checkout. An editable-install test is not an installed-package test.

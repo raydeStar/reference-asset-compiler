@@ -3,7 +3,7 @@ param(
     [Parameter(Mandatory = $true)][string] $Request,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D checkout, environment, and pinned runner.' }),
     [string] $RepoRoot = (Split-Path -Parent $PSScriptRoot),
-    [string] $CompilerPython = $(& py -3.12 -c 'import sys; print(sys.executable)'),
+    [string] $CompilerPython,
     [int] $MinimumFreeVramMiB = 0,
     [string] $ComfyUrl = 'http://127.0.0.1:8188'
 )
@@ -17,7 +17,7 @@ $expectedRunnerHashes = @{
 }
 $runnerNames = @{ multiview = 'run_hy3d_multiview.py'; single_view = 'run_hy3d_single_view.py' }
 $generationSchemas = @{ multiview = 'reference-studio.hunyuan3d-multiview.v2'; single_view = 'reference-studio.hunyuan3d-single-view.v1' }
-$compilerPython = $CompilerPython
+$compilerPython = & (Join-Path $PSScriptRoot 'resolve_python.ps1') -Python $CompilerPython
 $hyPython = Join-Path $LegacyRoot '.venv-hy3d\Scripts\python.exe'
 $runnerRoot = Join-Path $RepoRoot 'workflows\geometry\hunyuan3d'
 $runner = Join-Path $runnerRoot 'run_hy3d_multiview.py'

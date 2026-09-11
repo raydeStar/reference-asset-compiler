@@ -135,7 +135,7 @@ def asset_kind(asset):
     return "humanoid"
 # Resolved rather than hard-coded: see scripts/rac_env.py. A path that is
 # right on one machine is what makes a repo unrunnable on every other.
-BLENDER = rac_env.find_blender()
+BLENDER = None
 
 PROBE = (
     "import bpy, sys\n"
@@ -477,6 +477,7 @@ def build(asset, args):
 
 
 def main() -> int:
+    global BLENDER
     parser = argparse.ArgumentParser()
     parser.add_argument("assets", nargs="+")
     parser.add_argument("--budget", type=int, default=12000)
@@ -486,7 +487,9 @@ def main() -> int:
     parser.add_argument("--strategy", default="auto", choices=("auto", "region", "passthrough"))
     parser.add_argument("--no-sweep", action="store_true",
                         help="use the given budget instead of trying double it")
+    parser.add_argument("--blender", type=Path)
     args = parser.parse_args()
+    BLENDER = args.blender or rac_env.find_blender()
 
     summary = []
     for asset in args.assets:

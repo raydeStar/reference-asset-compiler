@@ -39,6 +39,7 @@ from reference_asset_compiler.approvals import (  # noqa: E402
 )
 from reference_asset_compiler.io import read_json, sha256_file  # noqa: E402
 from reference_asset_compiler.retopology import record_retopology_receipt  # noqa: E402
+from reference_asset_compiler.prop_publication import normalization_report  # noqa: E402
 from reference_asset_compiler.workspace import (  # noqa: E402
     audit_workspace,
     create_workspace,
@@ -176,6 +177,8 @@ def ensure_geometry(
                 request,
                 "-LegacyRoot",
                 args.studio_root,
+                "-CompilerPython",
+                sys.executable,
             ],
             "direct Hunyuan3D single-view geometry",
             args.studio_root,
@@ -276,7 +279,7 @@ def ensure_modeling_review(
         manifest = normalized.with_suffix(".ue5import.json")
         if not normalized.is_file() or not manifest.is_file():
             run([sys.executable, ROOT / "scripts" / "compile_prop.py", recipe], "normalize prop")
-        artifact = job / "normalize-prop-report.json"
+        artifact = normalization_report(job, manifest)
         modeling = normalized
         operations = ["normalize_scale_origin"]
         artifacts = [artifact]

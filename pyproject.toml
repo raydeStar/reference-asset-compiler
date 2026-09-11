@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "reference-asset-compiler"
-version = "0.1.0"
+version = "0.1.1"
 description = "Evidence-gated orchestration for reference-image to game-ready 3D assets"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -27,6 +27,9 @@ rac = "reference_asset_compiler.cli:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/reference_asset_compiler"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"configs/model-adapters.json" = "reference_asset_compiler/data/model-adapters.json"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

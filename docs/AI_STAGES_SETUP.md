@@ -7,8 +7,11 @@ variable `RAC_LEGACY_ROOT`, because they hold tens of gigabytes of weights,
 third-party checkouts, and CUDA virtual environments that do not belong in Git.
 
 This page says exactly what that tree must contain. `scripts\workflow_doctor.ps1`
-checks every item below and reports `[OK]` or `[MISSING]` without launching
-anything.
+checks the selected route and reports `[OK]` or `[MISSING]` without launching
+inference. Use `-Profile geometry` or `-Profile texture` to check one AI route;
+the default `all` can also launch read-only background Blender add-on probes.
+`-SkipAddonProbes` disables those optional probes. JSON and text both exit 2
+when a required component is missing.
 
 ## You will need
 

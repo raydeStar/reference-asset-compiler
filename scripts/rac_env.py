@@ -74,6 +74,9 @@ def find_blender(required=True):
         looked.append(override)
         if Path(override).is_file():
             return Path(override)
+        if required:
+            raise SystemExit(_report("Blender", BLENDER_ENV, looked))
+        return None
     looked.extend(BLENDER_CANDIDATES)
     found = _first_existing([override, *BLENDER_CANDIDATES])
     if found is None:
@@ -112,10 +115,16 @@ def find_unreal_cmd(required=True):
         looked.append(override)
         if Path(override).is_file():
             return Path(override)
+        if required:
+            raise SystemExit(_report("UnrealEditor-Cmd.exe", UNREAL_ENV, looked))
+        return None
     installs = _unreal_installs()
     looked.extend(str(path) for path in installs)
     if installs:
         return installs[0]
+    on_path = shutil.which("UnrealEditor-Cmd") or shutil.which("UnrealEditor-Cmd.exe")
+    if on_path:
+        return Path(on_path)
     if required:
         raise SystemExit(_report("UnrealEditor-Cmd.exe", UNREAL_ENV,
                                  looked or [r"C:\Program Files\Epic Games\UE_*"]))
@@ -129,8 +138,12 @@ def find_unreal_editor(required=True):
     render thread that actually draws, and the commandlet does not have one.
     """
     override = os.environ.get(UNREAL_EDITOR_ENV)
-    if override and Path(override).is_file():
-        return Path(override)
+    if override:
+        if Path(override).is_file():
+            return Path(override)
+        if required:
+            raise SystemExit(_report("UnrealEditor.exe", UNREAL_EDITOR_ENV, [override]))
+        return None
     cmd = find_unreal_cmd(required=required)
     if cmd is None:
         return None
