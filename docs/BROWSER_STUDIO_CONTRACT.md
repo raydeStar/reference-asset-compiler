@@ -71,6 +71,11 @@ A self-contained GLB, exported from the same staged scene the FBX comes from:
 The payload's SHA-256 is what a studio stores. Content addresses the asset;
 names do not.
 
+`scripts/blender/export_browser_payload.py` writes it, from the same staged
+scene the FBX comes from, and reports what it exported. The skeleton fingerprint
+is then taken from that written file by `glb_skeleton.read_skeleton`, never from
+the exporting scene's memory, for the precision reason stated below.
+
 ### 3. Receipts
 
 A studio records, per imported revision:
