@@ -64,7 +64,17 @@ A self-contained GLB, exported from the same staged scene the FBX comes from:
   is wrong, not the import.
 - Within the profile's `tri_budget` and within whatever ceilings the consuming
   studio declares. The studio refuses what exceeds them, with the number.
-- Textures embedded. A lighter derivative may accompany it (see
+- Textures embedded, and found through the export's own `.ue5import.json`
+  rather than by name. A production package renames its textures on the way out
+  and packs occlusion, roughness and metallic into one image, so the names the
+  FBX carries match nothing on disk; the manifest is the only record of which
+  file belongs to which material and slot. The pack's green and blue reach
+  roughness and metallic, which is the arrangement glTF stores, so the payload
+  carries one `metallicRoughnessTexture` rather than two invented ones. The
+  receipt names every slot bound and every one missing, because the failure
+  mode here is silent: geometry arrives correct and the model renders white,
+  which reads as a broken asset rather than a missing file.
+- A lighter derivative may accompany it (see
   `apps/lakeside-village/README.md` for the `.web.glb` precedent: reduced
   textures, every non-image buffer byte preserved, both hashes recorded).
 
