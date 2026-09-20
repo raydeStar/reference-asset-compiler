@@ -21,7 +21,7 @@ from __future__ import annotations
 import hashlib
 import json
 import sys
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 
 import bpy
 
@@ -36,6 +36,158 @@ def import_any(path: Path) -> None:
         bpy.ops.import_scene.fbx(filepath=str(path))
     else:
         raise SystemExit("unsupported source format: " + suffix)
+
+
+def principled(material):
+    """The material's Principled BSDF, made if the import left none."""
+    material.use_nodes = True
+    for node in material.node_tree.nodes:
+        if node.type == "BSDF_PRINCIPLED":
+            return node
+    node = material.node_tree.nodes.new("ShaderNodeBsdfPrincipled")
+    output = next((n for n in material.node_tree.nodes if n.type == "OUTPUT_MATERIAL"), None)
+    if output is None:
+        output = material.node_tree.nodes.new("ShaderNodeOutputMaterial")
+    material.node_tree.links.new(node.outputs["BSDF"], output.inputs["Surface"])
+    return node
+
+
+def bind_base_colour(material, path: Path) -> None:
+    node = material.node_tree.nodes.new("ShaderNodeTexImage")
+    node.image = bpy.data.images.load(str(path), check_existing=True)
+    node.image.colorspace_settings.name = "sRGB"
+    material.node_tree.links.new(node.outputs["Color"], principled(material).inputs["Base Color"])
+
+
+def bind_orm(material, path: Path) -> None:
+    """Occlusion, roughness and metallic packed into one image's R, G and B.
+
+    glTF stores exactly this arrangement, so wiring green to roughness and blue
+    to metallic is what lets the exporter recognise the pack and write a single
+    metallicRoughness texture instead of inventing two.
+    """
+    tree = material.node_tree
+    node = tree.nodes.new("ShaderNodeTexImage")
+    node.image = bpy.data.images.load(str(path), check_existing=True)
+    node.image.colorspace_settings.name = "Non-Color"
+    split = tree.nodes.new("ShaderNodeSeparateColor")
+    tree.links.new(node.outputs["Color"], split.inputs["Color"])
+    surface = principled(material)
+    tree.links.new(split.outputs["Green"], surface.inputs["Roughness"])
+    tree.links.new(split.outputs["Blue"], surface.inputs["Metallic"])
+
+
+def relink_missing(source: Path, report: dict) -> None:
+    """Textures that sit beside an FBX under their own names, not renamed."""
+    folders = [source.parent, source.parent / "textures"]
+    relinked, missing = [], []
+    for image in bpy.data.images:
+        if not image.filepath or image.packed_file:
+            continue
+        if Path(bpy.path.abspath(image.filepath)).is_file():
+            continue
+        name = PurePosixPath(image.filepath.replace("\\", "/")).name
+        for folder in folders:
+            candidate = folder / name
+            if candidate.is_file():
+                image.filepath = str(candidate)
+                image.reload()
+                relinked.append(name)
+                break
+        else:
+            missing.append(name)
+    report["textures_relinked"] = sorted(relinked)
+    report["textures_missing"] = sorted(missing)
+
+
+def lone_material(entries: dict, report: dict):
+    """The one material a single-material file must mean.
+
+    Some packages name their material after the package rather than after the
+    mesh, so the manifest's key does not match what the FBX carries. Where the
+    file has exactly one material and the manifest describes exactly one, there
+    is nothing to confuse it with and refusing would only lose the textures. Any
+    file with more than one material stays strict, because there a wrong guess
+    paints the wrong surface. The substitution is recorded rather than assumed.
+    """
+    materials = list(bpy.data.materials)
+    if len(materials) != 1 or len(entries) != 1:
+        return None
+    report["material_matched_by_position"] = materials[0].name
+    return materials[0]
+
+
+def bind_manifest_textures(source: Path, report: dict) -> None:
+    """Bind the textures a production export keeps beside it.
+
+    A production package renames its textures and packs occlusion, roughness
+    and metallic into one image, so the names in the FBX no longer match the
+    files on disk and matching by name silently finds nothing. The import
+    manifest written beside the FBX is the only record of which file belongs to
+    which material and slot, so that is what is read. Without it, fall back to
+    relinking by name, which is what a staged asset needs.
+    """
+    manifest_path = source.with_suffix(".ue5import.json")
+    if not manifest_path.is_file():
+        relink_missing(source, report)
+        return
+
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError) as problem:
+        report["texture_manifest_error"] = str(problem)
+        relink_missing(source, report)
+        return
+
+    bound, missing = [], []
+    entries = manifest.get("textures") or {}
+    for material_name, slots in entries.items():
+        material = bpy.data.materials.get(material_name)
+        if material is None:
+            material = lone_material(entries, report)
+        if material is None:
+            missing.append("{0} (no such material in the file)".format(material_name))
+            continue
+        for slot, entry in (slots or {}).items():
+            relative = (entry or {}).get("file")
+            if not relative:
+                continue
+            path = (manifest_path.parent / relative).resolve()
+            if not path.is_file():
+                missing.append("{0}.{1} -> {2}".format(material_name, slot, relative))
+                continue
+            if slot.lower() == "basecolor":
+                bind_base_colour(material, path)
+            elif slot.lower() == "orm":
+                bind_orm(material, path)
+            else:
+                continue
+            bound.append("{0}.{1}".format(material_name, slot))
+
+    report["texture_manifest"] = manifest_path.name
+    report["textures_bound"] = sorted(bound)
+    report["textures_missing"] = sorted(missing)
+
+
+def drop_dead_images(report: dict) -> None:
+    """Forget images the importer recorded that were never on this disk.
+
+    An FBX names the textures its author had; a production package renames them
+    on the way out. The importer therefore leaves datablocks pointing at files
+    that do not exist. The manifest has already bound the real ones over the
+    top, so these are dead weight: kept, they make packing report failures for
+    files nobody wants and can leave a broken external reference in the payload.
+    """
+    dropped = []
+    for image in list(bpy.data.images):
+        if image.packed_file or not image.filepath:
+            continue
+        if Path(bpy.path.abspath(image.filepath)).is_file():
+            continue
+        dropped.append(PurePosixPath(image.filepath.replace("\\", "/")).name)
+        bpy.data.images.remove(image)
+    if dropped:
+        report["textures_dropped"] = sorted(dropped)
 
 
 def scene_counts() -> dict:
@@ -87,6 +239,20 @@ def main() -> int:
         print("[PAYLOAD] FAILED: the source carries no mesh to export")
         return 1
 
+    # An FBX keeps its textures beside it rather than inside it, so without this
+    # the payload exports with correct geometry and no colour at all -- which
+    # looks like a broken asset rather than a missing file.
+    textures = {}
+    bind_manifest_textures(source, textures)
+    drop_dead_images(textures)
+    if bpy.data.images:
+        # Packing is what puts the pixels inside the GLB; a payload that points
+        # at a file on this workstation is no use to a browser anywhere else.
+        try:
+            bpy.ops.file.pack_all()
+        except RuntimeError as problem:
+            textures["pack_error"] = str(problem)
+
     payload.parent.mkdir(parents=True, exist_ok=True)
     # A self-contained GLB: one file, textures inside it, no external URIs, and
     # the exporter's own Z-up to Y-up conversion rather than a hand-rolled one.
@@ -115,6 +281,7 @@ def main() -> int:
         "payload_bytes": payload.stat().st_size,
         "convention": {"up": "+Y", "units": "metres", "self_contained": True},
         "exported": before,
+        "textures": textures,
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
