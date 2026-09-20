@@ -92,6 +92,15 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--report", type=Path, help="Where the stage writes its receipt")
     stage.add_argument("--textures", type=Path,
                        help="A texture manifest to bind instead of the one beside the source")
+    stage.add_argument("--legacy-root", type=Path,
+                       help="Studio tree holding Hunyuan; defaults to $RAC_LEGACY_ROOT")
+    stage.add_argument("--asset-name",
+                       help="Names the workspace a generated asset lives in; defaults to the image")
+    stage.add_argument("--seed", type=int, help="Geometry seed (default: 42)")
+    stage.add_argument("--steps", type=int, help="Geometry steps, 20..60 (default: 30)")
+    stage.add_argument("--octree-resolution", type=int, choices=(256, 384, 512),
+                       help="Geometry octree resolution (default: 512)")
+    stage.add_argument("--chunks", type=int, help="Geometry chunks, 1000..50000 (default: 20000)")
     stage.add_argument("--repo-root", type=Path,
                        help="Pipeline checkout; required outside a source installation")
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
@@ -198,7 +207,7 @@ def main(argv: list[str] | None = None) -> int:
             if args.list or not args.stage:
                 # Capability preflight: what could run here, and what is
                 # missing if it could not. Nothing is executed.
-                payload = describe_stages(args.repo_root, args.blender)
+                payload = describe_stages(args.repo_root, args.blender, args.legacy_root)
                 print_payload(payload)
                 return 0
             for required, name in ((args.source, "--source"), (args.output, "--output"),
@@ -207,7 +216,14 @@ def main(argv: list[str] | None = None) -> int:
                     raise ValueError("Running a stage needs {0}".format(name))
             payload = run_stage(
                 args.stage, args.source, args.output, args.report,
-                args.repo_root, args.blender, args.timeout, args.textures)
+                args.repo_root, args.blender, args.timeout, args.textures,
+                args.legacy_root, {
+                    "asset_name": args.asset_name,
+                    "seed": args.seed,
+                    "steps": args.steps,
+                    "octree_resolution": args.octree_resolution,
+                    "chunks": args.chunks,
+                })
             print_payload(payload)
             return 0 if payload["ok"] else 1
         if args.command == "cleanup-preflight":

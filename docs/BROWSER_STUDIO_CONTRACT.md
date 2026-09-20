@@ -25,7 +25,7 @@ A studio never re-runs a gate, re-derives a verdict, or upgrades a claim. If it
 needs a stronger claim than a receipt makes, the answer is a new compiler stage,
 not a second opinion downstream.
 
-## The four things a studio consumes
+## The five things a studio consumes
 
 ### 1. Skeleton profiles
 
@@ -86,6 +86,7 @@ A studio runs it by name, never by path:
 ```
 rac run-stage --list                     # what can run here, and what is missing
 rac run-stage browser-payload --source <staged.fbx>     --output <payload.glb> --report <receipt.json> [--textures <manifest.json>] [--repo-root ...] [--blender ...]
+rac run-stage geometry        --source <reference.png>  --output <candidate.glb> --report <receipt.json> [--asset-name ...] [--seed ...] [--steps ...] [--octree-resolution ...] [--chunks ...] [--legacy-root ...]
 ```
 
 `--textures` names the manifest to bind instead of the one beside the source,
@@ -156,6 +157,36 @@ once. The compiler never also applies it. Exactly one side moves the object.
 Only interpolations a consumer can sample exactly should be published for
 browser use: LINEAR and STEP. A clip that needs CUBICSPLINE is reported with the
 reason rather than published as an approximation of itself.
+
+### 5. Geometry candidates
+
+`geometry` is the one stage that needs a GPU, and it is the route from a picture
+to a mesh: one reference image in, one candidate out. A studio names an image
+and gets a candidate; it does not have to know about workspaces, intakes,
+source authorities or attempt numbering, because the stage writes all of that
+in the shape the launcher's own preflight demands, before anything is queued.
+What the stage does **not** do is judge the result. It produces a
+`geometry-candidate.v1` receipt whose status says, in those words, that this is
+a candidate and not an asset. Deciding otherwise is a person's job.
+
+Three things about it are worth relying on. Preparation touches no GPU, so a
+request that could never be accepted is refused while it is still free to
+refuse. Attempts are numbered and never reused, so a disappointing result stays
+on disk beside the settings that produced it, and asking again produces a new
+attempt rather than overwriting the old one. And a workspace's intake is
+immutable: asking for a model from a different image under a name already taken
+is an error, because that intake is what binds every later candidate, receipt
+and rig back to the picture a person actually chose.
+
+Geometry is absent, not broken, on a machine without the weights. `--list`
+reports which of `legacy-root`, `geometry-environment`, `hunyuan-checkout` and
+`runners` are missing, by name, so a studio refuses with a reason rather than
+queueing work it could never finish.
+
+A candidate is not a payload. Turning one into something a browser can load is
+the `browser-payload` stage above, run on the candidate, which is why the two
+are separate stages rather than one: the mesh a generator produced and the file
+a browser loads are different artifacts with different review.
 
 ## Skeleton fingerprint
 

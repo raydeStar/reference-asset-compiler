@@ -14,16 +14,26 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 import sys
 import time
 from pathlib import Path
 from typing import Any
 
+from .geometry_stage import (
+    GeometryStageError,
+    geometry_missing,
+    prepare_single_view_request,
+    resolve_legacy_root,
+)
 from .resources import checkout_root
 
 BLENDER_ENVIRONMENT = "RAC_BLENDER"
 """Where the Blender executable is named, matching workflow_doctor."""
+
+POWERSHELL = "powershell.exe"
+"""Windows PowerShell 5.1, which the launchers are written against."""
 
 DEFAULT_TIMEOUT_SECONDS = 3600
 """An hour. A stage that has not finished by then is a stage to investigate."""
@@ -37,6 +47,15 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Export the staged asset as a self-contained browser GLB, +Y up and metric.",
         "produces": "reference-asset-compiler.browser-payload.v1",
     },
+    "geometry": {
+        "runner": "powershell",
+        "script": "scripts/run_hy3d_geometry.ps1",
+        "arguments": ("source", "output", "report"),
+        "options": ("asset_name", "seed", "steps", "octree_resolution", "chunks"),
+        "prepare": "geometry",
+        "summary": "Turn one reference image into a candidate mesh with Hunyuan3D. Needs a GPU.",
+        "produces": "reference-asset-compiler.geometry-candidate.v1",
+    },
 }
 
 
@@ -44,7 +63,8 @@ class StageError(ValueError):
     """A stage cannot be run, and nothing is half-run in its place."""
 
 
-def describe_stages(repo_root: Path | None = None, blender: str | None = None) -> dict[str, Any]:
+def describe_stages(repo_root: Path | None = None, blender: str | None = None,
+                    legacy_root: Path | None = None) -> dict[str, Any]:
     """What can be run here, and what is missing if it cannot.
 
     A consumer calls this before queueing work, so that a missing tool is a
@@ -52,6 +72,7 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None) -
     """
     root = repo_root or checkout_root()
     runner = resolve_blender(blender, required=False)
+    legacy = resolve_legacy_root(legacy_root, required=False)
     stages = []
     for name, stage in sorted(STAGES.items()):
         script = (root / stage["script"]) if root else None
@@ -62,6 +83,10 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None) -
             missing.append("script")
         if stage["runner"] == "blender" and runner is None:
             missing.append("blender")
+        if stage.get("prepare") == "geometry":
+            # The weights and their environment are a separate install from
+            # this checkout, and most machines running the studio have neither.
+            missing += [item for item in geometry_missing(root, legacy) if item not in missing]
         stages.append({
             "stage": name,
             "runner": stage["runner"],
@@ -76,6 +101,7 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None) -
         "ok": True,
         "checkout": str(root) if root else None,
         "blender": runner,
+        "legacy_root": str(legacy) if legacy else None,
         "stages": stages,
     }
 
@@ -105,6 +131,8 @@ def run_stage(
     blender: str | None = None,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
     textures: Path | None = None,
+    legacy_root: Path | None = None,
+    options: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Run one stage to completion and return what it produced."""
     stage = STAGES.get(stage_name)
@@ -132,11 +160,27 @@ def run_stage(
         if not Path(textures).is_file():
             raise StageError("The named texture manifest does not exist: {0}".format(textures))
         arguments += ["--textures", str(Path(textures).resolve())]
+    context: dict[str, Any] = {}
+    if stage.get("prepare") == "geometry":
+        # Nothing here touches a GPU: it writes the workspace, intake and
+        # request the launcher insists on, so a request that could never have
+        # been accepted is refused before anything is queued.
+        context = prepare_geometry(Path(source), root, legacy_root, options or {})
+
     if stage["runner"] == "blender":
         runner = resolve_blender(blender)
         # Blender's own argument convention: its flags, then the script, then a
         # bare -- after which the arguments belong to the script.
         command = [runner, "-b", "--factory-startup", "--python", str(script), "--", *arguments]
+    elif stage["runner"] == "powershell":
+        runner = POWERSHELL
+        command = [
+            runner, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+            "-File", str(script),
+            "-Request", str(context["request"]),
+            "-LegacyRoot", str(context["legacy_root"]),
+            "-RepoRoot", str(root),
+        ]
     else:
         runner = blender or sys.executable
         command = [runner, str(script), "--", *arguments]
@@ -160,12 +204,24 @@ def run_stage(
         "report": str(report),
     }
 
+    payload.update(context.get("payload", {}))
+
     if finished.returncode != 0:
         # The failure travels with the payload. Hunting a log on another
         # machine is not diagnosis.
         payload["stdout_tail"] = tail(finished.stdout)
         payload["stderr_tail"] = tail(finished.stderr)
         return payload
+
+    if context.get("collect"):
+        try:
+            collect_geometry(context, Path(output), Path(report))
+        except (OSError, GeometryStageError) as problem:
+            payload["ok"] = False
+            payload["error"] = "The run finished but its result could not be collected: {0}".format(
+                problem)
+            payload["stdout_tail"] = tail(finished.stdout)
+            return payload
 
     report_path = Path(report)
     if not report_path.is_file():
@@ -179,6 +235,54 @@ def run_stage(
         payload["ok"] = False
         payload["error"] = "The stage's report could not be read: {0}".format(problem)
     return payload
+
+
+def prepare_geometry(source: Path, root: Path, legacy_root: Path | None,
+                     options: dict[str, Any]) -> dict[str, Any]:
+    """Everything a geometry run needs, written before the GPU is asked for."""
+    legacy = resolve_legacy_root(legacy_root)
+    missing = geometry_missing(root, legacy)
+    if missing:
+        raise StageError(
+            "This machine cannot run geometry; it is missing: {0}".format(", ".join(missing)))
+    prepared = prepare_single_view_request(
+        source, root,
+        asset_name=options.get("asset_name"),
+        parameters={key: options.get(key) for key in
+                    ("seed", "steps", "octree_resolution", "chunks")},
+    )
+    return {
+        "request": prepared["request"],
+        "legacy_root": legacy,
+        "collect": True,
+        "candidate": prepared["candidate"],
+        "receipt": prepared["receipt"],
+        "payload": {
+            "asset_id": prepared["asset_id"],
+            "workspace": str(prepared["workspace"]),
+            "attempt_directory": str(prepared["attempt_directory"]),
+            "attempt_report": str(prepared["attempt_report"]),
+            "request_path": str(prepared["request"]),
+            "source_sha256": prepared["source_sha256"],
+            "parameters": prepared["parameters"],
+        },
+    }
+
+
+def collect_geometry(context: dict[str, Any], output: Path, report: Path) -> None:
+    """Put the candidate and its receipt where the caller asked for them.
+
+    The launcher writes into its own attempt directory and will not be told
+    otherwise, which is deliberate: attempts stay beside the settings that
+    produced them. Copying rather than moving keeps that record intact while
+    still answering the caller in the terms it asked the question.
+    """
+    for produced, destination in ((context["candidate"], output), (context["receipt"], report)):
+        if not Path(produced).is_file():
+            raise GeometryStageError(
+                "The run reported success but did not write {0}".format(produced))
+        Path(destination).parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(produced, destination)
 
 
 def tail(text: str, lines: int = 20) -> list[str]:
