@@ -71,8 +71,28 @@ A self-contained GLB, exported from the same staged scene the FBX comes from:
 The payload's SHA-256 is what a studio stores. Content addresses the asset;
 names do not.
 
-`scripts/blender/export_browser_payload.py` writes it, from the same staged
-scene the FBX comes from, and reports what it exported. The skeleton fingerprint
+A studio runs it by name, never by path:
+
+```
+rac run-stage --list                     # what can run here, and what is missing
+rac run-stage browser-payload --source <staged.fbx>     --output <payload.glb> --report <receipt.json> [--repo-root ...] [--blender ...]
+```
+
+`--list` runs nothing and answers the capability question: whether the checkout
+and Blender are present, and which stages are therefore available. A stage that
+cannot run is refused before any work starts rather than an hour into it. The
+run returns the stage's own receipt inline, so one call gives one answer, and a
+failure carries its stdout and stderr tail with it: hunting a log on another
+machine is not diagnosis. Blender is named by `--blender` or `$RAC_BLENDER` and
+never discovered by searching, because a guessed executable is a different
+Blender from the one an asset was gated with and that difference is invisible in
+a receipt.
+
+Stages are a registry rather than an arbitrary path, so a consumer naming a
+stage cannot ask this compiler to execute anything else, and the files can move
+without breaking anyone downstream.
+`scripts/blender/export_browser_payload.py` writes the payload, from the same
+staged scene the FBX comes from, and reports what it exported. The skeleton fingerprint
 is then taken from that written file by `glb_skeleton.read_skeleton`, never from
 the exporting scene's memory, for the precision reason stated below.
 

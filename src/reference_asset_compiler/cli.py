@@ -15,6 +15,7 @@ from .io import read_json, write_json
 from .planner import plan
 from .retopology import record_retopology_receipt
 from .resources import checkout_root, load_registry
+from .stages import STAGES, describe_stages, run_stage
 from .workspace import audit_workspace, create_workspace, promote_stage
 
 def print_payload(payload: dict) -> None:
@@ -80,6 +81,22 @@ def build_parser() -> argparse.ArgumentParser:
     geometry_preflight.add_argument("--workspace-root", type=Path,
                                     help="Directory holding asset workspaces (default: <repo-root>/work)")
     geometry_preflight.add_argument("--output", type=Path)
+
+    stage = subcommands.add_parser(
+        "run-stage", help="Run one named pipeline stage and return its receipt"
+    )
+    stage.add_argument("stage", nargs="?", choices=sorted(STAGES),
+                       help="The stage to run; omit with --list to see what is available")
+    stage.add_argument("--source", type=Path, help="The staged asset the stage reads")
+    stage.add_argument("--output", type=Path, help="Where the stage writes its artifact")
+    stage.add_argument("--report", type=Path, help="Where the stage writes its receipt")
+    stage.add_argument("--repo-root", type=Path,
+                       help="Pipeline checkout; required outside a source installation")
+    stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
+    stage.add_argument("--timeout", type=int, default=3600,
+                       help="Seconds before the stage is abandoned (default: 3600)")
+    stage.add_argument("--list", action="store_true",
+                       help="Report the runnable stages and what is missing, and run nothing")
 
     cleanup_preflight = subcommands.add_parser(
         "cleanup-preflight", help="Verify an approved modeling mesh before cleanup"
@@ -175,6 +192,22 @@ def main(argv: list[str] | None = None) -> int:
                 write_json(args.output, payload)
             print_payload(payload)
             return 0
+        if args.command == "run-stage":
+            if args.list or not args.stage:
+                # Capability preflight: what could run here, and what is
+                # missing if it could not. Nothing is executed.
+                payload = describe_stages(args.repo_root, args.blender)
+                print_payload(payload)
+                return 0
+            for required, name in ((args.source, "--source"), (args.output, "--output"),
+                                   (args.report, "--report")):
+                if required is None:
+                    raise ValueError("Running a stage needs {0}".format(name))
+            payload = run_stage(
+                args.stage, args.source, args.output, args.report,
+                args.repo_root, args.blender, args.timeout)
+            print_payload(payload)
+            return 0 if payload["ok"] else 1
         if args.command == "cleanup-preflight":
             print_payload(validate_cleanup_input(args.job, args.input_mesh))
             return 0
