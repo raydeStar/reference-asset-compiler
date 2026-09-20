@@ -188,7 +188,13 @@ def run_stage(
     started = time.monotonic()
     try:
         finished = subprocess.run(
-            command, capture_output=True, text=True, errors="replace", timeout=timeout)
+            command, capture_output=True, text=True, errors="replace", timeout=timeout,
+            # Nothing here may ever wait to be typed at. A stage is run by a
+            # queue worker whose own input is whatever its parent happened to
+            # hand it -- under a service that is a pipe nobody will ever write
+            # to -- and a child that reads it waits for ever, holding a lease
+            # and spending no CPU, which looks exactly like slow work.
+            stdin=subprocess.DEVNULL)
     except subprocess.TimeoutExpired:
         raise StageError("Stage {0} did not finish within {1} seconds.".format(stage_name, timeout))
     seconds = round(time.monotonic() - started, 3)

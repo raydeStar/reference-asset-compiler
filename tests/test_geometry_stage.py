@@ -250,6 +250,7 @@ class RegistryTests(unittest.TestCase):
 
         def pretend_to_launch(command, **keywords):
             seen["command"] = command
+            seen["keywords"] = keywords
             request = read_json(Path(command[command.index("-Request") + 1]))
             attempt = Path(request["output_directory"])
             attempt.mkdir(parents=True)
@@ -276,6 +277,12 @@ class RegistryTests(unittest.TestCase):
         self.assertIn("-NonInteractive", command)
         self.assertEqual(command[command.index("-LegacyRoot") + 1], str(legacy))
         self.assertTrue(command[command.index("-File") + 1].endswith("run_hy3d_geometry.ps1"))
+        # A stage is run by a queue worker whose own input is whatever its
+        # parent handed it -- under a service, a pipe nobody will ever write to.
+        # A child that can read it waits for ever, holding a lease and spending
+        # no CPU, which is indistinguishable from slow work. This was not
+        # hypothetical: it stopped the first live run dead for nine minutes.
+        self.assertEqual(seen["keywords"].get("stdin"), stages.subprocess.DEVNULL)
 
         self.assertTrue(payload["ok"])
         # The launcher writes into its own attempt directory and will not be
