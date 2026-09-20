@@ -8,6 +8,7 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+node_modules/
 
 # Generated asset workspaces and heavyweight model output never belong in Git.
 work/
