@@ -27,7 +27,7 @@ from .geometry_stage import (
     prepare_single_view_request,
     resolve_legacy_root,
 )
-from .human_scale import HumanScaleError, resolve_height
+from .human_scale import HumanScaleError, named_sizes, resolve_height
 from .resources import checkout_root
 
 BLENDER_ENVIRONMENT = "RAC_BLENDER"
@@ -115,7 +115,7 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # The weights and their environment are a separate install from
             # this checkout, and most machines running the studio have neither.
             missing += [item for item in geometry_missing(root, legacy) if item not in missing]
-        stages.append({
+        described = {
             "stage": name,
             "runner": stage["runner"],
             "summary": stage["summary"],
@@ -124,7 +124,14 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             "options": list(stage.get("options", ())),
             "available": not missing,
             "missing": missing,
-        })
+        }
+        if "size" in stage.get("options", ()):
+            # The vocabulary belongs here, with the table that turns a landmark
+            # into metres. A consumer offering these as choices reads them;
+            # keeping its own copy would be two lists to maintain and one day
+            # two different answers.
+            described["sizes"] = named_sizes()
+        stages.append(described)
     return {
         "ok": True,
         "checkout": str(root) if root else None,
