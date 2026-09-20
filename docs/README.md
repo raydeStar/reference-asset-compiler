@@ -24,6 +24,7 @@ escalations are retained verbatim so nobody repeats them. Start with
 - [CHARACTER_SHOWCASE.md](CHARACTER_SHOWCASE.md) — how the README captures and GIF are reproduced with provenance.
 - [ADAPTERS.md](ADAPTERS.md) — adapter registry policy: capabilities, not quality rankings.
 - [SKELETON-COMPATIBILITY.md](SKELETON-COMPATIBILITY.md) — measured compatibility of compiled skeletons with Epic's Manny.
+- [BROWSER_STUDIO_CONTRACT.md](BROWSER_STUDIO_CONTRACT.md) — what a browser studio consumes: profiles, payload, receipts, clips, and the skeleton fingerprint.
 - [CLEANUP.md](CLEANUP.md) — retention and cleanup rules for large generated trees.
 - [LEGACY_MIGRATION.md](LEGACY_MIGRATION.md) — what may be copied from the `${RAC_LEGACY_ROOT}` studio, and what may not.
 - [PRODUCTION-READINESS.md](PRODUCTION-READINESS.md) — the end-to-end readiness measurement of 2026-08-31 and what it does not prove.
