@@ -33,6 +33,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "blender",
         "script": "scripts/blender/export_browser_payload.py",
         "arguments": ("source", "output", "report"),
+        "options": ("textures",),
         "summary": "Export the staged asset as a self-contained browser GLB, +Y up and metric.",
         "produces": "reference-asset-compiler.browser-payload.v1",
     },
@@ -67,6 +68,7 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None) -
             "summary": stage["summary"],
             "produces": stage["produces"],
             "arguments": list(stage["arguments"]),
+            "options": list(stage.get("options", ())),
             "available": not missing,
             "missing": missing,
         })
@@ -102,6 +104,7 @@ def run_stage(
     repo_root: Path | None = None,
     blender: str | None = None,
     timeout: int = DEFAULT_TIMEOUT_SECONDS,
+    textures: Path | None = None,
 ) -> dict[str, Any]:
     """Run one stage to completion and return what it produced."""
     stage = STAGES.get(stage_name)
@@ -123,6 +126,12 @@ def run_stage(
     arguments = [
         str(Path(source).resolve()), str(Path(output).resolve()), str(Path(report).resolve()),
     ]
+    if textures is not None:
+        if "textures" not in stage.get("options", ()):
+            raise StageError("Stage {0} takes no texture manifest.".format(stage_name))
+        if not Path(textures).is_file():
+            raise StageError("The named texture manifest does not exist: {0}".format(textures))
+        arguments += ["--textures", str(Path(textures).resolve())]
     if stage["runner"] == "blender":
         runner = resolve_blender(blender)
         # Blender's own argument convention: its flags, then the script, then a

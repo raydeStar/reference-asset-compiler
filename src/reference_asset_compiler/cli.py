@@ -90,6 +90,8 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--source", type=Path, help="The staged asset the stage reads")
     stage.add_argument("--output", type=Path, help="Where the stage writes its artifact")
     stage.add_argument("--report", type=Path, help="Where the stage writes its receipt")
+    stage.add_argument("--textures", type=Path,
+                       help="A texture manifest to bind instead of the one beside the source")
     stage.add_argument("--repo-root", type=Path,
                        help="Pipeline checkout; required outside a source installation")
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
@@ -205,7 +207,7 @@ def main(argv: list[str] | None = None) -> int:
                     raise ValueError("Running a stage needs {0}".format(name))
             payload = run_stage(
                 args.stage, args.source, args.output, args.report,
-                args.repo_root, args.blender, args.timeout)
+                args.repo_root, args.blender, args.timeout, args.textures)
             print_payload(payload)
             return 0 if payload["ok"] else 1
         if args.command == "cleanup-preflight":

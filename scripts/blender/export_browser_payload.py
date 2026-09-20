@@ -52,6 +52,30 @@ def principled(material):
     return node
 
 
+def rebuild_surface(material) -> None:
+    """Take a material back to a bare surface before binding a manifest to it.
+
+    A working file's material is a preview. The neck-transfer one blends the
+    paint against a vertex colour through a computed mask and feeds that image
+    into metallic-roughness and normal as well; left there, the blue channel of
+    blue armour becomes metalness, and metal with nothing to reflect renders
+    black. Unlinking those inputs is not enough. The orphaned network stays in
+    the tree, and the glTF exporter still finds an image in it and writes a
+    normal texture nobody asked for -- in the case that prompted this, a second
+    copy of a ten megabyte base colour map, at strength zero, so it cost the
+    payload a third of its size and changed nothing on screen.
+
+    So the nodes go, not just the links. The manifest is the authority for this
+    material; anything the preview had to say about it is already superseded.
+    """
+    tree = material.node_tree
+    output = next((n for n in tree.nodes if n.type == "OUTPUT_MATERIAL"), None)
+    for node in list(tree.nodes):
+        if node is not output:
+            tree.nodes.remove(node)
+    principled(material)
+
+
 def bind_base_colour(material, path: Path) -> None:
     node = material.node_tree.nodes.new("ShaderNodeTexImage")
     node.image = bpy.data.images.load(str(path), check_existing=True)
@@ -117,7 +141,7 @@ def lone_material(entries: dict, report: dict):
     return materials[0]
 
 
-def bind_manifest_textures(source: Path, report: dict) -> None:
+def bind_manifest_textures(source: Path, report: dict, named: Path | None = None) -> None:
     """Bind the textures a production export keeps beside it.
 
     A production package renames its textures and packs occlusion, roughness
@@ -126,9 +150,17 @@ def bind_manifest_textures(source: Path, report: dict) -> None:
     manifest written beside the FBX is the only record of which file belongs to
     which material and slot, so that is what is read. Without it, fall back to
     relinking by name, which is what a staged asset needs.
+
+    A caller may name a manifest instead. An assembled working file carries a
+    preview material rather than the production binding, and the manifest that
+    describes its paint belongs to the package it was exported as, not to the
+    blend. Naming it is how an assembly gets the surface its source already
+    passed review with, without editing the authority to say so.
     """
-    manifest_path = source.with_suffix(".ue5import.json")
+    manifest_path = Path(named) if named else source.with_suffix(".ue5import.json")
     if not manifest_path.is_file():
+        if named:
+            report["texture_manifest_error"] = "no such manifest: {0}".format(manifest_path)
         relink_missing(source, report)
         return
 
@@ -139,7 +171,7 @@ def bind_manifest_textures(source: Path, report: dict) -> None:
         relink_missing(source, report)
         return
 
-    bound, missing = [], []
+    bound, missing, rebuilt = [], [], set()
     entries = manifest.get("textures") or {}
     for material_name, slots in entries.items():
         material = bpy.data.materials.get(material_name)
@@ -156,6 +188,9 @@ def bind_manifest_textures(source: Path, report: dict) -> None:
             if not path.is_file():
                 missing.append("{0}.{1} -> {2}".format(material_name, slot, relative))
                 continue
+            if material.name not in rebuilt:
+                rebuild_surface(material)
+                rebuilt.add(material.name)
             if slot.lower() == "basecolor":
                 bind_base_colour(material, path)
             elif slot.lower() == "orm":
@@ -164,7 +199,7 @@ def bind_manifest_textures(source: Path, report: dict) -> None:
                 continue
             bound.append("{0}.{1}".format(material_name, slot))
 
-    report["texture_manifest"] = manifest_path.name
+    report["texture_manifest"] = str(manifest_path) if named else manifest_path.name
     report["textures_bound"] = sorted(bound)
     report["textures_missing"] = sorted(missing)
 
@@ -218,8 +253,13 @@ def scene_counts() -> dict:
 
 def main() -> int:
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    named_manifest = None
+    if "--textures" in argv:
+        at = argv.index("--textures")
+        named_manifest = Path(argv[at + 1])
+        argv = argv[:at] + argv[at + 2:]
     if len(argv) < 3:
-        print("[PAYLOAD] FAILED: expected <source> <payload.glb> <report.json>")
+        print("[PAYLOAD] FAILED: expected <source> <payload.glb> <report.json> [--textures <manifest>]")
         return 2
 
     source = Path(argv[0])
@@ -243,7 +283,7 @@ def main() -> int:
     # the payload exports with correct geometry and no colour at all -- which
     # looks like a broken asset rather than a missing file.
     textures = {}
-    bind_manifest_textures(source, textures)
+    bind_manifest_textures(source, textures, named_manifest)
     drop_dead_images(textures)
     if bpy.data.images:
         # Packing is what puts the pixels inside the GLB; a payload that points

@@ -1,0 +1,18 @@
+{
+  "schema": "reference-asset-compiler.ue5import.v1",
+  "authority": "The production paint for the assembled Ayric, named per material so a browser payload built from the head-fit blend carries the surfaces each package already passed review with. The blend's own M_NeckTransfer_Preview is a preview: it wires the base colour image into metallic-roughness and normal as well, which renders the armour black in any renderer that honours glTF's metallic default of 1.0. Binding these replaces that preview; it does not edit the fit.",
+  "materials": [
+    "M_NeckTransfer_Preview",
+    "M_SunsetAyricRigidHeadV1_Body"
+  ],
+  "textures": {
+    "M_NeckTransfer_Preview": {
+      "BaseColor": { "file": "../../out/sunset-ayric-v2-production/textures/T_SunsetAyricV2Body_BaseColor.png" },
+      "ORM": { "file": "../../out/sunset-ayric-v2-production/textures/T_SunsetAyricV2Body_ORM.png" }
+    },
+    "M_SunsetAyricRigidHeadV1_Body": {
+      "BaseColor": { "file": "../../out/sunset-ayric-rigid-head-v1-production/textures/T_SunsetAyricRigidHeadV1Production_BaseColor.png" },
+      "ORM": { "file": "../../out/sunset-ayric-rigid-head-v1-production/textures/T_SunsetAyricRigidHeadV1Production_ORM.png" }
+    }
+  }
+}

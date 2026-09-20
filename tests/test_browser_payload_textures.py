@@ -53,25 +53,45 @@ class Node:
 
 
 class Nodes(list):
+    def __init__(self, tree):
+        super().__init__()
+        self.tree = tree
+
     def new(self, idname):
         node = Node(idname)
         self.append(node)
         return node
+
+    def remove(self, node):
+        # Blender drops a removed node's links with it; a stub that leaves them
+        # behind reports connections the real tree no longer has.
+        for link in list(self.tree.links):
+            if link.from_socket.node is node or link.to_socket.node is node:
+                self.tree.links.remove(link)
+        list.remove(self, node)
+
+
+class Link:
+    def __init__(self, from_socket, to_socket):
+        self.from_socket = from_socket
+        self.to_socket = to_socket
 
 
 class Links(list):
     def new(self, source, target):
         # An input takes one link; a second replaces the first, as Blender does.
         for existing in list(self):
-            if existing[1] is target:
+            if existing.to_socket is target:
                 self.remove(existing)
-        self.append((source, target))
+        link = Link(source, target)
+        self.append(link)
+        return link
 
 
 class Tree:
     def __init__(self):
-        self.nodes = Nodes()
         self.links = Links()
+        self.nodes = Nodes(self)
 
 
 class Material:
@@ -80,13 +100,15 @@ class Material:
         self.use_nodes = True
         self.node_tree = Tree()
         if principled:
-            self.node_tree.nodes.new("ShaderNodeBsdfPrincipled")
+            surface = self.node_tree.nodes.new("ShaderNodeBsdfPrincipled")
+            output = self.node_tree.nodes.new("ShaderNodeOutputMaterial")
+            self.node_tree.links.new(surface.outputs["BSDF"], output.inputs["Surface"])
 
     def source_of(self, input_name):
         """The node feeding one of this material's surface inputs, if any."""
-        for source, target in self.node_tree.links:
-            if target.name == input_name and target.node.type == "BSDF_PRINCIPLED":
-                return source.node
+        for link in self.node_tree.links:
+            if link.to_socket.name == input_name and link.to_socket.node.type == "BSDF_PRINCIPLED":
+                return link.from_socket.node
         return None
 
     def feeds(self, node, input_name):
@@ -96,10 +118,19 @@ class Material:
             return True
         if direct is None:
             return False
-        for source, target in self.node_tree.links:
-            if target.node is direct and source.node is node:
+        for link in self.node_tree.links:
+            if link.to_socket.node is direct and link.from_socket.node is node:
                 return True
         return False
+
+    def preview_bind(self, image_name, *input_names):
+        """What an authoring file leaves behind: one image wired into several slots."""
+        node = self.node_tree.nodes.new("ShaderNodeTexImage")
+        node.image = Image(image_name)
+        surface = next(n for n in self.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+        for name in input_names:
+            self.node_tree.links.new(node.outputs["Color"], surface.inputs[name])
+        return node
 
 
 class Image:
@@ -299,6 +330,97 @@ class TextureBindingTests(unittest.TestCase):
 
         self.assertIn("texture_manifest_error", report)
         self.assertIn("textures_relinked", report)
+
+
+class NamedManifestTests(unittest.TestCase):
+    """An assembled working file carries a preview material, not a production one."""
+
+    def setUp(self):
+        self.stage, self.bpy = load_stage()
+        self.root = Path(tempfile.mkdtemp())
+        (self.root / "textures").mkdir()
+
+    def texture(self, name):
+        (self.root / "textures" / name).write_bytes(b"png")
+        return "textures/" + name
+
+    def test_a_named_manifest_is_read_instead_of_one_beside_the_source(self):
+        self.bpy.data.materials.append(Material("M_Preview"))
+        blend = self.root / "assembly-fit.blend"
+        blend.write_bytes(b"blend")
+        # The manifest belongs to the package the body was exported as, which
+        # lives nowhere near the blend that assembled it.
+        elsewhere = self.root / "package.ue5import.json"
+        elsewhere.write_text(json.dumps({"textures": {"M_Preview": {
+            "BaseColor": {"file": self.texture("body_BaseColor.png")},
+            "ORM": {"file": self.texture("body_ORM.png")},
+        }}}), encoding="utf-8")
+
+        report = {}
+        self.stage.bind_manifest_textures(blend, report, elsewhere)
+
+        self.assertEqual(report["textures_bound"], ["M_Preview.BaseColor", "M_Preview.ORM"])
+        self.assertEqual(report["texture_manifest"], str(elsewhere))
+
+    def test_a_preview_network_is_removed_rather_than_bound_over(self):
+        material = Material("M_Preview")
+        self.bpy.data.materials.append(material)
+        # Exactly what the neck-transfer material does: the paint wired into
+        # metallic-roughness and normal as well as into colour. Left there, the
+        # blue channel of blue armour becomes metalness and the model goes black.
+        preview = material.preview_bind("paint", "Base Color", "Roughness", "Metallic", "Normal")
+        blend = self.root / "assembly-fit.blend"
+        blend.write_bytes(b"blend")
+        manifest = self.root / "package.ue5import.json"
+        manifest.write_text(json.dumps({"textures": {"M_Preview": {
+            "BaseColor": {"file": self.texture("body_BaseColor.png")},
+        }}}), encoding="utf-8")
+
+        self.stage.bind_manifest_textures(blend, {}, manifest)
+
+        bound = next(n for n in material.node_tree.nodes
+                     if n.image is not None and n.image.name == "body_BaseColor")
+        self.assertIs(material.source_of("Base Color"), bound)
+        # Slots the manifest says nothing about must not keep the preview's
+        # answer, and the preview's nodes must be gone rather than merely
+        # unhooked: an orphaned network is still something the exporter reads.
+        for slot in ("Roughness", "Metallic", "Normal"):
+            self.assertIsNone(material.source_of(slot), slot)
+        self.assertNotIn(preview, material.node_tree.nodes)
+        self.assertEqual([n for n in material.node_tree.nodes if n.type == "TEX_IMAGE"], [bound])
+
+    def test_rebuilding_keeps_the_material_output_it_found(self):
+        material = Material("M_Preview")
+        self.bpy.data.materials.append(material)
+        material.preview_bind("paint", "Base Color")
+        output = next(n for n in material.node_tree.nodes if n.type == "OUTPUT_MATERIAL")
+        blend = self.root / "assembly-fit.blend"
+        blend.write_bytes(b"blend")
+        manifest = self.root / "package.ue5import.json"
+        manifest.write_text(json.dumps({"textures": {"M_Preview": {
+            "BaseColor": {"file": self.texture("body_BaseColor.png")},
+        }}}), encoding="utf-8")
+
+        self.stage.bind_manifest_textures(blend, {}, manifest)
+
+        # A material with nothing reaching its output exports as no surface at
+        # all, which is a worse failure than the one being fixed.
+        self.assertIn(output, material.node_tree.nodes)
+        surface = next(n for n in material.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+        self.assertTrue(any(link.from_socket.node is surface and link.to_socket.node is output
+                            for link in material.node_tree.links))
+
+    def test_a_named_manifest_that_is_not_there_says_so(self):
+        self.bpy.data.materials.append(Material("M_Preview"))
+        blend = self.root / "assembly-fit.blend"
+        blend.write_bytes(b"blend")
+
+        report = {}
+        self.stage.bind_manifest_textures(blend, report, self.root / "absent.json")
+
+        # Silently falling back to name matching would export a preview surface
+        # while the caller believed a production one had been applied.
+        self.assertIn("no such manifest", report["texture_manifest_error"])
 
 
 class DeadImageTests(unittest.TestCase):

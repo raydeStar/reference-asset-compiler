@@ -85,8 +85,18 @@ A studio runs it by name, never by path:
 
 ```
 rac run-stage --list                     # what can run here, and what is missing
-rac run-stage browser-payload --source <staged.fbx>     --output <payload.glb> --report <receipt.json> [--repo-root ...] [--blender ...]
+rac run-stage browser-payload --source <staged.fbx>     --output <payload.glb> --report <receipt.json> [--textures <manifest.json>] [--repo-root ...] [--blender ...]
 ```
+
+`--textures` names the manifest to bind instead of the one beside the source,
+for a source that has none of its own. An assembled working file is the case
+that needs it: a head fit carries a preview material, and the manifest
+describing the paint it should ship with belongs to the package it was exported
+as, not to the blend. A material the manifest names is rebuilt before binding
+rather than bound over, because a preview's leftover nodes are still something
+the exporter reads. A named manifest that does not exist is an error, never a
+quiet fall back to name matching: the caller would believe production paint had
+been applied while the payload shipped a preview.
 
 `--list` runs nothing and answers the capability question: whether the checkout
 and Blender are present, and which stages are therefore available. A stage that
