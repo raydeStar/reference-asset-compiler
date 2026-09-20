@@ -1,0 +1,10 @@
+node_modules/
+dist/
+public/assets/*.png
+public/assets/*.glb
+public/reference.png
+public/assets/*.webp
+public/reference.webp
+public/stillwater-*.jpg
+public/stillwater-*.webp
+public/review/

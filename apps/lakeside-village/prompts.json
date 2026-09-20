@@ -1,0 +1,37 @@
+[
+  {
+    "reference": "work/lakeside-village/references/timber-cabin.png",
+    "prompt": "Use case: stylized-concept. Asset type: a single isolated 3D game asset reference for image-to-3D reconstruction. Input image 1 is the artistic reference: a painterly medieval Nordic pine-forest lakeside village at golden hour. Match its grounded rustic shapes, weathered natural materials, warm wood and muted forest colors. Render the requested object alone, fully visible, centered, three-quarter view, on a uniform pure white background, no cast shadow, no landscape, no vignette, no text or watermark, no people. Crisp dimensional detail, soft even studio lighting, not low-poly, not cartoon toy. A single small rectangular timber fisherman's cabin like the prominent building at the right lake shore. Steep weathered split-shingle gable roof, rough stacked log walls, stone chimney emerging from roof, small covered porch with two posts, door and two amber glass windows, stone footing. One cohesive building, no barrels, no trees, no ground slab. View front and right wall.",
+    "id": "timber-cabin"
+  },
+  {
+    "reference": "work/lakeside-village/references/round-cottage.png",
+    "prompt": "Use case: stylized-concept. Asset type: a single isolated 3D game asset reference for image-to-3D reconstruction. Input image 1 is the artistic reference: a painterly medieval Nordic pine-forest lakeside village at golden hour. Match its grounded rustic shapes, weathered natural materials, warm wood and muted forest colors. Render the requested object alone, fully visible, centered, three-quarter view, on a uniform pure white background, no cast shadow, no landscape, no vignette, no text or watermark, no people. Crisp dimensional detail, soft even studio lighting, not low-poly, not cartoon toy. A single little round lakeside stone-and-timber cottage like the round building on the left bank. Rounded steep thatched roof, short stone chimney, arched timber front door, two little amber windows, moss at the foot of rough stones. Charming rustic construction, no smoke, no scenery, no ground slab. View front and side.",
+    "id": "round-cottage"
+  },
+  {
+    "reference": "work/lakeside-village/references/pine-tree.png",
+    "prompt": "Use case: stylized-concept. Asset type: a single isolated 3D game asset reference for image-to-3D reconstruction. Input image 1 is the artistic reference: a painterly medieval Nordic pine-forest lakeside village at golden hour. Match its grounded rustic shapes, weathered natural materials, warm wood and muted forest colors. Render the requested object alone, fully visible, centered, three-quarter view, on a uniform pure white background, no cast shadow, no landscape, no vignette, no text or watermark, no people. Crisp dimensional detail, soft even studio lighting, not low-poly, not cartoon toy. One tall mature Norway spruce with a narrow irregular conical crown, dark green dense needle boughs arranged in natural tiers, visible weathered brown lower trunk and a few exposed roots. Complete tree top to roots, branches separated in silhouette, realistic forest evergreen, no ground disc and no surrounding plants.",
+    "id": "pine-tree"
+  },
+  {
+    "reference": "work/lakeside-village/references/wooden-dock.png",
+    "prompt": "Use case: stylized-concept. Asset type: a single isolated 3D game asset reference for image-to-3D reconstruction. Input image 1 is the artistic reference: a painterly medieval Nordic pine-forest lakeside village at golden hour. Match its grounded rustic shapes, weathered natural materials, warm wood and muted forest colors. Render the requested object alone, fully visible, centered, three-quarter view, on a uniform pure white background, no cast shadow, no landscape, no vignette, no text or watermark, no people. Crisp dimensional detail, soft even studio lighting, not low-poly, not cartoon toy. One rustic wooden fishing dock, rectangular deck made of uneven weathered timber planks, six stout vertical mooring posts extending above and below the deck, crossbeams visible underneath. Similar to the foreground jetty in the image, no boats, no water, no ground, no handrails, no long shore walkway. High three-quarter view showing top and supporting posts.",
+    "id": "wooden-dock"
+  },
+  {
+    "reference": "work/lakeside-village/references/rowboat.png",
+    "prompt": "Use case: stylized-concept. Asset type: a single isolated 3D game asset reference for image-to-3D reconstruction. Input image 1 is the artistic reference: a painterly medieval Nordic pine-forest lakeside village at golden hour. Match its grounded rustic shapes, weathered natural materials, warm wood and muted forest colors. Render the requested object alone, fully visible, centered, three-quarter view, on a uniform pure white background, no cast shadow, no landscape, no vignette, no text or watermark, no people. Crisp dimensional detail, soft even studio lighting, not low-poly, not cartoon toy. One small empty weathered wooden rowing boat like those by the foreground dock. Open interior fully visible with three timber bench seats, curved clinker planked hull, pointed bow, gently tapered stern, rich worn honey-brown wood. Two wooden oars resting inside. No sail, no water, no dock, no base. High three-quarter view.",
+    "id": "rowboat"
+  },
+  {
+    "reference": "work/lakeside-village/references/mossy-rock.png",
+    "prompt": "Use case: stylized-concept. Asset type: a single isolated 3D game asset reference for image-to-3D reconstruction. Input image 1 is the artistic reference: a painterly medieval Nordic pine-forest lakeside village at golden hour. Match its grounded rustic shapes, weathered natural materials, warm wood and muted forest colors. Render the requested object alone, fully visible, centered, three-quarter view, on a uniform pure white background, no cast shadow, no landscape, no vignette, no text or watermark, no people. Crisp dimensional detail, soft even studio lighting, not low-poly, not cartoon toy. One low irregular cluster of three adjoining weathered granite boulders, gray olive stone with restrained moss on upper crevices, fractured angular surfaces and soft eroded corners. Cohesive single rock prop, no grass or ground slab, no background scenery. Match the foreground lakeshore rocks.",
+    "id": "mossy-rock"
+  },
+  {
+    "reference": "work/lakeside-village/references/barrel-crates.png",
+    "prompt": "Use case: stylized-concept. Asset type: a single isolated 3D game asset reference for image-to-3D reconstruction. Input image 1 is the artistic reference: a painterly medieval Nordic pine-forest lakeside village at golden hour. Match its grounded rustic shapes, weathered natural materials, warm wood and muted forest colors. Render the requested object alone, fully visible, centered, three-quarter view, on a uniform pure white background, no cast shadow, no landscape, no vignette, no text or watermark, no people. Crisp dimensional detail, soft even studio lighting, not low-poly, not cartoon toy. One compact rustic supply prop: a large weathered wooden barrel with dark iron hoops beside two small stacked wooden crates and a coiled hemp rope. Closely touching as a single arrangement, coherent realistic proportions, warm dark worn oak, no ground slab, no scenery. Match the supplies outside the cabins.",
+    "id": "barrel-crates"
+  }
+]

@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#172723" />
+    <meta
+      name="description"
+      content="A Reference Asset Compiler showcase by Mark Hall: seven image-conditioned AI models, reviewed and textured individually, assembled into an interactive Three.js village. Explore the scene and how it was made."
+    />
+    <meta property="og:title" content="Stillwater — Reference Asset Compiler" />
+    <meta
+      property="og:description"
+      content="One reference. Seven assets. A little world. Explore an interactive 3D village and the workflow behind it."
+    />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://markbhall.dev/stillwater/" />
+    <meta
+      property="og:image"
+      content="https://markbhall.dev/stillwater/stillwater-social-v1.jpg"
+    />
+    <meta
+      property="og:image:secure_url"
+      content="https://markbhall.dev/stillwater/stillwater-social-v1.jpg"
+    />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="627" />
+    <meta
+      property="og:image:alt"
+      content="Stillwater: a real-time 3D village around a golden lake, a Reference Asset Compiler showcase by Mark Hall"
+    />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta
+      name="twitter:title"
+      content="Stillwater — Reference Asset Compiler"
+    />
+    <meta
+      name="twitter:description"
+      content="One reference. Seven assets. A little world. Explore the scene and how it was made."
+    />
+    <meta
+      name="twitter:image"
+      content="https://markbhall.dev/stillwater/stillwater-social-v1.jpg"
+    />
+    <meta
+      name="twitter:image:alt"
+      content="Stillwater, an interactive lakeside village at sunset"
+    />
+    <link rel="canonical" href="https://markbhall.dev/stillwater/" />
+    <link
+      rel="preload"
+      as="image"
+      href="./stillwater-scene-v1.webp"
+      fetchpriority="high"
+    />
+    <title>Stillwater — Reference Asset Compiler showcase</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23172723'/%3E%3Cpath d='M32 9L12 40h13l-8 10h30l-8-10h13z' fill='%23c2af77'/%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <div id="app">
+      <header class="topbar">
+        <a class="brand" href="./" aria-label="Stillwater home"
+          ><svg viewBox="0 0 32 40" aria-hidden="true">
+            <path d="M16 2 4 22h8L5 32h9v6h4v-6h9l-7-10h8Z" /></svg
+          ><span
+            >STILLWATER<small>A REFERENCE ASSET COMPILER SHOWCASE</small></span
+          ></a
+        >
+        <nav class="top-actions" aria-label="About this showcase">
+          <button id="reference-button" class="quiet-button">
+            The inspiration ↗
+          </button>
+          <a class="quiet-button" href="#how-it-works">How it was made ↓</a>
+          <a
+            class="project-link"
+            href="https://github.com/raydeStar/reference-asset-compiler"
+            target="_blank"
+            rel="noopener noreferrer"
+            >View project on GitHub ↗</a
+          >
+        </nav>
+      </header>
+      <main>
+        <div class="workspace" id="scene">
+          <section
+            class="world-panel"
+            aria-label="Interactive village scene"
+            aria-busy="true"
+          >
+            <div id="world" class="viewport"></div>
+            <img
+              id="scene-poster"
+              class="scene-poster"
+              src="./stillwater-scene-v1.webp"
+              alt="Preview of the Stillwater village while the interactive scene loads"
+              width="1200"
+              height="627"
+              fetchpriority="high"
+            />
+            <div class="capture-brand" aria-hidden="true">
+              <span>Stillwater</span>
+              <small>REFERENCE ASSET COMPILER · MARK HALL</small>
+            </div>
+            <div class="scene-heading">
+              <div class="eyebrow">THE NORTHERN SHORE · 01</div>
+              <h1>Somewhere<br />by the water.</h1>
+              <p>Pines, timber, and the last light of day.</p>
+            </div>
+            <div class="scene-status">
+              <span class="live-dot"></span
+              ><span id="load-status" role="status"
+                >Loading the interactive scene…</span
+              >
+            </div>
+            <div class="scene-bottom">
+              <div
+                class="camera-tabs"
+                role="group"
+                aria-label="Scene viewpoints"
+              >
+                <button
+                  data-camera="reference"
+                  class="active"
+                  aria-pressed="true"
+                  title="Return to the composition inspired by the original image"
+                >
+                  Reference view</button
+                ><button data-camera="village" aria-pressed="false">
+                  The village</button
+                ><button data-camera="overlook" aria-pressed="false">
+                  Overlook
+                </button>
+              </div>
+              <button
+                id="motion-button"
+                class="glass-button"
+                aria-pressed="false"
+                title="Pause water and atmosphere"
+              >
+                Ⅱ Pause
+              </button>
+            </div>
+            <div class="scene-instructions">
+              DRAG TO EXPLORE <span>·</span> SCROLL TO ZOOM <span>·</span> CLICK
+              AN ASSET TO INSPECT
+            </div>
+            <div id="world-error" class="error-message" hidden></div>
+          </section>
+          <aside
+            class="inspector-panel"
+            aria-label="Individual asset inspector"
+          >
+            <div class="inspector-heading">
+              <div>
+                <div class="eyebrow">THE COLLECTION</div>
+                <h2>A closer look.</h2>
+              </div>
+              <span id="collection-count" class="count-badge">0 / 7</span>
+            </div>
+            <div class="inspector-stage">
+              <div
+                id="inspector"
+                class="viewport"
+                aria-label="Rotate the selected 3D asset"
+              ></div>
+              <span class="stage-caption">DRAG TO TURN · SCROLL TO ZOOM</span
+              ><button
+                id="reset-asset"
+                class="round-button"
+                title="Reset asset view"
+                aria-label="Reset asset view"
+              >
+                ↺
+              </button>
+              <div id="asset-loading" class="asset-loading" role="status">
+                Loading the collection…
+              </div>
+            </div>
+            <div class="asset-info">
+              <div class="asset-title-row">
+                <h3 id="asset-name">Timber cabin</h3>
+                <span id="asset-index">01</span>
+              </div>
+              <p id="asset-description">
+                A warm little refuge on the northern shore.
+              </p>
+              <div class="asset-meta">
+                <span id="asset-detail">Reconstructing from its reference</span
+                ><a
+                  id="download-asset"
+                  href="#"
+                  download
+                  hidden
+                  title="Download the original model with full-resolution textures"
+                  >Download original GLB ↗</a
+                >
+              </div>
+            </div>
+            <div class="asset-tools">
+              <button id="auto-rotate" aria-pressed="true" class="active">
+                ↻ Auto rotate</button
+              ><button id="wireframe" aria-pressed="false">◇ Wireframe</button
+              ><button id="asset-reference">▧ Reference</button>
+            </div>
+            <div
+              id="asset-list"
+              class="asset-list"
+              role="group"
+              aria-label="Choose an asset"
+            ></div>
+            <div class="inspector-footer">
+              <span class="live-dot"></span
+              ><span id="stage-status"
+                >Shape study · individual AI reconstructions</span
+              >
+            </div>
+          </aside>
+        </div>
+        <section
+          class="showcase"
+          id="how-it-works"
+          aria-labelledby="showcase-title"
+        >
+          <div class="showcase-intro">
+            <div>
+              <p class="eyebrow">BEHIND THE SHORE · REFERENCE ASSET COMPILER</p>
+              <h2 id="showcase-title">
+                One reference.<br />Seven assets.<br /><em>A little world.</em>
+              </h2>
+              <p class="showcase-lead">
+                Stillwater is a working demonstration of
+                <a
+                  href="https://github.com/raydeStar/reference-asset-compiler"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Reference Asset Compiler</a
+                >: a project for turning reviewed AI assets into traceable,
+                verifiable 3D deliverables.
+              </p>
+              <p class="showcase-credit">
+                Created by <a href="https://markbhall.dev/">Mark Hall</a> with
+                Codex, using local AI generation and the project’s asset
+                workflows.
+              </p>
+              <a
+                class="text-link"
+                href="https://github.com/raydeStar/reference-asset-compiler"
+                target="_blank"
+                rel="noopener noreferrer"
+                >Explore the code & documentation
+                <span aria-hidden="true">↗</span></a
+              >
+            </div>
+            <figure class="source-figure">
+              <img
+                src="./reference.webp"
+                alt="The original painterly reference: timber cottages, pine trees and rowing boats around a sunset lake"
+                loading="lazy"
+                width="1080"
+                height="720"
+              />
+              <figcaption>
+                <span>01 / THE ARTISTIC STARTING POINT</span>A supplied AI-made
+                image guided the objects, palette and composition.
+              </figcaption>
+            </figure>
+          </div>
+          <div class="making-heading">
+            <h3>How I made the models</h3>
+            <p>
+              Each object was built separately, then brought into the same
+              world.
+            </p>
+          </div>
+          <ol class="process-grid">
+            <li>
+              <span class="step-number">01</span>
+              <h4>Isolate the reference</h4>
+              <p>
+                Starting from the village image, I used AI image generation to
+                create seven separate object references: two cottages, a pine, a
+                dock, a rowboat, shore stones and supplies.
+              </p>
+              <span class="step-tool">IMAGE GENERATION</span>
+            </li>
+            <li>
+              <span class="step-number">02</span>
+              <h4>Generate the shape</h4>
+              <p>
+                Each reference directly conditioned Hunyuan3D-2, running locally
+                on an RTX 4090. It produced an independent mesh for each asset;
+                unseen sides were inferred from the image.
+              </p>
+              <span class="step-tool">HUNYUAN3D-2 · LOCAL GPU</span>
+            </li>
+            <li>
+              <span class="step-number">03</span>
+              <h4>Clean up & review</h4>
+              <p>
+                Blender reduced polygon counts, removed stray geometry and
+                prepared UVs—the layout used to wrap textures around a mesh.
+                Front, quarter, side and back views were reviewed before
+                painting.
+              </p>
+              <span class="step-tool">BLENDER · SHAPE & UV REVIEW</span>
+            </li>
+            <li>
+              <span class="step-number">04</span>
+              <h4>Paint & assemble</h4>
+              <p>
+                Hunyuan3D-Paint 2.1 added reference-conditioned, physically
+                based (PBR) materials to the approved meshes. I then assembled
+                them in Three.js, adding terrain, water, light, smoke and the
+                independent asset viewer.
+              </p>
+              <span class="step-tool">HUNYUAN3D-PAINT · THREE.JS</span>
+            </li>
+          </ol>
+          <div class="project-note">
+            <div>
+              <p class="eyebrow">WHAT THE PROJECT CONTRIBUTES</p>
+              <h3>The workflow behind the view.</h3>
+              <p>
+                The repository connects the generation and review steps; the
+                compiler normalizes, checks and packages accepted assets. It
+                preserves source hashes, candidate history, review receipts and
+                validation results so the delivered files can be traced back to
+                their inputs.
+              </p>
+              <p>
+                For Stillwater, all seven final GLBs were checked for UVs,
+                embedded textures and preserved geometry after painting, then
+                accepted for this demo. Select an asset above to rotate it,
+                inspect its wireframe, compare its source image or download the
+                GLB. Three.js loads these finished 3D files directly in your
+                browser; all AI generation happened beforehand. The browser uses
+                lighter textures for faster loading; GLB downloads retain the
+                original full-resolution materials.
+              </p>
+              <div class="documentation-links">
+                <a
+                  class="text-link"
+                  href="https://github.com/raydeStar/reference-asset-compiler/blob/main/docs/PIPELINE.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Read the pipeline ↗</a
+                >
+                <a
+                  class="text-link"
+                  href="https://github.com/raydeStar/reference-asset-compiler/blob/main/docs/WORKFLOW_PLAYBOOK.md"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  >Workflow playbook ↗</a
+                >
+              </div>
+            </div>
+            <aside class="showcase-facts" aria-label="Showcase scope">
+              <dl>
+                <div>
+                  <dt>Separate assets</dt>
+                  <dd>7</dd>
+                </div>
+                <div>
+                  <dt>Triangles in the unique asset library</dt>
+                  <dd>247,795</dd>
+                </div>
+                <div>
+                  <dt>Runs in your browser</dt>
+                  <dd>Three.js / WebGL</dd>
+                </div>
+              </dl>
+              <p>
+                This is a static-prop browser showcase. Character rigging,
+                retargeting and cooked Unreal Engine validation are separate
+                project workflows, beyond this demo’s scope.
+              </p>
+              <a class="text-link" href="#scene">Back to the shore ↑</a>
+            </aside>
+          </div>
+        </section>
+      </main>
+      <footer class="page-footer">
+        <span>BUILT ONE PIECE AT A TIME</span
+        ><span
+          >THREE.JS <span class="footer-cross">×</span>
+          <a
+            href="https://github.com/raydeStar/reference-asset-compiler"
+            target="_blank"
+            rel="noopener noreferrer"
+            >REFERENCE ASSET COMPILER</a
+          ></span
+        ><span>Take your time. The lake can wait.</span>
+      </footer>
+    </div>
+    <dialog id="reference-dialog">
+      <form method="dialog">
+        <button class="close-dialog" aria-label="Close reference">×</button>
+      </form>
+      <div class="eyebrow" id="reference-title">THE ORIGINAL INSPIRATION</div>
+      <img
+        id="reference-image"
+        alt="Painterly pine forest village beside a lake at sunset"
+      />
+      <p id="reference-description">
+        The artistic starting point for Stillwater.
+      </p>
+    </dialog>
+    <script type="module" src="./src/main.js"></script>
+  </body>
+</html>

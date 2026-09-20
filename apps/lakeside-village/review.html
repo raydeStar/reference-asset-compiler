@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Stillwater — Shape review</title>
+    <style>
+      body {
+        background: #f3f2e9;
+        color: #354438;
+        font: 14px system-ui;
+        margin: 30px;
+      }
+      a {
+        color: #496443;
+      }
+      h1 {
+        font: 40px Georgia;
+        margin-bottom: 10px;
+      }
+      p {
+        max-width: 800px;
+        line-height: 1.6;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 10px;
+      }
+      img {
+        width: 100%;
+        border-radius: 5px;
+        background: #dadcd1;
+      }
+      figure {
+        margin: 0;
+      }
+      figcaption {
+        font-size: 11px;
+        margin: 7px 0;
+        color: #7a8573;
+      }
+      section {
+        border-top: 1px solid #ccd2c2;
+        margin: 28px 0;
+        padding: 16px 0;
+      }
+      h2 {
+        font-size: 17px;
+        font-weight: 500;
+      }
+      @media (max-width: 700px) {
+        .row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <a href="./">← Return to the village</a>
+    <h1>Seven pieces of Stillwater.</h1>
+    <p>
+      Individual AI reconstructions, with lightweight browser derivatives. These
+      are neutral modeling previews. Source images are shown alongside four
+      fixed views so shape can be reviewed before materials. The user delegated
+      visual reviews for this scene demo. The tree has been cleaned of detached
+      fragments; its updated views are included here.
+    </p>
+    <div id="gallery"></div>
+    <script type="module">
+      const assets = [
+        ["timber-cabin", "Timber cabin"],
+        ["round-cottage", "Round cottage"],
+        ["pine-tree", "Northern pine"],
+        ["wooden-dock", "Fishing dock"],
+        ["rowboat", "Clinker rowboat"],
+        ["mossy-rock", "Shore stones"],
+        ["barrel-crates", "Village supplies"],
+      ];
+      document.getElementById("gallery").innerHTML = assets
+        .map(
+          ([id, name]) =>
+            `<section><h2>${name}</h2><div class="row"><figure><img src="./assets/${id}.png" alt="${name} source"><figcaption>Isolated image reference</figcaption></figure>${["front", "three-quarter", "side", "back"].map((view) => `<figure><img src="./review/${id}/${view}.png" alt="${name} ${view}"><figcaption>${view}</figcaption></figure>`).join("")}</div></section>`,
+        )
+        .join("");
+    </script>
+  </body>
+</html>

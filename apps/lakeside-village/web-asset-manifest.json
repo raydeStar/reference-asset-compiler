@@ -1,0 +1,236 @@
+{
+  "schema": "stillwater.web-derivatives.v1",
+  "assets": [
+    {
+      "id": "timber-cabin",
+      "file": "assets/timber-cabin.web.glb",
+      "sha256": "0e17179a3bf3cd7cd0e4a6a1438239f8a3c0163945d3f8c5bcf110075d1c2cee",
+      "source_sha256": "9a0548a0f45dc984848e219433c1be2862723d42210f657139abcd23f2d744af",
+      "source_bytes": 5959044,
+      "bytes": 2674164,
+      "triangles": 64999,
+      "non_image_buffer_sha256": "ee53b3878a8fd229cb8cb07b0e2ed4aec96a576a56d96da16ab3e5d0b0148364",
+      "textures": [
+        {
+          "input_bytes": 1032213,
+          "output_bytes": 179066,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        },
+        {
+          "input_bytes": 2959585,
+          "output_bytes": 527726,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        }
+      ]
+    },
+    {
+      "id": "round-cottage",
+      "file": "assets/round-cottage.web.glb",
+      "sha256": "d8b0ef4c108eeff9861ac59880fd5a78b20390c49ca5b74f22529174759b4f5f",
+      "source_sha256": "1b640a63541d535b32ae5f02c9794171e54fc7b8f17833edb684a87d5a282ed3",
+      "source_bytes": 5185076,
+      "bytes": 2543844,
+      "triangles": 59998,
+      "non_image_buffer_sha256": "3e2ad26d9519bd8dc05519a6835409feed1a9751b2bb290dd846a1b32c15a6cd",
+      "textures": [
+        {
+          "input_bytes": 911043,
+          "output_bytes": 160214,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        },
+        {
+          "input_bytes": 2285888,
+          "output_bytes": 395358,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        }
+      ]
+    },
+    {
+      "id": "pine-tree",
+      "file": "assets/pine-tree.web.glb",
+      "sha256": "af33bf2439889c87b5731811a0e82bfc34dff4677258ab29b5b9c821d2f2dee9",
+      "source_sha256": "d40f622d40ef9aa8eabf1f8b2db2c632251833b1ea4c53936c43bfb9b4d9be47",
+      "source_bytes": 4261508,
+      "bytes": 1725540,
+      "triangles": 11810,
+      "non_image_buffer_sha256": "5e5aba7343d328ae1e792c522137bd3adbdb6c6f012c2697d168a97ab051c544",
+      "textures": [
+        {
+          "input_bytes": 720589,
+          "output_bytes": 119204,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        },
+        {
+          "input_bytes": 2334667,
+          "output_bytes": 399964,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        }
+      ]
+    },
+    {
+      "id": "wooden-dock",
+      "file": "assets/wooden-dock.web.glb",
+      "sha256": "f34d277f8eced83b960ea65f7bbe5aa5627a094684bd45d54ba70c12e9f22a35",
+      "source_sha256": "a1b3fcfd1e064ead0e93cd860a8b8a2c56e543b95c82bd39cb9179f7cc549561",
+      "source_bytes": 4221904,
+      "bytes": 1436724,
+      "triangles": 31999,
+      "non_image_buffer_sha256": "91a58ab20cd38e6b46d708ae9c19a6c5ed8a0ad9b6097620d0b267446975c271",
+      "textures": [
+        {
+          "input_bytes": 1104617,
+          "output_bytes": 192994,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        },
+        {
+          "input_bytes": 2247984,
+          "output_bytes": 374298,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        }
+      ]
+    },
+    {
+      "id": "rowboat",
+      "file": "assets/rowboat.web.glb",
+      "sha256": "84ca9f0688c902a8088c3b0033a061594fc5e1cd350bcc986cf590de8f53afd3",
+      "source_sha256": "0107436ff25bce0e502589ef1ac825a23524267fa253ab3ca7bc06d62bcf630a",
+      "source_bytes": 4257212,
+      "bytes": 1500104,
+      "triangles": 35000,
+      "non_image_buffer_sha256": "1311897528b04af6ac529961a0e476b01373472b18fb1a64c86b12c4168301e1",
+      "textures": [
+        {
+          "input_bytes": 978454,
+          "output_bytes": 150306,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        },
+        {
+          "input_bytes": 2314235,
+          "output_bytes": 385146,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        }
+      ]
+    },
+    {
+      "id": "mossy-rock",
+      "file": "assets/mossy-rock.web.glb",
+      "sha256": "ee26dd5eec3643d3dfbc7e8525560ef166c19e5c1f683ee25a13a9da389eab78",
+      "source_sha256": "ea4bf091b98671a23d5591b6c687cce7cf4b6315fc1f66812a8f33264faafcf2",
+      "source_bytes": 3746412,
+      "bytes": 905884,
+      "triangles": 11999,
+      "non_image_buffer_sha256": "6c9db60b940d34ce347613885dd7e0584b499168d2e14cca6046df6392003dd4",
+      "textures": [
+        {
+          "input_bytes": 1015174,
+          "output_bytes": 174746,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        },
+        {
+          "input_bytes": 2391222,
+          "output_bytes": 390998,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        }
+      ]
+    },
+    {
+      "id": "barrel-crates",
+      "file": "assets/barrel-crates.web.glb",
+      "sha256": "e9e7008922ce02a7cd2b620618c3b54d5b516f4938187628637711aad572e993",
+      "source_sha256": "f0baaadb0bbd9912060936935c026f3f074519a6a4068cd1276b59212a643755",
+      "source_bytes": 4837080,
+      "bytes": 1718636,
+      "triangles": 31990,
+      "non_image_buffer_sha256": "b7e852e96ff14dde4c1822d2843cc7e6f2e80022fad62a25f11cdb34933f3aad",
+      "textures": [
+        {
+          "input_bytes": 953406,
+          "output_bytes": 158000,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        },
+        {
+          "input_bytes": 2818841,
+          "output_bytes": 495678,
+          "input_width": 2048,
+          "input_height": 2048,
+          "max_output_dimension": 1024
+        }
+      ]
+    }
+  ],
+  "images": [
+    {
+      "file": "assets/timber-cabin.thumb.webp",
+      "bytes": 9968,
+      "sha256": "772b54ea80a5e40b5d140717fac962f77abe20a66626876b628be16359dd8a43"
+    },
+    {
+      "file": "assets/round-cottage.thumb.webp",
+      "bytes": 8550,
+      "sha256": "50e7a87b879964b2c4fbb47fd8f41aa1543842ea875b5e886dafa819aef8a56a"
+    },
+    {
+      "file": "assets/pine-tree.thumb.webp",
+      "bytes": 6692,
+      "sha256": "199469b6a7f8a08f730771a54289ed485c2f60479fdc61dc7504295edc735bce"
+    },
+    {
+      "file": "assets/wooden-dock.thumb.webp",
+      "bytes": 6420,
+      "sha256": "aff9da43aceb8c2b27ea9f62efeb75d280eab117f7c355ec32420e30e4ebb878"
+    },
+    {
+      "file": "assets/rowboat.thumb.webp",
+      "bytes": 7870,
+      "sha256": "2c7518a5f1e91ba35b328037bcfa42ea280af7e1c44d2c766428a2d6e43fed2f"
+    },
+    {
+      "file": "assets/mossy-rock.thumb.webp",
+      "bytes": 8692,
+      "sha256": "517670d042802ed8d7ce227d7fd8ffcec8abf3372abf81b66878102046a464d2"
+    },
+    {
+      "file": "assets/barrel-crates.thumb.webp",
+      "bytes": 8368,
+      "sha256": "0481a944abb24c3f42e2c05bcbe09544088073df60a6e6390aadf41646765cf4"
+    },
+    {
+      "file": "assets/forest-ground.webp",
+      "source_bytes": 3492264,
+      "bytes": 508010,
+      "sha256": "697c3f03ab04831f125a46e32ca731d5e013bf961bbada8991e9a6bab4b9f9f3"
+    },
+    {
+      "file": "reference.webp",
+      "source_bytes": 1491802,
+      "bytes": 171946,
+      "sha256": "7557f41221ff435f900040eba45c4c046111fb3b5c98a2f775821be82e754b1c"
+    }
+  ]
+}

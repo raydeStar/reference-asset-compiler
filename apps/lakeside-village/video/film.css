@@ -1,0 +1,83 @@
+/* A capture-only layout. The public site and its accepted assets stay untouched. */
+html,body {margin:0; width:1920px; height:1080px; scrollbar-width:none; scroll-behavior:auto!important;}
+* {cursor:none!important; animation:none!important; transition:none!important;}
+body::-webkit-scrollbar {display:none}
+.topbar,.page-footer,.scene-heading,.scene-status,.scene-instructions,.capture-brand,.scene-poster {display:none!important}
+.workspace {max-width:none; width:1920px; height:1080px; min-height:0; padding:0; margin:0; display:block;}
+.world-panel {width:1920px; height:1080px; border-radius:0;}
+.world-panel::before {display:none}
+.scene-bottom {display:none}
+.inspector-panel {display:none}
+.showcase {padding:86px 120px 140px;}
+.showcase-intro {gap:80px; height:450px;}
+.showcase-intro .showcase-lead,.showcase-intro .showcase-credit,.showcase-intro .text-link {display:none}
+.showcase h2 {font-size:78px;}
+.source-figure {width:620px; justify-self:end;}
+.source-figure img {max-height:405px; object-fit:contain;}
+.source-figure figcaption {font-size:16px; margin-top:12px;}
+.source-figure figcaption span {font-size:12px;}
+.showcase .eyebrow {font-size:16px;letter-spacing:2px}
+.making-heading {margin:88px 0 44px;}
+.making-heading h3 {font-size:64px;}
+.making-heading p {font-size:18px; max-width:420px;}
+.process-grid {gap:42px;}
+.process-grid li {padding-top:26px; border-top:2px solid #9daa90;}
+.step-number {font-size:58px;}
+.process-grid h4 {font-size:29px;letter-spacing:-.5px; margin-top:20px;}
+.process-grid p {font-size:19px;line-height:1.65;margin-top:20px;}
+.step-tool {font-size:14px;letter-spacing:1.4px;margin-top:24px;line-height:1.6;}
+.project-note {display:none}
+.showcase-facts {display:none}
+html[data-film-layout="workflow"] .workspace {display:none}
+html[data-film-layout="workflow"] .showcase {min-height:1350px;padding-top:100px;}
+html[data-film-layout="workflow"] .showcase-intro {display:none}
+html[data-film-layout="workflow"] .making-heading {margin-top:160px;margin-bottom:66px;}
+html[data-film-layout="workflow"] .process-grid li {min-height:365px;}
+html[data-film-layout="workflow"] .process-grid p {font-size:23px;line-height:1.7;}
+html[data-film-layout="workflow"] .step-tool {margin-top:auto;}
+html[data-film-layout="asset"] .world-panel {display:none}
+html[data-film-layout="asset"] .inspector-panel {display:block; position:relative; width:1920px; height:1080px; border:0; border-radius:0; background:#f5f4ed;}
+html[data-film-layout="asset"] .inspector-heading {position:absolute;left:84px;top:40px;right:82px;padding:0;}
+html[data-film-layout="asset"] .inspector-heading .eyebrow {font-size:15px;letter-spacing:2px;}
+html[data-film-layout="asset"] .inspector-heading h2 {font-size:52px; margin-top:9px;}
+html[data-film-layout="asset"] .count-badge {font-size:18px;padding:10px 16px;}
+html[data-film-layout="asset"] .inspector-stage {position:absolute;left:60px;top:170px;width:1130px;height:800px;min-height:0;max-height:none;border:1px solid #d4d9ca;border-radius:5px;}
+html[data-film-layout="asset"] .stage-caption {left:28px;bottom:26px;font-size:13px;letter-spacing:1.8px;}
+html[data-film-layout="asset"] #reset-asset {width:44px;height:44px;right:24px;bottom:20px;font-size:28px;}
+html[data-film-layout="asset"] .asset-info {position:absolute;left:1250px;right:80px;top:230px;padding:0;}
+html[data-film-layout="asset"] .asset-title-row h3 {font-size:40px;letter-spacing:-1px;}
+html[data-film-layout="asset"] .asset-title-row>span {font-size:20px;}
+html[data-film-layout="asset"] .asset-info p {font-size:21px;line-height:1.7;margin-top:20px;}
+html[data-film-layout="asset"] .asset-meta {margin-top:24px;display:block;}
+html[data-film-layout="asset"] #asset-detail {font-size:19px;}
+html[data-film-layout="asset"] #download-asset {display:none}
+html[data-film-layout="asset"] .asset-tools {position:absolute;left:1250px;right:80px;top:510px;padding:0;gap:12px;}
+html[data-film-layout="asset"] .asset-tools button {font-size:18px;padding:14px 17px;}
+html[data-film-layout="asset"] .asset-list {position:absolute;left:1250px;right:80px;top:604px;padding:0;gap:14px;grid-template-columns:repeat(4,minmax(0,1fr));}
+html[data-film-layout="asset"] .asset-card {height:144px;}
+html[data-film-layout="asset"] .asset-card img {height:104px;}
+html[data-film-layout="asset"] .asset-label {font-size:14px;}
+html[data-film-layout="asset"] .inspector-footer {position:absolute;left:84px;bottom:40px;padding:0;border:0;font-size:15px;letter-spacing:.5px;}
+#reference-dialog {position:fixed;left:auto;right:76px;top:165px;margin:0;width:670px;max-width:none;max-height:none;border-radius:5px;box-shadow:0 16px 60px #14261d40;}
+#reference-dialog::backdrop {background:#17272022;backdrop-filter:none;}
+#reference-dialog #reference-title {font-size:17px;letter-spacing:1px;}
+#reference-dialog #reference-description {font-size:18px;line-height:1.6;}
+#reference-image {max-height:620px;width:100%;object-fit:contain;}
+#film-overlay {position:fixed;inset:0;z-index:50;pointer-events:none;}
+#film-corner {position:absolute;left:86px;top:68px;color:#fff7df;font:46px 'Libre Caslon Display',serif;text-shadow:0 2px 12px #17251b;}
+#film-hook {position:absolute;left:86px;bottom:88px;color:#fff9eb;font-size:24px;letter-spacing:2.6px;font-weight:500;text-shadow:0 2px 14px #091c0d;}
+#film-end {position:absolute;left:86px;bottom:84px;color:#fff9eb;text-shadow:0 2px 16px #071909;}
+#film-end .project {font-size:38px;letter-spacing:-.6px;margin-bottom:12px;}
+#film-end .url {font-size:27px;letter-spacing:1px;}
+#film-end .method {font-size:18px;letter-spacing:1.1px;margin-top:20px;color:#e7e6cb;}
+#film-shade {position:absolute;inset:60% 0 0;background:linear-gradient(transparent,#07150bc4);}
+#film-source {position:fixed;inset:0;background:#f5f4ed;z-index:40;display:none;padding:82px;}
+#film-source .source-label {font-size:16px;letter-spacing:3px;color:#687959;margin-bottom:23px;}
+#film-source .source-main {position:absolute;left:82px;top:164px;width:1110px;height:740px;object-fit:contain;box-shadow:0 18px 45px #1d38231a;}
+#film-source .source-side {position:absolute;left:1260px;top:220px;width:575px;}
+#film-source h2 {font:62px/1.08 'Libre Caslon Display',serif;margin:0 0 40px;letter-spacing:-1px;}
+#film-source .source-side p {font-size:21px;color:#617153;line-height:1.6;margin-bottom:36px;}
+#film-source .reference-grid {display:grid;grid-template-columns:repeat(4,1fr);gap:16px;}
+#film-source .reference-grid img {width:125px;height:125px;object-fit:contain;background:#ebede4;border:1px solid #d5dacb;}
+#film-source .source-credit {position:absolute;left:84px;bottom:87px;font-size:16px;letter-spacing:1px;color:#647354;}
+#film-fade {position:fixed;inset:0;background:#0b100b;z-index:100;pointer-events:none;opacity:0;}
