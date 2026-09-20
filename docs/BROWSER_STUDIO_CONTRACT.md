@@ -145,6 +145,15 @@ fingerprint = lowercase hex SHA-256 of canonical encoded as UTF-8
   quantizing. Without this, the same skeleton can produce two fingerprints.
 - A non-finite value anywhere means no fingerprint. Such a rig is already
   failing its gate.
+- **Quantize the values as the payload stores them**, which for glTF means
+  32-bit floats. Both sides must read the transforms out of the exported file
+  rather than out of a higher-precision authoring scene, because two values that
+  differ in the seventh significant digit can land on opposite sides of a
+  quantization boundary as 64-bit doubles and on the same side as 32-bit floats.
+  A fingerprint taken from Blender's in-memory doubles before export is not
+  guaranteed to match one taken from the file afterwards. This was found by a
+  test, not by reasoning: `0.1234565` and `0.1234575` quantize to `123457` and
+  `123458` as doubles, and both to `123457` as floats.
 
 A bone name carrying `|`, a newline or a carriage return is **refused**, not
 escaped. Such a name could shift the fields so two different skeletons
