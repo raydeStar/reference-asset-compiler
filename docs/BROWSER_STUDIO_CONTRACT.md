@@ -146,10 +146,42 @@ fingerprint = lowercase hex SHA-256 of canonical encoded as UTF-8
 - A non-finite value anywhere means no fingerprint. Such a rig is already
   failing its gate.
 
-Both implementations must agree on a checked-in fixture. The compiler writes the
-fingerprint into its rig report; the consuming studio computes it independently
-from the same GLB; both repositories keep a test asserting the same expected
-hex string, including one value that lands exactly on a rounding boundary.
+A bone name carrying `|`, a newline or a carriage return is **refused**, not
+escaped. Such a name could shift the fields so two different skeletons
+canonicalize to the same text. Blender permits them and every engine target
+discourages them, so a refusal is honest and identical in both languages,
+where an escaping scheme is one more thing for each side to get wrong.
+
+### The worked example both repositories assert
+
+Two joints, supplied out of order, with a rotation that is not the identity and
+a translation on a rounding boundary:
+
+| name | parent | translation | rotation (x,y,z,w) | scale |
+| --- | --- | --- | --- | --- |
+| `Spine` | `Hips` | `0, 0.1234565, 0` | `0, 0, 0.3826834, 0.9238795` | `1, 1, 1` |
+| `Hips` | *(none)* | `0, 0.95, 0` | `0, 0, 0, 1` | `1, 1, 1` |
+
+canonicalizes to exactly this text, newline-terminated:
+
+```text
+rac-skeleton-v1
+Hips||0,950000,0|0,0,0,1000000|1000000,1000000,1000000
+Spine|Hips|0,123457,0|0,0,382683,923880|1000000,1000000,1000000
+```
+
+```text
+18c20df3170c39e2b00a889d44b9f38c2b6309aae636ce1e091e82736058d589
+```
+
+Note `0.1234565` quantizing to `123457` rather than `123456`: that is the
+halfway case where the two languages' defaults disagree, and it is in the vector
+on purpose. The reference implementation is
+`src/reference_asset_compiler/skeleton_fingerprint.py`, and
+`tests/test_skeleton_fingerprint.py` asserts this hash. A consuming studio keeps
+a test asserting the same string against the same skeleton; if the two ever
+disagree, compare the canonical text rather than the hashes, because the text
+says which field drifted.
 
 ## Versions
 
