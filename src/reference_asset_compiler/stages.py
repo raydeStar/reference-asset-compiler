@@ -27,6 +27,7 @@ from .geometry_stage import (
     prepare_single_view_request,
     resolve_legacy_root,
 )
+from .human_scale import HumanScaleError, resolve_height
 from .resources import checkout_root
 
 BLENDER_ENVIRONMENT = "RAC_BLENDER"
@@ -53,8 +54,29 @@ STAGES: dict[str, dict[str, Any]] = {
         "arguments": ("source", "output", "report"),
         "options": ("asset_name", "seed", "steps", "octree_resolution", "chunks"),
         "prepare": "geometry",
+        "needs": ("studio-tree",),
         "summary": "Turn one reference image into a candidate mesh with Hunyuan3D. Needs a GPU.",
         "produces": "reference-asset-compiler.geometry-candidate.v1",
+    },
+    "stage-mesh": {
+        "runner": "blender",
+        "script": "scripts/blender/stage_generated_mesh.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("size", "size_adjust"),
+        "prepare": "staged-mesh",
+        "needs": ("blender",),
+        "summary": "Give a generated mesh its real size, as a .blend a reviewed stage can open.",
+        "produces": "reference-asset-compiler.staged-mesh.v1",
+    },
+    "reduce-mesh": {
+        "runner": "powershell",
+        "script": "scripts/run_feature_qem_reduction.ps1",
+        "arguments": ("source", "output", "report"),
+        "options": ("triangle_budget", "weight_factor", "maximum_p99_m", "maximum_max_m"),
+        "prepare": "reduction",
+        "needs": ("blender",),
+        "summary": "Collapse a staged mesh to a runtime budget, and measure what that cost.",
+        "produces": "reference-asset-compiler.production-retopology-candidate.v1",
     },
 }
 
@@ -81,9 +103,15 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             missing.append("checkout")
         elif script is None or not script.is_file():
             missing.append("script")
-        if stage["runner"] == "blender" and runner is None:
+        # A Blender-run stage needs Blender by definition. Stages say what they
+        # need *beyond* their runner -- reduce-mesh runs a PowerShell launcher
+        # that drives Blender itself, and geometry needs weights instead.
+        needs = set(stage.get("needs", ()))
+        if stage["runner"] == "blender":
+            needs.add("blender")
+        if "blender" in needs and runner is None:
             missing.append("blender")
-        if stage.get("prepare") == "geometry":
+        if "studio-tree" in needs:
             # The weights and their environment are a separate install from
             # this checkout, and most machines running the studio have neither.
             missing += [item for item in geometry_missing(root, legacy) if item not in missing]
@@ -160,26 +188,34 @@ def run_stage(
         if not Path(textures).is_file():
             raise StageError("The named texture manifest does not exist: {0}".format(textures))
         arguments += ["--textures", str(Path(textures).resolve())]
+    # A stage that needs more than the three paths prepares it here. Nothing a
+    # prepare step does touches hardware: it writes what a launcher insists on
+    # and works out what a caller asked for, so a run that could never have
+    # been accepted is refused before anything is queued.
     context: dict[str, Any] = {}
-    if stage.get("prepare") == "geometry":
-        # Nothing here touches a GPU: it writes the workspace, intake and
-        # request the launcher insists on, so a request that could never have
-        # been accepted is refused before anything is queued.
+    prepare = stage.get("prepare")
+    if prepare == "geometry":
         context = prepare_geometry(Path(source), root, legacy_root, options or {})
+    elif prepare == "staged-mesh":
+        context = prepare_staged_mesh(options or {})
+    elif prepare == "reduction":
+        context = prepare_reduction(
+            Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
+    extra = [str(item) for item in context.get("arguments", ())]
 
     if stage["runner"] == "blender":
         runner = resolve_blender(blender)
         # Blender's own argument convention: its flags, then the script, then a
         # bare -- after which the arguments belong to the script.
-        command = [runner, "-b", "--factory-startup", "--python", str(script), "--", *arguments]
+        command = [runner, "-b", "--factory-startup", "--python", str(script), "--",
+                   *arguments, *extra]
     elif stage["runner"] == "powershell":
+        # These launchers take named parameters and decide their own output
+        # paths, so the prepare step builds the whole argument list.
         runner = POWERSHELL
         command = [
             runner, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
-            "-File", str(script),
-            "-Request", str(context["request"]),
-            "-LegacyRoot", str(context["legacy_root"]),
-            "-RepoRoot", str(root),
+            "-File", str(script), *extra,
         ]
     else:
         runner = blender or sys.executable
@@ -219,9 +255,9 @@ def run_stage(
         payload["stderr_tail"] = tail(finished.stderr)
         return payload
 
-    if context.get("collect"):
+    if context.get("produced"):
         try:
-            collect_geometry(context, Path(output), Path(report))
+            collect_produced(context["produced"], Path(output), Path(report))
         except (OSError, GeometryStageError) as problem:
             payload["ok"] = False
             payload["error"] = "The run finished but its result could not be collected: {0}".format(
@@ -258,11 +294,12 @@ def prepare_geometry(source: Path, root: Path, legacy_root: Path | None,
                     ("seed", "steps", "octree_resolution", "chunks")},
     )
     return {
-        "request": prepared["request"],
-        "legacy_root": legacy,
-        "collect": True,
-        "candidate": prepared["candidate"],
-        "receipt": prepared["receipt"],
+        "arguments": [
+            "-Request", str(prepared["request"]),
+            "-LegacyRoot", str(legacy),
+            "-RepoRoot", str(root),
+        ],
+        "produced": {"output": prepared["candidate"], "report": prepared["receipt"]},
         "payload": {
             "asset_id": prepared["asset_id"],
             "workspace": str(prepared["workspace"]),
@@ -275,20 +312,81 @@ def prepare_geometry(source: Path, root: Path, legacy_root: Path | None,
     }
 
 
-def collect_geometry(context: dict[str, Any], output: Path, report: Path) -> None:
-    """Put the candidate and its receipt where the caller asked for them.
+def prepare_staged_mesh(options: dict[str, Any]) -> dict[str, Any]:
+    """Work out the real-world height a named size means, before Blender runs.
 
-    The launcher writes into its own attempt directory and will not be told
-    otherwise, which is deliberate: attempts stay beside the settings that
-    produced them. Copying rather than moving keeps that record intact while
+    The size is a landmark on a person rather than a number of metres, because
+    that is the question an artist can answer. Resolving it here means an
+    unknown one is refused in the caller's own terms rather than inside a
+    Blender process whose stderr somebody has to go and read.
+    """
+    size = options.get("size")
+    if not size:
+        raise StageError(
+            "Staging a mesh needs its real size: say where it comes up to on a person "
+            "with --size, for example --size knee.")
+    try:
+        resolved = resolve_height(str(size), float(options.get("size_adjust") or 1.0))
+    except HumanScaleError as problem:
+        raise StageError(str(problem)) from problem
+    return {
+        "arguments": ["--height-m", repr(resolved["height_m"]), "--size", resolved["size"]],
+        "payload": {"scale": resolved},
+    }
+
+
+def prepare_reduction(source: Path, output: Path, options: dict[str, Any],
+                      blender: str | None = None) -> dict[str, Any]:
+    """Claim an attempt directory for a reducer that refuses to overwrite one.
+
+    Attempts are kept rather than replaced, for the same reason generation
+    attempts are: a rejected reduction and the settings that produced it are
+    the record of what was tried, and the next budget is chosen by reading it.
+    """
+    output = Path(output).resolve()
+    for number in range(1, 1000):
+        attempt = output.parent / "{0}-reduction-attempt{1:03d}".format(output.stem, number)
+        if not attempt.exists():
+            break
+    else:
+        raise StageError("There are already 999 reduction attempts beside {0}".format(output))
+
+    arguments = ["-InputMesh", str(Path(source).resolve()), "-OutputDirectory", str(attempt)]
+    if blender:
+        # Otherwise the launcher finds its own, which may not be the Blender
+        # the studio named -- a difference nothing in a receipt would show.
+        arguments += ["-Blender", str(blender)]
+    for flag, name in (("-TriangleBudget", "triangle_budget"),
+                       ("-WeightFactor", "weight_factor"),
+                       ("-MaximumP99M", "maximum_p99_m"),
+                       ("-MaximumMaxM", "maximum_max_m")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {
+        "arguments": arguments,
+        "produced": {
+            "output": attempt / "feature-qem-candidate.glb",
+            "report": attempt / "reduction-report.json",
+        },
+        "payload": {"attempt_directory": str(attempt)},
+    }
+
+
+def collect_produced(produced: dict[str, Path], output: Path, report: Path) -> None:
+    """Put what a launcher wrote where the caller asked for it.
+
+    These launchers write into their own attempt directories and will not be
+    told otherwise, which is deliberate: an attempt stays beside the settings
+    that produced it. Copying rather than moving keeps that record intact while
     still answering the caller in the terms it asked the question.
     """
-    for produced, destination in ((context["candidate"], output), (context["receipt"], report)):
-        if not Path(produced).is_file():
+    for key, destination in (("output", output), ("report", report)):
+        source = Path(produced[key])
+        if not source.is_file():
             raise GeometryStageError(
-                "The run reported success but did not write {0}".format(produced))
+                "The run reported success but did not write {0}".format(source))
         Path(destination).parent.mkdir(parents=True, exist_ok=True)
-        shutil.copyfile(produced, destination)
+        shutil.copyfile(source, destination)
 
 
 def tail(text: str, lines: int = 20) -> list[str]:

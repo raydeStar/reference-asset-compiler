@@ -25,7 +25,7 @@ A studio never re-runs a gate, re-derives a verdict, or upgrades a claim. If it
 needs a stronger claim than a receipt makes, the answer is a new compiler stage,
 not a second opinion downstream.
 
-## The five things a studio consumes
+## The six things a studio consumes
 
 ### 1. Skeleton profiles
 
@@ -183,10 +183,54 @@ reports which of `legacy-root`, `geometry-environment`, `hunyuan-checkout` and
 `runners` are missing, by name, so a studio refuses with a reason rather than
 queueing work it could never finish.
 
-A candidate is not a payload. Turning one into something a browser can load is
-the `browser-payload` stage above, run on the candidate, which is why the two
-are separate stages rather than one: the mesh a generator produced and the file
-a browser loads are different artifacts with different review.
+A candidate is not a payload, and it is not a runtime mesh either. What a
+generator produces is dense: the Trial Lantern arrived at 2,380,114 triangles,
+and exporting that straight to a payload gave a 198 MB file no browser should
+be asked to load. Two stages sit between:
+
+```
+rac run-stage stage-mesh  --source <candidate.glb> --output <staged.blend>  --report <r.json> --size knee [--size-adjust 0.85]
+rac run-stage reduce-mesh --source <staged.blend>  --output <runtime.glb>   --report <r.json> [--triangle-budget 20000]
+```
+
+### 6. Real size, said the way a person can judge it
+
+`stage-mesh` exists because a generator normalises: whatever it makes arrives
+about two metres tall, a lantern exactly as much as a person. That matters more
+than it sounds, because `reduce-mesh` measures surface deviation in **absolute
+metres** — and the same lantern, the same settings and the same reduction were
+*rejected* at 1.99 m (p99 5.6 mm, max 217 mm) and passed comfortably at 0.42 m
+(p99 1.03 mm, max 2.03 mm). A millimetre gate against an arbitrarily scaled
+mesh is not measuring the asset.
+
+Asking for metres is the obvious fix and the wrong one: almost nobody can say
+whether a trial lantern is 0.3 m or 0.45 m, and a number invented to get past a
+prompt is worse than none. People are good at a different question — standing
+next to it, where does it come up to? So `--size` is a landmark on a person
+(`ankle`, `mid-calf`, `knee`, `mid-thigh`, `hip`, `waist`, `chest`, `shoulder`,
+`eye`, `head`, `overhead`) and `--size-adjust` covers "a bit under the knee"
+without inventing a landmark every few inches. The landmarks are fractions of
+stature against a declared reference height, so a production working at a
+different reference changes one number rather than a table, and the receipt
+records the landmark, the adjustment and the reference — not only the metres.
+
+A stage with no size refuses. It does not guess, because a guessed size
+silently invalidates every measurement after it.
+
+`reduce-mesh` collapses to a runtime budget and measures what that cost, with
+the V1 cohort contract as the target: no more than 15,000 vertices and 20,000
+triangles. It reports `mechanical_pass`, never approval — `production_grade` is
+false and `requires_fixed_view_review` is true in every receipt it writes,
+because low surface error can still leave a silhouette an artist rejects.
+Attempts are numbered and never overwritten, so a rejected reduction stays
+beside the settings that produced it and the next budget is chosen by reading
+it rather than by guessing again.
+
+Turning the result into something a browser loads is the `browser-payload`
+stage above, run on the runtime mesh. The four are separate stages rather than
+one because the mesh a generator produced, the mesh at its real size, the mesh
+at a runtime budget and the file a browser loads are different artifacts with
+different review.
 
 ## Skeleton fingerprint
 

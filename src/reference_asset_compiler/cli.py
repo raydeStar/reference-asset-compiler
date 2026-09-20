@@ -101,6 +101,13 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--octree-resolution", type=int, choices=(256, 384, 512),
                        help="Geometry octree resolution (default: 512)")
     stage.add_argument("--chunks", type=int, help="Geometry chunks, 1000..50000 (default: 20000)")
+    stage.add_argument("--size", help="Real size as a landmark on a person, e.g. knee, waist, head")
+    stage.add_argument("--size-adjust", type=float,
+                       help="Nudge the named size, e.g. 0.85 for a little under it")
+    stage.add_argument("--triangle-budget", type=int, help="Runtime triangle budget for reduction")
+    stage.add_argument("--weight-factor", type=float, help="How much reduction protects detail")
+    stage.add_argument("--maximum-p99-m", type=float, help="Reduction p99 surface deviation ceiling")
+    stage.add_argument("--maximum-max-m", type=float, help="Reduction maximum surface deviation ceiling")
     stage.add_argument("--repo-root", type=Path,
                        help="Pipeline checkout; required outside a source installation")
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
@@ -223,6 +230,12 @@ def main(argv: list[str] | None = None) -> int:
                     "steps": args.steps,
                     "octree_resolution": args.octree_resolution,
                     "chunks": args.chunks,
+                    "size": args.size,
+                    "size_adjust": args.size_adjust,
+                    "triangle_budget": args.triangle_budget,
+                    "weight_factor": args.weight_factor,
+                    "maximum_p99_m": args.maximum_p99_m,
+                    "maximum_max_m": args.maximum_max_m,
                 })
             print_payload(payload)
             return 0 if payload["ok"] else 1
