@@ -65,6 +65,10 @@ STAGES: dict[str, dict[str, Any]] = {
         "options": ("size", "size_adjust"),
         "prepare": "staged-mesh",
         "needs": ("blender",),
+        # A .blend, not transport: the reduction stage opens one and is right
+        # to insist, because glTF may split shared vertices at face-corner
+        # normals and is not an editable topology authority.
+        "output_suffix": ".blend",
         "summary": "Give a generated mesh its real size, as a .blend a reviewed stage can open.",
         "produces": "reference-asset-compiler.staged-mesh.v1",
     },
@@ -124,6 +128,10 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             "options": list(stage.get("options", ())),
             "available": not missing,
             "missing": missing,
+            # What this stage writes. A consumer chaining stages has to name
+            # the file before the stage runs, and a staged mesh is a .blend
+            # where everything else is a .glb.
+            "output_suffix": stage.get("output_suffix", ".glb"),
         }
         if "size" in stage.get("options", ()):
             # The vocabulary belongs here, with the table that turns a landmark
