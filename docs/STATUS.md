@@ -2,7 +2,7 @@
 
 *Type: reference*
 
-Last updated: 2026-09-11. This file holds the current state only and is
+Last updated: 2026-09-16. This file holds the current state only and is
 rewritten in place. History is in [HANDOFF.md](HANDOFF.md) (append-only,
 dated); failures and retained lessons are in [DECISIONS.md](DECISIONS.md);
 scoped open work is in [AGENT_TASKS.md](AGENT_TASKS.md). The stage names below
@@ -12,6 +12,118 @@ Every `work/`, `out/` and `output/` path here is on the development workstation
 and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
+
+## Stillwater lakeside village (Three.js demo, outside the UE cohort)
+
+Finished showcase video: `out/stillwater-showcase-2026-09-16/Stillwater-showcase-1080p.mp4`.
+23.5 seconds / 1920 × 1080 / 30 FPS / 705 frames / silent H.264 fast-start MP4,
+28,113,175 bytes. SHA-256:
+`3e4f73d3d11973bf1c819d03c6c724016676c3ffa01f3f5300119b6546ddb21e`.
+An optional cover JPEG is alongside it. Actual Three.js browser renders show
+the finished world, supplied source, cabin rotation, real wireframe/reference
+controls and a shortened four-stage workflow. Capture automation is under
+`apps/lakeside-village/video/`; evidence under
+`work/lakeside-village/evidence/showcase-video-v1/`. All 705 frames decode with
+constant timing; moving segments contain no repeated frames. Browser playback
+completed in 23.508 seconds with no stalls/errors (1 reported dropped playback
+frame). No site deployment or LinkedIn posting occurred for this video task.
+
+Companion thumbnail: `out/stillwater-showcase-2026-09-16/Stillwater-thumbnail-1080p.jpg`
+(1920 × 1080, 530,220 bytes), with original generated PNG and saved prompt alongside.
+This is an AI-composed promotional image based on actual world and wireframe
+captures, with enhanced sunset lighting and typography; it is not an unaltered
+browser screenshot. The original video cover remains available.
+
+Published showcase: **https://markbhall.dev/stillwater/**, deployed through the
+existing `raydeStar/markbhall.dev` GitHub Pages site. Latest site commit:
+`185c150a4edde6a2fe8896381885af9f04c1508e`; successful deployment run
+`35014189812`. The main website links to Stillwater from its shared navigation
+(including mobile) and a screenshot feature above Latest writing. The showcase
+has a 1200 × 627 real-scene social card with Open Graph and Twitter metadata.
+The page identifies Reference Asset Compiler, credits Mark Hall
+and Codex, explains the reference/geometry/cleanup/paint/assembly workflow, and
+links to this public repository and its pipeline/playbook. It distinguishes
+the compiler's verification role from AI generation and the browser presentation.
+
+The public release has 60 files / 68,302,900 bytes. Every actual public HTTP
+response matched the published file's SHA-256, including all seven accepted
+original GLBs, seven smaller browser derivatives and social/homepage images.
+Homepage HTML and committed stylesheet bytes also match. Desktop and 375px
+layouts, all seven selections, independent inspector orbit, wireframe, original
+download destinations and on-demand references passed; the public scene loads
+7/7 with no console errors. LinkedIn Post Inspector redirects to sign-in;
+the user chose to handle LinkedIn manually. Its preview refresh is unverified;
+no LinkedIn post was created.
+
+The browser derivatives use 1024px WebP textures: 32,468,236 original GLB bytes
+become 12,504,896 runtime bytes. All non-image buffer bytes, mesh/accessor/node
+definitions and material parameters are independently verified unchanged.
+Originals remain the full-resolution download authorities. Thumbnails total
+56,560 bytes; the homepage teaser is 52,442 bytes. The inspector reuses the scene
+library, initializes when visible, and offscreen panels stop rendering.
+
+A controlled local 2 Mbps / 150 ms, no-cache, gzip transfer pass at a 375px
+viewport measured 51,636,362 -> 11,350,757 wire bytes; full scene readiness
+222.531 -> 53.782 seconds. The new poster arrives in 2.282 seconds, before
+the interactive world is ready. Measurements use server-observed wall time on
+the desktop GPU, not a physical phone or CPU throttle. Before/after used the
+same navigation-then-resize procedure; a separate fresh mobile reload proves
+the inspector has no canvas until scrolled into view. Evidence:
+`work/lakeside-village/evidence/performance-v1/`; prior publication evidence:
+`work/lakeside-village/evidence/pages-2026-09-15/`.
+
+Editable local scene and independent asset inspector:
+`apps/lakeside-village/`, served at `http://127.0.0.1:5178/`.
+Run `apps/lakeside-village/start.ps1` to reopen from source. The static build is
+`apps/lakeside-village/dist/`; fonts, models and images are bundled locally.
+Preserved pre-publication bundle: `out/stillwater-threejs-cleanup-v3-2026-09-15.zip`
+(60,330,214 bytes; SHA-256
+`194360d28fb2e475a10d86ca030cd8fc27d1b8012da95bfe76d830e1f4c60e2f`).
+The original and composition-v2 bundles remain preserved.
+
+Seven separate reference-conditioned AI assets: timber cabin, round cottage,
+pine tree, dock, rowboat, shore stones, and barrel/crate supplies. Each has a
+downloadable textured GLB. The scene has orbit controls, three camera presets,
+reflective animated water and gently moving boats. The second viewport supports
+independent orbit/zoom, auto rotation, wireframe and source-reference inspection.
+
+Ayric explicitly accepted all seven delivered assets on 2026-09-15; the hash-bound
+receipt is `work/lakeside-village/evidence/user-asset-acceptance-2026-09-15.json`.
+The composition pass reshapes the inlet and foreground path, adds forest density,
+low ground cover, warm porch lights and chimney smoke, and calms water reflections.
+Scene tree instances have narrower X/Z scales; original GLBs and inspector
+geometry retain their accepted proportions. **Reference view** is the default and restores the saved position,
+target, FOV and zoom after exploration. It interprets the supplied composition;
+fine pine branches, mountain detail and painterly clouds remain differences.
+Scene-pass evidence: `work/lakeside-village/evidence/composition-v2/`.
+
+Final cleanup: all 188 trees are seated by their root area against the rendered
+terrain, preserving their horizontal arrangement. Both dock landings now overlap
+dry ground; independent rays through actual planks and terrain measure 3.3/3.6 cm
+surface gaps. The left dock moved toward its bank, with its boat given clearance.
+Dock approaches are cleared, cabin lights softened, and mountain ridges varied.
+Evidence: `work/lakeside-village/evidence/cleanup-v3/`; CPU diagnostic:
+`apps/lakeside-village/audit_placement.mjs`. The seven accepted GLBs remain unchanged.
+
+Evidence and exact hashes: `apps/lakeside-village/asset-manifest.json` and
+`work/lakeside-village/evidence/`. All seven actual browser GLBs passed the
+artifact audit: 247,795 unique triangles, complete UVs and embedded albedo,
+maximum symmetric triangle-center difference from the UV inputs
+`6.956712961492162e-7`. The served painted tree has one connected component.
+The user's floating-tree correction removed 92 detached fragments / 101
+triangles; rejected geometry and the cancelled pre-inference paint plan remain.
+
+Original authorities and receipts: `work/lakeside-<asset-id>/`.
+Texture authority is `paint-v1/painted.glb`, except tree `paint-v2/painted.glb`.
+Ayric explicitly delegated this demo's visual reviews; hash-bound receipts are
+under each asset's `demo-reviews/`. These are demo judgments, not a certification
+of the UE production contracts. The formal workspaces have `generate_candidates`
+recorded; further Three.js work is documented separately from UE ledger stages.
+
+The painter repeatedly returned Windows exit `-1073741819` after writing its
+final success message and geometry/UV report. All seven retained artifacts were
+independently loaded and rendered from four views. No crashed inference was
+retried, and clean process exit is not claimed. No inference remains running.
 
 ## Ledger cohort (`configs/v1-cohort.json`)
 

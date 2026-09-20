@@ -647,3 +647,54 @@ a short bounded retry of that rename for Windows access/sharing errors, checking
 each time that the destination is still absent. It never retries the compiler
 or inference. A new fixture passed the complete route and refusal checks; the
 original staging directory remains evidence of the failure.
+
+## 2026-09-15 — Browser scene memory, tree debris, and painter exit evidence
+
+- Include the running Three.js preview in GPU ownership accounting. It can use
+  enough VRAM to make the 21-GiB paint preflight refuse a launch. Release this
+  task's render context before the next paint job; preserve other desktop apps.
+- A valid GLB export does not prove it lacks disconnected geometry. The user's
+  tree screenshot exposed 92 detached fragments left by acquisition/reduction.
+  Check components, retain the rejection, and prove the cleaned final painted
+  GLB still has one connected trunk/crown after merging UV-only vertex splits.
+- Blender export validation removed degenerate faces after decimation; report
+  triangle counts from the exported GLB, not from the pre-export mesh object.
+- This Windows painter emitted valid reports and GLBs before repeated native
+  access-violation exits. Record process failure and artifact validation as
+  separate facts. Independently load/render/compare the saved payload, preserve
+  the execution receipt, and do not claim a clean run or silently rerun inference.
+## 2026-09-15 — Scene grounding is separate from mesh validity
+
+A clean, connected tree mesh can still appear to float when its lowest root tip
+is placed at a single analytic terrain height. Seat the root area against the
+rendered triangles after instance scale and rotation. A dock position can also
+become stale when the shore changes; bind the landward plank surface to the
+shore and verify actual deck/terrain overlap. Keep the accepted mesh unchanged.
+Use independent random seeds for object groups so environment dressing edits
+do not unexpectedly move every tree and invalidate placement evidence.
+
+## 2026-09-15 — Measure the initial transfer before changing model loading
+
+Stillwater's inspector already reused the scene's model library. There was no
+second eager download of seven GLBs to eliminate. The original thumbnail strip
+instead loaded roughly 16.3 MB of source PNGs. Small WebP thumbnails and 1K
+texture derivatives reduced the controlled initial wire transfer from 51.6 to
+11.4 MB while every geometry/UV/normal buffer remained byte-identical. Preserve
+the accepted original download authorities and bind derivatives to their hashes.
+
+The in-app browser exposed viewport control but no network-throttle capability.
+A local aggregate bandwidth server made the before/after comparison repeatable;
+use its wall-clock milestone receipts, because hidden-tab performance timestamps
+in an early probe did not reflect actual transfer duration. A viewport override
+applied after navigation can already have initialized desktop-visible panels.
+Reload after setting mobile dimensions to verify deferred renderer creation.
+
+## 2026-09-16 — Deterministic capture is separate from real-time playback
+
+For the Stillwater short, advance the actual scene at fixed 1/30-second steps
+and encode browser frames at 30 FPS. A slow capture must not slow the film or
+create duplicate motion frames. Validate the encoded timestamps and decoded
+frames separately from the browser's playback-quality counters. Reframe the UI
+only in the private capture context; keep scene and asset authorities unchanged.
+Vite can inject the app stylesheet after head styles, so apply capture overrides
+after the app has loaded and inspect representative frames before rendering.

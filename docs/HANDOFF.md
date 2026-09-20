@@ -3162,3 +3162,322 @@ asset sources, recipes, profiles, pinned model runners and approval receipts
 were not modified. The separate checkout owning local `main` stays untouched.
 The user's other workload retained the GPU throughout; no inference or actual
 asset visual/runtime review was performed.
+
+## 2026-09-15 — Stillwater Three.js lakeside scene and individual asset viewer
+
+Ayric requested a break from benchmarking, explicitly granted GPU use, selected
+Three.js instead of UE, and asked for independently built assets plus a second
+orbit panel. Source: `work/lakeside-village/references/scene-original.png`.
+Later consent: “Yes—review the assets and finish the demo for me,” in response
+to the explicit modeling/topology/texture delegation question. No human visual
+inspection is claimed in the agent review receipts.
+
+Delivered `apps/lakeside-village/`: seven textured downloadable GLBs, composed
+forest village, two independent cameras, click selection from scene or thumbnails,
+wireframe, auto rotation, reference dialogs, three scene viewpoints, animated
+water/boats, and a stacked narrow-screen layout. The static build is `dist/`;
+local service is `http://127.0.0.1:5178/`. `start.ps1` reopens the source app.
+All runtime dependencies, including fonts, are local. Prompts and the runtime
+asset manifest are retained beside the app. Generated binaries remain ignored.
+
+Acquisition: built-in image generation conditioned each isolated object reference
+on the supplied scene. Pinned Hunyuan3D-2 single-view geometry: seed 42, steps 30,
+octree 512, chunks 20000. All seven generation runs completed. Original dense
+meshes remain under each `work/lakeside-<id>/candidates/`. Blender 5.2.1 made
+browser review derivatives and Smart UV layouts; the pinned Hunyuan3D-Paint 2.1
+wrapper generated 6-view, 512-resolution materials. A separately generated
+forest-floor bitmap conditions the terrain material. No manual Blender substitute
+for the reference-derived AI objects was used; terrain, sky, water and placement
+are Three.js environment construction.
+
+User correction: floating tree shards were real mesh debris. The initial tree
+had 93 components. `repair_tree.py` removed 92 detached components / 101 triangles,
+preserved the connected trunk/crown, and retained `rejected-floating-fragments.glb`.
+Clean tree: `modeling-clean-v2/mesh.glb`; UV `uv-v2`; paint `paint-v2`. The stale
+`paint-v1` plan has a cancellation receipt and was refused before inference.
+
+Every painter wrote valid output and its final success message, then exited
+`-1073741819`. Receipts record `clean_process_exit: false`; the faulting module
+and root cause were not proven. None was re-run. All seven actual GLBs were
+independently reimported/rendered from four sides and audited against their UV
+inputs before delivery. The dock's first preflight also refused insufficient
+free VRAM while the scene was rendering. Navigating the browser to static review
+sheets released its GPU allocation; the next launch proceeded. This was a
+pre-inference refusal, not a crashed-inference retry. Spotty internet produced
+Hugging Face lookup failures; existing complete local model caches were used.
+
+Verification: initial repository `scripts/verify.ps1` passed 351 tests / 109
+subtests, Ruff, 158 parsed stage files and isolated wheel/CLI checks. App changes
+passed `npm run build`. `audit_assets.py` passed all seven served GLBs: 247,795
+unique triangles, complete UVs/embedded albedo, preserved triangle counts,
+symmetric triangle-center delta <= 6.956712961492162e-7, and one connected
+component in the final painted tree. Browser checks on the static build covered
+all selections, independent orbit, wireframe, scene picking, camera presets,
+reference modal, animation toggles and the 425px stacked layout. Fresh narrow
+browser console errors: zero. Evidence: `work/lakeside-village/evidence/` and
+`apps/lakeside-village/asset-manifest.json`.
+
+The seven formal workspaces record `generate_candidates`; scoped demo review
+receipts live in `demo-reviews/`. UE production approvals, import and cook were
+not fabricated or attempted. Existing cohort, other creative apps and benchmark
+processes were preserved. No model inference remains running.
+
+Final delivery: HTTP-downloaded bytes for all seven GLBs matched the recorded SHA-256 hashes (work/lakeside-village/evidence/http-assets.json). Helper Ruff checks and git diff whitespace checks passed. Static bundle: out/stillwater-threejs-2026-09-15.zip, 60,326,563 bytes, SHA-256 27d5ee219c780714e94f69a03eae77173d5b500303636a7f34cf5653d1cad92b. Live static preview remains running on port 5178; no repository publication was requested or performed.
+
+## 2026-09-15 — Stillwater composition pass and explicit asset acceptance
+
+Ayric accepted all seven delivered assets (including the stylized pine) and
+asked to move the scene closer to the original artwork, with a button that
+returns to that composition. The exact accepted GLB hashes are preserved in
+`work/lakeside-village/evidence/user-asset-acceptance-2026-09-15.json`.
+No acquisition, texture inference, Blender model replacement or UE gate change
+was needed. The downloadable GLBs and independent inspector retain their
+accepted geometry and materials.
+
+Scene staging now uses a rounded inlet with an uneven shoreline, a winding
+foreground footpath, smaller clustered shore stones, denser forest borders,
+slimmer scene tree instances (X/Z 0.65-0.67), grass, fern-like ground cover and
+small flower flecks. Calm water normals replace the repeated broad waves.
+Cloud bands, warm porch lights and chimney smoke provide more of the original
+sunset mood. Smoke origins are derived from the accepted cabin meshes' highest
+vertices. The appearance remains stylized; fine branches, mountain detail and
+painterly clouds are still interpretation gaps rather than claimed matches.
+
+The old The shore button is now Reference view. Initial arrival and the button
+share the same pose: position [6,13,64], target [0,-3,-18], FOV 49, zoom 1.
+Preset transitions flush OrbitControls momentum and interpolate the lens too.
+Free exploration clears the active preset indicator. Inspector controls remain
+independent. Water, boat, smoke and hearth animation share the pause switch.
+
+Validation: production Vite build passed (only the existing Three.js chunk-size
+warning), git diff whitespace check passed, and all seven actual HTTP-served
+GLBs matched the accepted manifest hashes. Browser checks verified exact saved
+camera pose restoration after orbit/zoom and other presets, unchanged world
+pose during inspector drag/wireframe, all three camera views, resumed animation,
+425px stacked layout with the longer button label, and no console errors.
+Screenshots and browser/HTTP receipts: `work/lakeside-village/evidence/composition-v2/`.
+The live static preview remains at http://127.0.0.1:5178/, Reference view selected.
+
+Versioned bundle: `out/stillwater-threejs-composition-v2-2026-09-15.zip`,
+60,329,322 bytes; SHA-256
+`270cfa494e959913be0a9ae70cf9de8305662d015171b68aa4ac9d2f54bb40cf`.
+The initial scene ZIP and earlier evidence remain preserved. No commit or
+publication was requested or performed.
+
+## 2026-09-15 — Stillwater final placement cleanup
+
+Ayric requested a final aesthetic pass and reported a floating tree plus the
+left dock detached from shore. The accepted seven asset files were preserved.
+The CPU placement diagnostic loads the real GLB geometry and executes the
+current layout, excluding texture decoding and browser rendering. Its before
+report showed why the root-tip bounding-box placement could leave the broader
+root area hovering. All 188 trees now seat that area 7 cm into the actual rendered
+terrain. Their X/Z positions are unchanged; separate population seeds prevent
+future ground-cover edits from reshuffling the forest.
+
+Both docks now derive their landward endpoints from the shoreline. An area-weighted
+horizontal-triangle histogram identifies the broad plank surface; its elevation
+is aligned with the bank. The left dock moved from X=-16 to X=-19.90182, and its
+boat moved clear. The foreground dock retained its familiar position. Independent
+rays intersect real land and deck geometry at both joins, with surface gaps
+0.032884 m and 0.035774 m. Approaches have ground cover and stones cleared.
+Mountain silhouettes gained subtle relief/color variation; porch lights were
+softened from intensity 26 to 18. No mesh acquisition or texture inference ran.
+
+Validation: all 188 root-area gaps measured -0.07 m within 1e-5; all tree X/Z
+positions match the before report; both dock joins have actual deck/land overlap
+and less than 8 cm elevation difference; all seven accepted GLB hashes are
+unchanged. Vite build and whitespace checks passed (existing chunk-size warning
+only). Browser review confirmed both dock joins, tree grounding, the nearby
+boat clearance and a working independent tree inspector. Evidence, before/after
+reports and screenshots: `work/lakeside-village/evidence/cleanup-v3/`.
+The diagnostic is `apps/lakeside-village/audit_placement.mjs`.
+
+Bundle: `out/stillwater-threejs-cleanup-v3-2026-09-15.zip`, 60,330,214 bytes,
+SHA-256 `194360d28fb2e475a10d86ca030cd8fc27d1b8012da95bfe76d830e1f4c60e2f`.
+Previous bundles remain intact. Local preview stays on port 5178; no publication.
+
+## 2026-09-15 — Stillwater GitHub Pages publication and project showcase
+
+Ayric requested GitHub Pages publication and then clarified that the page must
+showcase this project, explain how the models were made, and link the GitHub
+repository. The existing public site is `raydeStar/markbhall.dev`, served through
+GitHub Pages at `https://markbhall.dev/`. Its clean main checkout was used directly;
+no linked worktree, new account, permissions change or domain change was needed.
+
+Published the curated static runtime at `https://markbhall.dev/stillwater/`.
+Vite now uses relative paths for all runtime images, models and GLB downloads.
+The site contains the seven accepted assets, source references, fonts, licenses
+and a public release manifest. Internal review sheets/pages and workstation
+receipts remain local. Initial publication was site commit `82c2c5b`, run
+`35006651890`; the final showcase is commit
+`cd9086ee5c0eee6b600532bbf647b7de6b318103`, run `35007961538` (success).
+
+The page now identifies Reference Asset Compiler in its header and metadata,
+offers a prominent GitHub button and a How it was made anchor, and credits Mark
+Hall with Codex. A reference-image feature and four-step account describe isolated
+image generation, local Hunyuan3D-2 geometry, Blender cleanup/UV review, and
+Hunyuan3D-Paint 2.1 plus Three.js assembly. A separate project explanation names
+the compiler's normalization, verification and packaging responsibilities,
+links the pipeline/playbook, and states the scope as a browser static-prop demo.
+It does not assert that the formal UE cohort gates passed. Accepted models and
+scene composition remain unchanged.
+
+Validation: Vite and Hugo production builds passed; scoped staged whitespace
+checks passed. All 41 public files (54,694,403 bytes) matched local SHA-256 values,
+including every GLB and the new HTML/CSS/JS. Existing site homepage returned 200.
+Live browser checks passed all seven selections/download destinations, independent
+inspector drag with unchanged world camera, wireframe, pine reference modal,
+and the project-story anchor. Desktop and 425px layouts were visually checked;
+no horizontal overflow or browser console errors. The reference camera remained
+position [6,13,64], target [0,-3,-18], FOV 49, zoom 1. Evidence, public-file audit
+and screenshots are in `work/lakeside-village/evidence/pages-2026-09-15/`.
+
+The site repository is committed and pushed. Main project source/doc changes
+remain in the existing checkout. Previous demo bundles and asset authorities
+are preserved. No inference ran and no creative or benchmark processes were
+stopped. The final Pages tab is retained as the public deliverable.
+
+## 2026-09-15 — Link Stillwater from the main personal website
+
+Ayric requested discoverability from `markbhall.dev`. Added a Stillwater link
+to the shared primary navigation and a homepage feature with an Explore
+Stillwater button above Latest writing. The navigation link remains visible at
+375px, and the feature stacks without horizontal overflow. The published demo
+files and models are unchanged.
+
+Hugo build and scoped whitespace checks passed. Site commit
+`3c90ad1b5f3ad95180eb58d7d2b9509dfcefb77d` was pushed to main; Pages run
+`35009135925` succeeded. Both public links were followed in the browser to the
+demo; the navigation arrival loaded all seven assets. Public homepage and About
+HTML match the local build; the stylesheet exactly matches the committed LF
+bytes (the Windows build copy uses CRLF). Evidence:
+`work/lakeside-village/evidence/pages-2026-09-15/homepage-links.json`.
+
+## 2026-09-15 — Stillwater social card, homepage visual and measured web delivery
+
+Applied the user's supplied showcase feedback to the existing site. Published
+site commit `185c150a4edde6a2fe8896381885af9f04c1508e`; Pages run `35014189812`
+succeeded. The site checkout is clean. The RAC scene source and documentation
+remain in the existing working checkout, preserving earlier dirty work.
+
+The new social card is an actual 1200 × 627 WebGL scene screenshot with a small
+Stillwater title, encoded as a 170,238-byte JPEG. Added absolute Open Graph image,
+type/dimensions/alt text and Twitter large-card metadata. A 52,442-byte 720px WebP
+adds a compact screenshot to the existing homepage feature; its image and CTA
+both link to `/stillwater/`. A 133,512-byte scene poster appears while the world
+loads, with visible loading text and disabled scene controls until readiness.
+The homepage stylesheet uses a content hash to avoid serving the previous layout.
+
+`prepare_web_assets.mjs` verifies the seven accepted original GLB hashes, creates
+browser copies with 1024px WebP textures, and records `web-asset-manifest.json`.
+The original GLBs total 32,468,236 bytes; the runtime copies total 12,504,896.
+Independent binary checks confirm every geometry/UV/normal buffer and mesh,
+accessor, node, scene, sampler and material parameter is unchanged. Full-resolution
+originals remain the download authorities. Seven thumbnail WebPs total 56,560
+bytes, replacing eager use of roughly 16.3 MB of source PNGs. Full reference
+PNGs load only after the reference action. Ground and story preview also use WebP.
+
+The inspector already shared the loaded scene library, so no duplicate model
+fetch existed. It now creates its renderer only when visible or explicitly
+activated; offscreen panels stop rendering. On a fresh 375px mobile reload it
+had zero canvases before scrolling and one afterward. Verified all seven
+selections and original download URLs, wireframe, auto rotation, reset, reference
+modal and independent inspector orbit; the scene camera remained unchanged.
+The Reference view bookmark restores [6,13,64], target [0,-3,-18], FOV 49, zoom 1.
+
+Measured a before/after load through `network_preview.py`: aggregate 2 Mbps,
+150 ms/request latency, gzip text/GLB, no cache, 375px viewport on the workstation
+GPU. Network throttling was not exposed by the browser tool; this is a local
+network simulation, not a physical-phone or CPU-throttled result. Before/after
+used the same navigation-then-resize sequence; mobile initialization was checked
+separately after resizing and reloading. Final server-observed results:
+
+| Measure | Before | After |
+|---|---:|---:|
+| Initial wire bytes | 51,636,362 | 11,350,757 |
+| First model loaded | 109.062 s | 15.485 s |
+| Complete interactive scene | 222.531 s | 53.782 s |
+| Scene poster visible | absent | 2.282 s |
+
+The first model-loaded milestone is not the fully interactive view; the poster
+remains until loading completes. Slow-network full interactivity still takes
+about 54 seconds. An initial after-run independently gave 53.515 seconds.
+The reporting probe runs only on the local test server and is absent from the
+published bundle. No third-party analytics or new inference was introduced.
+
+Validation: Vite and Hugo production builds, staged whitespace checks, derivative
+audit and desktop/375px visual checks passed. All 60 Stillwater public files
+(68,302,900 bytes), homepage HTML and committed stylesheet matched public HTTP
+SHA-256 values. The live page loads 7/7, hides the poster and has no console
+errors. LinkedIn Post Inspector redirected to sign-in; the user clarified that
+they will handle LinkedIn manually. No post was created and no inspector refresh
+is claimed. The Open Graph JPEG itself returns 200 with the exact expected bytes.
+
+Evidence and captures: `work/lakeside-village/evidence/performance-v1/` includes
+the preserved baseline, before/after reports, geometry audit, social screenshot
+sources, homepage/inspector captures, UI checks and `public-files.json`. All
+temporary test servers/tabs were stopped; the user's original local preview
+and public deliverables remain. No benchmark or creative applications were stopped.
+
+## 2026-09-16 — Finished Stillwater short showcase video
+
+User requested an actual 18–25-second 1080p MP4 for a manually authored LinkedIn
+post, emphasizing the reference → assets → inspection → interactive-world story.
+Inspected the live website in Chrome on the RTX 4090, compared the cabin,
+round cottage and rowboat, and selected the timber cabin for its readable porch,
+roof and chimney. All seven live assets loaded and the page had no errors.
+
+Delivered `out/stillwater-showcase-2026-09-16/Stillwater-showcase-1080p.mp4`:
+23.5 seconds, 1920 × 1080, 30 FPS, 705 frames, H.264 High / yuv420p, fast-start,
+28,113,175 bytes, silent. SHA-256:
+`3e4f73d3d11973bf1c819d03c6c724016676c3ffa01f3f5300119b6546ddb21e`.
+An optional 1080p cover JPEG is extracted from the finished video.
+
+Shot order: lake opening with the requested small title; supplied reference and
+seven isolated object references; closer village view; cabin rotation; 1.2 seconds
+of actual wireframe; source/model comparison via the Reference control; four
+workflow stages; return to the lake with project/URL text and clean fade. The
+workflow paragraphs are summarized and existing UI reframed for 1080p. There is
+no browser chrome, cursor, loading footage, stock footage, generated filler,
+music, voiceover or fake terminal. The GLB audit caption is bound to existing
+demo geometry/UV/material evidence, not a UE production-readiness claim.
+
+`apps/lakeside-village/video/` contains inspection, local capture CSS/director,
+rendering, full-file verification and browser playback scripts. A private local
+Vite transform appends the director in memory and advances the actual Three.js
+world and camera by exactly 1/30 second for each screenshot. FFmpeg encodes the
+705 frames; output timing does not depend on capture speed. The main scene source
+remains hash `7c5c4f5fb099fbe3947042b823fd72950f0ea5b48c1969ea318cc0e7bff332b7`.
+No mesh, material, placement authority or deployed website was changed.
+
+Reviewed shot previews and decoded output frames/contact sheet. Rejected the
+first layout preview because the asynchronously inserted Vite stylesheet overrode
+some capture rules; evidence is retained under `layout-draft-1/`. Adding the
+capture stylesheet after the app stylesheet fixed the world framing. The final
+capture reports seven assets and no page errors. FFprobe and full decode verify
+the format, all 705 frames and constant timestamps. No identical adjacent frames
+occur in the directed camera/rotation segments. MP4 `moov` precedes `mdat`.
+Chrome playback reached the end in 23.508 seconds with no waiting, stalled or
+error events; its playback-quality counter reported one dropped frame out of
+705. Evidence: `work/lakeside-village/evidence/showcase-video-v1/`.
+
+Repository resume verification passed: 351 tests plus 109 subtests, lint,
+158 stage-file syntax checks, wheel build and isolated-wheel contract checks.
+GPU ownership was checked; LM Studio and all unrelated processes were preserved.
+No inference ran. Capture and playback browsers/servers exited cleanly. No
+LinkedIn post or website deployment was performed; upload remains with the user.
+
+## 2026-09-16 — Stillwater companion thumbnail
+
+Created the requested thumbnail with built-in imagegen using the finished video
+cover and actual wireframe inspector capture as inputs. The generated composition
+adds large Stillwater typography, a cabin asset-study inset, URL and enhanced
+sunset lighting. This is promotional artwork based on captures, not an unaltered
+browser screenshot; the actual video and original cover are unchanged.
+
+Saved `out/stillwater-showcase-2026-09-16/Stillwater-thumbnail-v1.png` and an upload
+JPEG `Stillwater-thumbnail-1080p.jpg` (1920 × 1080, 530,220 bytes). The exact prompt
+is retained in `thumbnail-prompt.txt`. Visually reviewed the generated image and
+JPEG for legible, correctly spelled text, framing and recognizable scene/assets.
+No website deployment or LinkedIn posting occurred.
