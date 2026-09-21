@@ -24,6 +24,7 @@ from typing import Any
 from .geometry_stage import (
     GeometryStageError,
     geometry_missing,
+    paint_missing,
     prepare_single_view_request,
     resolve_legacy_root,
 )
@@ -82,6 +83,32 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Collapse a staged mesh to a runtime budget, and measure what that cost.",
         "produces": "reference-asset-compiler.production-retopology-candidate.v1",
     },
+    "uv-unwrap": {
+        "runner": "powershell",
+        "script": "scripts/run_texture_uv_prep.ps1",
+        "arguments": ("source", "output", "report"),
+        "options": ("allow_triangulated_glb",),
+        "prepare": "uv-unwrap",
+        "needs": ("blender",),
+        "output_suffix": ".obj",
+        "summary": "Unfold a mesh onto a map, moving no vertex, so it can be painted.",
+        "produces": "reference-asset-compiler.texture-uv-transport.v1",
+    },
+    "texture": {
+        "runner": "powershell",
+        "script": "scripts/run_hy3d21_texture.ps1",
+        "arguments": ("source", "output", "report"),
+        "options": ("reference", "views", "resolution"),
+        "prepare": "texture",
+        "needs": ("paint-stack",),
+        # The painter's own teardown can fault after it has written everything
+        # and passed its geometry and UV gate. The launcher says so in as many
+        # words -- process health is separate from whether the paint is sound --
+        # so what this stage produced is the verdict, not how its runner died.
+        "verdict": "produced",
+        "summary": "Paint a UV-mapped mesh from its reference image. Needs a GPU with 21 GiB free.",
+        "produces": "reference-asset-compiler.paint-validation.v1",
+    },
 }
 
 
@@ -119,6 +146,11 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # The weights and their environment are a separate install from
             # this checkout, and most machines running the studio have neither.
             missing += [item for item in geometry_missing(root, legacy) if item not in missing]
+        if "paint-stack" in needs:
+            # A second install again: painting has its own environment, its own
+            # upstream checkout and its own weights, and a machine that can
+            # generate geometry often cannot paint it.
+            missing += [item for item in paint_missing(legacy) if item not in missing]
         described = {
             "stage": name,
             "runner": stage["runner"],
@@ -216,6 +248,12 @@ def run_stage(
     elif prepare == "reduction":
         context = prepare_reduction(
             Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
+    elif prepare == "uv-unwrap":
+        context = prepare_uv_unwrap(
+            Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
+    elif prepare == "texture":
+        context = prepare_texture(
+            Path(source), Path(output), options or {}, resolve_legacy_root(legacy_root))
     extra = [str(item) for item in context.get("arguments", ())]
 
     if stage["runner"] == "blender":
@@ -263,12 +301,28 @@ def run_stage(
 
     payload.update(context.get("payload", {}))
 
-    if finished.returncode != 0:
+    # Most stages are judged by their exit code. One is judged by what it left
+    # behind, because its painter can fault during teardown after writing
+    # everything and passing its own gate -- and a run whose promised output
+    # and validated receipt are both on disk did the work, however it died.
+    delivered = bool(context.get("produced")) and all(
+        Path(item).is_file() for item in context["produced"].values())
+    survivable = stage.get("verdict") == "produced" and delivered
+
+    if finished.returncode != 0 and not survivable:
         # The failure travels with the payload. Hunting a log on another
         # machine is not diagnosis.
         payload["stdout_tail"] = tail(finished.stdout)
         payload["stderr_tail"] = tail(finished.stderr)
         return payload
+    if finished.returncode != 0:
+        # Recorded rather than hidden: the next person reading this receipt
+        # should know the process died even though the work stands.
+        payload["ok"] = True
+        payload["runner_exit_code"] = finished.returncode
+        payload["runner_exit_note"] = (
+            "The runner exited abnormally after producing and validating its output.")
+        payload["stderr_tail"] = tail(finished.stderr)
 
     if context.get("produced"):
         try:
@@ -384,6 +438,96 @@ def prepare_reduction(source: Path, output: Path, options: dict[str, Any],
             "report": attempt / "reduction-report.json",
         },
         "payload": {"attempt_directory": str(attempt)},
+    }
+
+
+def _attempt(output: Path, label: str) -> Path:
+    """The next unused attempt directory beside a caller's chosen output.
+
+    These launchers all refuse to overwrite an attempt, for the same reason:
+    a rejected result and the settings that produced it are the record by which
+    the next settings are chosen.
+    """
+    output = Path(output).resolve()
+    for number in range(1, 1000):
+        attempt = output.parent / "{0}-{1}-attempt{2:03d}".format(output.stem, label, number)
+        if not attempt.exists():
+            return attempt
+    raise StageError("There are already 999 {0} attempts beside {1}".format(label, output))
+
+
+def prepare_uv_unwrap(source: Path, output: Path, options: dict[str, Any],
+                      blender: str | None = None) -> dict[str, Any]:
+    """Unfold a mesh onto a map so a painter can read it.
+
+    A generated mesh has no UVs at all: nothing in generation makes them and
+    nothing in reduction keeps them. The painter needs them and says so in the
+    least helpful way available, by failing on a missing attribute deep inside
+    a library, so this runs first and refuses in its own terms.
+    """
+    attempt = _attempt(output, "uv")
+    arguments = ["-InputMesh", str(Path(source).resolve()), "-OutputDirectory", str(attempt)]
+    if blender:
+        arguments += ["-Blender", str(blender)]
+    if options.get("allow_triangulated_glb"):
+        # An already-approved static triangle mesh is accepted as it stands
+        # rather than welded or remeshed, which is what a generated prop is.
+        arguments.append("-AllowTriangulatedGlb")
+    return {
+        "arguments": arguments,
+        "produced": {
+            "output": attempt / "texture-transport.obj",
+            "report": attempt / "uv-transport-report.json",
+        },
+        "payload": {"attempt_directory": str(attempt)},
+    }
+
+
+def prepare_texture(source: Path, output: Path, options: dict[str, Any],
+                    legacy: Path) -> dict[str, Any]:
+    """Everything the painter insists on, including the picture it paints from.
+
+    The painter conditions on the same reference the geometry came from, which
+    is a second input and the only stage here that takes one. Naming it is the
+    caller's job because only the caller knows which picture an asset is of.
+    """
+    reference = options.get("reference")
+    if not reference:
+        raise StageError(
+            "Painting needs the reference image it paints from: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The paint reference does not exist: {0}".format(reference))
+
+    missing = paint_missing(legacy)
+    if missing:
+        raise StageError(
+            "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
+
+    attempt = _attempt(output, "paint")
+    attempt.mkdir(parents=True, exist_ok=True)
+    arguments = [
+        "-Mesh", str(Path(source).resolve()),
+        "-Reference", str(reference),
+        # The launcher insists on an .obj path and derives every other name
+        # from it, including the GLB a browser studio actually wants.
+        "-OutputObj", str(attempt / "painted.obj"),
+        "-LegacyRoot", str(legacy),
+    ]
+    for flag, name in (("-Views", "views"), ("-Resolution", "resolution")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {
+        "arguments": arguments,
+        "produced": {
+            "output": attempt / "painted.glb",
+            "report": attempt / "painted.validation.json",
+        },
+        "payload": {
+            "attempt_directory": str(attempt),
+            "reference": str(reference),
+            "execution_receipt": str(attempt / "painted.execution.json"),
+        },
     }
 
 

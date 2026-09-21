@@ -25,7 +25,7 @@ A studio never re-runs a gate, re-derives a verdict, or upgrades a claim. If it
 needs a stronger claim than a receipt makes, the answer is a new compiler stage,
 not a second opinion downstream.
 
-## The six things a studio consumes
+## The seven things a studio consumes
 
 ### 1. Skeleton profiles
 
@@ -226,11 +226,44 @@ Attempts are numbered and never overwritten, so a rejected reduction stays
 beside the settings that produced it and the next budget is chosen by reading
 it rather than by guessing again.
 
+### 7. Paint, and the map it needs first
+
+A generated mesh has no colour and no UVs. Nothing in generation makes them and
+nothing in reduction keeps them, so the painter fails on a missing attribute
+deep inside a mesh library rather than saying what it wants. Two more stages:
+
+```
+rac run-stage uv-unwrap --source <runtime.glb> --output <transport.obj> --report <r.json> [--allow-triangulated-glb]
+rac run-stage texture   --source <transport.obj> --output <painted.glb> --report <r.json> --reference <image.png> [--views 6] [--resolution 512]
+```
+
+`uv-unwrap` unfolds the mesh onto a map and moves no vertex — the transport it
+writes is checked against the source to within a micrometre, and its report
+carries both hashes. `--allow-triangulated-glb` accepts an approved static
+triangle mesh as it stands rather than welding or remeshing it, which is what a
+generated prop is.
+
+`texture` is the only stage that takes a second input: the same reference image
+the geometry came from, because the paint is conditioned on it. Only the caller
+knows which picture an asset is of, so it is named rather than guessed. The
+painter needs **21 GiB of free VRAM**, refuses face-order, geometry or UV drift
+beyond `1e-6`, and never auto-retries.
+
+It is also the one stage whose exit code is not its verdict. The painter can
+fault during teardown *after* writing its maps and passing its own gate; the
+launcher says so in as many words, that process health is separate from whether
+the paint is sound. So this stage is judged by what it produced, and records
+the abnormal exit rather than hiding it. **No other stage gets that leniency**,
+and the reason is `reduce-mesh`: a rejected reduction writes both a candidate
+and a report and *then* exits nonzero, because that is how it says the collapse
+cost too much. Treating "it produced its files" as success there would deliver
+a rejection as a finished asset.
+
 Turning the result into something a browser loads is the `browser-payload`
-stage above, run on the runtime mesh. The four are separate stages rather than
-one because the mesh a generator produced, the mesh at its real size, the mesh
-at a runtime budget and the file a browser loads are different artifacts with
-different review.
+stage above, run on the painted mesh. The stages are separate rather than one
+because the mesh a generator produced, the mesh at its real size, the mesh at a
+runtime budget, the mesh with a map, the painted mesh and the file a browser
+loads are different artifacts with different review.
 
 ## Skeleton fingerprint
 

@@ -107,6 +107,28 @@ def geometry_missing(repo_root: Path | None, legacy_root: Path | None) -> list[s
     return missing
 
 
+def paint_missing(legacy_root: Path | None) -> list[str]:
+    """What this machine lacks before a paint run could start.
+
+    The painter is a second install from the geometry one, with its own
+    environment, its own upstream checkout and its own weights. A machine can
+    easily have one and not the other, so they are answered separately rather
+    than as one "AI is available" claim that would be wrong half the time.
+    """
+    if legacy_root is None:
+        return ["legacy-root"]
+    missing = []
+    if not (legacy_root / ".venv-hy3d21" / "Scripts" / "python.exe").is_file():
+        missing.append("paint-environment")
+    if not (legacy_root / "scripts" / "run_hy3d21_pbr.py").is_file():
+        missing.append("paint-runner")
+    if not (legacy_root / "upstream" / "Hunyuan3D-2.1").is_dir():
+        missing.append("paint-checkout")
+    if not (legacy_root / "models" / "hy3d21" / "Hunyuan3D-2.1").is_dir():
+        missing.append("paint-weights")
+    return missing
+
+
 def _validated_parameters(overrides: dict[str, Any] | None) -> dict[str, int]:
     parameters = dict(DEFAULT_PARAMETERS)
     for name, value in (overrides or {}).items():

@@ -108,6 +108,11 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--weight-factor", type=float, help="How much reduction protects detail")
     stage.add_argument("--maximum-p99-m", type=float, help="Reduction p99 surface deviation ceiling")
     stage.add_argument("--maximum-max-m", type=float, help="Reduction maximum surface deviation ceiling")
+    stage.add_argument("--allow-triangulated-glb", action="store_true",
+                       help="Accept an approved static triangle mesh for UV unwrapping as it stands")
+    stage.add_argument("--reference", type=Path, help="The image a paint stage paints from")
+    stage.add_argument("--views", type=int, help="Paint views, 6..12 (default: 6)")
+    stage.add_argument("--resolution", type=int, choices=(512, 768), help="Paint resolution (default: 512)")
     stage.add_argument("--repo-root", type=Path,
                        help="Pipeline checkout; required outside a source installation")
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
@@ -236,6 +241,10 @@ def main(argv: list[str] | None = None) -> int:
                     "weight_factor": args.weight_factor,
                     "maximum_p99_m": args.maximum_p99_m,
                     "maximum_max_m": args.maximum_max_m,
+                    "allow_triangulated_glb": args.allow_triangulated_glb or None,
+                    "reference": args.reference,
+                    "views": args.views,
+                    "resolution": args.resolution,
                 })
             print_payload(payload)
             return 0 if payload["ok"] else 1
