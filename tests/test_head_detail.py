@@ -36,6 +36,7 @@ from paint_head_detail import (  # noqa: E402
     head_faces,
     mesh_from_glb,
     rasterize_weights,
+    settle_head_material,
     swap_images,
     write_obj,
 )
@@ -223,6 +224,35 @@ class CompositeTests(unittest.TestCase):
         self.assertEqual(document["buffers"][0]["byteLength"], len(binary))
 
 
+class HeadMaterialTests(unittest.TestCase):
+    def painted(self):
+        # Green is roughness and blue is metallic, as glTF packs them. Skin
+        # texels glossy and a little metallic; cloth texels already rough.
+        pixels = np.zeros((4, 4, 3), dtype=np.uint8)
+        pixels[:2, :, 1] = 77    # skin: roughness 0.30
+        pixels[:2, :, 2] = 104   # skin: metallic 0.41
+        pixels[2:, :, 1] = 235   # cloth: roughness 0.92
+        pixels[2:, :, 2] = 38    # cloth: metallic 0.15
+        return Image.fromarray(pixels, "RGB")
+
+    def test_the_floor_lifts_glossy_skin_and_leaves_rough_cloth_alone(self):
+        settled, before, after = settle_head_material(self.painted(), 0.55, 0.0)
+        out = np.asarray(settled)
+        self.assertEqual(int(out[0, 0, 1]), 140)   # 0.55
+        self.assertEqual(int(out[3, 0, 1]), 235)   # untouched
+        self.assertLess(before[0], after[0])
+
+    def test_a_head_is_not_metal(self):
+        settled, before, after = settle_head_material(self.painted(), 0.55, 0.0)
+        self.assertEqual(int(np.asarray(settled)[..., 2].max()), 0)
+        self.assertGreater(before[1], 0.0)
+        self.assertEqual(after[1], 0.0)
+
+    def test_the_painters_guess_can_be_kept(self):
+        settled, _, _ = settle_head_material(self.painted(), 0.0, -1.0)
+        self.assertTrue(np.array_equal(np.asarray(settled), np.asarray(self.painted())))
+
+
 class PreparationTests(unittest.TestCase):
     def setUp(self):
         self.root = Path(tempfile.mkdtemp())
@@ -240,6 +270,13 @@ class PreparationTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("--atlas") + 1], "4096")
         self.assertEqual(arguments[arguments.index("--head-from") + 1], "0.8")
         self.assertEqual(arguments[arguments.index("--feather") + 1], "0.02")
+
+    def test_the_heads_material_settings_reach_the_stage(self):
+        prepared = prepare_paint_head({"reference": self.reference, "roughness_floor": 0.6,
+                                       "metallic": 0}, self.legacy)
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("--roughness-floor") + 1], "0.6")
+        self.assertEqual(arguments[arguments.index("--metallic") + 1], "0")
 
     def test_without_a_reference_it_refuses(self):
         with self.assertRaises(StageError) as refusal:

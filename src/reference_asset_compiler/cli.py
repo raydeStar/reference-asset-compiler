@@ -148,6 +148,10 @@ def build_parser() -> argparse.ArgumentParser:
                             "(default: 0.78)")
     stage.add_argument("--feather", type=float,
                        help="Blend band above the head cut, as a fraction of height (default: 0.03)")
+    stage.add_argument("--roughness-floor", type=float,
+                       help="The least rough the head paint may leave a texel (default: 0.55)")
+    stage.add_argument("--metallic", type=float,
+                       help="What the head's metallic channel is set to (default: 0; negative keeps the paint's)")
     stage.add_argument("--atlas", type=int, choices=(2048, 4096),
                        help="Paint atlas size. Naming one selects the studio runner, which "
                             "writes lossless maps; unnamed, the legacy runner writes 2048 JPEG")
@@ -309,6 +313,8 @@ def main(argv: list[str] | None = None) -> int:
                     "atlas": args.atlas,
                     "head_from": args.head_from,
                     "feather": args.feather,
+                    "roughness_floor": args.roughness_floor,
+                    "metallic": args.metallic,
                     "target_triangles": args.target_triangles,
                     "voxel_resolution": args.voxel_resolution,
                     "smooth_iterations": args.smooth_iterations,

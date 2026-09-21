@@ -76,6 +76,13 @@ def parse_arguments(argv):
     parser.add_argument("--views", type=int, default=12)
     parser.add_argument("--resolution", type=int, default=768)
     parser.add_argument("--atlas", type=int, default=4096, choices=(2048, 4096))
+    parser.add_argument("--roughness-floor", type=float, default=0.55,
+                        help="The least rough the head paint may leave a texel. The painter guessed "
+                             "0.30 for skin on a ninja, which lit as wet plastic; 0 keeps its guess.")
+    parser.add_argument("--metallic", type=float, default=0.0,
+                        help="What the head's metallic channel is set to. A head is skin, hair and "
+                             "cloth, none of it metal, and the painter guessed up to 0.4 on skin; "
+                             "pass a negative number to keep its guess.")
     parser.add_argument("--crop-margin", type=float, default=0.06,
                         help="Extra around the head band in the reference crop, as a fraction of it")
     parser.add_argument("--launcher", type=Path,
@@ -276,6 +283,27 @@ def blend(body: Image.Image, head: Image.Image, weights) -> Image.Image:
     return Image.fromarray(np.clip(out + 0.5, 0, 255).astype(np.uint8), "RGB")
 
 
+def settle_head_material(metal_rough: Image.Image, roughness_floor: float, metallic: float):
+    """What a head is made of, applied to the painter's guess before it is laid down.
+
+    The painter writes a metallic and a roughness for the head as it does for
+    everything, and on skin it guesses badly: measured on a ninja, skin came
+    out at roughness 0.30 and metallic up to 0.41 while the cloth beside it was
+    0.92 and 0.15. Lit, that is a face of wet plastic. glTF packs roughness in
+    green and metallic in blue; the floor lifts the green where it is below
+    it and leaves rougher texels alone, and the blue is set outright. Returns
+    the image and what the channels averaged before and after.
+    """
+    pixels = np.asarray(metal_rough.convert("RGB"), dtype=np.float32) / 255.0
+    before = (float(pixels[..., 1].mean()), float(pixels[..., 2].mean()))
+    if roughness_floor > 0.0:
+        pixels[..., 1] = np.maximum(pixels[..., 1], roughness_floor)
+    if metallic >= 0.0:
+        pixels[..., 2] = metallic
+    after = (float(pixels[..., 1].mean()), float(pixels[..., 2].mean()))
+    return Image.fromarray(np.clip(pixels * 255.0 + 0.5, 0, 255).astype(np.uint8), "RGB"), before, after
+
+
 def png_bytes(image: Image.Image) -> bytes:
     buffer = io.BytesIO()
     image.save(buffer, format="PNG", optimize=False)
@@ -356,6 +384,11 @@ def main(argv=None) -> int:
                       "Got {0}".format(args.head_from))
     if not 0.0 <= args.feather <= 0.2:
         return failed("feather runs from 0 to 0.2 of the model's height. Got {0}".format(args.feather))
+    if not 0.0 <= args.roughness_floor <= 1.0:
+        return failed("roughness-floor runs from 0 to 1. Got {0}".format(args.roughness_floor))
+    if args.metallic > 1.0:
+        return failed("metallic runs from 0 to 1, or negative to keep the painter's guess. "
+                      "Got {0}".format(args.metallic))
     if not args.launcher.is_file():
         return failed("the paint launcher is missing: {0}".format(args.launcher))
     venv = args.legacy_root / ".venv-hy3d21" / "Scripts" / "python.exe"
@@ -450,11 +483,21 @@ def main(argv=None) -> int:
 
     replacements = {albedo_index: png_bytes(blend(body_albedo, head_albedo, sheet))}
     metal_rough_blended = False
+    material = None
     if metal_rough_index is not None and head_mr_index is not None:
         body_mr = Image.open(io.BytesIO(image_bytes(document, binary, metal_rough_index)))
         head_mr = Image.open(io.BytesIO(image_bytes(head_document, head_binary, head_mr_index)))
         body_mr.load()
         head_mr.load()
+        head_mr, before, after = settle_head_material(head_mr, args.roughness_floor, args.metallic)
+        material = {
+            "roughness_floor": args.roughness_floor,
+            "metallic": None if args.metallic < 0 else args.metallic,
+            "head_paint_roughness_mean": {"before": round(before[0], 4), "after": round(after[0], 4)},
+            "head_paint_metallic_mean": {"before": round(before[1], 4), "after": round(after[1], 4)},
+            "because": "the painter guessed skin at roughness 0.30 and metallic 0.4 on a ninja, "
+                       "which lit as wet plastic; a head is skin, hair and cloth",
+        }
         replacements[metal_rough_index] = png_bytes(blend(body_mr, head_mr, sheet))
         metal_rough_blended = True
 
@@ -501,6 +544,7 @@ def main(argv=None) -> int:
             "atlas_fraction": round(float((sheet > 0).mean()), 4),
             "base_colour_replaced": True,
             "metallic_roughness_replaced": metal_rough_blended,
+            "head_material": material,
             "body_texels": "byte for byte from the body paint outside the head",
         },
         "geometry_unchanged": True,
