@@ -114,6 +114,13 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--samples", type=int, help="Bake quality in samples (default: 64)")
     stage.add_argument("--distance", type=float, help="How far occlusion looks for a shadower, in metres")
     stage.add_argument("--edge-wear", type=float, help="How hard curvature lifts edges in the albedo, 0..1")
+    stage.add_argument("--colour-size", type=int,
+                       help="Longest side for maps that are looked at (default: 2048)")
+    stage.add_argument("--data-size", type=int,
+                       help="Longest side for maps a shader reads as numbers (default: 1024)")
+    stage.add_argument("--quality", type=int, help="Re-encode quality, 1..100 (default: 90)")
+    stage.add_argument("--texture-format", choices=("jpeg", "webp", "png"),
+                       help="jpeg is core glTF; webp is smaller but needs an extension")
     stage.add_argument("--relief-from-paint", type=float,
                        help="Raise the relief somebody painted into a normal map, 0..2")
     stage.add_argument("--assign", action="append",
@@ -270,6 +277,10 @@ def main(argv: list[str] | None = None) -> int:
                     "distance": args.distance,
                     "edge_wear": args.edge_wear,
                     "relief_from_paint": args.relief_from_paint,
+                    "colour_size": args.colour_size,
+                    "data_size": args.data_size,
+                    "quality": args.quality,
+                    "texture_format": args.texture_format,
                     "runtime_derivative": args.runtime_derivative or None,
                     "reference": args.reference,
                     "views": args.views,

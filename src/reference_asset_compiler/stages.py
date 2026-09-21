@@ -88,6 +88,17 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Bake the occlusion and curvature a model's own geometry already implies.",
         "produces": "reference-asset-compiler.derived-maps.v1",
     },
+    "compress-textures": {
+        "runner": "python",
+        "script": "scripts/compress_textures.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("colour_size", "data_size", "quality", "texture_format"),
+        "prepare": "compress-textures",
+        # No Blender and no GPU: it reads image bytes and writes image bytes,
+        # and the file is rewritten chunk by chunk around them.
+        "summary": "Re-encode a model's textures, without touching anything else about it.",
+        "produces": "reference-asset-compiler.compressed-textures.v1",
+    },
     "browser-payload": {
         "runner": "blender",
         "script": "scripts/blender/export_browser_payload.py",
@@ -338,7 +349,9 @@ def run_stage(
     # been accepted is refused before anything is queued.
     context: dict[str, Any] = {}
     prepare = stage.get("prepare")
-    if prepare == "bake-detail":
+    if prepare == "compress-textures":
+        context = prepare_compress_textures(options or {})
+    elif prepare == "bake-detail":
         context = prepare_bake_detail(options or {})
     elif prepare == "survey-surfaces":
         context = prepare_survey_surfaces(options or {})
@@ -384,7 +397,10 @@ def run_stage(
             "-File", str(script), *extra,
         ]
     else:
-        runner = blender or sys.executable
+        # This interpreter, not whatever Blender a caller happened to name. A
+        # studio passes --blender on every call, so a python-run stage would
+        # otherwise be handed to Blender as though it were a .blend.
+        runner = sys.executable
         command = [runner, str(script), "--", *arguments]
 
     started = time.monotonic()
@@ -515,6 +531,21 @@ def prepare_staged_mesh(options: dict[str, Any]) -> dict[str, Any]:
         "arguments": ["--height-m", repr(resolved["height_m"]), "--size", resolved["size"]],
         "payload": {"scale": resolved},
     }
+
+
+def prepare_compress_textures(options: dict[str, Any]) -> dict[str, Any]:
+    """What a re-encode may be told, checked before anything is read.
+
+    Colour and data sizes are separate because they are separate questions: a
+    base colour is looked at, and a roughness or normal map is read as numbers
+    by a shader.
+    """
+    arguments: list[str] = []
+    for flag, name in (("--colour-size", "colour_size"), ("--data-size", "data_size"),
+                       ("--quality", "quality"), ("--format", "texture_format")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {"arguments": arguments}
 
 
 def prepare_bake_detail(options: dict[str, Any]) -> dict[str, Any]:
