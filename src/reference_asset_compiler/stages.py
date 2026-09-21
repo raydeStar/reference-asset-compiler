@@ -82,7 +82,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "blender",
         "script": "scripts/blender/bake_derived_maps.py",
         "arguments": ("source", "output", "report"),
-        "options": ("resolution", "samples", "distance", "edge_wear"),
+        "options": ("resolution", "samples", "distance", "edge_wear", "relief_from_paint"),
         "prepare": "bake-detail",
         "needs": ("blender",),
         "summary": "Bake the occlusion and curvature a model's own geometry already implies.",
@@ -527,7 +527,8 @@ def prepare_bake_detail(options: dict[str, Any]) -> dict[str, Any]:
     """
     arguments: list[str] = []
     for flag, name in (("--resolution", "resolution"), ("--samples", "samples"),
-                       ("--distance", "distance"), ("--edge-wear", "edge_wear")):
+                       ("--distance", "distance"), ("--edge-wear", "edge_wear"),
+                       ("--relief-from-paint", "relief_from_paint")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
     return {"arguments": arguments}

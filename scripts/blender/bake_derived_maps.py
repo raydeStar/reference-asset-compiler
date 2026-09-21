@@ -158,6 +158,64 @@ def wire_occlusion(material, image):
     return texture
 
 
+def blur(plane, radius):
+    """A cheap separable box blur, run three times so it reads as a gaussian."""
+    result = plane
+    for _ in range(3):
+        padded = np.pad(result, radius, mode="edge")
+        totals = np.cumsum(np.cumsum(padded, axis=0), axis=1)
+        totals = np.pad(totals, ((1, 0), (1, 0)), mode="constant")
+        size = 2 * radius + 1
+        rows, columns = plane.shape
+        result = (totals[size:size + rows, size:size + columns]
+                  - totals[0:rows, size:size + columns]
+                  - totals[size:size + rows, 0:columns]
+                  + totals[0:rows, 0:columns]) / (size * size)
+    return result
+
+
+def normal_from_paint(albedo, strength, radius=6):
+    """A surface normal derived from the relief somebody painted.
+
+    This asset was authored as a flat plate with its relief painted on: the
+    matcap pass shows a blade with no flutes, no layers and no edges in the
+    geometry at all, while the colour has all three. Light cannot respond to
+    detail that is not there, which is exactly why such a blade reads flat
+    however it is lit.
+
+    So the paint is read as the relief it was drawn to represent. Only the
+    local part of it: the luminance has its own blurred self subtracted first,
+    because the broad steps between one colour and another are where one
+    material meets another, not where the surface rises, and treating those as
+    height would put a cliff down the middle of every part.
+
+    This is a derivation, not a measurement, and it is the one thing here that
+    can be wrong rather than merely unhelpful -- a painted highlight that was
+    never relief becomes a bump. It is worth doing because the alternative is a
+    flat blade, and it is worth looking at afterwards.
+    """
+    luminance = (0.2126 * albedo[..., 0] + 0.7152 * albedo[..., 1] + 0.0722 * albedo[..., 2])
+    relief = luminance - blur(luminance, radius)
+    # Gradients along the map, which is the direction the surface tilts.
+    dy, dx = np.gradient(relief)
+    normal = np.dstack([-dx * strength * 32.0, -dy * strength * 32.0, np.ones_like(relief)])
+    normal /= np.linalg.norm(normal, axis=2, keepdims=True)
+    encoded = np.clip(normal * 0.5 + 0.5, 0.0, 1.0)
+    return np.dstack([encoded, np.ones_like(relief)]), float(np.abs(relief).mean())
+
+
+def wire_normal(material, image):
+    """Put the normal where both Blender and the glTF exporter read it."""
+    tree = material.node_tree
+    principled = next(n for n in tree.nodes if n.type == "BSDF_PRINCIPLED")
+    texture = tree.nodes.new("ShaderNodeTexImage")
+    texture.image = image
+    mapping = tree.nodes.new("ShaderNodeNormalMap")
+    tree.links.new(texture.outputs["Color"], mapping.inputs["Color"])
+    tree.links.new(mapping.outputs["Normal"], principled.inputs["Normal"])
+    return texture
+
+
 def pixels_of(image):
     return np.asarray(image.pixels[:], dtype=np.float32).reshape(image.size[1], image.size[0], 4)
 
@@ -213,12 +271,16 @@ def main() -> int:
     samples = int(read_option(argv, "--samples", "64"))
     distance = float(read_option(argv, "--distance", "0.08"))
     edge_wear = float(read_option(argv, "--edge-wear", "0"))
+    relief = float(read_option(argv, "--relief-from-paint", "0"))
 
     if resolution not in (512, 1024, 2048):
         print("[BAKE] FAILED: resolution is 512, 1024 or 2048. Got {0}".format(resolution))
         return 1
     if not 0.0 <= edge_wear <= 1.0:
         print("[BAKE] FAILED: edge wear runs from 0 to 1. Got {0}".format(edge_wear))
+        return 1
+    if not 0.0 <= relief <= 2.0:
+        print("[BAKE] FAILED: relief from paint runs from 0 to 2. Got {0}".format(relief))
         return 1
     if not source.is_file():
         print("[BAKE] FAILED: source does not exist: {0}".format(source))
@@ -301,6 +363,28 @@ def main() -> int:
         albedo.pixels = base.reshape(-1).tolist()
         worn = round(float(np.abs(lift).mean()), 4)
 
+    normal_image = None
+    relief_mean = None
+    if relief > 0:
+        albedo = base_colour_image(painted)
+        if albedo is None:
+            print("[BAKE] FAILED: relief from paint needs a base colour image to read")
+            return 1
+        source_pixels = pixels_of(albedo)
+        encoded, relief_mean = normal_from_paint(source_pixels, relief)
+        if relief_mean < 1e-5:
+            # Nothing local in the paint means nothing to raise. Delivering a
+            # flat normal map would cost bytes and change nothing.
+            print("[BAKE] FAILED: this paint has no local detail to raise ({0:.6f}), so a "
+                  "normal derived from it would be flat".format(relief_mean))
+            return 1
+        normal_image = bpy.data.images.new(
+            "baked_normal", albedo.size[0], albedo.size[1], alpha=False, float_buffer=False)
+        normal_image.colorspace_settings.name = "Non-Color"
+        normal_image.pixels = encoded.reshape(-1).tolist()
+        normal_image.update()
+        wire_normal(painted, normal_image)
+
     output.parent.mkdir(parents=True, exist_ok=True)
     # Written to real files before packing. A generated image packs the pattern
     # it was created with rather than what a bake put in its buffer, which is
@@ -308,7 +392,10 @@ def main() -> int:
     # numbers measured off the buffer said it was full of detail.
     beside = output.parent / (output.stem + "-maps")
     beside.mkdir(parents=True, exist_ok=True)
-    for image, name in ((occlusion, "occlusion"), (curvature, "curvature")):
+    made = [(occlusion, "occlusion"), (curvature, "curvature")]
+    if normal_image is not None:
+        made.append((normal_image, "normal"))
+    for image, name in made:
         image.filepath_raw = str(beside / (name + ".png"))
         image.file_format = "PNG"
         image.save()
@@ -350,6 +437,15 @@ def main() -> int:
             "spread": round(float(curved[touched].std()), 4) if touched.any() else 0.0,
         },
         "edge_wear": {"strength": edge_wear, "mean_shift": worn} if worn is not None else None,
+        "relief_from_paint": None if normal_image is None else {
+            "strength": relief,
+            "local_detail": round(relief_mean, 6),
+            "derived_from": "the base colour's local luminance, after its own blurred self "
+                            "is subtracted, so a step between two materials is not read as a cliff",
+            "honestly": "a derivation rather than a measurement. A highlight that was painted "
+                        "and never was relief becomes a bump, which is why this one wants "
+                        "looking at where occlusion and curvature do not.",
+        },
         "geometry_unchanged": True,
         "uvs_unchanged": True,
         "derived_from": "the mesh itself; nothing here was invented or generated",
@@ -358,6 +454,9 @@ def main() -> int:
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    if normal_image is not None:
+        print("[BAKE] relief from paint at {0}: local detail {1:.5f} raised into a normal map".format(
+            relief, relief_mean))
     print("[BAKE] occlusion {0:.3f} where baked, {1:.1%} of the model shaded, {2:.0%} of the "
           "sheet reached; curvature spread {3:.3f}{4}".format(
         report["occlusion"]["mean_where_baked"], report["occlusion"]["shaded_share_of_model"],

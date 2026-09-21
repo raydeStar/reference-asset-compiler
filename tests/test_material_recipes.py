@@ -237,6 +237,22 @@ class DerivedMapStageTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("--distance") + 1], "0.05")
         self.assertEqual(arguments[arguments.index("--edge-wear") + 1], "0.3")
 
+    def test_relief_from_paint_reaches_the_script(self):
+        prepared = prepare_bake_detail({"relief_from_paint": 0.8})
+
+        # The one derivation among measurements. A blade authored as a flat
+        # plate with its relief painted on has nothing in its geometry for
+        # light to catch, and this is what raises what somebody drew.
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("--relief-from-paint") + 1], "0.8")
+
+    def test_relief_is_off_unless_it_is_asked_for(self):
+        # It can be wrong where occlusion and curvature can only be unhelpful:
+        # a painted highlight that was never relief becomes a bump. So it is
+        # never on by accident.
+        self.assertNotIn("--relief-from-paint", prepare_bake_detail({})["arguments"])
+        self.assertNotIn("--relief-from-paint", prepare_bake_detail({"resolution": 1024})["arguments"])
+
     def test_the_stage_writes_into_gltfs_own_occlusion_slot(self):
         stage = STAGES["bake-detail"]
 
@@ -244,7 +260,7 @@ class DerivedMapStageTests(unittest.TestCase):
         self.assertIn("blender", stage["needs"])
         # Transport in, transport out: this adds maps, it does not change form.
         self.assertEqual(stage.get("output_suffix", ".glb"), ".glb")
-        for option in ("resolution", "samples", "distance", "edge_wear"):
+        for option in ("resolution", "samples", "distance", "edge_wear", "relief_from_paint"):
             with self.subTest(option=option):
                 self.assertIn(option, stage["options"])
 

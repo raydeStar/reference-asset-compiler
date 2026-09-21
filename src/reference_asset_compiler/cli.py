@@ -114,6 +114,8 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--samples", type=int, help="Bake quality in samples (default: 64)")
     stage.add_argument("--distance", type=float, help="How far occlusion looks for a shadower, in metres")
     stage.add_argument("--edge-wear", type=float, help="How hard curvature lifts edges in the albedo, 0..1")
+    stage.add_argument("--relief-from-paint", type=float,
+                       help="Raise the relief somebody painted into a normal map, 0..2")
     stage.add_argument("--assign", action="append",
                        help="A part and the surface it should be, as colour[:tone]=surface. "
                             "Repeatable, for example --assign blue:dark=crystal")
@@ -267,6 +269,7 @@ def main(argv: list[str] | None = None) -> int:
                     "samples": args.samples,
                     "distance": args.distance,
                     "edge_wear": args.edge_wear,
+                    "relief_from_paint": args.relief_from_paint,
                     "runtime_derivative": args.runtime_derivative or None,
                     "reference": args.reference,
                     "views": args.views,
