@@ -88,6 +88,16 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Bake the occlusion and curvature a model's own geometry already implies.",
         "produces": "reference-asset-compiler.derived-maps.v1",
     },
+    "cull-unseen": {
+        "runner": "blender",
+        "script": "scripts/blender/cull_unseen_faces.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("directions", "most", "largest_part", "ignore_transparency"),
+        "prepare": "cull-unseen",
+        "needs": ("blender",),
+        "summary": "Delete the faces nothing outside the model can see.",
+        "produces": "reference-asset-compiler.culled-faces.v1",
+    },
     "compress-textures": {
         "runner": "python",
         "script": "scripts/compress_textures.py",
@@ -351,6 +361,8 @@ def run_stage(
     prepare = stage.get("prepare")
     if prepare == "compress-textures":
         context = prepare_compress_textures(options or {})
+    elif prepare == "cull-unseen":
+        context = prepare_cull_unseen(options or {})
     elif prepare == "bake-detail":
         context = prepare_bake_detail(options or {})
     elif prepare == "survey-surfaces":
@@ -562,6 +574,38 @@ def prepare_bake_detail(options: dict[str, Any]) -> dict[str, Any]:
                        ("--relief-from-paint", "relief_from_paint")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
+    return {"arguments": arguments}
+
+
+def prepare_cull_unseen(options: dict[str, Any]) -> dict[str, Any]:
+    """What the cull is allowed to be told, checked before Blender starts.
+
+    Refused here rather than inside Blender because these are the mistakes a
+    caller makes: a direction count so low the sphere is barely sampled, or a
+    share so large the stage would hand back a hollow. The stage checks them
+    again for itself, since it can be run by hand.
+
+    One guard is deliberately not offered. How much of a model may be hidden by
+    a *different* object in the file is what caught a probe sphere wrapped
+    around a character, and a studio has no business turning that off.
+    """
+    arguments: list[str] = []
+    if options.get("directions") is not None:
+        directions = int(options["directions"])
+        if not 8 <= directions <= 512:
+            raise ValueError("directions runs from 8 to 512")
+        arguments += ["--directions", str(directions)]
+    for name, flag in (("most", "--most"), ("largest_part", "--largest-part")):
+        if options.get(name) is None:
+            continue
+        share = float(options[name])
+        if not 0.0 < share <= 1.0:
+            raise ValueError("{0} runs above 0 up to 1".format(flag))
+        arguments += [flag, str(share)]
+    # A model with glass is refused unless somebody says in so many words that
+    # nothing behind it matters, because a ray cannot see through anything.
+    if options.get("ignore_transparency"):
+        arguments += ["--ignore-transparency"]
     return {"arguments": arguments}
 
 

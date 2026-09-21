@@ -25,7 +25,7 @@ A studio never re-runs a gate, re-derives a verdict, or upgrades a claim. If it
 needs a stronger claim than a receipt makes, the answer is a new compiler stage,
 not a second opinion downstream.
 
-## The eleven things a studio consumes
+## The twelve things a studio consumes
 
 ### 1. Skeleton profiles
 
@@ -470,6 +470,100 @@ the way out, because that is what the format requires.
 The general rule, for anything that measures a mesh that arrived as glTF:
 **weld by position before counting anything.** The same trap catches vertex
 counts, component counts and watertightness, and it is silent every time.
+
+### 12. Faces nothing can see
+
+A decoded mesh carries geometry nobody will ever look at: interior shells left
+where a decoder could not resolve two nearby surfaces, the inward faces of a
+hollow body, fragments sealed inside. It costs triangles and texture space, and
+it competes for the budget a reduction is trying to spend on the silhouette.
+
+`cull-unseen` stands outside, looks from 64 evenly spread directions, and keeps
+what it saw. A ray leaves from just off a face and, if it travels four model
+widths without striking the mesh again, that face was visible from somewhere.
+Nothing moves: faces are deleted, never repositioned, so every crease stays as
+sharp as it was and no UV shifts. There is no threshold and no voxel size to
+tune. And because it never asks whether two surfaces are *near* each other, two
+coils that nearly touch cannot fuse -- which is the failure mode of
+merge-by-distance and of voxel remeshing, and this is immune to it by
+construction.
+
+Measured across this library:
+
+| asset | faces | removed | what it is |
+|---|---|---|---|
+| Trial Lantern (generated) | 591,994 | **47%** | raw decoder output, hollow |
+| ninja-man | 54,220 | **35%** | a rigged character under clothing |
+| field-scout-male | 67,907 | 1.9% | already clean |
+| ayric-head | 19,988 | 1.4% | a little inside the mouth |
+| fox-mascot-live | 69,545 | 0.7% | already clean |
+| Ayric sword | 18,000 | **0%** | refused: nothing was hidden |
+
+The sword's zero is the answer, not a failure. It came through a reduction that
+already produced a closed manifold surface, so there is nothing inside it.
+
+**Four things this got wrong first, each of which looked right in the report.**
+
+*Normals are a hint, not a fact.* Firing only into the hemisphere a face points
+at assumes an exporter got the winding right. On a rigged character, 5,950
+faces -- a quarter of everything that test called hidden -- were in plain sight
+from their other side, and culling on that answer took the boots off and left
+the soles floating. Both sides are tried now, and the normal only decides which
+ray to try first and which side to lift the origin to.
+
+*The importer's own scaffolding is not the model.* Blender's glTF importer
+builds bone display shapes and parks them in a collection named
+`glTF_not_exported`. An 80-face probe sphere sitting there wrapped a character
+from the waist down; a ray stops at it like anything else, so his legs were
+invisible and every number stayed correct while they were deleted. Anything in
+that collection is excluded from the occluders.
+
+*A ray cannot see through glass.* Transmission is not something a ray test
+models, so on the glazed lantern this would delete exactly what you look at
+through the panes. A model with a transmissive or non-opaque material is
+refused by name unless `--ignore-transparency` says in as many words that
+nothing behind those surfaces matters.
+
+*Deleting faces must not touch the rig.* Exporting the selected meshes leaves
+the armature behind, and a character arrives with all 75 joints gone. The whole
+scene is exported with `export_skins`, and the joint count is read back out of
+the delivered bytes and compared; a mismatch deletes the output and fails.
+
+*And it must not invent vertex data either.* The raw lantern carries POSITION
+and nothing else -- 295,768 vertices shared across 592,000 faces. Exported with
+normals, every one of them splits three ways into 929,393, and a file that had
+just lost 47% of its faces came back **two and a half times larger**. Whatever
+attributes came in are the attributes that go out, and every report carries the
+byte count before and after, because fewer faces does not always mean fewer
+bytes and that is not something anybody should have to discover. Corrected, the
+same lantern goes from 10.2 MB to **5.4 MB**, its vertices still shared.
+
+**Three refusals rather than surprises.** More than `--most` (default 0.6) of a
+model unseen is not a cleanup -- the usual cause is inward-facing normals -- so
+it is refused. A connected part disappearing whole that is larger than
+`--largest-part` (default 0.1) of the model is something somebody modelled,
+sealed inside something else, rather than debris. And when more than
+`--shadowed-by-others` (default 0.1) of the faces are hidden by a *different*
+object in the file rather than by the model itself, the stage says so and stops:
+the same question is asked again with the rest of the file taken away, and
+whatever escapes then was never hidden by the model at all.
+
+**Two honest limits**, both stated in every report. An outward-facing flap
+floating just above the true surface *is* seen, so it survives: this removes
+interior shells, enclosed fragments and back-facing debris, a large share and
+not all of it. And layered cloth loses the sandwiched inner layer, which on the
+ninja changed about 1% of the rendered pixels -- the hanging waist strips read
+as separate pieces rather than a continuous skirt. It is the first step of a
+cleanup, not the whole cleanup, and every result carries
+`requires_fixed_view_review` and `production_grade: false`.
+
+Cost is roughly 300,000 rays a second, because an exterior face escapes on its
+first ray and only buried faces pay the full sweep: 35 seconds for a 54,000
+face character, a few minutes for 592,000.
+
+The method was taken from `visibility_cull.py` in `Bingeljell/image-to-3dlab`,
+which reached it first. That repository carries no licence file, so nothing was
+copied from it: the reasoning is theirs, the code here is not.
 
 ## Skeleton fingerprint
 
