@@ -25,7 +25,7 @@ A studio never re-runs a gate, re-derives a verdict, or upgrades a claim. If it
 needs a stronger claim than a receipt makes, the answer is a new compiler stage,
 not a second opinion downstream.
 
-## The twelve things a studio consumes
+## The thirteen things a studio consumes
 
 ### 1. Skeleton profiles
 
@@ -564,6 +564,62 @@ face character, a few minutes for 592,000.
 The method was taken from `visibility_cull.py` in `Bingeljell/image-to-3dlab`,
 which reached it first. That repository carries no licence file, so nothing was
 copied from it: the reasoning is theirs, the code here is not.
+
+### 13. A hero, painted twice
+
+A generated character is painted once, from twelve views of the whole figure.
+That paint is as good as the diffusion behind it, and the diffusion saw the
+face as about ninety pixels of a 768 view. Nothing downstream -- no atlas size,
+no upscaler, no normal map -- can put back what it never saw, and a face that
+survives a pan is what a close-up is of.
+
+So the ninja was measured end to end, and the texture chain turned out to be
+leaking in four places before the diffusion's limit was even reached:
+
+| where | what was happening | now |
+|---|---|---|
+| the painter | computed a 4096 atlas and saved it at 2048, as JPEG | `--atlas 4096`, PNG |
+| the bake | re-encoded a changed JPEG base colour as JPEG again: 730 KB became 298 KB | written once, as PNG |
+| the relief | read every UV island's edge as a cliff, and outlined all 601 of them | gutter filled first; uncovered texels flat |
+| the runner | python-run stages were handed their three paths and no options | options reach them |
+
+And one further up, found only because a mask came out covering 92% of a
+sheet: the hi-res paint variant loaded the mesh with `maintain_order=True`,
+which keeps the OBJ's positions instead of splitting them per UV corner. One
+UV per vertex cannot carry a seam, so on a Smart-Projected mesh **a third of
+all faces** spanned the atlas and were painted with whatever the sliver
+crossed. The earlier experiment's "the jacket's olive spread across the face"
+was this, not the painter. The studio runner loads with `force="mesh"` and no
+merging, and the head stage's own mask would have caught it again.
+
+Then the head. `paint-head` reads the painted GLB, keeps every face whose
+lowest vertex sits above `--head-from` (default 0.78) of the model's height,
+and writes them as an OBJ carrying the file's own UVs. It crops the reference
+to the same band from the figure's own silhouette -- background removed,
+bounding box measured, a square around the head's columns -- because a crop
+done by hand once kept a strip of armour and the painter spread armour colour
+over the whole head. It paints that OBJ with that crop through the same
+launcher, at the same views and resolution and sheet, so every view is full of
+the head. Because no vertex and no UV changed, the second paint lands in
+exactly the rectangles the first one did, and laying it back is a mask in UV
+space: head texels from the head paint, body texels byte for byte from the
+body paint, a `--feather` (default 0.03 of the height) blend across the cut.
+The base colour and the metallic-roughness map are both composited; the
+weights sheet is kept beside the paint as evidence.
+
+Nothing in it needs Blender. The mesh is read out of the GLB, the OBJ is
+written by hand, the composite is numpy, and the images are swapped into the
+same file around the same buffer views -- so what went in rigged would come out
+rigged, though a freshly painted model never is.
+
+Refusals: fewer than fifty faces above the cut, or more than 60% of the model,
+is not a head and says which way to move `--head-from`; a model with more than
+one material has already had its surfaces changed and is refused, because a
+second paint would fight that; a head paint that moves a vertex or a UV by
+more than 1e-6 is refused by the same gate the body paint answers to.
+
+The body's own paint for these faces is still what is under the mask, so a
+studio that wants the old head back has it in the previous step's file.
 
 ## Skeleton fingerprint
 

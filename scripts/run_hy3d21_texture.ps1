@@ -5,6 +5,12 @@ param(
     [Parameter(Mandatory = $true)][string] $OutputObj,
     [ValidateRange(6, 12)][int] $Views = 6,
     [ValidateSet(512, 768)][int] $Resolution = 512,
+    # 'legacy' is the hash-pinned studio-tree copy of run_hy3d21_pbr.py, which
+    # writes a 2048 JPEG atlas. 'studio' is this repository's
+    # run_hy3d21_studio.py, hash-pinned likewise, which keeps the 4096 atlas
+    # the pipeline already computes and writes every map as PNG.
+    [ValidateSet('legacy', 'studio')][string] $RunnerKind = 'legacy',
+    [ValidateSet(2048, 4096)][int] $Atlas = 2048,
     [string] $DiagnosticsDir,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D-Paint runner, upstream checkout and models.' }),
     [int] $MinimumFreeVramMiB = 21504,
@@ -23,8 +29,15 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
 }
 $expectedRunnerHash = 'B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B'
+$expectedStudioRunnerHash = '82524CD435AF0A1B6FB455665FC4AC4C7ED333D7A654CCDBBE7872233B4D147F'
 $python = Join-Path $LegacyRoot '.venv-hy3d21\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d21_pbr.py'
+if ($RunnerKind -eq 'studio') {
+    $runner = Join-Path (Split-Path -Parent $PSScriptRoot) 'workflows\texture\hunyuan3d21\run_hy3d21_studio.py'
+    $expectedRunnerHash = $expectedStudioRunnerHash
+} elseif ($Atlas -ne 2048) {
+    throw "The legacy runner writes a 2048 atlas only; ask for -RunnerKind studio to keep $Atlas"
+}
 $upstream = Join-Path $LegacyRoot 'upstream\Hunyuan3D-2.1'
 $models = Join-Path $LegacyRoot 'models\hy3d21\Hunyuan3D-2.1'
 
@@ -68,6 +81,9 @@ if (Test-Path -LiteralPath $executionPath) {
 }
 $startedUtc = [DateTime]::UtcNow.ToString('o')
 $runnerArgs = @($runner, $meshPath, $referencePath, $outputPath, '--views', $Views, '--resolution', $Resolution)
+if ($RunnerKind -eq 'studio') {
+    $runnerArgs += @('--atlas', $Atlas, '--legacy-root', $LegacyRoot)
+}
 if ($DiagnosticsDir) {
     $diagnosticsPath = [System.IO.Path]::GetFullPath($DiagnosticsDir)
     if (Test-Path -LiteralPath $diagnosticsPath) {
@@ -94,6 +110,8 @@ $execution = [ordered]@{
     output_obj = $outputPath
     views = $Views
     resolution = $Resolution
+    runner_kind = $RunnerKind
+    atlas = $Atlas
     initial_free_vram_mib = $freeMiB
     gpu_utilization_percent = $utilization
     gpu_compute_owners = $computeApps

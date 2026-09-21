@@ -39,6 +39,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from surface_parts import base_colour_image  # noqa: E402
+from paint_relief import normal_from_paint  # noqa: E402
 
 # The node group Blender's glTF exporter reads occlusion out of. The name is
 # the contract; an image wired anywhere else is simply not exported.
@@ -137,6 +138,42 @@ def bake_curvature(mesh_object, image, samples):
                     tree.links.new(source.outputs[from_socket], output.inputs["Surface"])
 
 
+def bake_coverage(mesh_object, image):
+    """Which texels geometry actually reaches, with the bake's own margin.
+
+    Every material is swapped for one that emits plain white, baked, and put
+    back, so the result is 1 where an island is (plus the margin the other
+    bakes also bleed) and the fill everywhere else. The curvature map cannot
+    serve for this: a flat surface bakes to exactly the "nothing here" grey,
+    and a flat plate with its relief painted on is the one case the relief
+    derivation is for.
+    """
+    scene = bpy.context.scene
+    scene.render.engine = "CYCLES"
+    scene.cycles.samples = 1
+    scene.render.bake.margin = 8
+    scene.render.bake.use_clear = False
+
+    white = bpy.data.materials.new("CoverageProbe")
+    white.use_nodes = True
+    tree = white.node_tree
+    output = next(n for n in tree.nodes if n.type == "OUTPUT_MATERIAL")
+    emission = tree.nodes.new("ShaderNodeEmission")
+    emission.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    tree.links.new(emission.outputs["Emission"], output.inputs["Surface"])
+    target_image(white, image)
+
+    was = [slot.material for slot in mesh_object.material_slots]
+    try:
+        for slot in mesh_object.material_slots:
+            slot.material = white
+        bpy.ops.object.bake(type="EMIT")
+    finally:
+        for slot, material in zip(mesh_object.material_slots, was):
+            slot.material = material
+        bpy.data.materials.remove(white)
+
+
 def wire_occlusion(material, image):
     """Put occlusion where the glTF exporter will actually look for it."""
     tree = material.node_tree
@@ -158,50 +195,6 @@ def wire_occlusion(material, image):
     return texture
 
 
-def blur(plane, radius):
-    """A cheap separable box blur, run three times so it reads as a gaussian."""
-    result = plane
-    for _ in range(3):
-        padded = np.pad(result, radius, mode="edge")
-        totals = np.cumsum(np.cumsum(padded, axis=0), axis=1)
-        totals = np.pad(totals, ((1, 0), (1, 0)), mode="constant")
-        size = 2 * radius + 1
-        rows, columns = plane.shape
-        result = (totals[size:size + rows, size:size + columns]
-                  - totals[0:rows, size:size + columns]
-                  - totals[size:size + rows, 0:columns]
-                  + totals[0:rows, 0:columns]) / (size * size)
-    return result
-
-
-def normal_from_paint(albedo, strength, radius=6):
-    """A surface normal derived from the relief somebody painted.
-
-    This asset was authored as a flat plate with its relief painted on: the
-    matcap pass shows a blade with no flutes, no layers and no edges in the
-    geometry at all, while the colour has all three. Light cannot respond to
-    detail that is not there, which is exactly why such a blade reads flat
-    however it is lit.
-
-    So the paint is read as the relief it was drawn to represent. Only the
-    local part of it: the luminance has its own blurred self subtracted first,
-    because the broad steps between one colour and another are where one
-    material meets another, not where the surface rises, and treating those as
-    height would put a cliff down the middle of every part.
-
-    This is a derivation, not a measurement, and it is the one thing here that
-    can be wrong rather than merely unhelpful -- a painted highlight that was
-    never relief becomes a bump. It is worth doing because the alternative is a
-    flat blade, and it is worth looking at afterwards.
-    """
-    luminance = (0.2126 * albedo[..., 0] + 0.7152 * albedo[..., 1] + 0.0722 * albedo[..., 2])
-    relief = luminance - blur(luminance, radius)
-    # Gradients along the map, which is the direction the surface tilts.
-    dy, dx = np.gradient(relief)
-    normal = np.dstack([-dx * strength * 32.0, -dy * strength * 32.0, np.ones_like(relief)])
-    normal /= np.linalg.norm(normal, axis=2, keepdims=True)
-    encoded = np.clip(normal * 0.5 + 0.5, 0.0, 1.0)
-    return np.dstack([encoded, np.ones_like(relief)]), float(np.abs(relief).mean())
 
 
 def wire_normal(material, image):
@@ -315,6 +308,9 @@ def main() -> int:
     # mid-grey is uncurved.
     occlusion = blank("baked_occlusion", resolution, 1.0)
     curvature = blank("baked_curvature", resolution, 0.5)
+    coverage = blank("baked_coverage", resolution, 0.0)
+    bake_coverage(mesh_object, coverage)
+    reached = settle(coverage)[..., 0] > 0.5
 
     bake_occlusion(mesh_object, occlusion, samples, distance)
     occluded = settle(occlusion)[..., 0]
@@ -363,6 +359,16 @@ def main() -> int:
         albedo.pixels = base.reshape(-1).tolist()
         worn = round(float(np.abs(lift).mean()), 4)
 
+    # The painter delivers its base colour as a JPEG, and the exporter writes a
+    # changed JPEG image back out as JPEG at whatever quality it likes. On a
+    # ninja that took a 730 KB base colour to 298 KB: a second lossy pass on
+    # top of the first, and the one map somebody actually looks at. Written
+    # out as PNG instead, once, and packed, so what leaves is what is here.
+    recoded = None
+    albedo = base_colour_image(painted)
+    if albedo is not None and (worn is not None or albedo.file_format == "JPEG"):
+        recoded = albedo.file_format
+
     normal_image = None
     relief_mean = None
     if relief > 0:
@@ -371,7 +377,10 @@ def main() -> int:
             print("[BAKE] FAILED: relief from paint needs a base colour image to read")
             return 1
         source_pixels = pixels_of(albedo)
-        encoded, relief_mean = normal_from_paint(source_pixels, relief)
+        # With coverage, so the atlas's own island edges are not read as
+        # cliffs: on a generated character that outlined every one of six
+        # hundred islands, and the face looked drawn on triangles.
+        encoded, relief_mean = normal_from_paint(source_pixels, relief, coverage=reached)
         if relief_mean < 1e-5:
             # Nothing local in the paint means nothing to raise. Delivering a
             # flat normal map would cost bytes and change nothing.
@@ -395,6 +404,8 @@ def main() -> int:
     made = [(occlusion, "occlusion"), (curvature, "curvature")]
     if normal_image is not None:
         made.append((normal_image, "normal"))
+    if recoded is not None:
+        made.append((albedo, "base_colour"))
     for image, name in made:
         image.filepath_raw = str(beside / (name + ".png"))
         image.file_format = "PNG"
@@ -437,11 +448,22 @@ def main() -> int:
             "spread": round(float(curved[touched].std()), 4) if touched.any() else 0.0,
         },
         "edge_wear": {"strength": edge_wear, "mean_shift": worn} if worn is not None else None,
+        "base_colour_recoded": None if recoded is None else {
+            "was": recoded, "now": "PNG",
+            "because": "a changed JPEG leaves the exporter as a second-generation JPEG, "
+                       "and the base colour is the one map somebody looks at",
+        },
+        "coverage": {
+            "sheet_reached": round(float(reached.mean()), 4),
+            "used_for": "keeping the relief derivation off the atlas's own island edges",
+        },
         "relief_from_paint": None if normal_image is None else {
             "strength": relief,
             "local_detail": round(relief_mean, 6),
             "derived_from": "the base colour's local luminance, after its own blurred self "
                             "is subtracted, so a step between two materials is not read as a cliff",
+            "seams": "the gutter is filled from the islands before measuring and left flat "
+                     "after, so a UV seam is not read as relief",
             "honestly": "a derivation rather than a measurement. A highlight that was painted "
                         "and never was relief becomes a bump, which is why this one wants "
                         "looking at where occlusion and curvature do not.",

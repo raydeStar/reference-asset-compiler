@@ -201,7 +201,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "powershell",
         "script": "scripts/run_hy3d21_texture.ps1",
         "arguments": ("source", "output", "report"),
-        "options": ("reference", "views", "resolution"),
+        "options": ("reference", "views", "resolution", "atlas"),
         "prepare": "texture",
         "needs": ("paint-stack",),
         # The painter's own teardown can fault after it has written everything
@@ -211,6 +211,21 @@ STAGES: dict[str, dict[str, Any]] = {
         "verdict": "produced",
         "summary": "Paint a UV-mapped mesh from its reference image. Needs a GPU with 21 GiB free.",
         "produces": "reference-asset-compiler.paint-validation.v1",
+    },
+    "paint-head": {
+        "runner": "python",
+        "script": "scripts/paint_head_detail.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("reference", "views", "resolution", "atlas", "head_from", "feather"),
+        "prepare": "paint-head",
+        "needs": ("paint-stack",),
+        # A full-body paint gives a face ninety pixels of each view. This cuts
+        # the head out, paints it alone with the reference cropped to match,
+        # and lays it back over the body's atlas -- same UVs, so it lands where
+        # the first paint did. No Blender: the mesh is read from the GLB.
+        "summary": "Paint the head again on its own, at head scale, and lay it over the body's paint. "
+                   "Needs a GPU with 21 GiB free.",
+        "produces": "reference-asset-compiler.head-detail-paint.v1",
     },
 }
 
@@ -392,6 +407,8 @@ def run_stage(
     elif prepare == "texture":
         context = prepare_texture(
             Path(source), Path(output), options or {}, resolve_legacy_root(legacy_root))
+    elif prepare == "paint-head":
+        context = prepare_paint_head(options or {}, resolve_legacy_root(legacy_root))
     extra = [str(item) for item in context.get("arguments", ())]
 
     if stage["runner"] == "blender":
@@ -413,7 +430,11 @@ def run_stage(
         # studio passes --blender on every call, so a python-run stage would
         # otherwise be handed to Blender as though it were a .blend.
         runner = sys.executable
-        command = [runner, str(script), "--", *arguments]
+        # With the options as well. Without `extra` here, everything a caller
+        # chose for a python-run stage was silently dropped and the stage ran
+        # on its own defaults: a studio asking the re-encoder for one size and
+        # quality got another, and nothing said so.
+        command = [runner, str(script), "--", *arguments, *extra]
 
     started = time.monotonic()
     try:
@@ -869,6 +890,11 @@ def prepare_texture(source: Path, output: Path, options: dict[str, Any],
     for flag, name in (("-Views", "views"), ("-Resolution", "resolution")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
+    if options.get("atlas") is not None:
+        # Naming an atlas names the runner that can write it. The legacy one
+        # halves every map on the way out and writes them as JPEG; a caller who
+        # cares what size the sheet is cares about both.
+        arguments += ["-Atlas", str(options["atlas"]), "-RunnerKind", "studio"]
     return {
         "arguments": arguments,
         "produced": {
@@ -881,6 +907,33 @@ def prepare_texture(source: Path, output: Path, options: dict[str, Any],
             "execution_receipt": str(attempt / "painted.execution.json"),
         },
     }
+
+
+def prepare_paint_head(options: dict[str, Any], legacy: Path) -> dict[str, Any]:
+    """What the head pass insists on: the same picture, and the same stack.
+
+    The reference is the whole picture the body was painted from; the stage
+    crops the head out of it itself, from the figure's silhouette, because a
+    caller cropping by hand is how a strip of armour once got into a head
+    paint and spread its colour over the whole face.
+    """
+    reference = options.get("reference")
+    if not reference:
+        raise StageError(
+            "The head pass needs the reference the body was painted from: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The paint reference does not exist: {0}".format(reference))
+    missing = paint_missing(legacy)
+    if missing:
+        raise StageError(
+            "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
+    arguments = ["--reference", str(reference), "--legacy-root", str(legacy)]
+    for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
+                       ("--head-from", "head_from"), ("--feather", "feather")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {"arguments": arguments, "payload": {"reference": str(reference)}}
 
 
 def collect_produced(produced: dict[str, Path], output: Path, report: Path) -> None:

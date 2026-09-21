@@ -29,7 +29,7 @@ if mode == "fail":
     raise SystemExit(3)
 if mode != "silent":
     open(output, "wb").write(b"payload")
-    json.dump({{"schema": "test.receipt.v1", "payload": output}}, open(report, "w"))
+    json.dump({{"schema": "test.receipt.v1", "payload": output, "argv": argv[3:]}}, open(report, "w"))
 print("stub finished")
 """
 
@@ -70,6 +70,22 @@ class StageRunnerTests(unittest.TestCase):
             self.assertEqual(payload["receipt"]["schema"], "test.receipt.v1")
             self.assertTrue((root / "out.glb").is_file())
             self.assertIsInstance(payload["seconds"], float)
+
+    def test_what_a_caller_chose_reaches_a_python_run_stage(self):
+        with tempfile.TemporaryDirectory(prefix="rac-stage-") as raw:
+            root = self.checkout(Path(raw))
+            registry = self.stub_registry()
+            registry["stub"]["options"] = ("colour_size", "data_size", "quality", "texture_format")
+            registry["stub"]["prepare"] = "compress-textures"
+            with mock.patch.dict(stages.STAGES, registry, clear=True):
+                payload = run_stage(
+                    "stub", root / "source.fbx", root / "out.glb", root / "report.json",
+                    repo_root=root, options={"colour_size": 4096, "quality": 92})
+
+            self.assertTrue(payload["ok"], payload)
+            # A python-run stage used to be handed its three paths and nothing
+            # else, so every option a studio chose ran as the script's default.
+            self.assertEqual(payload["receipt"]["argv"], ["--colour-size", "4096", "--quality", "92"])
 
     def test_a_failing_stage_carries_its_own_diagnosis(self):
         with tempfile.TemporaryDirectory(prefix="rac-stage-") as raw:

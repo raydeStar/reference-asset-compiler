@@ -143,6 +143,14 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--views", type=int, help="Paint views, 6..12 (default: 6)")
     stage.add_argument("--resolution", type=int,
                        help="Paint resolution, 512 or 768; or fixed-view render size")
+    stage.add_argument("--head-from", type=float,
+                       help="Height, as a fraction of the model's, above which a face is head "
+                            "(default: 0.78)")
+    stage.add_argument("--feather", type=float,
+                       help="Blend band above the head cut, as a fraction of height (default: 0.03)")
+    stage.add_argument("--atlas", type=int, choices=(2048, 4096),
+                       help="Paint atlas size. Naming one selects the studio runner, which "
+                            "writes lossless maps; unnamed, the legacy runner writes 2048 JPEG")
     stage.add_argument("--target-triangles", type=int, help="Remesh target before the budget check")
     stage.add_argument("--voxel-resolution", type=int, help="Remesh grid resolution (default: 420)")
     stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
@@ -298,6 +306,9 @@ def main(argv: list[str] | None = None) -> int:
                     "reference": args.reference,
                     "views": args.views,
                     "resolution": args.resolution,
+                    "atlas": args.atlas,
+                    "head_from": args.head_from,
+                    "feather": args.feather,
                     "target_triangles": args.target_triangles,
                     "voxel_resolution": args.voxel_resolution,
                     "smooth_iterations": args.smooth_iterations,

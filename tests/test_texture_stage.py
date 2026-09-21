@@ -159,6 +159,24 @@ class TexturePreparationTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("-Views") + 1], "8")
         self.assertEqual(arguments[arguments.index("-Resolution") + 1], "768")
 
+    def test_naming_an_atlas_names_the_runner_that_can_write_it(self):
+        prepared = prepare_texture(
+            self.source, self.output,
+            {"reference": self.reference, "atlas": 4096}, self.legacy)
+
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("-Atlas") + 1], "4096")
+        # The legacy runner halves every map and writes JPEG; a caller naming a
+        # sheet size is asking for the one that keeps it.
+        self.assertEqual(arguments[arguments.index("-RunnerKind") + 1], "studio")
+
+    def test_an_unnamed_atlas_leaves_the_launcher_on_its_legacy_runner(self):
+        prepared = prepare_texture(
+            self.source, self.output, {"reference": self.reference}, self.legacy)
+
+        self.assertNotIn("-Atlas", prepared["arguments"])
+        self.assertNotIn("-RunnerKind", prepared["arguments"])
+
     def test_settings_nobody_chose_are_left_to_the_launcher(self):
         prepared = prepare_texture(
             self.source, self.output, {"reference": self.reference}, self.legacy)
