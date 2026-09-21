@@ -30,19 +30,43 @@ def triangle_count(obj: bpy.types.Object) -> int:
 
 
 def topology(obj: bpy.types.Object) -> dict[str, int | float]:
-    bm = bmesh.new()
-    bm.from_mesh(obj.data)
-    quads = sum(len(face.verts) == 4 for face in bm.faces)
+    """What this surface actually is, measured on geometry rather than on seams.
+
+    glTF splits a vertex at every UV and normal seam, so a mesh arrives from the
+    importer already torn apart along each one. Counting boundary or
+    non-manifold edges on it counts seams, not holes: the Ayric sword read
+    3,888 of each as imported and exactly zero of both once welded by position,
+    and the lantern read 12,358 against 6. Both are closed surfaces. A gate
+    reading the unwelded numbers refuses sound meshes for a defect they do not
+    have.
+
+    The weld is for measuring only. The mesh that goes on to be reduced is the
+    original, because welding coincident vertices merges away the per-corner
+    UVs that made them separate in the first place.
+    """
+    measured = bmesh.new()
+    measured.from_mesh(obj.data)
+    # A tolerance relative to nothing: coincident means coincident. These
+    # vertices were one vertex before the exporter split them.
+    bmesh.ops.remove_doubles(measured, verts=measured.verts, dist=1e-6)
+
+    unwelded = bmesh.new()
+    unwelded.from_mesh(obj.data)
+    quads = sum(len(face.verts) == 4 for face in unwelded.faces)
     result = {
-        "vertices": len(bm.verts),
-        "polygons": len(bm.faces),
+        "vertices": len(unwelded.verts),
+        "polygons": len(unwelded.faces),
         "triangles": triangle_count(obj),
         "quads": quads,
-        "quad_fraction": quads / max(1, len(bm.faces)),
-        "boundary_edges": sum(edge.is_boundary for edge in bm.edges),
-        "nonmanifold_edges": sum(not edge.is_manifold for edge in bm.edges),
+        "quad_fraction": quads / max(1, len(unwelded.faces)),
+        "boundary_edges": sum(edge.is_boundary for edge in measured.edges),
+        "nonmanifold_edges": sum(not edge.is_manifold for edge in measured.edges),
+        # Kept so a reader can see the difference rather than wonder about it.
+        "welded_vertices": len(measured.verts),
+        "seam_split_vertices": len(unwelded.verts) - len(measured.verts),
     }
-    bm.free()
+    unwelded.free()
+    measured.free()
     return result
 
 

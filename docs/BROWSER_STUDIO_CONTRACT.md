@@ -25,7 +25,7 @@ A studio never re-runs a gate, re-derives a verdict, or upgrades a claim. If it
 needs a stronger claim than a receipt makes, the answer is a new compiler stage,
 not a second opinion downstream.
 
-## The ten things a studio consumes
+## The eleven things a studio consumes
 
 ### 1. Skeleton profiles
 
@@ -344,10 +344,17 @@ deviation thresholds, judged for a different purpose. Three things change,
 together, because they only make sense together:
 
 - **Inherited boundaries are not filled.** The authority path closes the
-  source's open edges before collapsing. That invents surface the source never
+  source's open edges before collapsing, which invents surface the source never
   had and then measures the derivative against an original that does not
-  contain it -- which is how a faithful reduction came back 128 mm out on a
-  424 mm lantern.
+  contain it.
+
+  Most of what looked like open edges was never open. See *Seams are not
+  holes*, below: once a mesh is welded by position, a sword that read 3,888
+  boundary edges reads zero and a lantern that read 12,358 reads six. The
+  relaxation below is still right for an asset that is genuinely open -- free
+  cloth edges, separate glass, unclosed shells -- but it is needed far less
+  often than it first appeared, and it was doing work the measurement should
+  have been doing.
 - **An open candidate is a recorded finding, not a failure** -- but only where
   the source was open too. Ordinary game art is open: separate glass, free
   cloth edges, unclosed shells. Judged as a production authority it can only
@@ -433,6 +440,36 @@ illumination, so it ignores a glTF occlusion map entirely -- the review renders
 of a baked model and an unbaked one are identical. Occlusion is a real-time
 renderer's convention and shows in one. Judge it in the studio's viewer, not in
 section 8's evidence.
+
+### 11. Seams are not holes
+
+glTF stores one UV per vertex, so an exporter splits a vertex at every UV and
+normal seam. A mesh arrives from any glTF importer already torn apart along
+each one, and anything that counts boundary or non-manifold edges on it is
+counting seams rather than geometry.
+
+Measured, welding by position and re-counting:
+
+| asset | as imported | welded | what it is |
+|---|---|---|---|
+| Ayric sword | 3,888 boundary, 3,888 non-manifold | **0 and 0** | closed, fully manifold |
+| Trial Lantern | 12,358 and 12,358 | **6 and 6** | closed but for six edges |
+
+Both are sound surfaces. A gate reading the unwelded numbers refuses them for a
+defect they do not have, and a repair acting on those numbers does real damage:
+filling 5,115 "holes" that were seams welded across them and invented surface,
+and a faithful reduction of the lantern came back **263 mm** out on a 424 mm
+object. Welding first, the same reduction is **4.5 mm** out, and the sword
+passes the strict production gate outright at 1.71 mm on a 1.35 m blade.
+
+The weld is safe because Blender stores a UV per face corner rather than per
+vertex: rejoining the split vertices keeps every seam exactly where it was.
+Welding is for measuring and for collapsing; the exporter splits them again on
+the way out, because that is what the format requires.
+
+The general rule, for anything that measures a mesh that arrived as glTF:
+**weld by position before counting anything.** The same trap catches vertex
+counts, component counts and watertightness, and it is silent every time.
 
 ## Skeleton fingerprint
 

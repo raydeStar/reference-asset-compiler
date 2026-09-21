@@ -94,6 +94,37 @@ def feature_weights(obj: bpy.types.Object) -> tuple[list[float], dict[str, float
     return weights, summary
 
 
+def weld_seams(obj: bpy.types.Object) -> dict[str, int]:
+    """Put back together what the transport format split apart.
+
+    glTF stores a UV per vertex, so an exporter has to split a vertex at every
+    seam; a mesh arrives from the importer already torn along each one. Blender
+    stores UVs per face corner instead, so welding those vertices back by
+    position is lossless -- the seams remain, because the corners still carry
+    their own coordinates.
+
+    Doing it changes two things and both matter for a reduction. The gate stops
+    counting seams as holes: the Ayric sword read 3,888 boundary and 3,888
+    non-manifold edges as imported and exactly zero of each welded, and the
+    lantern read 12,358 against 6. Both are closed surfaces. And the decimator
+    stops treating every seam as a wall it may not collapse across, which is
+    the difference between reducing a surface and reducing a few thousand
+    disconnected patches.
+    """
+    before = len(obj.data.vertices)
+    bm = bmesh.new()
+    try:
+        bm.from_mesh(obj.data)
+        bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=1e-6)
+        bm.normal_update()
+        bm.to_mesh(obj.data)
+    finally:
+        bm.free()
+    obj.data.update(calc_edges=True)
+    return {"vertices_before": before, "vertices_after": len(obj.data.vertices),
+            "seam_splits_rejoined": before - len(obj.data.vertices)}
+
+
 def close_inherited_boundaries(obj: bpy.types.Object) -> dict[str, int]:
     """Close only boundary loops inherited from the approved cleanup mesh.
 
@@ -139,6 +170,9 @@ def main() -> int:
         raise RuntimeError("Feature QEM requires exactly one mesh object")
     authority = meshes[0]
     authority.name = "SRC_RAC_ApprovedCleanup"
+    # Before anything measures or collapses it. A surface split along every UV
+    # seam is not the surface; it is the transport format's copy of it.
+    seam_repair = weld_seams(authority)
     authority_topology = topology(authority)
     source_triangles = int(authority_topology["triangles"])
     if not 1_000 <= args.triangle_budget < source_triangles:
@@ -258,6 +292,7 @@ def main() -> int:
             "maximum_max_m": args.maximum_max_m,
             "voxelization": False,
         },
+        "seam_repair": seam_repair,
         "inherited_boundary_repair": boundary_repair,
         "feature_weight_summary": weight_summary,
         "review_shading": {
