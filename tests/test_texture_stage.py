@@ -266,6 +266,68 @@ class PaintVerdictTests(unittest.TestCase):
         self.assertFalse((self.root / "runtime.glb").exists())
 
 
+class RemeshTests(unittest.TestCase):
+    """Rebuilding a generated surface rather than compressing its noise."""
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.source = self.root / "staged.blend"
+        self.source.write_bytes(b"blend")
+        self.output = self.root / "runtime.glb"
+
+    def test_the_remesher_reads_the_source_and_keeps_its_attempt(self):
+        from reference_asset_compiler.stages import prepare_remesh
+
+        prepared = prepare_remesh(self.source, self.output, {})
+
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("-InputMesh") + 1], str(self.source.resolve()))
+        attempt = Path(prepared["payload"]["attempt_directory"])
+        self.assertEqual(prepared["produced"]["output"], attempt / "voxel-qem-candidate.glb")
+        self.assertEqual(prepared["produced"]["report"], attempt / "reduction-report.json")
+
+    def test_grid_and_smoothing_choices_reach_the_launcher(self):
+        from reference_asset_compiler.stages import prepare_remesh
+
+        prepared = prepare_remesh(self.source, self.output, {
+            "voxel_resolution": 512, "smooth_iterations": 3, "target_triangles": 16000})
+
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("-VoxelResolution") + 1], "512")
+        self.assertEqual(arguments[arguments.index("-SmoothIterations") + 1], "3")
+        self.assertEqual(arguments[arguments.index("-TargetTriangles") + 1], "16000")
+        self.assertNotIn("-SmoothLambda", arguments)
+
+    def test_a_rejected_remesh_is_not_a_delivery(self):
+        from reference_asset_compiler import stages as module
+        from reference_asset_compiler.stages import run_stage
+
+        repo = self.root / "repo"
+        (repo / "scripts").mkdir(parents=True)
+        (repo / "workflows" / "geometry" / "hunyuan3d").mkdir(parents=True)
+        (repo / "scripts" / "run_voxel_qem_reduction.ps1").write_text("param()", encoding="utf-8")
+
+        def pretend(command, **keywords):
+            attempt = Path(command[command.index("-OutputDirectory") + 1])
+            attempt.mkdir(parents=True, exist_ok=True)
+            (attempt / "voxel-qem-candidate.glb").write_bytes(b"glTF")
+            (attempt / "reduction-report.json").write_text('{"status":"rejected"}', encoding="utf-8")
+            return type("Finished", (), {"returncode": 1, "stdout": "", "stderr": "rejected"})()
+
+        original = module.subprocess.run
+        module.subprocess.run = pretend
+        try:
+            payload = run_stage("remesh", self.source, self.output, self.root / "r.json",
+                                repo_root=repo, blender="C:/blender.exe")
+        finally:
+            module.subprocess.run = original
+
+        # Rebuilding is still a gate: it can reject, and a rejection that wrote
+        # its files is not a result.
+        self.assertFalse(payload["ok"])
+        self.assertFalse(self.output.exists())
+
+
 class RegistryTests(unittest.TestCase):
     def test_the_paint_stages_report_what_they_write(self):
         described = describe_stages(None, blender=None, legacy_root=None)

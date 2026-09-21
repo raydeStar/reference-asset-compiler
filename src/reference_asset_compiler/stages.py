@@ -83,6 +83,17 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Collapse a staged mesh to a runtime budget, and measure what that cost.",
         "produces": "reference-asset-compiler.production-retopology-candidate.v1",
     },
+    "remesh": {
+        "runner": "powershell",
+        "script": "scripts/run_voxel_qem_reduction.ps1",
+        "arguments": ("source", "output", "report"),
+        "options": ("triangle_budget", "target_triangles", "voxel_resolution",
+                    "smooth_iterations", "smooth_lambda"),
+        "prepare": "remesh",
+        "needs": ("blender",),
+        "summary": "Rebuild a generated surface on a uniform grid, then collapse it to a runtime budget.",
+        "produces": "reference-asset-compiler.production-retopology-candidate.v1",
+    },
     "uv-unwrap": {
         "runner": "powershell",
         "script": "scripts/run_texture_uv_prep.ps1",
@@ -247,6 +258,9 @@ def run_stage(
         context = prepare_staged_mesh(options or {})
     elif prepare == "reduction":
         context = prepare_reduction(
+            Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
+    elif prepare == "remesh":
+        context = prepare_remesh(
             Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
     elif prepare == "uv-unwrap":
         context = prepare_uv_unwrap(
@@ -454,6 +468,43 @@ def _attempt(output: Path, label: str) -> Path:
         if not attempt.exists():
             return attempt
     raise StageError("There are already 999 {0} attempts beside {1}".format(label, output))
+
+
+def prepare_remesh(source: Path, output: Path, options: dict[str, Any],
+                   blender: str | None = None) -> dict[str, Any]:
+    """Rebuild a generated surface before collapsing it.
+
+    A generator's output is a marching-cubes surface: no edge loops, no flat
+    regions, nothing an edge collapse can hold on to. Collapsing it directly
+    keeps every bit of that noise as slivers and spikes -- the lantern came back
+    creased and pocked at 20,000 triangles, and the fault was never the budget.
+
+    Rebuilding on a uniform grid first throws the noise away rather than
+    compressing it, and what is then collapsed is an even surface. Same budget,
+    same silhouette, a mesh somebody would accept.
+
+    `reduce-mesh` remains the right stage for an already-clean authority, where
+    rebuilding would discard topology a person chose on purpose.
+    """
+    attempt = _attempt(output, "remesh")
+    arguments = ["-InputMesh", str(Path(source).resolve()), "-OutputDirectory", str(attempt)]
+    if blender:
+        arguments += ["-Blender", str(blender)]
+    for flag, name in (("-TriangleBudget", "triangle_budget"),
+                       ("-TargetTriangles", "target_triangles"),
+                       ("-VoxelResolution", "voxel_resolution"),
+                       ("-SmoothIterations", "smooth_iterations"),
+                       ("-SmoothLambda", "smooth_lambda")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {
+        "arguments": arguments,
+        "produced": {
+            "output": attempt / "voxel-qem-candidate.glb",
+            "report": attempt / "reduction-report.json",
+        },
+        "payload": {"attempt_directory": str(attempt)},
+    }
 
 
 def prepare_uv_unwrap(source: Path, output: Path, options: dict[str, Any],

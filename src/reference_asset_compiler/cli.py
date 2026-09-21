@@ -113,6 +113,10 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--reference", type=Path, help="The image a paint stage paints from")
     stage.add_argument("--views", type=int, help="Paint views, 6..12 (default: 6)")
     stage.add_argument("--resolution", type=int, choices=(512, 768), help="Paint resolution (default: 512)")
+    stage.add_argument("--target-triangles", type=int, help="Remesh target before the budget check")
+    stage.add_argument("--voxel-resolution", type=int, help="Remesh grid resolution (default: 420)")
+    stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
+    stage.add_argument("--smooth-lambda", type=float, help="Remesh smoothing strength (default: 0.28)")
     stage.add_argument("--repo-root", type=Path,
                        help="Pipeline checkout; required outside a source installation")
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
@@ -245,6 +249,10 @@ def main(argv: list[str] | None = None) -> int:
                     "reference": args.reference,
                     "views": args.views,
                     "resolution": args.resolution,
+                    "target_triangles": args.target_triangles,
+                    "voxel_resolution": args.voxel_resolution,
+                    "smooth_iterations": args.smooth_iterations,
+                    "smooth_lambda": args.smooth_lambda,
                 })
             print_payload(payload)
             return 0 if payload["ok"] else 1
