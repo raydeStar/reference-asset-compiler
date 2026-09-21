@@ -6,6 +6,9 @@ param(
     [double] $WeightFactor = 20.0,
     [double] $MaximumP99M = 0.005,
     [double] $MaximumMaxM = 0.020,
+    # A derivative of a mesh somebody already reviewed, rather than a candidate
+    # production authority. The driver explains what that changes.
+    [switch] $RuntimeDerivative,
     [string] $CompilerPython,
     [string] $Blender = $env:RAC_BLENDER
 )
@@ -54,7 +57,9 @@ try {
     $runOutput = @(& $blenderPath '--background' '--python-exit-code' '1' '--python' $driver '--' `
         $inputPath $candidate $review $report '--triangle-budget' $TriangleBudget `
         '--weight-factor' $WeightFactor '--maximum-p99-m' $MaximumP99M `
-        '--maximum-max-m' $MaximumMaxM 2>&1 | ForEach-Object { $_.ToString() } | Tee-Object -FilePath $log)
+        '--maximum-max-m' $MaximumMaxM `
+        @(if ($RuntimeDerivative) { '--runtime-derivative' }) 2>&1 `
+        | ForEach-Object { $_.ToString() } | Tee-Object -FilePath $log)
     $exitCode = $LASTEXITCODE
 } finally {
     $ErrorActionPreference = $previousPreference
@@ -75,6 +80,7 @@ if ($exitCode -ne 0) {
                 weight_factor = $WeightFactor
                 maximum_p99_m = $MaximumP99M
                 maximum_max_m = $MaximumMaxM
+                runtime_derivative = [bool] $RuntimeDerivative
             }
             failure = [ordered]@{
                 exit_code = $exitCode

@@ -42,6 +42,20 @@ DEFAULT_TIMEOUT_SECONDS = 3600
 """An hour. A stage that has not finished by then is a stage to investigate."""
 
 STAGES: dict[str, dict[str, Any]] = {
+    "adopt-mesh": {
+        "runner": "blender",
+        "script": "scripts/blender/adopt_reviewed_mesh.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("require_uvs",),
+        "prepare": "adopt-mesh",
+        "needs": ("blender",),
+        # A .blend for the same reason staging writes one: the reduction stage
+        # opens a .blend and insists on exactly one mesh object, and glTF is
+        # transport that may split shared vertices at face-corner normals.
+        "output_suffix": ".blend",
+        "summary": "Take a reviewed transport mesh into a .blend a reduction can open, changing nothing.",
+        "produces": "reference-asset-compiler.adopted-mesh.v1",
+    },
     "browser-payload": {
         "runner": "blender",
         "script": "scripts/blender/export_browser_payload.py",
@@ -78,7 +92,8 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "powershell",
         "script": "scripts/run_feature_qem_reduction.ps1",
         "arguments": ("source", "output", "report"),
-        "options": ("triangle_budget", "weight_factor", "maximum_p99_m", "maximum_max_m"),
+        "options": ("triangle_budget", "weight_factor", "maximum_p99_m", "maximum_max_m",
+                    "runtime_derivative"),
         "prepare": "reduction",
         "needs": ("blender",),
         "summary": "Collapse a staged mesh to a runtime budget, and measure what that cost.",
@@ -283,7 +298,9 @@ def run_stage(
     # been accepted is refused before anything is queued.
     context: dict[str, Any] = {}
     prepare = stage.get("prepare")
-    if prepare == "geometry":
+    if prepare == "adopt-mesh":
+        context = prepare_adopt_mesh(options or {})
+    elif prepare == "geometry":
         context = prepare_geometry(Path(source), root, legacy_root, options or {})
     elif prepare == "staged-mesh":
         context = prepare_staged_mesh(options or {})
@@ -454,6 +471,16 @@ def prepare_staged_mesh(options: dict[str, Any]) -> dict[str, Any]:
     }
 
 
+def prepare_adopt_mesh(options: dict[str, Any]) -> dict[str, Any]:
+    """Nothing to resolve, and one thing worth insisting on.
+
+    Adoption exists so a reduction can preserve what a reviewed mesh already
+    has. A caller who says the UVs matter gets a refusal naming that, up front,
+    instead of a derivative that passes every gate and arrives unpaintable.
+    """
+    return {"arguments": ["--require-uvs"] if options.get("require_uvs") else []}
+
+
 def prepare_reduction(source: Path, output: Path, options: dict[str, Any],
                       blender: str | None = None) -> dict[str, Any]:
     """Claim an attempt directory for a reducer that refuses to overwrite one.
@@ -481,6 +508,8 @@ def prepare_reduction(source: Path, output: Path, options: dict[str, Any],
                        ("-MaximumMaxM", "maximum_max_m")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
+    if options.get("runtime_derivative"):
+        arguments.append("-RuntimeDerivative")
     return {
         "arguments": arguments,
         "produced": {

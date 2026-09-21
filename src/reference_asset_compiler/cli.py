@@ -108,6 +108,11 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--weight-factor", type=float, help="How much reduction protects detail")
     stage.add_argument("--maximum-p99-m", type=float, help="Reduction p99 surface deviation ceiling")
     stage.add_argument("--maximum-max-m", type=float, help="Reduction maximum surface deviation ceiling")
+    stage.add_argument("--runtime-derivative", action="store_true",
+                       help="Reduce a reviewed mesh for runtime use rather than judging it "
+                            "as a candidate production authority")
+    stage.add_argument("--require-uvs", action="store_true",
+                       help="Refuse to adopt a mesh that has no UV layer to preserve")
     stage.add_argument("--allow-triangulated-glb", action="store_true",
                        help="Accept an approved static triangle mesh for UV unwrapping as it stands")
     stage.add_argument("--reference", type=Path, help="The image a paint stage paints from")
@@ -251,6 +256,8 @@ def main(argv: list[str] | None = None) -> int:
                     "maximum_p99_m": args.maximum_p99_m,
                     "maximum_max_m": args.maximum_max_m,
                     "allow_triangulated_glb": args.allow_triangulated_glb or None,
+                    "require_uvs": args.require_uvs or None,
+                    "runtime_derivative": args.runtime_derivative or None,
                     "reference": args.reference,
                     "views": args.views,
                     "resolution": args.resolution,

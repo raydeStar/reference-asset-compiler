@@ -25,7 +25,7 @@ A studio never re-runs a gate, re-derives a verdict, or upgrades a claim. If it
 needs a stronger claim than a receipt makes, the answer is a new compiler stage,
 not a second opinion downstream.
 
-## The eight things a studio consumes
+## The nine things a studio consumes
 
 ### 1. Skeleton profiles
 
@@ -310,6 +310,68 @@ here is a verdict.
 Evidence is retained, never replaced: rendering into a directory that exists is
 refused, so an older judgement can never come to refer to pictures nobody can
 see any more.
+
+### 9. Preparing a mesh somebody has already reviewed
+
+```
+rac run-stage adopt-mesh  --source <mesh.glb>     --output <adopted.blend> --report <r.json> [--require-uvs]
+rac run-stage reduce-mesh --source <adopted.blend> --output <runtime.glb>  --report <r.json> \
+    --triangle-budget <n> --runtime-derivative
+```
+
+A generated mesh and a library mesh need opposite handling, and getting that
+backwards is the mistake this section exists to prevent.
+
+A generator's output has no topology worth keeping: it is a marching-cubes
+surface with no edge loops, no UVs and no materials, so it is **rebuilt** on a
+uniform grid (`remesh`) and painted from scratch. A mesh already in a studio's
+library is the other way round. Its UVs, its materials and its shell are what
+somebody looked at and accepted, and a preparation that rebuilt any of them
+would be throwing the review away and calling the result a derivative.
+
+So this route **adopts** rather than converts-and-fixes. `adopt-mesh` imports
+the transport mesh, bakes the importer's own object scale into the vertex data
+and saves a `.blend`. It does not scale to a human landmark -- the size is
+already the size -- and it does not weld, triangulate, reorder or reproject.
+Its receipt records the counts, the extent, the UV layers and the materials
+with their images, because a derivative that quietly lost the second UV map or
+half the materials is a real loss and nobody can see a loss without a record of
+what was there first. `--require-uvs` refuses a mesh with no UV layer by name,
+up front, rather than delivering a derivative nobody can paint.
+
+`reduce-mesh --runtime-derivative` is then the same collapse with the same
+deviation thresholds, judged for a different purpose. Three things change,
+together, because they only make sense together:
+
+- **Inherited boundaries are not filled.** The authority path closes the
+  source's open edges before collapsing. That invents surface the source never
+  had and then measures the derivative against an original that does not
+  contain it -- which is how a faithful reduction came back 128 mm out on a
+  424 mm lantern.
+- **An open candidate is a recorded finding, not a failure** -- but only where
+  the source was open too. Ordinary game art is open: separate glass, free
+  cloth edges, unclosed shells. Judged as a production authority it can only
+  ever be rejected, for a reason that was true before the reduction ran. A
+  reduction that opens a surface which *was* closed is still a failure, because
+  that is damage rather than inheritance, and that check is what stops the mode
+  from meaning "do not look".
+- **The exported GLB keeps its materials.** On the authority path that file is
+  a review copy for looking at shape, and the `.blend` beside it is the
+  contract. Here it is the deliverable.
+
+Nothing about the deviation thresholds is relaxed, `status` is still only ever
+`mechanical_pass`, and `production_grade` is still `false`. The receipt carries
+`mode: runtime-derivative` and an `accepted_findings` list naming every
+allowance in words, because a relaxation nobody can read in a receipt is a
+relaxation nobody can argue with later.
+
+The native `.blend` is retained beside the deliverable, as it is on the
+authority path. A derivative is not a replacement, and the thing a later pass
+would need to reduce differently is the editable mesh, not the transport.
+
+Fixed views (section 8) are rendered for the **source and the derivative
+both**. Comparing the two is the review; a derivative's views on their own show
+only that something rendered.
 
 ## Skeleton fingerprint
 

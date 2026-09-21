@@ -18,6 +18,7 @@ from reduce_quadriflow import (  # noqa: E402
     symmetric_deviation,
     topology,
 )
+from reduction_verdict import surface_verdict  # noqa: E402
 
 
 def parse_args() -> argparse.Namespace:
@@ -31,6 +32,32 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--weight-factor", type=float, default=20.0)
     parser.add_argument("--maximum-p99-m", type=float, default=0.005)
     parser.add_argument("--maximum-max-m", type=float, default=0.020)
+    # One named mode rather than three loose relaxations, because the three
+    # only make sense together and only for one kind of caller.
+    #
+    # This stage was written to judge a candidate for a production authority:
+    # a closed two-manifold surface somebody will build on. A browser or
+    # runtime derivative of a mesh that is already in somebody's library is a
+    # different thing entirely. That mesh is ordinary game art -- open shells,
+    # separate glass, cloth with a free edge -- and it was reviewed and
+    # accepted in that state. Judged as an authority it can only ever be
+    # rejected, and for a reason that was true before the reduction ran.
+    #
+    # Under this mode the source's shell is left as the source's shell: its
+    # open boundaries are not filled, because filling them invents surface the
+    # authority never had and then measures the derivative against an original
+    # that does not contain it -- which is how a faithful reduction came back
+    # 128 mm out on a 424 mm lantern. An open candidate becomes a recorded
+    # finding instead of a failure, but only where the source was open too; a
+    # reduction that opens a closed surface is still a failure, because that is
+    # damage rather than inheritance. And the review GLB keeps its materials,
+    # because here it is the deliverable rather than something to glance at.
+    #
+    # Nothing about the deviation thresholds is relaxed, and nothing here is
+    # ever production_grade.
+    parser.add_argument("--runtime-derivative", action="store_true",
+                        help="Judge this as a runtime derivative of a reviewed mesh, "
+                             "not as a candidate production authority")
     return parser.parse_args(values)
 
 
@@ -123,7 +150,17 @@ def main() -> int:
     bpy.ops.object.duplicate()
     candidate = bpy.context.view_layer.objects.active
     candidate.name = "GEO_RAC_FeatureQEMCandidate"
-    boundary_repair = close_inherited_boundaries(candidate)
+    if args.runtime_derivative:
+        # Not repaired, and said so rather than reported as zero holes found.
+        boundary_repair = {
+            "performed": False,
+            "boundary_edges_before": int(authority_topology["boundary_edges"]),
+            "reason": "A runtime derivative keeps the shell its reviewed source has. "
+                      "Filling inherited boundaries would add surface the source never "
+                      "had and then measure the difference as error.",
+        }
+    else:
+        boundary_repair = close_inherited_boundaries(candidate)
     healed_triangles = int(topology(candidate)["triangles"])
     weights, weight_summary = feature_weights(candidate)
     group = candidate.vertex_groups.new(name="RAC_FeatureImportance")
@@ -157,10 +194,13 @@ def main() -> int:
         for value in vertex.co
     )
     failures = []
+    accepted = []
     if candidate_topology["triangles"] > args.triangle_budget:
         failures.append("triangle budget exceeded")
-    if candidate_topology["boundary_edges"] or candidate_topology["nonmanifold_edges"]:
-        failures.append("candidate is not a closed two-manifold surface")
+    surface_failures, surface_accepted = surface_verdict(
+        authority_topology, candidate_topology, args.runtime_derivative)
+    failures.extend(surface_failures)
+    accepted.extend(surface_accepted)
     if not finite:
         failures.append("candidate contains non-finite coordinates")
     if deviation["p99_m"] > args.maximum_p99_m:
@@ -192,10 +232,16 @@ def main() -> int:
     bpy.context.view_layer.objects.active = candidate
     bpy.ops.export_scene.gltf(
         filepath=str(review_glb), export_format="GLB", use_selection=True,
-        export_materials="NONE")
+        # An authority's review copy carries no materials on purpose: it exists
+        # so somebody can look at the shape, and the .blend beside it is the
+        # contract. A runtime derivative is the opposite -- this file is what
+        # gets delivered, and a derivative that arrived with its paint stripped
+        # would be a loss nobody asked for.
+        export_materials="EXPORT" if args.runtime_derivative else "NONE")
     report = {
         "schema": "reference-asset-compiler.production-retopology-candidate.v1",
         "status": "mechanical_pass" if not failures else "rejected",
+        "mode": "runtime-derivative" if args.runtime_derivative else "production-authority",
         "source": {
             "path": str(source),
             "sha256": sha256_file(source),
@@ -228,6 +274,9 @@ def main() -> int:
         },
         "symmetric_surface_deviation": deviation,
         "failures": failures,
+        # What was allowed through, by name. A relaxation nobody can read in
+        # the receipt is a relaxation nobody can argue with later.
+        "accepted_findings": accepted,
         "requires_fixed_view_review": True,
         "requires_dense_to_runtime_texture_bake": True,
         "production_grade": False,
