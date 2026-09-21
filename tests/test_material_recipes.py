@@ -28,7 +28,12 @@ from reference_asset_compiler.resources import checkout_root
 # The part cutter is a Blender-side script, but the judgement in it is
 # ordinary arithmetic and is exercised here without Blender.
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts" / "blender"))
-from reference_asset_compiler.stages import STAGES, StageError, prepare_assign_surfaces
+from reference_asset_compiler.stages import (
+    STAGES,
+    StageError,
+    prepare_assign_surfaces,
+    prepare_bake_detail,
+)
 from surface_parts import load_tables, nearest_recipe, part_of  # noqa: E402
 
 ROOT = checkout_root()
@@ -209,6 +214,39 @@ class ReadsAsTests(unittest.TestCase):
         # guessing "matte" for it would be a claim nobody made.
         self.assertIsNone(nearest_recipe(self.recipes, None, 1.0))
         self.assertIsNone(nearest_recipe(self.recipes, 0.5, None))
+
+
+class DerivedMapStageTests(unittest.TestCase):
+    """Baking the detail a model's own geometry already implies.
+
+    The occlusion and curvature are measurements, not inventions -- which is
+    what makes them worth doing first and what makes the result checkable
+    against the mesh rather than taken on trust.
+    """
+
+    def test_a_caller_who_asked_for_nothing_gets_the_scripts_own_defaults(self):
+        self.assertEqual(prepare_bake_detail({})["arguments"], [])
+
+    def test_what_a_caller_chose_reaches_the_script(self):
+        prepared = prepare_bake_detail({
+            "resolution": 2048, "samples": 128, "distance": 0.05, "edge_wear": 0.3})
+
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("--resolution") + 1], "2048")
+        self.assertEqual(arguments[arguments.index("--samples") + 1], "128")
+        self.assertEqual(arguments[arguments.index("--distance") + 1], "0.05")
+        self.assertEqual(arguments[arguments.index("--edge-wear") + 1], "0.3")
+
+    def test_the_stage_writes_into_gltfs_own_occlusion_slot(self):
+        stage = STAGES["bake-detail"]
+
+        self.assertEqual(stage["produces"], "reference-asset-compiler.derived-maps.v1")
+        self.assertIn("blender", stage["needs"])
+        # Transport in, transport out: this adds maps, it does not change form.
+        self.assertEqual(stage.get("output_suffix", ".glb"), ".glb")
+        for option in ("resolution", "samples", "distance", "edge_wear"):
+            with self.subTest(option=option):
+                self.assertIn(option, stage["options"])
 
 
 class SurfaceStageTests(unittest.TestCase):

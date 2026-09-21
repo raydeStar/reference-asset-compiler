@@ -111,6 +111,9 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--runtime-derivative", action="store_true",
                        help="Reduce a reviewed mesh for runtime use rather than judging it "
                             "as a candidate production authority")
+    stage.add_argument("--samples", type=int, help="Bake quality in samples (default: 64)")
+    stage.add_argument("--distance", type=float, help="How far occlusion looks for a shadower, in metres")
+    stage.add_argument("--edge-wear", type=float, help="How hard curvature lifts edges in the albedo, 0..1")
     stage.add_argument("--assign", action="append",
                        help="A part and the surface it should be, as colour[:tone]=surface. "
                             "Repeatable, for example --assign blue:dark=crystal")
@@ -261,6 +264,9 @@ def main(argv: list[str] | None = None) -> int:
                     "allow_triangulated_glb": args.allow_triangulated_glb or None,
                     "require_uvs": args.require_uvs or None,
                     "assign": args.assign or None,
+                    "samples": args.samples,
+                    "distance": args.distance,
+                    "edge_wear": args.edge_wear,
                     "runtime_derivative": args.runtime_derivative or None,
                     "reference": args.reference,
                     "views": args.views,

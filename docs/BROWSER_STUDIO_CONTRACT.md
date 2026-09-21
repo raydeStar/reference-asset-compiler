@@ -25,7 +25,7 @@ A studio never re-runs a gate, re-derives a verdict, or upgrades a claim. If it
 needs a stronger claim than a receipt makes, the answer is a new compiler stage,
 not a second opinion downstream.
 
-## The nine things a studio consumes
+## The ten things a studio consumes
 
 ### 1. Skeleton profiles
 
@@ -372,6 +372,67 @@ would need to reduce differently is the editable mesh, not the transport.
 Fixed views (section 8) are rendered for the **source and the derivative
 both**. Comparing the two is the review; a derivative's views on their own show
 only that something rendered.
+
+### 10. Surfaces, and the detail a mesh already implies
+
+```
+rac run-stage survey-surfaces --source <mesh.glb> --output <survey.json>  --report <r.json>
+rac run-stage bake-detail     --source <mesh.glb> --output <lit.glb>      --report <r.json> [--resolution 1024] [--edge-wear 0.25]
+rac run-stage assign-surfaces --source <lit.glb>  --output <surfaced.glb> --report <r.json>     --assign blue:dark=crystal --assign teal:bright@0.7-0.82=gemstone
+```
+
+A painter answers in one material. A whole sword arrives as a single opaque
+surface, and every part of it inherits whatever that paint's roughness and
+metallic maps happened to say. Measured on one real asset: metallic 0.99 across
+72% of the surface, so the blade, the bright edges and the stone at its throat
+were all being rendered as rough metal. Metal cannot transmit light at all,
+which is why no amount of adjustment would ever have made that stone read as a
+stone. It was the wrong class of material, not the wrong numbers.
+
+**A part** is named the way somebody points at one: a colour family, where that
+colour sits in value, and optionally a band of the model's height as a fraction
+from foot to crown. Tone is not decoration -- a sword's body and its gem are
+both blue, and it is the only thing that separates them. Height is there for
+the parts colour cannot reach at all: a gem and the bright edge running down a
+blade are painted the same, because to a painter they are the same material.
+The most specific part wins, band over tone over colour.
+
+**A surface** is a name, not a set of numbers: crystal, gemstone, glass,
+polished metal, brushed metal, cast metal, glossy, matte, leather, cloth. The
+numbers live in `profiles/materials/recipes.json`, which both the offer and the
+application read, so a name means one thing. A caller asks for a kind of
+material because a name is something that can be argued with and a slider is
+not.
+
+**The survey** says what a model is currently made of, part by part, and which
+named surface each part's measurements are nearest to. That is what a proposal
+gets made against: an agent looking at a render can say "the blade reads like
+plastic" and be right, and still have no way to say which faces it means. With
+`reads_as` in the same vocabulary, judging a part is a comparison -- is this
+what it is supposed to be? -- rather than an invention.
+
+**Baking** adds what the geometry already implies and nothing else. Occlusion
+is how much of the sky each point can see; curvature is how the surface bends.
+Both are measurements of the mesh that is already there. Two things about
+where they go:
+
+- Occlusion is written to glTF's **own occlusion slot**, never into the packed
+  roughness map. `assign-surfaces` releases the roughness map on any part it
+  gives a new surface, and occlusion living in that map would go with it.
+- Unreached sheet is filled with the value meaning *nothing here* -- white for
+  occlusion, mid grey for curvature -- because only about a quarter of a
+  typical sheet is reachable by geometry, and a renderer sampling a hair
+  outside an island would otherwise read fully occluded and put a black rim
+  around every part.
+
+Run order matters: bake before assigning surfaces, so the copies inherit the
+occlusion.
+
+**What the fixed views cannot tell you.** Blender computes real global
+illumination, so it ignores a glTF occlusion map entirely -- the review renders
+of a baked model and an unbaked one are identical. Occlusion is a real-time
+renderer's convention and shows in one. Judge it in the studio's viewer, not in
+section 8's evidence.
 
 ## Skeleton fingerprint
 

@@ -78,6 +78,16 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Say what a model is made of, part by part, in the words used to change it.",
         "produces": "reference-asset-compiler.surface-survey.v1",
     },
+    "bake-detail": {
+        "runner": "blender",
+        "script": "scripts/blender/bake_derived_maps.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("resolution", "samples", "distance", "edge_wear"),
+        "prepare": "bake-detail",
+        "needs": ("blender",),
+        "summary": "Bake the occlusion and curvature a model's own geometry already implies.",
+        "produces": "reference-asset-compiler.derived-maps.v1",
+    },
     "browser-payload": {
         "runner": "blender",
         "script": "scripts/blender/export_browser_payload.py",
@@ -328,7 +338,9 @@ def run_stage(
     # been accepted is refused before anything is queued.
     context: dict[str, Any] = {}
     prepare = stage.get("prepare")
-    if prepare == "survey-surfaces":
+    if prepare == "bake-detail":
+        context = prepare_bake_detail(options or {})
+    elif prepare == "survey-surfaces":
         context = prepare_survey_surfaces(options or {})
     elif prepare == "assign-surfaces":
         context = prepare_assign_surfaces(root, options or {})
@@ -503,6 +515,22 @@ def prepare_staged_mesh(options: dict[str, Any]) -> dict[str, Any]:
         "arguments": ["--height-m", repr(resolved["height_m"]), "--size", resolved["size"]],
         "payload": {"scale": resolved},
     }
+
+
+def prepare_bake_detail(options: dict[str, Any]) -> dict[str, Any]:
+    """What a bake is allowed to be told, checked before Blender starts.
+
+    Occlusion distance is in metres and means something: it is how far a ray
+    looks for something to be shadowed by. On a mesh that has not been given
+    its real size it would mean nothing at all, which is why staging comes
+    first in every route that reaches here.
+    """
+    arguments: list[str] = []
+    for flag, name in (("--resolution", "resolution"), ("--samples", "samples"),
+                       ("--distance", "distance"), ("--edge-wear", "edge_wear")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {"arguments": arguments}
 
 
 def prepare_survey_surfaces(options: dict[str, Any]) -> dict[str, Any]:
