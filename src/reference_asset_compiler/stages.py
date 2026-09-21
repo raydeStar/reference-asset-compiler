@@ -28,6 +28,7 @@ from .geometry_stage import (
     prepare_single_view_request,
     resolve_legacy_root,
 )
+from .glass_colours import GlassColourError, named_colours, resolve_colour
 from .human_scale import HumanScaleError, named_sizes, resolve_height
 from .resources import checkout_root
 
@@ -105,6 +106,15 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Unfold a mesh onto a map, moving no vertex, so it can be painted.",
         "produces": "reference-asset-compiler.texture-uv-transport.v1",
     },
+    "glass": {
+        "runner": "blender",
+        "script": "scripts/blender/assign_transparent_material.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("colour", "transmission", "minimum_share"),
+        "prepare": "glass",
+        "summary": "Give the faces painted a named colour a material that transmits.",
+        "produces": "reference-asset-compiler.transparent-material.v1",
+    },
     "texture": {
         "runner": "powershell",
         "script": "scripts/run_hy3d21_texture.ps1",
@@ -176,6 +186,13 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # where everything else is a .glb.
             "output_suffix": stage.get("output_suffix", ".glb"),
         }
+        if "colour" in stage.get("options", ()) and root is not None:
+            # Offered from the one table the stage itself reads, so a consumer
+            # presenting these choices is never presenting a stale list.
+            try:
+                described["colours"] = named_colours(root)
+            except GlassColourError:
+                described["colours"] = []
         if "size" in stage.get("options", ()):
             # The vocabulary belongs here, with the table that turns a landmark
             # into metres. A consumer offering these as choices reads them;
@@ -262,6 +279,8 @@ def run_stage(
     elif prepare == "remesh":
         context = prepare_remesh(
             Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
+    elif prepare == "glass":
+        context = prepare_glass(root, options or {})
     elif prepare == "uv-unwrap":
         context = prepare_uv_unwrap(
             Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
@@ -505,6 +524,28 @@ def prepare_remesh(source: Path, output: Path, options: dict[str, Any],
         },
         "payload": {"attempt_directory": str(attempt)},
     }
+
+
+def prepare_glass(root: Path, options: dict[str, Any]) -> dict[str, Any]:
+    """Resolve the named colour before Blender starts.
+
+    Refusing here names the colour in the caller's own terms. Refusing inside
+    Blender names it in a line of stderr somebody has to go and find.
+    """
+    colour = options.get("colour")
+    if not colour:
+        raise StageError(
+            "Glazing needs the colour the glass was painted: pass --colour, for example --colour teal.")
+    try:
+        resolved = resolve_colour(str(colour), root)
+    except GlassColourError as problem:
+        raise StageError(str(problem)) from problem
+
+    arguments = ["--colour", resolved["colour"]]
+    for flag, name in (("--transmission", "transmission"), ("--minimum-share", "minimum_share")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {"arguments": arguments, "payload": {"colour": resolved}}
 
 
 def prepare_uv_unwrap(source: Path, output: Path, options: dict[str, Any],

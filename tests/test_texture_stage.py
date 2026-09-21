@@ -328,6 +328,77 @@ class RemeshTests(unittest.TestCase):
         self.assertFalse(self.output.exists())
 
 
+class GlassTests(unittest.TestCase):
+    """Which faces are glass is said, not inferred."""
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        table = self.root / "profiles" / "colours" / "hue-families.json"
+        table.parent.mkdir(parents=True)
+        table.write_text(json.dumps({
+            "schema": "reference-asset-compiler.hue-families.v1",
+            "minimum_saturation": 0.12,
+            "families": [
+                {"colour": "teal", "description": "teal or cyan", "span": [0.40, 0.60]},
+                {"colour": "amber", "description": "amber or orange", "span": [0.03, 0.10]},
+            ],
+        }), encoding="utf-8")
+
+    def test_a_named_colour_becomes_the_argument_blender_receives(self):
+        from reference_asset_compiler.stages import prepare_glass
+
+        prepared = prepare_glass(self.root, {"colour": "Teal", "transmission": 0.7})
+
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("--colour") + 1], "teal")
+        self.assertEqual(arguments[arguments.index("--transmission") + 1], "0.7")
+        self.assertEqual(prepared["payload"]["colour"]["description"], "teal or cyan")
+
+    def test_glazing_without_a_colour_refuses(self):
+        from reference_asset_compiler.stages import prepare_glass
+
+        with self.assertRaises(StageError) as refusal:
+            prepare_glass(self.root, {})
+
+        # A blue vase is not a window. Guessing which colour is glass would
+        # turn an ordinary painted surface see-through.
+        self.assertIn("--colour", str(refusal.exception))
+
+    def test_a_colour_nobody_offers_is_named_with_the_ones_that_exist(self):
+        from reference_asset_compiler.stages import prepare_glass
+
+        with self.assertRaises(StageError) as refusal:
+            prepare_glass(self.root, {"colour": "chartreuse"})
+
+        self.assertIn("chartreuse", str(refusal.exception))
+        self.assertIn("teal", str(refusal.exception))
+
+    def test_the_offered_colours_come_from_the_table_the_stage_reads(self):
+        from reference_asset_compiler.glass_colours import named_colours
+
+        offered = named_colours(self.root)
+
+        # One table read twice, not two tables that agree until they do not.
+        self.assertEqual([entry["colour"] for entry in offered], ["teal", "amber"])
+        self.assertEqual(offered[0]["description"], "teal or cyan")
+
+    def test_the_real_table_offers_what_the_blender_stage_understands(self):
+        import json as json_module
+        from reference_asset_compiler.glass_colours import named_colours
+        from reference_asset_compiler.resources import checkout_root
+
+        root = checkout_root()
+        if root is None:
+            self.skipTest("not running from a checkout")
+        offered = {entry["colour"] for entry in named_colours(root)}
+        table = json_module.loads(
+            (root / "profiles" / "colours" / "hue-families.json").read_text(encoding="utf-8-sig"))
+
+        # The Blender stage reads this same file by path, so the list a person
+        # chooses from and the list that is honoured cannot drift apart.
+        self.assertEqual(offered, {family["colour"] for family in table["families"]})
+
+
 class RegistryTests(unittest.TestCase):
     def test_the_paint_stages_report_what_they_write(self):
         described = describe_stages(None, blender=None, legacy_root=None)

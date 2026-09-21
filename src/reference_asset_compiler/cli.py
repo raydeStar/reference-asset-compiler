@@ -117,6 +117,10 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--voxel-resolution", type=int, help="Remesh grid resolution (default: 420)")
     stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
     stage.add_argument("--smooth-lambda", type=float, help="Remesh smoothing strength (default: 0.28)")
+    stage.add_argument("--colour", help="The colour a model's glass was painted, e.g. teal")
+    stage.add_argument("--transmission", type=float, help="How much the glass transmits, 0..1 (default: 0.85)")
+    stage.add_argument("--minimum-share", type=float,
+                       help="Refuse if the colour covers less of the model than this (default: 0.005)")
     stage.add_argument("--repo-root", type=Path,
                        help="Pipeline checkout; required outside a source installation")
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
@@ -253,6 +257,9 @@ def main(argv: list[str] | None = None) -> int:
                     "voxel_resolution": args.voxel_resolution,
                     "smooth_iterations": args.smooth_iterations,
                     "smooth_lambda": args.smooth_lambda,
+                    "colour": args.colour,
+                    "transmission": args.transmission,
+                    "minimum_share": args.minimum_share,
                 })
             print_payload(payload)
             return 0 if payload["ok"] else 1

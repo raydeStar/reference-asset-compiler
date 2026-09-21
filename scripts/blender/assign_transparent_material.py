@@ -32,23 +32,17 @@ import bpy
 import numpy as np
 from mathutils import Vector
 
-# Hue families as a person names them, in Blender's 0..1 hue. They overlap at
-# the edges on purpose: somebody who says "teal" about something a shade bluer
-# should still get their glass.
-FAMILIES: dict[str, tuple[float, float]] = {
-    "red": (0.94, 1.04),
-    "amber": (0.03, 0.10),
-    "yellow": (0.10, 0.19),
-    "green": (0.19, 0.44),
-    "teal": (0.40, 0.60),
-    "blue": (0.54, 0.74),
-    "violet": (0.70, 0.86),
-    "pink": (0.84, 0.97),
-}
+# The families live in the checkout's own table rather than here, because the
+# compiler offers the same list to whoever is choosing from it. Two copies
+# would agree until the day they did not.
+TABLE = Path(__file__).resolve().parents[2] / "profiles" / "colours" / "hue-families.json"
 
-MINIMUM_SATURATION = 0.12
-"""Below this a colour has no hue worth reading, and reading one anyway would
-scatter transparent faces through every grey part of the model."""
+
+def load_families():
+    """The named hue spans, and the saturation below which a hue means nothing."""
+    table = json.loads(TABLE.read_text(encoding="utf-8-sig"))
+    families = {family["colour"]: tuple(family["span"]) for family in table["families"]}
+    return families, float(table.get("minimum_saturation", 0.12))
 
 
 def read_option(argv, name, default=None):
@@ -87,9 +81,14 @@ def main() -> int:
     transmission = float(read_option(argv, "--transmission", "0.85"))
     minimum_share = float(read_option(argv, "--minimum-share", "0.005"))
 
-    if colour not in FAMILIES:
+    try:
+        families, minimum_saturation = load_families()
+    except (OSError, ValueError, KeyError) as problem:
+        print("[GLASS] FAILED: the colour family table could not be read: {0}".format(problem))
+        return 1
+    if colour not in families:
         print("[GLASS] FAILED: name the colour the glass was painted, one of: {0}".format(
-            ", ".join(sorted(FAMILIES))))
+            ", ".join(sorted(families))))
         return 1
     if not 0.0 < transmission <= 1.0:
         print("[GLASS] FAILED: transmission must be above 0 and at most 1")
@@ -127,7 +126,7 @@ def main() -> int:
     pixels = np.asarray(image.pixels[:], dtype=np.float32).reshape(height, width, 4)
     uv_layer = mesh.uv_layers.active.data
 
-    span = FAMILIES[colour]
+    span = families[colour]
     chosen = []
     for polygon in mesh.polygons:
         centre = Vector((0.0, 0.0))
@@ -138,7 +137,7 @@ def main() -> int:
         y = min(height - 1, max(0, int(centre.y * height)))
         red, green, blue = (float(value) for value in pixels[y, x, :3])
         hue, saturation, _ = colorsys.rgb_to_hsv(red, green, blue)
-        if saturation >= MINIMUM_SATURATION and in_family(hue, span):
+        if saturation >= minimum_saturation and in_family(hue, span):
             chosen.append(polygon.index)
 
     share = len(chosen) / max(len(mesh.polygons), 1)

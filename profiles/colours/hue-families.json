@@ -1,0 +1,15 @@
+{
+  "schema": "reference-asset-compiler.hue-families.v1",
+  "note": "Colour families as a person names them, in hue 0..1. They overlap at the edges on purpose: somebody who says 'teal' about something a shade bluer should still get their glass. Read by the compiler and by the Blender stage that uses them, so there is one table rather than two that will disagree.",
+  "minimum_saturation": 0.12,
+  "families": [
+    { "colour": "red", "description": "red", "span": [0.94, 1.04] },
+    { "colour": "amber", "description": "amber or orange", "span": [0.03, 0.10] },
+    { "colour": "yellow", "description": "yellow or gold", "span": [0.10, 0.19] },
+    { "colour": "green", "description": "green", "span": [0.19, 0.44] },
+    { "colour": "teal", "description": "teal or cyan", "span": [0.40, 0.60] },
+    { "colour": "blue", "description": "blue", "span": [0.54, 0.74] },
+    { "colour": "violet", "description": "violet or purple", "span": [0.70, 0.86] },
+    { "colour": "pink", "description": "pink or magenta", "span": [0.84, 0.97] }
+  ]
+}
