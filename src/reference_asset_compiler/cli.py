@@ -121,6 +121,15 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--quality", type=int, help="Re-encode quality, 1..100 (default: 90)")
     stage.add_argument("--texture-format", choices=("jpeg", "webp", "png"),
                        help="jpeg is core glTF; webp is smaller but needs an extension")
+    stage.add_argument("--directions", type=int,
+                       help="How many viewpoints the cull looks from, 8..512 (default: 64)")
+    stage.add_argument("--most", type=float,
+                       help="The share of a model the cull may remove, 0..1 (default: 0.6)")
+    stage.add_argument("--largest-part", type=float,
+                       help="The largest connected part that may vanish whole, 0..1 (default: 0.1)")
+    stage.add_argument("--ignore-transparency", action="store_true",
+                       help="Cull a model with see-through materials anyway. A ray cannot see "
+                            "through glass, so this deletes what is behind it.")
     stage.add_argument("--relief-from-paint", type=float,
                        help="Raise the relief somebody painted into a normal map, 0..2")
     stage.add_argument("--assign", action="append",
@@ -277,6 +286,10 @@ def main(argv: list[str] | None = None) -> int:
                     "distance": args.distance,
                     "edge_wear": args.edge_wear,
                     "relief_from_paint": args.relief_from_paint,
+                    "directions": args.directions,
+                    "most": args.most,
+                    "largest_part": args.largest_part,
+                    "ignore_transparency": args.ignore_transparency or None,
                     "colour_size": args.colour_size,
                     "data_size": args.data_size,
                     "quality": args.quality,
