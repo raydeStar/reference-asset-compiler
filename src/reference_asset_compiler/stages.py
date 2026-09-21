@@ -514,15 +514,18 @@ def prepare_assign_surfaces(root: Path, options: dict[str, Any]) -> dict[str, An
             entry = parse_assignment(str(text), root)
         except MaterialRecipeError as problem:
             raise StageError(str(problem)) from problem
-        key = (entry["colour"], entry["tone"])
+        key = (entry["colour"], entry["tone"], tuple(entry["band"] or ()))
         if key in seen:
             raise StageError(
                 "The same part is named twice, so which surface wins would be an accident: "
                 "{0}.".format(entry["colour"] + (":" + entry["tone"] if entry["tone"] else "")))
         seen.add(key)
         resolved.append(entry)
-        arguments += ["--assign", "{0}{1}={2}".format(
-            entry["colour"], ":" + entry["tone"] if entry["tone"] else "", entry["recipe"])]
+        arguments += ["--assign", "{0}{1}{2}={3}".format(
+            entry["colour"],
+            ":" + entry["tone"] if entry["tone"] else "",
+            "@{0}-{1}".format(*entry["band"]) if entry["band"] else "",
+            entry["recipe"])]
 
     if options.get("minimum_share") is not None:
         arguments += ["--minimum-share", str(options["minimum_share"])]

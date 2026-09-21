@@ -8,7 +8,7 @@
       "why": "Dielectric and smooth, transmitting most of what falls on it. Metal cannot transmit light at all, which is why a crystal marked metallic can never be made to read as one.",
       "metallic": 0.0,
       "roughness": 0.1,
-      "transmission": 0.72,
+      "transmission": 0.5,
       "ior": 1.65
     },
     {

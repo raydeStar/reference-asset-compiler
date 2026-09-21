@@ -35,8 +35,14 @@ class VocabularyTests(unittest.TestCase):
         # The whole reason this exists. A dielectric transmits; metal does not,
         # at all, so a crystal marked metallic can never be made to read as one
         # however its roughness is adjusted.
+        #
+        # The class is what is asserted, not the taste. How much a crystal
+        # transmits is a dial somebody turns while looking at a render -- it
+        # came down from 0.72 to 0.5 so a blade's dark core stayed rich -- and a
+        # test that pinned the number would have to be edited every time
+        # somebody adjusted it, which teaches it to be ignored.
         self.assertEqual(crystal["metallic"], 0.0)
-        self.assertGreater(crystal["transmission"], 0.5)
+        self.assertGreater(crystal["transmission"], 0.2)
         self.assertLess(crystal["roughness"], 0.2)
 
     def test_a_gem_bends_light_further_than_glass(self):
@@ -105,6 +111,28 @@ class AssignmentTests(unittest.TestCase):
                     parse_assignment(text, ROOT)
                 self.assertIn("=", str(refusal.exception))
 
+    def test_a_part_may_name_where_on_the_model_it_is(self):
+        parsed = parse_assignment("teal:bright@0.7-0.82=gemstone", ROOT)
+
+        # Some parts colour cannot reach. The stone at a sword's throat and the
+        # bright edge down its blade are painted the same, because to a painter
+        # they are the same material, so no colour or tone will ever separate
+        # them. Where they are will.
+        self.assertEqual(parsed["band"], [0.7, 0.82])
+        self.assertEqual(parsed["colour"], "teal")
+        self.assertEqual(parsed["tone"], "bright")
+
+    def test_a_part_with_no_band_is_the_whole_model(self):
+        self.assertIsNone(parse_assignment("blue=crystal", ROOT)["band"])
+
+    def test_a_band_that_is_not_a_band_says_what_one_looks_like(self):
+        for text in ("blue@0.7=crystal", "blue@high-low=crystal", "blue@0.8-0.2=crystal",
+                     "blue@-0.2-0.5=crystal", "blue@0.5-1.5=crystal"):
+            with self.subTest(text=text):
+                with self.assertRaises(MaterialRecipeError) as refusal:
+                    parse_assignment(text, ROOT)
+                self.assertIn("band", str(refusal.exception))
+
     def test_a_part_cannot_carry_two_tones(self):
         with self.assertRaises(MaterialRecipeError):
             parse_assignment("blue:dark:bright=crystal", ROOT)
@@ -125,6 +153,14 @@ class SurfaceStageTests(unittest.TestCase):
         self.assertEqual(arguments.count("--assign"), 2)
         self.assertIn("teal:dark=crystal", arguments)
         self.assertIn("grey:bright=brushed-metal", arguments)
+
+    def test_the_same_colour_at_two_heights_is_two_parts(self):
+        prepared = prepare_assign_surfaces(ROOT, {
+            "assign": ["teal:bright@0.0-0.6=crystal", "teal:bright@0.7-0.82=gemstone"]})
+
+        arguments = prepared["arguments"]
+        self.assertIn("teal:bright@0.0-0.6=crystal", arguments)
+        self.assertIn("teal:bright@0.7-0.82=gemstone", arguments)
 
     def test_naming_the_same_part_twice_is_refused_rather_than_resolved(self):
         with self.assertRaises(StageError) as refusal:

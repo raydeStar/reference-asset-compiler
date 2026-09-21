@@ -145,6 +145,23 @@ def main() -> int:
     assignments = []
     for text in requested:
         part, _, recipe = text.strip().lower().partition("=")
+        # Some parts colour cannot reach. The stone at a sword's throat and the
+        # bright edge down its blade are painted the same, because to a painter
+        # they are the same material. Where they are is what separates them.
+        part, _, band_text = part.partition("@")
+        band = None
+        if band_text:
+            try:
+                low, high = (float(half) for half in band_text.split("-"))
+            except ValueError:
+                print("[SURFACE] FAILED: a height band is two fractions, low-high, "
+                      "for example @0.7-0.85. Got {0!r}".format(band_text))
+                return 1
+            if not 0.0 <= low < high <= 1.0:
+                print("[SURFACE] FAILED: a height band runs from low to high within 0 and 1. "
+                      "Got {0!r}".format(band_text))
+                return 1
+            band = (low, high)
         colour, _, tone = part.partition(":")
         if recipe not in recipes:
             print("[SURFACE] FAILED: there is no {0!r} surface. There is: {1}.".format(
@@ -158,9 +175,10 @@ def main() -> int:
             print("[SURFACE] FAILED: there is no {0!r} tone. There is: {1}.".format(
                 tone, ", ".join(sorted(tones))))
             return 1
-        assignments.append({"colour": colour, "tone": tone or None, "recipe": recipe})
+        assignments.append({"colour": colour, "tone": tone or None,
+                            "band": band, "recipe": recipe})
 
-    keys = [(entry["colour"], entry["tone"]) for entry in assignments]
+    keys = [(entry["colour"], entry["tone"], entry["band"]) for entry in assignments]
     if len(set(keys)) != len(keys):
         print("[SURFACE] FAILED: the same part is named twice, so which surface wins would be an accident")
         return 1
@@ -195,6 +213,15 @@ def main() -> int:
         orm_pixels = np.asarray(orm.pixels[:], dtype=np.float32).reshape(orm.size[1], orm.size[0], 4)
     uv_layer = mesh.uv_layers.active.data
 
+    # Height as a fraction from the model's foot to its crown, so a band means
+    # the same thing whatever the thing is or how big it is.
+    lows = [(mesh_object.matrix_world @ vertex.co).z for vertex in mesh.vertices]
+    floor, ceiling = min(lows), max(lows)
+    span = (ceiling - floor) or 1.0
+
+    def height_of(polygon):
+        return ((mesh_object.matrix_world @ polygon.center).z - floor) / span
+
     def classify(polygon):
         centre = Vector((0.0, 0.0))
         for loop in polygon.loop_indices:
@@ -225,17 +252,25 @@ def main() -> int:
             "metallic_median": round(statistics.median(metal), 4),
         }
 
-    wanted = {(entry["colour"], entry["tone"]): entry for entry in assignments}
+    wanted = {(entry["colour"], entry["tone"], entry["band"]): entry for entry in assignments}
     chosen: dict[tuple, list[int]] = {key: [] for key in wanted}
     centres: dict[tuple, list] = {key: [] for key in wanted}
+    # Most specific first, always, rather than whichever happened to be listed
+    # last: a caller naming blue, blue:bright and blue:bright@0.7-0.85 should
+    # get the answer they would have predicted.
+    order = sorted(wanted, key=lambda key: (key[2] is not None, key[1] is not None), reverse=True)
     for polygon in mesh.polygons:
         family, tone, centre = classify(polygon)
         if family is None:
             continue
-        # The more specific part wins, always, rather than whichever was
-        # listed last: naming blue and blue:bright should be predictable.
-        key = (family, tone) if (family, tone) in wanted else (
-            (family, None) if (family, None) in wanted else None)
+        # Not `height`: that name already belongs to the base colour image's
+        # own height, which classify() closes over. Reusing it turned an image
+        # row index into a fraction on the second face.
+        elevation = height_of(polygon)
+        key = next((candidate for candidate in order
+                    if candidate[0] == family
+                    and (candidate[1] is None or candidate[1] == tone)
+                    and (candidate[2] is None or candidate[2][0] <= elevation <= candidate[2][1])), None)
         if key is None:
             continue
         chosen[key].append(polygon.index)
@@ -248,7 +283,8 @@ def main() -> int:
             # Finding almost nothing means the named part is not on this model.
             # Changing four faces and reporting success would be worse than
             # saying so, because the caller would believe it had worked.
-            name = key[0] + (":" + key[1] if key[1] else "")
+            name = key[0] + (":" + key[1] if key[1] else "") + (
+                "@{0}-{1}".format(*key[2]) if key[2] else "")
             print("[SURFACE] FAILED: {0} is {1:.2%} of this model's faces, which is not a part. "
                   "Name a part it actually has.".format(name, share))
             return 1
@@ -295,7 +331,8 @@ def main() -> int:
             mesh.polygons[polygon_index].material_index = index
 
         applied.append({
-            "part": key[0] + (":" + key[1] if key[1] else ""),
+            "part": key[0] + (":" + key[1] if key[1] else "") + (
+                "@{0}-{1}".format(*key[2]) if key[2] else ""),
             "recipe": entry["recipe"],
             "material": surface.name,
             "faces": len(chosen[key]),

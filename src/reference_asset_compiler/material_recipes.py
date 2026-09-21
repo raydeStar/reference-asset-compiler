@@ -8,6 +8,13 @@ it. Two copies would agree until the day they did not.
 Parts are named the way a person would point at them: a colour family, and
 optionally where it sits in value. A sword's deep blue body and the bright
 stone at its throat are both blue, and tone is what tells them apart.
+
+Some parts colour cannot reach. The stone at a sword's throat and the bright
+edge running down its blade are painted the same, because to a painter they are
+the same material -- so no colour or tone will ever separate them. What does
+separate them is where they are, so a part may also name a band of the model's
+height, as a fraction from its foot to its crown. That is deliberately the only
+spatial term: it is the one an artist can say out loud without opening a mesh.
 """
 
 from __future__ import annotations
@@ -88,6 +95,24 @@ def parse_assignment(text: str, repo_root: Path | None = None) -> dict[str, Any]
     if not part or not recipe:
         raise MaterialRecipeError(
             "An assignment names a part and a surface, for example blue:dark=crystal. Got {0!r}.".format(text))
+    part, _, band_text = part.partition("@")
+    band = None
+    if band_text:
+        halves = band_text.split("-")
+        if len(halves) != 2:
+            raise MaterialRecipeError(
+                "A height band is two fractions, low-high, for example @0.7-0.85. Got {0!r}.".format(band_text))
+        try:
+            low, high = (float(half) for half in halves)
+        except ValueError as problem:
+            raise MaterialRecipeError(
+                "A height band is two numbers, low-high, for example @0.7-0.85. Got {0!r}.".format(
+                    band_text)) from problem
+        if not 0.0 <= low < high <= 1.0:
+            raise MaterialRecipeError(
+                "A height band runs from low to high within 0 and 1, for example @0.7-0.85. "
+                "Got {0!r}.".format(band_text))
+        band = [low, high]
     if part.count(":") > 1:
         raise MaterialRecipeError(
             "A part is a colour and at most one tone, for example blue:dark. Got {0!r}.".format(part))
@@ -100,6 +125,7 @@ def parse_assignment(text: str, repo_root: Path | None = None) -> dict[str, Any]
     return {
         "colour": colour,
         "tone": tone or None,
+        "band": band,
         "recipe": resolved["name"],
         "values": {key: resolved[key] for key in ("metallic", "roughness", "transmission", "ior")
                    if key in resolved},
