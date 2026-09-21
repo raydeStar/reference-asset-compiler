@@ -115,6 +115,20 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Give the faces painted a named colour a material that transmits.",
         "produces": "reference-asset-compiler.transparent-material.v1",
     },
+    "review-views": {
+        "runner": "powershell",
+        "script": "scripts/run_review_views.ps1",
+        "arguments": ("source", "output", "report"),
+        "options": ("resolution",),
+        "prepare": "review-views",
+        "needs": ("blender",),
+        # A directory, not a file: the evidence is four views in two passes,
+        # and a consumer naming one of them would be choosing which side of
+        # the asset counted.
+        "output_suffix": "",
+        "summary": "Render the fixed views a person judges a derivative by, and list them with their hashes.",
+        "produces": "reference-asset-compiler.review-views.v1",
+    },
     "texture": {
         "runner": "powershell",
         "script": "scripts/run_hy3d21_texture.ps1",
@@ -278,6 +292,9 @@ def run_stage(
             Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
     elif prepare == "remesh":
         context = prepare_remesh(
+            Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
+    elif prepare == "review-views":
+        context = prepare_review_views(
             Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
     elif prepare == "glass":
         context = prepare_glass(root, options or {})
@@ -526,6 +543,30 @@ def prepare_remesh(source: Path, output: Path, options: dict[str, Any],
     }
 
 
+def prepare_review_views(source: Path, output: Path, options: dict[str, Any],
+                         blender: str | None = None) -> dict[str, Any]:
+    """Render into the directory the caller named, and hand back the manifest.
+
+    This is the one stage whose output is a directory. Evidence is four views
+    in two passes, and naming a single file for it would be choosing in advance
+    which side of the asset counted -- which is exactly what fixed views exist
+    to stop.
+    """
+    directory = Path(output).resolve()
+    arguments = ["-InputMesh", str(Path(source).resolve()), "-OutputDirectory", str(directory)]
+    if blender:
+        arguments += ["-Blender", str(blender)]
+    if options.get("resolution") is not None:
+        arguments += ["-Resolution", str(options["resolution"])]
+    return {
+        "arguments": arguments,
+        # The views stay where they were rendered; only the manifest is copied
+        # to where the caller asked for its receipt.
+        "produced": {"report": directory / "views.json"},
+        "payload": {"views_directory": str(directory)},
+    }
+
+
 def prepare_glass(root: Path, options: dict[str, Any]) -> dict[str, Any]:
     """Resolve the named colour before Blender starts.
 
@@ -632,6 +673,10 @@ def collect_produced(produced: dict[str, Path], output: Path, report: Path) -> N
     still answering the caller in the terms it asked the question.
     """
     for key, destination in (("output", output), ("report", report)):
+        # A stage whose output is a directory it filled in place names only its
+        # report here; there is nothing to copy for the other.
+        if key not in produced:
+            continue
         source = Path(produced[key])
         if not source.is_file():
             raise GeometryStageError(

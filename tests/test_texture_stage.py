@@ -399,6 +399,62 @@ class GlassTests(unittest.TestCase):
         self.assertEqual(offered, {family["colour"] for family in table["families"]})
 
 
+class ReviewViewsTests(unittest.TestCase):
+    """The one stage whose output is a directory, because evidence is plural."""
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.source = self.root / "runtime.glb"
+        self.source.write_bytes(b"glTF")
+        self.output = self.root / "views"
+
+    def test_the_renderer_fills_the_directory_the_caller_named(self):
+        from reference_asset_compiler.stages import prepare_review_views
+
+        prepared = prepare_review_views(self.source, self.output, {})
+
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("-InputMesh") + 1], str(self.source.resolve()))
+        self.assertEqual(arguments[arguments.index("-OutputDirectory") + 1], str(self.output.resolve()))
+        self.assertEqual(prepared["payload"]["views_directory"], str(self.output.resolve()))
+
+    def test_only_the_manifest_is_collected_because_the_views_stay_put(self):
+        from reference_asset_compiler.stages import prepare_review_views
+
+        prepared = prepare_review_views(self.source, self.output, {})
+
+        # Naming one file as "the output" would choose in advance which side of
+        # the asset counted, which is what fixed views exist to stop.
+        self.assertEqual(set(prepared["produced"]), {"report"})
+        self.assertEqual(prepared["produced"]["report"], self.output.resolve() / "views.json")
+
+    def test_a_render_size_the_caller_chose_reaches_the_launcher(self):
+        from reference_asset_compiler.stages import prepare_review_views
+
+        prepared = prepare_review_views(self.source, self.output, {"resolution": 1024})
+
+        self.assertEqual(prepared["arguments"][prepared["arguments"].index("-Resolution") + 1], "1024")
+
+    def test_a_directory_stage_collects_without_an_output_file(self):
+        from reference_asset_compiler.stages import collect_produced
+
+        manifest = self.root / "views.json"
+        manifest.write_text('{"schema":"review-views"}', encoding="utf-8")
+
+        collect_produced({"report": manifest}, self.root / "unused.glb", self.root / "out.json")
+
+        # The collector must tolerate a stage that filled a directory in place.
+        self.assertTrue((self.root / "out.json").is_file())
+        self.assertFalse((self.root / "unused.glb").exists())
+
+    def test_the_stage_declares_a_directory_rather_than_a_file(self):
+        described = describe_stages(None, blender=None, legacy_root=None)
+        views = next(s for s in described["stages"] if s["stage"] == "review-views")
+
+        # A consumer naming each step's file has to know this one is a folder.
+        self.assertEqual(views["output_suffix"], "")
+
+
 class RegistryTests(unittest.TestCase):
     def test_the_paint_stages_report_what_they_write(self):
         described = describe_stages(None, blender=None, legacy_root=None)

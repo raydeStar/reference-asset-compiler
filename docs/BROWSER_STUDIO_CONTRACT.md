@@ -25,7 +25,7 @@ A studio never re-runs a gate, re-derives a verdict, or upgrades a claim. If it
 needs a stronger claim than a receipt makes, the answer is a new compiler stage,
 not a second opinion downstream.
 
-## The seven things a studio consumes
+## The eight things a studio consumes
 
 ### 1. Skeleton profiles
 
@@ -282,6 +282,34 @@ stage above, run on the painted mesh. The stages are separate rather than one
 because the mesh a generator produced, the mesh at its real size, the mesh at a
 runtime budget, the mesh with a map, the painted mesh and the file a browser
 loads are different artifacts with different review.
+
+### 8. Fixed views, for the judgement nothing automatic can make
+
+```
+rac run-stage review-views --source <mesh.glb> --output <views/> --report <views.json> [--resolution 768]
+```
+
+Every reducing and painting stage in this contract reports `mechanical_pass`
+and never approval, and every receipt says `production_grade: false` and
+`requires_fixed_view_review: true`. This is the stage that produces what that
+review is of.
+
+Four views — front, three-quarter, side, back — in two passes. The beauty pass
+is the textured read. The matcap pass is flat clay under a normals matcap,
+where faceting and flipped faces have nowhere to hide behind albedo detail. A
+good front view cannot conceal a broken side, which is why the set is fixed
+rather than chosen.
+
+This is the one stage whose `output` is a **directory**, and it says so:
+`output_suffix` is empty. Naming a single file would be choosing in advance
+which side of the asset counted. The manifest binds every picture to the hash
+of the mesh it is a picture of, because evidence nobody can tie to a source is
+a screenshot rather than evidence, and it carries `judged: false` — nothing
+here is a verdict.
+
+Evidence is retained, never replaced: rendering into a directory that exists is
+refused, so an older judgement can never come to refer to pictures nobody can
+see any more.
 
 ## Skeleton fingerprint
 

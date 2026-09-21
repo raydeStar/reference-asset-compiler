@@ -112,7 +112,8 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Accept an approved static triangle mesh for UV unwrapping as it stands")
     stage.add_argument("--reference", type=Path, help="The image a paint stage paints from")
     stage.add_argument("--views", type=int, help="Paint views, 6..12 (default: 6)")
-    stage.add_argument("--resolution", type=int, choices=(512, 768), help="Paint resolution (default: 512)")
+    stage.add_argument("--resolution", type=int,
+                       help="Paint resolution, 512 or 768; or fixed-view render size")
     stage.add_argument("--target-triangles", type=int, help="Remesh target before the budget check")
     stage.add_argument("--voxel-resolution", type=int, help="Remesh grid resolution (default: 420)")
     stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
