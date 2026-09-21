@@ -453,6 +453,9 @@ def run_stage(
     if finished.returncode != 0 and not survivable:
         # The failure travels with the payload. Hunting a log on another
         # machine is not diagnosis.
+        payload["error"] = refusal(finished.stdout) or refusal(finished.stderr) or (
+            "The {0} stage exited with code {1} without saying why.".format(
+                stage_name, finished.returncode))
         payload["stdout_tail"] = tail(finished.stdout)
         payload["stderr_tail"] = tail(finished.stderr)
         return payload
@@ -899,6 +902,29 @@ def collect_produced(produced: dict[str, Path], output: Path, report: Path) -> N
                 "The run reported success but did not write {0}".format(source))
         Path(destination).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, destination)
+
+
+def refusal(text: str) -> str | None:
+    """The reason a stage gave for stopping, pulled out of what it printed.
+
+    Every stage here refuses the same way: it prints "[TAG] FAILED: " and then
+    the reason, in words meant for the person who asked. Without this, all of
+    that lands in a stdout tail that only a developer reading a receipt ever
+    sees, and the caller is told "the stage exited with code 1" -- which is
+    true, useless, and the thing every one of those messages was written to
+    avoid.
+
+    The last one wins: a stage that gets further before giving up has said
+    something more specific than the one before it.
+    """
+    found = None
+    for line in (text or "").splitlines():
+        marker = line.find("FAILED:")
+        if marker >= 0:
+            reason = line[marker + len("FAILED:"):].strip()
+            if reason:
+                found = reason
+    return found
 
 
 def tail(text: str, lines: int = 20) -> list[str]:
