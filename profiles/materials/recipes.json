@@ -1,0 +1,94 @@
+{
+  "schema": "reference-asset-compiler.material-recipes.v1",
+  "note": "Named surfaces, so a caller asks for a kind of material rather than for numbers. The vocabulary is deliberately small: a name somebody can argue with beats a slider nobody can check.",
+  "recipes": [
+    {
+      "name": "crystal",
+      "description": "clear faceted stone, like quartz or ice",
+      "why": "Dielectric and smooth, transmitting most of what falls on it. Metal cannot transmit light at all, which is why a crystal marked metallic can never be made to read as one.",
+      "metallic": 0.0,
+      "roughness": 0.1,
+      "transmission": 0.72,
+      "ior": 1.65
+    },
+    {
+      "name": "gemstone",
+      "description": "cut gem, brighter and harder than crystal",
+      "why": "A higher index bends light further, which is what makes a cut stone catch and throw it.",
+      "metallic": 0.0,
+      "roughness": 0.04,
+      "transmission": 0.9,
+      "ior": 2.2
+    },
+    {
+      "name": "glass",
+      "description": "window or pane",
+      "metallic": 0.0,
+      "roughness": 0.06,
+      "transmission": 0.85,
+      "ior": 1.45
+    },
+    {
+      "name": "polished-metal",
+      "description": "mirror-finished metal",
+      "metallic": 1.0,
+      "roughness": 0.12,
+      "transmission": 0.0,
+      "ior": 1.45
+    },
+    {
+      "name": "brushed-metal",
+      "description": "worked metal with a directional finish",
+      "metallic": 1.0,
+      "roughness": 0.38,
+      "transmission": 0.0,
+      "ior": 1.45
+    },
+    {
+      "name": "cast-metal",
+      "description": "dull or aged metal",
+      "metallic": 1.0,
+      "roughness": 0.62,
+      "transmission": 0.0,
+      "ior": 1.45
+    },
+    {
+      "name": "glossy",
+      "description": "lacquered or enamelled, not metal",
+      "metallic": 0.0,
+      "roughness": 0.18,
+      "transmission": 0.0,
+      "ior": 1.5
+    },
+    {
+      "name": "matte",
+      "description": "stone, clay, unfinished wood",
+      "metallic": 0.0,
+      "roughness": 0.75,
+      "transmission": 0.0,
+      "ior": 1.5
+    },
+    {
+      "name": "leather",
+      "description": "worn grip or strap",
+      "metallic": 0.0,
+      "roughness": 0.55,
+      "transmission": 0.0,
+      "ior": 1.5
+    },
+    {
+      "name": "cloth",
+      "description": "fabric, rope, cord",
+      "metallic": 0.0,
+      "roughness": 0.88,
+      "transmission": 0.0,
+      "ior": 1.5
+    }
+  ],
+  "tones": {
+    "note": "Where a colour sits in value, so two parts painted the same hue can still be told apart. A sword's deep blue body and the bright stone at its throat are both blue.",
+    "dark": [0.0, 0.35],
+    "mid": [0.35, 0.7],
+    "bright": [0.7, 1.01]
+  }
+}

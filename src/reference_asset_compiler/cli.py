@@ -111,6 +111,9 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--runtime-derivative", action="store_true",
                        help="Reduce a reviewed mesh for runtime use rather than judging it "
                             "as a candidate production authority")
+    stage.add_argument("--assign", action="append",
+                       help="A part and the surface it should be, as colour[:tone]=surface. "
+                            "Repeatable, for example --assign blue:dark=crystal")
     stage.add_argument("--require-uvs", action="store_true",
                        help="Refuse to adopt a mesh that has no UV layer to preserve")
     stage.add_argument("--allow-triangulated-glb", action="store_true",
@@ -257,6 +260,7 @@ def main(argv: list[str] | None = None) -> int:
                     "maximum_max_m": args.maximum_max_m,
                     "allow_triangulated_glb": args.allow_triangulated_glb or None,
                     "require_uvs": args.require_uvs or None,
+                    "assign": args.assign or None,
                     "runtime_derivative": args.runtime_derivative or None,
                     "reference": args.reference,
                     "views": args.views,

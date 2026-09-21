@@ -29,6 +29,7 @@ from .geometry_stage import (
     resolve_legacy_root,
 )
 from .glass_colours import GlassColourError, named_colours, resolve_colour
+from .material_recipes import MaterialRecipeError, named_recipes, named_tones, parse_assignment
 from .human_scale import HumanScaleError, named_sizes, resolve_height
 from .resources import checkout_root
 
@@ -55,6 +56,15 @@ STAGES: dict[str, dict[str, Any]] = {
         "output_suffix": ".blend",
         "summary": "Take a reviewed transport mesh into a .blend a reduction can open, changing nothing.",
         "produces": "reference-asset-compiler.adopted-mesh.v1",
+    },
+    "assign-surfaces": {
+        "runner": "blender",
+        "script": "scripts/blender/assign_material_recipes.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("assign", "minimum_share"),
+        "prepare": "assign-surfaces",
+        "summary": "Give the parts a painter painted the kind of surface they are supposed to be.",
+        "produces": "reference-asset-compiler.material-recipes.v1",
     },
     "browser-payload": {
         "runner": "blender",
@@ -215,6 +225,14 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # where everything else is a .glb.
             "output_suffix": stage.get("output_suffix", ".glb"),
         }
+        if "assign" in stage.get("options", ()) and root is not None:
+            # The surfaces a caller may ask for, offered from the one table the
+            # stage itself applies, so nobody is ever choosing from a stale list.
+            try:
+                described["surfaces"] = named_recipes(root)
+                described["tones"] = named_tones(root)
+            except MaterialRecipeError:
+                described["surfaces"] = []
         if "colour" in stage.get("options", ()) and root is not None:
             # Offered from the one table the stage itself reads, so a consumer
             # presenting these choices is never presenting a stale list.
@@ -298,7 +316,9 @@ def run_stage(
     # been accepted is refused before anything is queued.
     context: dict[str, Any] = {}
     prepare = stage.get("prepare")
-    if prepare == "adopt-mesh":
+    if prepare == "assign-surfaces":
+        context = prepare_assign_surfaces(root, options or {})
+    elif prepare == "adopt-mesh":
         context = prepare_adopt_mesh(options or {})
     elif prepare == "geometry":
         context = prepare_geometry(Path(source), root, legacy_root, options or {})
@@ -469,6 +489,44 @@ def prepare_staged_mesh(options: dict[str, Any]) -> dict[str, Any]:
         "arguments": ["--height-m", repr(resolved["height_m"]), "--size", resolved["size"]],
         "payload": {"scale": resolved},
     }
+
+
+def prepare_assign_surfaces(root: Path, options: dict[str, Any]) -> dict[str, Any]:
+    """Resolve every part and surface before Blender starts.
+
+    Refusing here names the colour, the tone or the surface in the caller's own
+    terms. Refusing inside Blender names it in a line of stderr somebody has to
+    go and find.
+    """
+    requested = options.get("assign")
+    if isinstance(requested, str):
+        requested = [requested]
+    if not requested:
+        raise StageError(
+            "Name at least one part and the surface it should be, for example "
+            "--assign blue:dark=crystal.")
+
+    arguments: list[str] = []
+    resolved = []
+    seen = set()
+    for text in requested:
+        try:
+            entry = parse_assignment(str(text), root)
+        except MaterialRecipeError as problem:
+            raise StageError(str(problem)) from problem
+        key = (entry["colour"], entry["tone"])
+        if key in seen:
+            raise StageError(
+                "The same part is named twice, so which surface wins would be an accident: "
+                "{0}.".format(entry["colour"] + (":" + entry["tone"] if entry["tone"] else "")))
+        seen.add(key)
+        resolved.append(entry)
+        arguments += ["--assign", "{0}{1}={2}".format(
+            entry["colour"], ":" + entry["tone"] if entry["tone"] else "", entry["recipe"])]
+
+    if options.get("minimum_share") is not None:
+        arguments += ["--minimum-share", str(options["minimum_share"])]
+    return {"arguments": arguments, "payload": {"assigned": resolved}}
 
 
 def prepare_adopt_mesh(options: dict[str, Any]) -> dict[str, Any]:
