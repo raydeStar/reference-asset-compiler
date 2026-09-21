@@ -190,15 +190,15 @@ be asked to load. Two stages sit between:
 
 ```
 rac run-stage stage-mesh  --source <candidate.glb> --output <staged.blend>  --report <r.json> --size knee [--size-adjust 0.85]
-rac run-stage reduce-mesh --source <staged.blend>  --output <runtime.glb>   --report <r.json> [--triangle-budget 20000]
+rac run-stage remesh      --source <staged.blend>  --output <runtime.glb>   --report <r.json> [--triangle-budget 20000]
 ```
 
 ### 6. Real size, said the way a person can judge it
 
 `stage-mesh` exists because a generator normalises: whatever it makes arrives
 about two metres tall, a lantern exactly as much as a person. That matters more
-than it sounds, because `reduce-mesh` measures surface deviation in **absolute
-metres** — and the same lantern, the same settings and the same reduction were
+than it sounds, because the reduction gate measures surface deviation in
+**absolute metres** — and the same lantern, the same settings and the same reduction were
 *rejected* at 1.99 m (p99 5.6 mm, max 217 mm) and passed comfortably at 0.42 m
 (p99 1.03 mm, max 2.03 mm). A millimetre gate against an arbitrarily scaled
 mesh is not measuring the asset.
@@ -217,14 +217,32 @@ records the landmark, the adjustment and the reference — not only the metres.
 A stage with no size refuses. It does not guess, because a guessed size
 silently invalidates every measurement after it.
 
-`reduce-mesh` collapses to a runtime budget and measures what that cost, with
-the V1 cohort contract as the target: no more than 15,000 vertices and 20,000
-triangles. It reports `mechanical_pass`, never approval — `production_grade` is
-false and `requires_fixed_view_review` is true in every receipt it writes,
-because low surface error can still leave a silhouette an artist rejects.
-Attempts are numbered and never overwritten, so a rejected reduction stays
-beside the settings that produced it and the next budget is chosen by reading
-it rather than by guessing again.
+Both reducing stages take the mesh to a runtime budget, with the V1 cohort
+contract as the target: no more than 15,000 vertices and 20,000 triangles.
+Which one to use is decided by where the mesh came from, and this is not a
+preference.
+
+**`remesh` for a generated surface.** A generator's output is marching cubes:
+no edge loops, no flat regions, nothing an edge collapse can hold on to.
+Collapsing it directly keeps every bit of that noise, compressed into slivers
+and spikes — the Trial Lantern came back creased and pocked across its roof and
+shoulders at 20,000 triangles, and the fault was never the budget. `remesh`
+rebuilds the surface on a uniform grid first, which throws the noise away
+instead of compressing it, and collapses what is then an even surface. Same
+silhouette, 9,000 vertices and 18,000 triangles in fourteen seconds, and a
+wireframe of even triangles rather than a soup of slivers.
+
+**`reduce-mesh` for an already-clean authority**, where a person chose the
+topology and rebuilding would discard it. Its feature-weighted collapse
+protects high-curvature regions, which is the right instinct when there is
+structure to protect and the wrong one when there is only noise.
+
+Both report `mechanical_pass`, never approval — `production_grade` is false and
+`requires_fixed_view_review` is true in every receipt either writes, because low
+surface error can still leave a silhouette an artist rejects. Attempts are
+numbered and never overwritten, so a rejected reduction stays beside the
+settings that produced it and the next settings are chosen by reading it rather
+than by guessing again.
 
 ### 7. Paint, and the map it needs first
 
@@ -254,9 +272,9 @@ fault during teardown *after* writing its maps and passing its own gate; the
 launcher says so in as many words, that process health is separate from whether
 the paint is sound. So this stage is judged by what it produced, and records
 the abnormal exit rather than hiding it. **No other stage gets that leniency**,
-and the reason is `reduce-mesh`: a rejected reduction writes both a candidate
-and a report and *then* exits nonzero, because that is how it says the collapse
-cost too much. Treating "it produced its files" as success there would deliver
+and the reason is the reducing stages: a rejected reduction writes both a
+candidate and a report and *then* exits nonzero, because that is how it says the
+collapse cost too much. Treating "it produced its files" as success there would deliver
 a rejection as a finished asset.
 
 Turning the result into something a browser loads is the `browser-payload`

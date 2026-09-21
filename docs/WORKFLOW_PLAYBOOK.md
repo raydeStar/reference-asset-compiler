@@ -107,6 +107,22 @@ triangles per runtime asset. A mechanically under-budget remesh is still a
 rejection if fixed clay views lose the approved silhouette, face, hands, or
 construction details.
 
+### Generated surfaces are rebuilt, not collapsed
+
+An AI geometry surface is marching cubes. It has no edge loops, no flat regions
+and nothing an edge collapse can hold on to, so collapsing it directly does not
+remove its noise -- it compresses it into slivers and spikes. Measured on the
+Trial Lantern (2026-09-20): a direct feature-QEM collapse to 20,000 triangles
+came back visibly creased and pocked across the roof and shoulders, and its
+wireframe was a soup of slivers. `scripts\run_voxel_qem_reduction.ps1` on the
+same staged mesh gave 9,000 vertices and 18,000 triangles in fourteen seconds,
+with an even wireframe and a surface the artist accepted on sight. The budget
+was never the problem, and raising it would not have helped.
+
+So: **rebuild a generated surface before collapsing it.** Reach for the
+feature-QEM challenger only where a person chose the topology and rebuilding
+would throw their choices away.
+
 `scripts\run_feature_qem_reduction.ps1` is a one-shot diagnostic challenger
 for an approved native cleanup authority. It protects high-curvature and dense
 detail regions during collapse, refuses to overwrite an attempt, and measures
