@@ -66,6 +66,18 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Give the parts a painter painted the kind of surface they are supposed to be.",
         "produces": "reference-asset-compiler.material-recipes.v1",
     },
+    "survey-surfaces": {
+        "runner": "blender",
+        "script": "scripts/blender/survey_surfaces.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("minimum_share",),
+        "prepare": "survey-surfaces",
+        # A survey, not a model: what comes out is the description a proposal
+        # gets made against.
+        "output_suffix": ".json",
+        "summary": "Say what a model is made of, part by part, in the words used to change it.",
+        "produces": "reference-asset-compiler.surface-survey.v1",
+    },
     "browser-payload": {
         "runner": "blender",
         "script": "scripts/blender/export_browser_payload.py",
@@ -316,7 +328,9 @@ def run_stage(
     # been accepted is refused before anything is queued.
     context: dict[str, Any] = {}
     prepare = stage.get("prepare")
-    if prepare == "assign-surfaces":
+    if prepare == "survey-surfaces":
+        context = prepare_survey_surfaces(options or {})
+    elif prepare == "assign-surfaces":
         context = prepare_assign_surfaces(root, options or {})
     elif prepare == "adopt-mesh":
         context = prepare_adopt_mesh(options or {})
@@ -489,6 +503,14 @@ def prepare_staged_mesh(options: dict[str, Any]) -> dict[str, Any]:
         "arguments": ["--height-m", repr(resolved["height_m"]), "--size", resolved["size"]],
         "payload": {"scale": resolved},
     }
+
+
+def prepare_survey_surfaces(options: dict[str, Any]) -> dict[str, Any]:
+    """Nothing to resolve. A survey reads what is there and names it."""
+    arguments: list[str] = []
+    if options.get("minimum_share") is not None:
+        arguments += ["--minimum-share", str(options["minimum_share"])]
+    return {"arguments": arguments}
 
 
 def prepare_assign_surfaces(root: Path, options: dict[str, Any]) -> dict[str, Any]:

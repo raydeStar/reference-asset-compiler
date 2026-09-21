@@ -11,6 +11,7 @@ What is exercised here is the vocabulary and the refusals -- what a caller may
 ask for, and what they are told when they ask for something that is not there.
 Nothing here runs Blender.
 """
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -23,7 +24,12 @@ from reference_asset_compiler.material_recipes import (
     resolve_recipe,
 )
 from reference_asset_compiler.resources import checkout_root
+
+# The part cutter is a Blender-side script, but the judgement in it is
+# ordinary arithmetic and is exercised here without Blender.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "scripts" / "blender"))
 from reference_asset_compiler.stages import STAGES, StageError, prepare_assign_surfaces
+from surface_parts import load_tables, nearest_recipe, part_of  # noqa: E402
 
 ROOT = checkout_root()
 
@@ -136,6 +142,73 @@ class AssignmentTests(unittest.TestCase):
     def test_a_part_cannot_carry_two_tones(self):
         with self.assertRaises(MaterialRecipeError):
             parse_assignment("blue:dark:bright=crystal", ROOT)
+
+
+class ReadsAsTests(unittest.TestCase):
+    """What a part is currently made of, said in the words used to change it.
+
+    This is what a proposal is made against. An agent looking at a render can
+    say "the blade reads like plastic" and be right, and still have no way to
+    say which faces it means or what they are made of now. Saying it in the
+    same vocabulary turns judging a part into a comparison rather than an
+    invention.
+    """
+
+    def setUp(self):
+        self.recipes = load_tables()[2]
+
+    def test_the_sword_that_started_this_reads_as_metal(self):
+        # The measured state of the Ayric sword's blade: roughness 0.62 at
+        # metallic 1.0. It was supposed to be a crystal, and no amount of
+        # adjusting a metal's roughness would ever have made it one.
+        self.assertEqual(nearest_recipe(self.recipes, 0.62, 1.0), "cast-metal")
+
+    def test_a_crystal_reads_as_a_crystal(self):
+        crystal = resolve_recipe("crystal", ROOT)
+        self.assertEqual(
+            nearest_recipe(self.recipes, crystal["roughness"], crystal["metallic"],
+                           crystal["transmission"]),
+            "crystal")
+
+    def test_every_surface_recognises_itself(self):
+        # A vocabulary that cannot name its own members back is not one a
+        # proposal can be written in.
+        for name in self.recipes:
+            with self.subTest(surface=name):
+                entry = self.recipes[name]
+                self.assertEqual(
+                    nearest_recipe(self.recipes, entry["roughness"], entry["metallic"],
+                                   entry.get("transmission", 0.0)),
+                    name)
+
+    def test_metal_and_not_metal_are_never_confused(self):
+        # Weighted hardest on purpose: metal does not transmit light at all, so
+        # this is the one distinction no later adjustment can recover from.
+        self.assertIn("metal", nearest_recipe(self.recipes, 0.4, 1.0))
+        self.assertNotIn("metal", nearest_recipe(self.recipes, 0.4, 0.0))
+
+    def test_a_body_and_the_stone_at_its_throat_are_told_apart(self):
+        families, minimum_saturation, _, tones = load_tables()
+        deep = part_of(0.04, 0.10, 0.32, families, minimum_saturation, tones)
+        stone = part_of(0.55, 0.92, 0.98, families, minimum_saturation, tones)
+
+        # Both blue-ish, and to a painter the same material. Tone is the only
+        # thing separating them, and without it one recipe swallows the other.
+        self.assertEqual(deep[1], "dark")
+        self.assertEqual(stone[1], "bright")
+
+    def test_paint_with_no_colour_in_it_is_grey_rather_than_a_hue(self):
+        families, minimum_saturation, _, tones = load_tables()
+        # A near-white grip has a hue, arithmetically. It means nothing, and
+        # treating it as one would put the grip in whatever family it rounded
+        # to and assign a surface to the wrong part of the model.
+        self.assertEqual(part_of(0.62, 0.63, 0.64, families, minimum_saturation, tones)[0], "grey")
+
+    def test_nothing_measured_reads_as_nothing(self):
+        # A part with no roughness or metallic map has not been measured, and
+        # guessing "matte" for it would be a claim nobody made.
+        self.assertIsNone(nearest_recipe(self.recipes, None, 1.0))
+        self.assertIsNone(nearest_recipe(self.recipes, 0.5, None))
 
 
 class SurfaceStageTests(unittest.TestCase):
