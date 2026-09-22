@@ -483,9 +483,12 @@ def run_stage(
     if finished.returncode != 0 and not survivable:
         # The failure travels with the payload. Hunting a log on another
         # machine is not diagnosis.
-        payload["error"] = refusal(finished.stdout) or refusal(finished.stderr) or (
-            "The {0} stage exited with code {1} without saying why.".format(
-                stage_name, finished.returncode))
+        # A launcher that throws rather than refusing by tag still said
+        # something, on stderr, and "exited with code 1 without saying why" is
+        # what a studio showed while the launcher's own last line named the
+        # GPU it was waiting for. The last line it wrote travels instead.
+        payload["error"] = refusal(finished.stdout) or refusal(finished.stderr) or last_words(
+            finished.stderr, stage_name, finished.returncode)
         payload["stdout_tail"] = tail(finished.stdout)
         payload["stderr_tail"] = tail(finished.stderr)
         return payload
@@ -967,6 +970,22 @@ def collect_produced(produced: dict[str, Path], output: Path, report: Path) -> N
                 "The run reported success but did not write {0}".format(source))
         Path(destination).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, destination)
+
+
+def last_words(stderr: str, stage_name: str, code: int) -> str:
+    """What a stage said as it died, when it never refused by tag.
+
+    The last line of stderr that carries words, minus PowerShell's error
+    furniture, so a launcher's throw reaches the caller as the sentence it
+    was written as rather than as an exit code.
+    """
+    lines = [line.strip() for line in (stderr or "").splitlines() if line.strip()]
+    lines = [line for line in lines
+             if not line.startswith(("+ ", "At line:", "At C:", "CategoryInfo", "FullyQualifiedErrorId"))]
+    if not lines:
+        return "The {0} stage exited with code {1} without saying why.".format(stage_name, code)
+    said = lines[-1]
+    return "The {0} stage exited with code {1}: {2}".format(stage_name, code, said)
 
 
 def refusal(text: str) -> str | None:

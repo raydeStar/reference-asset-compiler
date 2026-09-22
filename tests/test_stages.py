@@ -128,6 +128,11 @@ class StageRunnerTests(unittest.TestCase):
             self.assertEqual(payload["exit_code"], 3)
             # Hunting a log on another machine is not diagnosis.
             self.assertIn("stub refused to export", " ".join(payload["stderr_tail"]))
+            # And the reason is the answer, not only a tail a developer reads:
+            # a launcher that throws never refuses by tag, and a studio showed
+            # "exited with code 1 without saying why" while its last line
+            # named the GPU it was waiting for.
+            self.assertIn("stub refused to export", payload["error"])
             self.assertNotIn("receipt", payload)
 
     def test_a_stage_that_exits_cleanly_without_a_receipt_is_not_a_success(self):
