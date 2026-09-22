@@ -3521,3 +3521,8 @@ A 141,733,239-byte editable package imported into a fresh test workspace with
 all asset hashes, placements, neutral poses and local lights preserved. Both
 rigs still report animation-ready against the explicit browser profiles.
 Local scene, native pairs and stage receipts remain under the paths above.
+
+The hosted Windows check exposed an existing fixture assertion that compared
+TEMP's short `RUNNER~1` spelling to the launcher's resolved `runneradmin` path.
+The launcher was correct. The test now resolves its expected legacy-root path
+before comparison; this changes no inference or stage behavior.

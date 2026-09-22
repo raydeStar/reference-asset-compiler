@@ -720,3 +720,11 @@ after the app has loaded and inspect representative frames before rendering.
 - A Python child of PowerShell Core inherits a PSModulePath incompatible with
   Windows PowerShell 5.1. Clear that one inherited variable for PowerShell child
   runners, preserving all other configuration.
+
+## 2026-09-22 — Compare resolved Windows paths in launcher tests
+
+The hosted runner uses an 8.3 TEMP path while stage inputs are deliberately
+resolved. A string comparison failed on the same directory (`RUNNER~1` versus
+`runneradmin`). Resolve the expected path rather than weakening launcher
+normalization or changing the runner environment. No model execution is needed
+to verify the subprocess handoff.

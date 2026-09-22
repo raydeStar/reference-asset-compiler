@@ -275,7 +275,8 @@ class RegistryTests(unittest.TestCase):
         # -NonInteractive matters: a launcher that stops to ask something on a
         # queue worker hangs until the timeout rather than failing.
         self.assertIn("-NonInteractive", command)
-        self.assertEqual(command[command.index("-LegacyRoot") + 1], str(legacy))
+        # Windows runners may spell TEMP with an 8.3 alias; the launcher resolves it.
+        self.assertEqual(command[command.index("-LegacyRoot") + 1], str(legacy.resolve()))
         self.assertTrue(command[command.index("-File") + 1].endswith("run_hy3d_geometry.ps1"))
         # A stage is run by a queue worker whose own input is whatever its
         # parent handed it -- under a service, a pipe nobody will ever write to.
