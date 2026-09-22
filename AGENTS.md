@@ -32,6 +32,10 @@ the operational notes it does not carry.
 - Record outcomes as a dated entry appended to `docs/HANDOFF.md` and update
   `docs/STATUS.md` in place; add a lesson to `docs/DECISIONS.md` when something
   surprising happened.
+- For character clips, follow `docs/CHARACTER_ANIMATION.md`: pose first, motion
+  second. Run the applicable exported-pose check before delivering a corrected
+  standing idle; retain rejection receipts and keep visual acceptance separate
+  from valid skeletons, keyframes and successful UI playback.
 
 ## Without a GPU
 

@@ -1,0 +1,148 @@
+{
+  "date": "2026-09-22",
+  "scope": "Innkeeper held relaxed idle pose; movement deferred for user review",
+  "source_glb_sha256": "5c0c4949e9e5e8d6553a7d605c3ae5eb36e5bda5fcb876c5fdbd36fa33d83dbc",
+  "creation": {
+    "source_sha256": "0bf0cee2f61abf241e71213913cee42709047619488cf9c04ba098666af309a0",
+    "recipe_sha256": "5265f2c092ba5cefec0d20b820ecd215397b62f3f8a7fb7c5455a794f0948875",
+    "native_sha256": "16ae45ee9daadc65b242336af6605d14a62fbc9c74a9225c993ca44d445951fe",
+    "glb_sha256": "ce47b3f57b4af0a847ca5d6c0c796b40f15a36ca6435ba9b5d438600fe9c4637",
+    "clip": "Innkeeper_Relaxed_Idle",
+    "duration": 2,
+    "posed_bones": [
+      "upperarm_l",
+      "lowerarm_l",
+      "hand_l",
+      "upperarm_r",
+      "lowerarm_r",
+      "hand_r",
+      "index_01_l",
+      "index_02_l",
+      "index_03_l",
+      "middle_01_l",
+      "middle_02_l",
+      "middle_03_l",
+      "ring_01_l",
+      "ring_02_l",
+      "ring_03_l",
+      "pinky_01_l",
+      "pinky_02_l",
+      "pinky_03_l",
+      "index_01_r",
+      "index_02_r",
+      "index_03_r",
+      "middle_01_r",
+      "middle_02_r",
+      "middle_03_r",
+      "ring_01_r",
+      "ring_02_r",
+      "ring_03_r",
+      "pinky_01_r",
+      "pinky_02_r",
+      "pinky_03_r"
+    ],
+    "stage": "held pose candidate; movement deferred",
+    "human_approved": false,
+    "required_next_checks": [
+      "export payload preservation",
+      "exported pose gate",
+      "four views",
+      "live consumer preview"
+    ]
+  },
+  "artifact_directory": "work/moonlit-tavern/idle-v2/candidate3",
+  "native": "held-pose.blend",
+  "glb": "held-pose.glb",
+  "source_payload_preserved": true,
+  "preserved": [
+    "mesh_attributes",
+    "indices",
+    "embedded_images",
+    "UVs",
+    "materials",
+    "skin_weights",
+    "joint_hierarchy",
+    "rest_transforms",
+    "inverse_bind_matrices"
+  ],
+  "technical_pose_check": {
+    "passed": true,
+    "sample_count": 49,
+    "first_sample": {
+      "time": 0.0,
+      "arms": {
+        "l": {
+          "upper_arm_degrees_from_down": 9.301535218550791,
+          "elbow_bend_degrees": 17.97178601716076,
+          "wrist_horizontal_reach_over_height": 0.04035910222068858,
+          "wrist_above_pelvis_over_height": -0.02434790789426028
+        },
+        "r": {
+          "upper_arm_degrees_from_down": 10.265414540864978,
+          "elbow_bend_degrees": 16.549343408632364,
+          "wrist_horizontal_reach_over_height": 0.04237121253782935,
+          "wrist_above_pelvis_over_height": -0.02939229483132834
+        }
+      }
+    },
+    "max_loop_rotation_gap_degrees": 0.0
+  },
+  "negative_control": {
+    "file": "work/moonlit-tavern/animation-v1/innkeeper-candidate4/innkeeper-clips.glb",
+    "clip": "Innkeeper_Tavern_Idle",
+    "passed": false,
+    "findings": 484,
+    "reason": "User rejected idle built around outstretched A-pose. Gate rejects it throughout the clip."
+  },
+  "export_views": [
+    "export-front.png",
+    "export-quarter.png",
+    "export-side.png",
+    "export-back.png"
+  ],
+  "visual_review": {
+    "reviewer": "Codex",
+    "native_four_views_inspected": true,
+    "export_four_views_inspected": true,
+    "live_consumer_selected_clip_inspected": true,
+    "observations": "Arms hang beside torso, elbows soften forward, palms face thighs. No obvious shoulder collapse or garment penetration in reviewed views. Finger geometry remains simplified.",
+    "human_approved": false
+  },
+  "library": {
+    "asset_id": "10dbd3ac-ed4a-443b-8cd1-a191c2f58f8a",
+    "revision": 6,
+    "scene_version": 14,
+    "other_61_instances_unchanged": true
+  },
+  "served_export_checks": [
+    {
+      "selection": "selected",
+      "clip_count": 1,
+      "payload_preserved": true,
+      "sha256": "ce47b3f57b4af0a847ca5d6c0c796b40f15a36ca6435ba9b5d438600fe9c4637"
+    },
+    {
+      "selection": "none",
+      "clip_count": 0,
+      "payload_preserved": true,
+      "sha256": "bbeb4d830ba3a0abdaae78ce08ff2c760d5eb9592ad96ba6f60d76991710c927"
+    }
+  ],
+  "verification": {
+    "rac_tests_passed": 608,
+    "skipped": 7,
+    "subtests_passed": 169,
+    "stage_files_parsed": 183,
+    "lint": "pass",
+    "wheel_build_and_isolated_install": "pass",
+    "framewright_source_changed": false,
+    "full_framewright_suite_rerun": false
+  },
+  "limitations": [
+    "Held pose only, not a finished breathing idle.",
+    "No new cat or greeting animation.",
+    "Mechanical joint checks are not mesh collision checks or artistic acceptance.",
+    "Existing detailed-hand and facial-rig limits remain."
+  ],
+  "next_gate": "User stance review before adding movement."
+}

@@ -3698,3 +3698,47 @@ tests were skipped. A later full run passed 598 tests with the two experimental
 coverage-scope checks, before that unnecessary experiment was withdrawn; there
 are no remaining implementation changes. Actual Blender export and browser
 loading independently validate the selected artifact. No human approval is recorded.
+
+
+## 2026-09-22 — Innkeeper held idle correction and animation guardrails
+
+User rejected all v1 clips and requested the human idle pose first. No new input
+was needed: arms beside the body, soft elbows, hands near hips was sufficient.
+All initial attempts remain under work/moonlit-tavern/animation-v1/. Their library
+notes now record the rejection; the cat itself and its scene binding are unchanged.
+
+Authored from the v4 native authority without changing its bind rig or mesh.
+The retained trials are idle-v2/candidate1 (arms/palms), candidate2 (light finger
+curl) and candidate3 (replay through the checked-in tool and recipe). Selected
+candidate3 contains one two-second held pose, Innkeeper_Relaxed_Idle. Native and
+reimported GLB front/quarter/side/back reviewed; the actual Framewright inspector
+shows the same stance at time 0 and 2, and playback keeps it through repeated loops.
+No breathing, gesture or new cat animation was authored. Human stance review is
+the next gate, not a claim that the final animation is approved.
+
+The GLB is ce47b3f57b4af0a847ca5d6c0c796b40f15a36ca6435ba9b5d438600fe9c4637.
+Mesh attributes/indices, all six embedded images, UVs, weights, materials, skins,
+node transforms and inverse binds match the source. Upper arms are 9.30/10.27
+degrees from down; elbows bend 17.97/16.55 degrees. The exported pose check passes
+49 samples; the rejected v1 is the negative control and fails with 484 findings.
+Pose-check, payload audit, view renders and API receipts are under
+work/moonlit-tavern/idle-v2/candidate3. A compact portable receipt is checked in
+as docs/evidence/innkeeper-held-idle-v2.json.
+
+Library asset 10dbd3ac-ed4a-443b-8cd1-a191c2f58f8a is innkeeper revision 6, directly
+derived from v4 in the same family. Scene v14 binds the held idle; all other 61
+instances, camera, lights and human placement are retained. Before import, a SQLite
+backup was saved at the studio data root's backups/idle-v2-before-import-20260922.db.
+No jobs were active. API-selected and no-animation exports preserve the original
+BIN payload; the former retains the sole clip, the latter removes it. The original
+asset pose is still available by selecting Rest pose or exporting without clips.
+
+Reusable implementation lives in RAC: source-bound author_held_pose.py, innkeeper
+recipe, pure idle_pose.py checks, exported-GLB check_relaxed_idle.py and ten focused
+regression tests. AGENTS/CLAUDE now route animation work to CHARACTER_ANIMATION.md;
+the guidance separates intended stance, bind pose, motion and visual acceptance.
+This optional authoring check does not automatically gate arbitrary studio imports.
+Full RAC verification: 608 passed, 7 skipped, 169 subtests, lint clean, 183 stage
+files parsed, wheel build and isolated install passed. Framewright code unchanged;
+its full suite was not repeated for this artifact-only update. Live consumer clip
+selection/playback/end-frame inspection and both export paths were checked.

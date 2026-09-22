@@ -25,8 +25,8 @@ approval or UE production certification is recorded.
 
 Current artifacts under ignored `work/moonlit-tavern/`:
 
-- `innkeeper/face-v4/projected-final-v3/innkeeper.glb` and `.blend`: current
-  browser revision 4, 48k triangles and the original 86-bone body rig. Separate
+- `innkeeper/face-v4/projected-final-v3/innkeeper.glb` and `.blend`: texture
+  authority from browser revision 4, 48k triangles and the original 86-bone body rig. Separate
   4096 head/clothing PNG atlases, 2048 exposed skin, repaired shading normals
   and feathered atlas joins. Camera-aligned face/hair colour repair in v4.
   Original `final-v2/innkeeper/` remains preserved;
@@ -144,16 +144,30 @@ Both final character GLBs pass Framewright's skeleton, bind and weight checks
 against explicit 50k **browser** profiles. Canonical 20k profiles are unchanged.
 These are animation-capable working assets, not approved character designs.
 
-`animation-v1/` now contains two body-rig clips per tavern character, authored
-on their existing native rigs. The innkeeper has a tavern idle and a quiet
-greeting; the cat has an alert idle and a curious look. The new GLBs keep the
-source mesh attributes, embedded images, materials, joints and inverse binds
-unchanged; only animation accessors and channels were added. Framewright
-library revisions 5 and 3 carry the clips, and scene version 13 binds both
-idles. These are working motion previews, not creative approval. The cat face
-remains rejected, and neither character has a facial rig. The portable
-`rac export-animations` command packages all, some or none of the named clips
-for a consuming studio without altering the source GLB.
+The user **rejected all four `animation-v1/` clips** on 2026-09-22. The innkeeper
+idle moved around the A-pose and returned to identity at the loop endpoints.
+Its mechanically valid animation was not a usable idle. The old human revision 5
+and cat revision 3 remain as rejected evidence; their library notes say so.
+The cat's binding is unchanged pending separate work, and its face remains rejected.
+
+The active correction is **`idle-v2/candidate3/held-pose.glb` and `.blend`**,
+Framewright innkeeper revision 6 (`10dbd3ac-ed4a-443b-8cd1-a191c2f58f8a`), scene
+v14. It contains only `Innkeeper_Relaxed_Idle`: a two-second **held pose**, with
+arms down, softly bent elbows, palms inward and light finger curl. Breathing and
+other animation are deliberately deferred until the stance has been reviewed.
+The v4 mesh, UVs, texture bytes, weights, hierarchy, rest transforms and inverse
+bind matrices are unchanged. Other scene instances, placements, camera and lighting
+are preserved. The native and reimported GLB each received four-view inspection;
+the real consumer shows the same pose at the start and end. Human approval pending.
+
+`scripts/blender/author_held_pose.py` and the hash-bound innkeeper recipe reproduce
+the pose. `check_relaxed_idle.py` checks the exported clip: the rejected v1 fails;
+all 49 samples of the replacement pass. These are mechanical stance checks,
+not automatic visual acceptance. See [CHARACTER_ANIMATION.md](CHARACTER_ANIMATION.md)
+and `docs/evidence/innkeeper-held-idle-v2.json`. The full RAC gate passes 608 tests,
+7 skips and 169 subtests. Neither character has a facial rig, and detailed fingers
+remain limited. `rac export-animations` still packages chosen clips or none;
+both paths were checked on the served revision without changing its base payload.
 
 ## Stillwater lakeside village (Three.js demo, outside the UE cohort)
 

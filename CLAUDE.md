@@ -97,6 +97,10 @@ or overwrite an authority candidate.
 - Preserve accepted authorities. Make repairs as versioned derivatives.
 - Record failures. Do not silently retry a crashed inference.
 - Human gates stay human; the list is the stage table in `docs/PIPELINE.md`.
+- Before character animation work, read `docs/CHARACTER_ANIMATION.md`. Establish
+  the intended held stance before motion; an A/T bind pose is not a relaxed idle.
+  Preserve bind data, check the exported clip and review four views plus the
+  actual consumer. Technical playback tests never overturn a visual rejection.
 
 The handoff documents contain operational decisions and evidence, not private
 model reasoning. They are intended to let any capable coding agent resume the

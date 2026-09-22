@@ -834,3 +834,21 @@ The original coherent head unwrap and all rig data remain unchanged.
 See INNKEEPER_FACE_STUDY.md for the selected revision, rejected trials and honest
 limits. This improves colour; it does not create separate eyeballs, eyelid
 geometry or a facial rig. No new automatic generation default is implied.
+
+
+## 2026-09-22 — An animated bind pose is not an idle
+
+The user rejected all four initial tavern clips. The human idle added small
+rotations around the asset A-pose, then keyed identity at both loop endpoints.
+Skeleton compatibility, nonzero joint motion, playback/export tests and a green
+repository gate all passed while the intended resting stance was still absent.
+That is an authoring and review failure, not evidence that the user needs to
+provide a more detailed brief.
+
+Require an explicit held stance first; preserve the bind pose separately. Review
+four views, including hands and clothing, then inspect the exported clip in the
+consumer. Movement comes after the stance. The new exported standing-idle check
+rejects the original clip and passes the arms-down replacement, but deliberately
+keeps visual review required and human approval false. Read CHARACTER_ANIMATION.md
+before future clip work. Do not generalize the humanoid stance to cats or other
+pose contracts. The user's rejection supersedes prior technical success wording.

@@ -1,0 +1,280 @@
+{
+  "source_sha256": "0bf0cee2f61abf241e71213913cee42709047619488cf9c04ba098666af309a0",
+  "clip": "Innkeeper_Relaxed_Idle",
+  "uv_layer": "UV_RAC_Regions",
+  "description": "Held arms-down pose for the existing innkeeper v4; movement and creative approval pending. Blender rig coordinates, Z up, facing -Y. Apply aims parent first.",
+  "aims": [
+    {
+      "bone": "upperarm_l",
+      "direction": [
+        0.16,
+        0.035,
+        -1
+      ],
+      "roll_degrees": 20
+    },
+    {
+      "bone": "lowerarm_l",
+      "direction": [
+        0.035,
+        -0.26,
+        -1
+      ],
+      "roll_degrees": 42
+    },
+    {
+      "bone": "hand_l",
+      "direction": [
+        0.02,
+        -0.15,
+        -1
+      ],
+      "roll_degrees": 0
+    },
+    {
+      "bone": "upperarm_r",
+      "direction": [
+        -0.18,
+        0.02,
+        -1
+      ],
+      "roll_degrees": -20
+    },
+    {
+      "bone": "lowerarm_r",
+      "direction": [
+        -0.025,
+        -0.23,
+        -1
+      ],
+      "roll_degrees": -42
+    },
+    {
+      "bone": "hand_r",
+      "direction": [
+        -0.025,
+        -0.13,
+        -1
+      ],
+      "roll_degrees": 0
+    }
+  ],
+  "local_rotations": [
+    {
+      "bone": "index_01_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "index_02_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -12
+    },
+    {
+      "bone": "index_03_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "middle_01_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "middle_02_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -12
+    },
+    {
+      "bone": "middle_03_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "ring_01_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "ring_02_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -12
+    },
+    {
+      "bone": "ring_03_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "pinky_01_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "pinky_02_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -12
+    },
+    {
+      "bone": "pinky_03_l",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "index_01_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "index_02_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -12
+    },
+    {
+      "bone": "index_03_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "middle_01_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "middle_02_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -12
+    },
+    {
+      "bone": "middle_03_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "ring_01_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "ring_02_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -12
+    },
+    {
+      "bone": "ring_03_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "pinky_01_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    },
+    {
+      "bone": "pinky_02_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -12
+    },
+    {
+      "bone": "pinky_03_r",
+      "axis": [
+        1,
+        0,
+        0
+      ],
+      "degrees": -8
+    }
+  ]
+}

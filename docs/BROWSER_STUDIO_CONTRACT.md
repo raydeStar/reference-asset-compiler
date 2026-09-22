@@ -745,6 +745,9 @@ against a guessed duration is not, and must not be shown.
   retargeting, and this contract makes no retargeting promise.
 - Motion generation quality. That a clip exists says nothing about whether it is
   worth using; that remains a human gate like every other.
+  Authoring guidance and the optional exported standing-idle check are in
+  [CHARACTER_ANIMATION.md](CHARACTER_ANIMATION.md). These do not automatically
+  gate studio imports or convert technical playback into artistic acceptance.
 - Any claim about an asset being finished. `production_ready` is the only field
   that speaks to that, and it is the compiler's to set.
 
