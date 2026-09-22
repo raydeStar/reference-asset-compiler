@@ -34,6 +34,7 @@ def main(argv=None) -> int:
     parser.add_argument("report", type=Path)
     parser.add_argument("--head-from", type=float, default=0.78)
     parser.add_argument("--margin", type=float, default=0.06)
+    parser.add_argument("--head-end", choices=("top", "left", "right"), default="top")
     args = parser.parse_args(argv)
 
     image = Image.open(args.reference)
@@ -46,7 +47,7 @@ def main(argv=None) -> int:
         cutout = remove(image.convert("RGB"), session=new_session("u2net"))
         removed = True
     alpha = np.asarray(cutout.getchannel("A"))
-    box = head_crop_box(alpha, args.head_from, args.margin)
+    box = head_crop_box(alpha, args.head_from, args.margin, args.head_end)
     if box is None:
         print("[CROP] FAILED: no figure was found in the reference")
         return 1
@@ -65,6 +66,7 @@ def main(argv=None) -> int:
         "background_removed_here": removed,
         "figure_rows": [int(np.where(alpha.max(axis=1) > 16)[0][0]), int(np.where(alpha.max(axis=1) > 16)[0][-1]) + 1],
         "head_from": args.head_from,
+        "head_end": args.head_end,
         "margin": args.margin,
         "box": [left, top, right, bottom],
         "crop_size": side,

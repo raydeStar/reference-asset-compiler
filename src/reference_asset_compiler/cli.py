@@ -146,6 +146,9 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--head-from", type=float,
                        help="Height, as a fraction of the model's, above which a face is head "
                             "(default: 0.78)")
+    stage.add_argument("--head-end", choices=("top", "left", "right"),
+                       help="Where the head is in the picture: top for a standing figure, left or right "
+                            "for a quadruped seen from the side (default: top)")
     stage.add_argument("--feather", type=float,
                        help="Blend band above the head cut, as a fraction of height (default: 0.03)")
     stage.add_argument("--roughness-floor", type=float,
@@ -313,6 +316,7 @@ def main(argv: list[str] | None = None) -> int:
                     "resolution": args.resolution,
                     "atlas": args.atlas,
                     "head_from": args.head_from,
+                    "head_end": args.head_end,
                     "feather": args.feather,
                     "roughness_floor": args.roughness_floor,
                     "metallic": args.metallic,

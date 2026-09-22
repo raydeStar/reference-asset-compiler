@@ -216,7 +216,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "python",
         "script": "scripts/paint_head_detail.py",
         "arguments": ("source", "output", "report"),
-        "options": ("reference", "views", "resolution", "atlas", "head_from", "feather",
+        "options": ("reference", "views", "resolution", "atlas", "head_from", "head_end", "feather",
                     "roughness_floor", "metallic"),
         "prepare": "paint-head",
         "needs": ("paint-stack",),
@@ -941,7 +941,7 @@ def prepare_paint_head(options: dict[str, Any], legacy: Path) -> dict[str, Any]:
             "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
     arguments = ["--reference", str(reference), "--legacy-root", str(legacy)]
     for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
-                       ("--head-from", "head_from"), ("--feather", "feather"),
+                       ("--head-from", "head_from"), ("--head-end", "head_end"), ("--feather", "feather"),
                        ("--roughness-floor", "roughness_floor"), ("--metallic", "metallic")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]

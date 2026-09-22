@@ -37,6 +37,7 @@ from paint_head_detail import (  # noqa: E402
     rasterize_weights,
     settle_head_material,
     swap_images,
+    towards_head,
     write_obj,
 )
 from reference_asset_compiler.stages import StageError, prepare_paint_head  # noqa: E402
@@ -130,6 +131,51 @@ class HeadSelectionTests(unittest.TestCase):
         # Row 9 starts 0.216 above: fully head.
         self.assertEqual(float(weights[18]), 1.0)
         self.assertEqual(float(weights[0]), 0.0)
+
+
+class HeadEndTests(unittest.TestCase):
+    def quadruped(self):
+        """A figure lying along X: its head at -X, the picture's left."""
+        positions, uvs, triangles = figure(rows=10)
+        lying = positions.copy()
+        lying[:, 0], lying[:, 1] = -positions[:, 1], positions[:, 0]
+        return lying, uvs, triangles
+
+    def test_the_pictures_left_is_the_meshes_minus_x(self):
+        positions = np.array([[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]], dtype=np.float32)
+        self.assertEqual(list(towards_head(positions, "left")), [1.0, -1.0])
+        self.assertEqual(list(towards_head(positions, "right")), [-1.0, 1.0])
+        self.assertEqual(list(towards_head(np.array([[0.0, 2.0, 0.0]]), "top")), [2.0])
+
+    def test_a_quadrupeds_head_is_found_along_its_length(self):
+        positions, uvs, triangles = self.quadruped()
+        # Nothing is above anything here, so a height cut finds no head...
+        kept_by_height, _, _ = head_faces(positions, triangles, 0.78, "top")
+        self.assertEqual(int(kept_by_height.sum()), 0)
+        # ...and the same cut along the length towards the picture's left does.
+        kept, cut, extent = head_faces(positions, triangles, 0.78, "left")
+        self.assertEqual(int(kept.sum()), 4)
+        self.assertTrue(kept[16:].all())
+        self.assertAlmostEqual(extent, 1.8, places=5)
+        weights = face_weights(positions, triangles, kept, cut, extent, 0.05, "left")
+        self.assertEqual(float(weights[18]), 1.0)
+        self.assertEqual(float(weights[0]), 0.0)
+
+    def test_the_reference_is_cropped_to_the_same_end(self):
+        alpha = np.zeros((800, 1200), dtype=np.uint8)
+        # A long animal: body across the middle, head a taller lump at the left.
+        alpha[350:550, 100:1100] = 255
+        alpha[250:560, 100:330] = 255
+        left, top, right, bottom = head_crop_box(alpha, 0.78, 0.0, "left")
+        self.assertEqual(right - left, bottom - top)
+        self.assertLessEqual(left, 100)
+        self.assertGreaterEqual(right, 100 + 220)
+        # Centred on the head's rows, not the body's.
+        self.assertAlmostEqual((top + bottom) / 2, 405, delta=3)
+        # The other end when the animal faces the other way.
+        mirrored = head_crop_box(alpha[:, ::-1], 0.78, 0.0, "right")
+        self.assertGreaterEqual(mirrored[2], 1100)
+        self.assertLessEqual(mirrored[0], 1100 - 220)
 
 
 class TransportTests(unittest.TestCase):
@@ -269,6 +315,11 @@ class PreparationTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("--atlas") + 1], "4096")
         self.assertEqual(arguments[arguments.index("--head-from") + 1], "0.8")
         self.assertEqual(arguments[arguments.index("--feather") + 1], "0.02")
+
+    def test_where_the_head_is_reaches_the_stage(self):
+        prepared = prepare_paint_head({"reference": self.reference, "head_end": "left"}, self.legacy)
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("--head-end") + 1], "left")
 
     def test_the_heads_material_settings_reach_the_stage(self):
         prepared = prepare_paint_head({"reference": self.reference, "roughness_floor": 0.6,

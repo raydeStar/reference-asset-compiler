@@ -70,7 +70,12 @@ def parse_arguments(argv):
     parser.add_argument("--legacy-root", type=Path, required=True,
                         help="The studio tree holding the painter's environment and weights")
     parser.add_argument("--head-from", type=float, default=0.78,
-                        help="Height, as a fraction of the model's, above which a face is head")
+                        help="How far along the model, as a fraction of its extent towards the head "
+                             "end, a face must sit to be head")
+    parser.add_argument("--head-end", choices=("top", "left", "right"), default="top",
+                        help="Where the head is in the picture. A standing figure's head is at the "
+                             "top; a quadruped seen from the side has it at one end, and the picture's "
+                             "left is the mesh's -X")
     parser.add_argument("--feather", type=float, default=0.03,
                         help="Blend band above the cut, as a fraction of the model's height")
     parser.add_argument("--views", type=int, default=12)
@@ -170,26 +175,41 @@ def mesh_from_glb(document, binary):
 
 # --- deciding what is head -------------------------------------------------
 
-def head_faces(positions, triangles, head_from):
-    """Which triangles sit entirely above the cut, and where the cut is.
+# Where the head is in the picture, as the axis of the mesh that runs towards
+# it. Height is +Y, which is what glTF promises. A single-view generator lays
+# the picture's width along X with the picture's left at -X, checked on a
+# ninja whose sword handle rises on the picture's left and sits at x < 0.
+HEAD_ENDS = {"top": (1, 1.0), "left": (0, -1.0), "right": (0, 1.0)}
 
-    Height is +Y, which is what glTF promises and what the browser payload
-    stage exports. A face is head when its lowest vertex is above the cut:
-    a face straddling it belongs to the body, so the cut never splits a
-    triangle and the second paint never has to guess at half of one.
+
+def towards_head(positions, head_end):
+    """Each vertex's distance along the axis that runs towards the head."""
+    axis, sign = HEAD_ENDS[head_end]
+    return positions[:, axis] * sign
+
+
+def head_faces(positions, triangles, head_from, head_end="top"):
+    """Which triangles sit entirely past the cut, and where the cut is.
+
+    Measured along the axis that runs towards the head: up for a standing
+    figure, along the length for a quadruped seen from the side. A face is
+    head when its nearest vertex to the body is past the cut: a face
+    straddling it belongs to the body, so the cut never splits a triangle and
+    the second paint never has to guess at half of one. The cut and the
+    extent are returned in that axis's own units, signed towards the head.
     """
-    heights = positions[:, 1]
-    low, high = float(heights.min()), float(heights.max())
+    along = towards_head(positions, head_end)
+    low, high = float(along.min()), float(along.max())
     cut = low + head_from * (high - low)
-    lowest = heights[triangles].min(axis=1)
-    return lowest >= cut, cut, high - low
+    nearest = along[triangles].min(axis=1)
+    return nearest >= cut, cut, high - low
 
 
-def face_weights(positions, triangles, kept, cut, height, feather):
-    """0 at the cut rising to 1 a feather above it, per kept face."""
-    lowest = positions[:, 1][triangles].min(axis=1)
-    band = max(feather * height, 1e-9)
-    weights = np.clip((lowest - cut) / band, 0.0, 1.0)
+def face_weights(positions, triangles, kept, cut, extent, feather, head_end="top"):
+    """0 at the cut rising to 1 a feather past it, per kept face."""
+    nearest = towards_head(positions, head_end)[triangles].min(axis=1)
+    band = max(feather * extent, 1e-9)
+    weights = np.clip((nearest - cut) / band, 0.0, 1.0)
     return np.where(kept, weights, 0.0).astype(np.float32)
 
 
@@ -218,30 +238,42 @@ def write_obj(path: Path, positions, uvs, triangles, kept):
 
 # --- the reference crop -----------------------------------------------------
 
-def head_crop_box(alpha, head_from, margin):
+def head_crop_box(alpha, head_from, margin, head_end="top"):
     """A square around the head band of the figure's own silhouette.
 
-    The figure's rows come from its alpha; the head band is the top
-    (1 - head_from) of them, with a margin, and the columns are whatever the
-    silhouette occupies within that band. Squared and clamped to the picture.
-    Returns (left, top, right, bottom) in pixels, or None with no silhouette.
+    The figure's extent comes from its alpha; the head band is the
+    (1 - head_from) of it nearest the head end -- the top rows for a standing
+    figure, the leftmost or rightmost columns for a quadruped seen from the
+    side -- with a margin, and the other axis is whatever the silhouette
+    occupies within that band. Squared and clamped to the picture. Returns
+    (left, top, right, bottom) in pixels, or None with no silhouette.
     """
     alpha = np.asarray(alpha)
-    rows = np.where(alpha.max(axis=1) > 16)[0]
-    if rows.size == 0:
+    if head_end == "top":
+        band_axis, other_axis = alpha, alpha.T
+    else:
+        band_axis, other_axis = alpha.T, alpha
+    lines = np.where(band_axis.max(axis=1) > 16)[0]
+    if lines.size == 0:
         return None
-    top, bottom = int(rows[0]), int(rows[-1]) + 1
-    height = bottom - top
-    band = max(1, int(round((1.0 - head_from) * height * (1.0 + margin))))
-    band_bottom = min(bottom, top + band)
-    columns = np.where(alpha[top:band_bottom].max(axis=0) > 16)[0]
-    if columns.size == 0:
+    first, last = int(lines[0]), int(lines[-1]) + 1
+    extent = last - first
+    band = max(1, int(round((1.0 - head_from) * extent * (1.0 + margin))))
+    if head_end == "right":
+        band_first, band_last = max(first, last - band), last
+    else:
+        band_first, band_last = first, min(last, first + band)
+    across = np.where(band_axis[band_first:band_last].max(axis=0) > 16)[0]
+    if across.size == 0:
         return None
-    left, right = int(columns[0]), int(columns[-1]) + 1
-    side = max(right - left, band_bottom - top)
-    side = int(round(side * (1.0 + margin)))
-    centre_x = (left + right) / 2.0
-    centre_y = (top + band_bottom) / 2.0
+    across_first, across_last = int(across[0]), int(across[-1]) + 1
+    side = int(round(max(across_last - across_first, band_last - band_first) * (1.0 + margin)))
+    centre_band = (band_first + band_last) / 2.0
+    centre_across = (across_first + across_last) / 2.0
+    if head_end == "top":
+        centre_x, centre_y = centre_across, centre_band
+    else:
+        centre_x, centre_y = centre_band, centre_across
     box = [int(round(centre_x - side / 2.0)), int(round(centre_y - side / 2.0))]
     box += [box[0] + side, box[1] + side]
     return tuple(box)
@@ -416,14 +448,14 @@ def main(argv=None) -> int:
         return failed("the source carries {0} materials; paint the head before changing "
                       "surfaces, not after".format(len(materials)))
 
-    kept, cut, height = head_faces(positions, triangles, args.head_from)
+    kept, cut, height = head_faces(positions, triangles, args.head_from, args.head_end)
     share = float(kept.mean())
     if kept.sum() < 50:
-        return failed("only {0} faces sit above {1:.0%} of the height, which is not a head. "
-                      "Lower --head-from".format(int(kept.sum()), args.head_from))
+        return failed("only {0} faces sit past {1:.0%} of the model towards its {2}, which is not "
+                      "a head. Lower --head-from".format(int(kept.sum()), args.head_from, args.head_end))
     if share > 0.6:
-        return failed("{0:.0%} of the model sits above {1:.0%} of its height, which is not a head. "
-                      "Raise --head-from".format(share, args.head_from))
+        return failed("{0:.0%} of the model sits past {1:.0%} of it towards its {2}, which is not a "
+                      "head. Raise --head-from".format(share, args.head_from, args.head_end))
 
     attempt = next_attempt(args.output, "head")
     attempt.mkdir(parents=True)
@@ -437,7 +469,8 @@ def main(argv=None) -> int:
     cropper = Path(__file__).resolve().parent / "crop_reference_region.py"
     cropped = subprocess.run(
         [str(venv), str(cropper), str(args.reference), str(crop_png), str(crop_json),
-         "--head-from", str(args.head_from), "--margin", str(args.crop_margin)],
+         "--head-from", str(args.head_from), "--margin", str(args.crop_margin),
+         "--head-end", args.head_end],
         capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL, timeout=600)
     if cropped.returncode != 0 or not crop_png.is_file():
         return failed("the reference could not be cropped to the head: {0}".format(
@@ -453,8 +486,9 @@ def main(argv=None) -> int:
         "-Views", str(args.views), "-Resolution", str(args.resolution),
         "-RunnerKind", "studio", "-Atlas", str(args.atlas),
     ]
-    print("{0} painting {1} head faces of {2} ({3:.1%}) above {4:.3f} m, reference cropped to {5}".format(
-        TAG, head_triangles, len(triangles), share, cut, crop.get("box")), flush=True)
+    print("{0} painting {1} head faces of {2} ({3:.1%}) past {4:.3f} m towards the {5}, reference "
+          "cropped to {6}".format(TAG, head_triangles, len(triangles), share, cut, args.head_end,
+                                  crop.get("box")), flush=True)
     painted = subprocess.run(command, capture_output=True, text=True, errors="replace",
                              stdin=subprocess.DEVNULL, timeout=3000,
                              env={key: value for key, value in os.environ.items() if key.upper() != "PSMODULEPATH"})
@@ -479,7 +513,7 @@ def main(argv=None) -> int:
     head_albedo = Image.open(io.BytesIO(image_bytes(head_document, head_binary, head_albedo_index)))
     head_albedo.load()
     size = body_albedo.size[0]
-    weights = face_weights(positions, triangles, kept, cut, height, args.feather)
+    weights = face_weights(positions, triangles, kept, cut, height, args.feather, args.head_end)
     sheet = grow(rasterize_weights(uvs, triangles, weights, size), 2)
 
     replacements = {albedo_index: png_bytes(blend(body_albedo, head_albedo, sheet))}
@@ -518,9 +552,10 @@ def main(argv=None) -> int:
         "reference": str(args.reference),
         "reference_sha256": sha256(args.reference),
         "head": {
-            "from_height_fraction": args.head_from,
-            "cut_height_m": round(cut, 4),
-            "model_height_m": round(height, 4),
+            "end": args.head_end,
+            "from_fraction": args.head_from,
+            "cut_m": round(cut, 4),
+            "extent_m": round(height, 4),
             "faces": head_triangles,
             "of_faces": int(len(triangles)),
             "share": round(share, 4),
