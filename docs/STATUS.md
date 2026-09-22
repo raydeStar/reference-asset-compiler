@@ -25,10 +25,11 @@ approval or UE production certification is recorded.
 
 Current artifacts under ignored `work/moonlit-tavern/`:
 
-- `innkeeper/detail-v3/combined-v2/innkeeper-regional.glb` and `.blend`: current
-  browser revision 3, 48k triangles and the original 86-bone body rig. Separate
+- `innkeeper/face-v4/projected-final-v3/innkeeper.glb` and `.blend`: current
+  browser revision 4, 48k triangles and the original 86-bone body rig. Separate
   4096 head/clothing PNG atlases, 2048 exposed skin, repaired shading normals
-  and feathered atlas joins. Original `final-v2/innkeeper/` remains preserved;
+  and feathered atlas joins. Camera-aligned face/hair colour repair in v4.
+  Original `final-v2/innkeeper/` remains preserved;
   its five body stress poses passed. Simplified fingers and facial silhouette
   still need geometry refinement for detailed articulation and close shots.
 - `final-v2/tabby/tabby.glb` and `.blend`: 48k triangles, 30-bone quadruped rig;
@@ -87,7 +88,7 @@ VRAM; fresh admitted attempts are explicit `texture-v2` derivatives. The tankard
 painter faulted after writing validated output; independent reload and fixed-view
 review passed, but this is not a clean painter-process exit. Human gates remain open.
 
-The latest innkeeper update is **`innkeeper/detail-v3/`**:
+The preceding regional UV update is retained under **`innkeeper/detail-v3/`**:
 
 - `uv-v16/uv-report.json`: 1,321 original UV islands become 517 across three
   sheets: head 2, exposed skin 4, clothing 511. Occupancy is 47.40%, 53.04%
@@ -109,6 +110,19 @@ The latest innkeeper update is **`innkeeper/detail-v3/`**:
   camera and lights retained; only the innkeeper's asset binding changed.
   Browser rig profile still passes all 86 bones, bind and 40,184 split-vertex
   weights. Prior shot stills retain their scene-v10 snapshots.
+
+The latest innkeeper update is **`innkeeper/face-v4/`**. Its selected
+`projected-final-v3/innkeeper.glb` and packed native change only head BaseColor.
+All vertex attributes/indices, UVs, normals, rig and other five embedded images
+are unchanged. GLB SHA256:
+`5c0c4949e9e5e8d6553a7d605c3ae5eb36e5bda5fcb876c5fdbd36fa33d83dbc`.
+It is 33,751,708 bytes. A camera-aligned AI donor softens facial lines, improves
+skin/beard detail and repairs false skin bands in the hair. Front, both
+three-quarter, side, back and body views are retained. Framewright uses asset
+`d8a5560a-772d-4b74-87aa-9febcf3816dd`, revision 4, scene v12, 62 placements.
+Earlier revisions remain intact. The [face study](INNKEEPER_FACE_STUDY.md)
+records rejected geometry/full-head paint candidates, exact evidence paths,
+working delivery, and remaining geometry/facial-rig limitations.
 
 The reusable [regional texture route](REGIONAL_CHARACTER_TEXTURES.md) lives in
 this compiler. It is an explicit operator workflow for the supported rigged

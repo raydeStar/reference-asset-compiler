@@ -35,6 +35,7 @@ escalations are retained verbatim so nobody repeats them. Start with
 ## Logs (dated, append-only)
 
 - [HANDOFF.md](HANDOFF.md) — the operational log: every attempt, acceptance, rejection and path since 2026-08-30.
+- [INNKEEPER_FACE_STUDY.md](INNKEEPER_FACE_STUDY.md) — selected face texture correction, rejected geometry trials and remaining limits.
 - [DECISIONS.md](DECISIONS.md) — accepted decisions, rejected approaches and retained lessons.
 - [AYRIC_REPAIR_2026-09-06.md](AYRIC_REPAIR_2026-09-06.md) — the rig repair and bounded face work of 2026-09-06.
 - [SUNSET_WORKSHOP.md](SUNSET_WORKSHOP.md) — the workshop scene study, prop jobs and demo status.

@@ -3659,3 +3659,42 @@ wheel build and isolated install smoke. Seven optional integration tests were
 skipped; this task separately exercised the new UV, paint transfer, GLB export
 and render stages on the actual Blender 5.2.2 innkeeper. No new package/model
 installation, source geometry acquisition or rerigging was needed.
+
+
+## 2026-09-22 — Innkeeper face correction, revision 4
+
+The live library and editable tavern now use revision 4, asset
+`d8a5560a-772d-4b74-87aa-9febcf3816dd`, scene v12 with 62 placements. Only
+its head BaseColor changed. Camera-aligned AI colour improves skin/beard detail,
+softens exaggerated creases and repairs false skin bands in the hair. The exact
+request is retained under `face-v4/projection-v1/prompt.txt`. The selected native
+and GLB are `work/moonlit-tavern/innkeeper/face-v4/projected-final-v3/innkeeper.*`.
+GLB SHA256: `5c0c4949e9e5e8d6553a7d605c3ae5eb36e5bda5fcb876c5fdbd36fa33d83dbc`.
+
+`INNKEEPER_FACE_STUDY.md` records the full outcome. A separately acquired head,
+its neck attachments, geometry-transfer trials and a full-head repaint were
+rejected. They never entered the library. Existing bounded projection tools
+provided the successful repair; experimental code and an unnecessary coverage
+limit change were kept out of the maintained pipeline. No Framewright source or
+private-mirror changes were needed.
+
+The actual GLB preserves every vertex attribute/index, joint order, hierarchy,
+inverse bind and rest/world transform. Five other embedded PNGs are bit-identical.
+The 48k triangles, coherent regional UVs and 86-bone body rig are unchanged.
+Front, both three-quarters, side, back and two full-body renders passed AI review.
+Separate eyes, eyelid/lip geometry, rear hair volume and a facial rig remain
+unresolved. This is a colour improvement, not a new facial-animation asset.
+
+A fresh SQLite online backup passed integrity before import. Served GLB bytes
+match the selected hash. The scene update preserves all placements, camera and
+lighting; earlier revisions and old shot snapshots remain available. The browser
+shows revision 4 with valid rig data and the repaired close-up in Director Mode,
+with no captured warnings/errors. The complete scene was not rerendered in this
+revision; its saved binding was verified through the API.
+
+Compiler baseline verification passed 596 tests and 169 subtests, Ruff, 181 stage
+syntax checks, wheel build and isolated install smoke. Seven optional integration
+tests were skipped. A later full run passed 598 tests with the two experimental
+coverage-scope checks, before that unnecessary experiment was withdrawn; there
+are no remaining implementation changes. Actual Blender export and browser
+loading independently validate the selected artifact. No human approval is recorded.

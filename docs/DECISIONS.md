@@ -812,3 +812,25 @@ completed its maps in about four minutes. Both selected painters later exited
 with native access violation -1073741819 after successful geometry/UV validation.
 Keep those execution failures, independently load/render the maps, and do not
 retry inference merely to obtain a clean process exit.
+
+
+## 2026-09-22 — Preserve the head when acquisition cannot preserve its anatomy
+
+Innkeeper head replacement and nearest/radial shape transfer passed some
+mechanical gates but failed visual review at the neck, eyelids, cheeks and nose.
+A coherent isolated bust is not a compatible rigged-character replacement.
+Reject those derivatives and retain their evidence; do not ship an automatic
+replacement helper on numerical tests alone.
+
+Full-head repainting also hallucinated additional faces in the hair. The selected
+repair instead starts from the actual camera-aligned unlit head render, requests
+an AI correction with fixed landmarks, and transports that donor through the
+existing UVs. Normal-based fade missed grazing hair surfaces and left old
+skin-colour bands. A bounded hair-only pass with per-pixel depth visibility
+repairs these without relaxing occlusion or stamping facial landmarks onto
+side/back surfaces. A left-camera hair patch covers the last front-occluded fold.
+The original coherent head unwrap and all rig data remain unchanged.
+
+See INNKEEPER_FACE_STUDY.md for the selected revision, rejected trials and honest
+limits. This improves colour; it does not create separate eyeballs, eyelid
+geometry or a facial rig. No new automatic generation default is implied.
