@@ -3510,3 +3510,14 @@ Validation: full compiler suite, Ruff, stage syntax, wheel build and isolated
 wheel smoke passed. Real Blender tests cover component retention, vertical
 height, rig scale/bind round-trip, and floor-only UV/material changes. Local
 receipts remain under work/moonlit-tavern; generated assets are not in Git.
+
+### Tavern delivery follow-through
+
+Added the tenth image-conditioned model: charred logs, embers and sculptural
+flames, on the measured fireplace ledge. It is static geometry, not a fire
+simulation. Final Framewright scene v7 holds 22 instances. The second real
+1536x1024 browser render is a working shot v3; approvals remain untouched.
+A 141,733,239-byte editable package imported into a fresh test workspace with
+all asset hashes, placements, neutral poses and local lights preserved. Both
+rigs still report animation-ready against the explicit browser profiles.
+Local scene, native pairs and stage receipts remain under the paths above.

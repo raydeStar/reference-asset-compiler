@@ -15,11 +15,11 @@ truthfully reports 0 of 7 assets ready.
 
 ## Moonlit tavern scene candidates (browser, outside the UE cohort)
 
-The user commissioned a complete scene before creative approvals. Nine reference-
+The user commissioned a complete scene before creative approvals. Ten reference-
 conditioned assets are generated and textured: innkeeper, quadruped tabby, room
-shell, table, chair, bench, lantern, tableware and rug. A source-conditioned
+shell, table, chair, bench, lantern, tableware, rug and a static hearth insert. A source-conditioned
 flagstone tile repairs the painter's plain floor on the existing room surface.
-Framewright holds 21 editable instances with warm/cool local lights. No human
+Framewright holds 22 editable instances with warm/cool local lights. No human
 approval or UE production certification is recorded.
 
 Current artifacts under ignored `work/moonlit-tavern/`:
@@ -32,7 +32,7 @@ Current artifacts under ignored `work/moonlit-tavern/`:
   and evidence are in `tabby/rig-prep-v3` and `tabby/rig-v3`.
 - `final-v3/room-shell/room-shell.glb` and `.blend`: 100k triangles, 4k room
   paint, explicit planar flagstone material. Geometry retained.
-- `final/<table|chair|bench|lantern|tableware|rug>/`: textured GLB/native pairs.
+- `final/<table|chair|bench|lantern|tableware|rug|hearth>/`: textured GLB/native pairs.
   Tableware uses `remesh-v2` and `uv-v2`, preserving all three source components.
 - `BRIEF.md`, `assembled-scene.json`, `studio-import.json`, source images and
   per-stage receipts retain the local construction trail and review state.
