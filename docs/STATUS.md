@@ -144,6 +144,17 @@ Both final character GLBs pass Framewright's skeleton, bind and weight checks
 against explicit 50k **browser** profiles. Canonical 20k profiles are unchanged.
 These are animation-capable working assets, not approved character designs.
 
+`animation-v1/` now contains two body-rig clips per tavern character, authored
+on their existing native rigs. The innkeeper has a tavern idle and a quiet
+greeting; the cat has an alert idle and a curious look. The new GLBs keep the
+source mesh attributes, embedded images, materials, joints and inverse binds
+unchanged; only animation accessors and channels were added. Framewright
+library revisions 5 and 3 carry the clips, and scene version 13 binds both
+idles. These are working motion previews, not creative approval. The cat face
+remains rejected, and neither character has a facial rig. The portable
+`rac export-animations` command packages all, some or none of the named clips
+for a consuming studio without altering the source GLB.
+
 ## Stillwater lakeside village (Three.js demo, outside the UE cohort)
 
 Finished showcase video: `out/stillwater-showcase-2026-09-16/Stillwater-showcase-1080p.mp4`.

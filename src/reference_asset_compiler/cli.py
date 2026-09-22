@@ -9,6 +9,7 @@ from pathlib import Path
 
 from .cohort import audit_cohort
 from .cleanup import record_cleanup_receipt, validate_cleanup_input
+from .animation_export import select_animations
 from .contracts import ARTICULATION_MODES, ASSET_KINDS
 from .geometry_request import validate_geometry_request
 from .io import read_json, write_json
@@ -25,6 +26,13 @@ def print_payload(payload: dict) -> None:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="rac", description="Reference-image to 3D gate ledger")
     subcommands = parser.add_subparsers(dest="command", required=True)
+
+    animation_export = subcommands.add_parser(
+        "export-animations", help="Export selected named GLB clips without changing model data"
+    )
+    animation_export.add_argument("source", type=Path)
+    animation_export.add_argument("output", type=Path)
+    animation_export.add_argument("--clip", action="append", default=[])
 
     new = subcommands.add_parser("new", help="Create an immutable-reference asset workspace")
     new.add_argument("asset_id")
@@ -213,6 +221,14 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "export-animations":
+            source, output = args.source.resolve(), args.output.resolve()
+            if source == output or output.exists():
+                raise ValueError("Choose a new output path; the source and earlier exports are immutable")
+            content = select_animations(source.read_bytes(), args.clip)
+            output.write_bytes(content)
+            print_payload({"output": str(output), "clips": args.clip, "bytes": len(content)})
+            return 0
         if args.command in {"new", "plan"}:
             registry = load_registry()
         if args.command == "new":

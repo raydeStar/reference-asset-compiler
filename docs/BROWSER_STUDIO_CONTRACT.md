@@ -158,6 +158,15 @@ Only interpolations a consumer can sample exactly should be published for
 browser use: LINEAR and STEP. A clip that needs CUBICSPLINE is reported with the
 reason rather than published as an approximation of itself.
 
+For a GLB that carries several named clips, `rac export-animations SOURCE OUTPUT
+--clip NAME [--clip NAME ...]` writes a new GLB containing exactly those
+animation declarations. Omitting `--clip` writes a rest-pose GLB with no
+`animations` field. Names must be unique and present in the source. The command
+does not rewrite mesh, skin, material, or texture declarations; it preserves
+the binary chunk byte for byte, so unused animation samples may still occupy
+space in a selective export. The source and any existing output are never
+overwritten. This is a packaging choice, not an approval or quality verdict.
+
 ### 5. Geometry candidates
 
 `geometry` is the one stage that needs a GPU, and it is the route from a picture
