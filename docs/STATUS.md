@@ -19,7 +19,8 @@ The user commissioned a complete scene before creative approvals. Ten reference-
 conditioned assets are generated and textured: innkeeper, quadruped tabby, room
 shell, table, chair, bench, lantern, tableware, rug and a static hearth insert. A source-conditioned
 flagstone tile repairs the painter's plain floor on the existing room surface.
-Framewright holds 22 editable instances with warm/cool local lights. No human
+The original 22-instance scene is retained as a fallback. The modular rebuild
+now holds 43 editable instances with warm/cool local lights. No human
 approval or UE production certification is recorded.
 
 Current artifacts under ignored `work/moonlit-tavern/`:
@@ -36,6 +37,37 @@ Current artifacts under ignored `work/moonlit-tavern/`:
   Tableware uses `remesh-v2` and `uv-v2`, preserving all three source components.
 - `BRIEF.md`, `assembled-scene.json`, `studio-import.json`, source images and
   per-stage receipts retain the local construction trail and review state.
+
+The current environment authority is **`modular-v1/`**, not the original room
+shell. Seven isolated source-derived references directly conditioned separate
+AI geometry and paint: fireplace, stairs, stocked bar, window, wall bay, braced
+post and beam. The acquired floor is retained with 1,783 underside triangles
+copied as shallow flagstone infill beneath recesses exposed by the old fixtures.
+Its original 8,227 triangles remain unchanged. The eight architectural masters
+form 22 independently editable placements; 21 existing furnishing/character
+instances complete the room. Bar and stocked shelves remain one cabinet asset.
+
+- `modular-v1/final/<flagstone-floor|stairs|bar|window|wall|support|beam>/`:
+  packed native/GLB masters. Fireplace uses `final/fireplace-finished-v2/`,
+  with a measured soot material on the formerly streaked firebox interior.
+- `modular-v1/assembly-final-v1/tavern.blend`: assembled native scene with
+  shared master data and independently placed objects.
+- `modular-v1/scene-after.json`, `library-import.json`, `layout.json` and
+  `review-binding.json`: Framewright scene v8, 43 placements, actual imported
+  hashes, and working shot v4. `browser-review.png` is the actual browser still.
+- `modular-v1/fallback-scene.json`: original room scene retained separately.
+  `reference_manifest.json` retains source lineage and rejected timber cuts.
+
+The user rejected the cat's original face. `tabby/head-replacement-v3/` is
+**not promoted**: facial features improved, but the replacement bust still has
+an abrupt neck join and oversized silhouette. Its rejection receipt names the
+next gate. The live scene keeps the original rigged cat pending a proper repair;
+do not describe the face as fixed. Both neutral character poses are unchanged.
+
+The room is a working cutaway, not a photoreal reconstruction. Windows retain
+opaque painted panes; no exterior or glass-transmission claim is made. Human
+creative approvals remain deferred. See [MODULAR_SCENE_ASSETS.md](MODULAR_SCENE_ASSETS.md)
+for the reusable extraction, source-binding and inspection workflow.
 
 Both final character GLBs pass Framewright's skeleton, bind and weight checks
 against explicit 50k **browser** profiles. Canonical 20k profiles are unchanged.

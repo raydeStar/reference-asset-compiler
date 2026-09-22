@@ -250,9 +250,9 @@ def head_crop_box(alpha, head_from, margin, head_end="top"):
     """
     alpha = np.asarray(alpha)
     if head_end == "top":
-        band_axis, other_axis = alpha, alpha.T
+        band_axis = alpha
     else:
-        band_axis, other_axis = alpha.T, alpha
+        band_axis = alpha.T
     lines = np.where(band_axis.max(axis=1) > 16)[0]
     if lines.size == 0:
         return None

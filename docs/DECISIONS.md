@@ -728,3 +728,26 @@ resolved. A string comparison failed on the same directory (`RUNNER~1` versus
 `runneradmin`). Resolve the expected path rather than weakening launcher
 normalization or changing the runner environment. No model execution is needed
 to verify the subprocess handoff.
+
+## 2026-09-22 — Partition proof does not prove a clean architectural asset
+
+The old room's floor could be retained, but extracting its post and beams left
+open cuts, dark holes and long boundary triangles. Broader regions and a bounded
+clipping/capping derivative still failed assembly review. Keep those attempts;
+replace the timbers with independently acquired, reference-conditioned models.
+A partition's polygon conservation and UV proof do not certify its silhouette.
+
+Removing the built-in fixtures also exposed recesses down to the old floor's
+underside. The measured fix reused 1,783 acquired underside triangles as infill
+at 0.222 m, just below the existing approximately 0.225 m surface. It reused the
+same reference flagstone material and world UV projection. This is an explicit
+geometry derivative, not part of the partitioner's unchanged-source claim.
+
+GPU ownership can begin before VRAM rises: another painter loaded CPU weights
+while a preflight still reported free memory. Refuse recognized live Hunyuan
+Python workers before accepting VRAM/queue checks. This is not an atomic lock.
+Stop only an identified owned attempt when overlap occurs; preserve unrelated
+workers. Separately, a 768-pixel bar paint spilled about 14 GB into shared GPU
+memory and was stopped after 19 minutes. A fresh 512-pixel-view attempt with the
+same 4K atlas passed. Keep failed receipts and diagnose before choosing a fresh
+attempt; never turn a retry into an unrecorded success.

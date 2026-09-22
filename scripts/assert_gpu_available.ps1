@@ -21,7 +21,18 @@ $parts = $gpuLines[0].Split(',')
 if ($parts.Count -ne 2) { throw 'Malformed GPU state; inference was not launched' }
 $freeMiB = [int]$parts[0].Trim()
 $utilization = [int]$parts[1].Trim()
-$comfyProcesses = @(Get-CimInstance Win32_Process | Where-Object {
+$processes = @(Get-CimInstance Win32_Process)
+# A painter can spend tens of seconds loading CPU weights before VRAM changes.
+# That worker already owns the next GPU allocation; free memory is not a queue.
+$directWorkers = @($processes | Where-Object {
+    $_.Name -match '(?i)^python(?:w|\d+(?:\.\d+)*)?\.exe$' -and
+    $_.CommandLine -match '(?i)(?:^|[\\/\s"])run_hy3d(?:21_(?:studio|pbr)|_(?:single_view|multiview))\.py(?:[\s"]|$)'
+})
+if ($directWorkers.Count -gt 0) {
+    $workerIds = @($directWorkers | ForEach-Object { $_.ProcessId }) -join ', '
+    throw "An image-to-3D worker is already running or loading (PID $workerIds); inference was not launched. Let that worker finish."
+}
+$comfyProcesses = @($processes | Where-Object {
     $_.CommandLine -and $_.CommandLine -match '(?i)ComfyUI[\\/]main\.py'
 })
 $queueRunning = 0

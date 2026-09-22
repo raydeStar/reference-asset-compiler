@@ -96,6 +96,15 @@ function nvidia-smi {
     return '50000,0'
 }
 function Get-CimInstance {
+    if ($env:RAC_TEST_MODE -eq 'warming-paint') {
+        return [pscustomobject]@{Name='python3.11.exe'; ProcessId=456; CommandLine='python C:\work\run_hy3d21_studio.py mesh.obj reference.png output.obj'}
+    }
+    if ($env:RAC_TEST_MODE -eq 'warming-geometry') {
+        return [pscustomobject]@{Name='python.exe'; ProcessId=789; CommandLine='python "C:\work\run_hy3d_single_view.py" request.json'}
+    }
+    if ($env:RAC_TEST_MODE -eq 'mention-in-shell') {
+        return [pscustomobject]@{Name='powershell.exe'; ProcessId=321; CommandLine='powershell Get-Content C:\work\run_hy3d21_studio.py'}
+    }
     if ($env:RAC_TEST_MODE -eq 'busy') {
         return [pscustomobject]@{CommandLine='python C:\ComfyUI\main.py'}
     }
@@ -112,6 +121,9 @@ try {
             ("low", 2, "100 MiB free"),
             ("multi", 2, "unambiguous GPU state"),
             ("busy", 2, "queue is busy"),
+            ("warming-paint", 2, "already running or loading (PID 456)"),
+            ("warming-geometry", 2, "already running or loading (PID 789)"),
+            ("mention-in-shell", 0, '"free_mib":  50000'),
         ):
             with self.subTest(mode=mode):
                 result = subprocess.run(

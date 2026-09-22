@@ -443,3 +443,10 @@ into an ad-hoc Blender script. Different characters require new measured bounds
 and source hashes. Inspect native views and cooked gameplay; a semantic replay
 or vertex budget alone does not approve appearance. Keep auxiliary normal data
 constant outside its support to avoid unnecessary native vertex splits.
+
+## Building editable architectural modules
+
+See [MODULAR_SCENE_ASSETS.md](MODULAR_SCENE_ASSETS.md) for source-bound extraction,
+independent architectural acquisition, measured fitting and full-room review.
+The extraction receipt proves polygon accounting; it does not approve a cut,
+cap a seam or certify a usable room. Review the actual assembled scene.

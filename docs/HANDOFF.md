@@ -3526,3 +3526,47 @@ The hosted Windows check exposed an existing fixture assertion that compared
 TEMP's short `RUNNER~1` spelling to the launcher's resolved `runneradmin` path.
 The launcher was correct. The test now resolves its expected legacy-root path
 before comparison; this changes no inference or stage behavior.
+
+## 2026-09-22 — Modular tavern architecture and retained face-repair rejection
+
+Rebuilt the environment as eight independent architectural masters and 22
+placements, alongside the 21 existing furnishings and neutral characters.
+Framewright scene v8 holds 43 instances; working shot v4 is a real 1536x1024
+browser render. The original single-room assembly remains a separate fallback.
+STATUS gives the current artifact paths under `work/moonlit-tavern/modular-v1`.
+
+Seven source-derived isolated images directly conditioned AI geometry and paint.
+Geometry fixed views, topology/UV paint receipts, normalized exports, browser
+profiles and downloaded-content hashes were checked. The floor remains acquired
+geometry, with a documented underside-derived infill. Fireplace soot cleanup is
+material-only. Tableware and the fire insert were fitted to measured surfaces;
+the window dining group moved 0.55 m left for stair clearance. The rear lantern
+was raised to meet the new ceiling beam. Character assets and poses did not move.
+
+Rejected evidence is retained: extracted timbers and their capped derivative;
+first fireplace paint after overlapping a worker that was still loading; the
+768-pixel bar paint after large shared-memory spill. Fresh admitted paints passed
+geometry/UV preservation. No human approval or production status was fabricated.
+
+Reusable compiler additions: hash-bound static partitioning with actual Blender
+GLB/UV round-trip coverage; a warming-worker GPU guard; explicitly targeted
+character close-up cameras; workflow documentation. Local verification passed
+581 tests plus 169 subtests with Blender enabled, then lint, 177 stage syntax
+checks, wheel build and isolated install smoke. The first full run found an
+unused assignment in the concurrently committed head-crop helper; only that
+unused assignment was removed before lint passed.
+
+The earlier cat head replacement v3 was inspected and remains rejected: the
+face is clearer but the head reads as a separate bust with a poor neck join.
+Its local review-rejection receipt preserves the next visual and deformation
+gates. Do not promote it merely because its features look better in isolation.
+The live cat still needs the requested face repair; this environment revision
+does not claim to complete that separate character problem.
+
+Delivery follow-through: the new editable project archive verified all 44
+embedded asset hashes, both scenes and all 43 current placements. The native
+archive contains the assembled scene and 17 native/GLB masters; its CRC check
+passed. Local `delivery-validation.json` holds file sizes and SHA256 values.
+Framewright's local delivery directory contains `MODULAR-HANDOFF.md`, both
+versioned modular ZIPs and the actual browser review PNG. No generated media
+was added to either public source repository.
