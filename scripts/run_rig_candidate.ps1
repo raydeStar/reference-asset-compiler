@@ -10,10 +10,11 @@
       user's licence and a reviewed hand-landmark file.
     * The portable landmark route otherwise: derive joints from the mesh (and
       Manny's proportions for humanoids, or the reviewed joint-ring guides for
-      mascots), build the skeleton, bind with heat weights, export FBX. Free.
+      mascots), or accept source-bound quadruped guides, build the skeleton,
+      bind with heat weights, and retain native Blender plus FBX. Free.
 
   Both routes end at the same gates: gate_rig.py against the skeleton profile
-  and deform_test.py's five poses. The route taken and why is written to
+  and deform_test.py's profile-specific poses. The route taken and why is written to
   rig-route.json beside the outputs, so a receipt never hides which one ran.
 
 .PARAMETER ProfileFile
@@ -37,12 +38,13 @@
 param(
     [Parameter(Mandatory = $true)][string] $InputMesh,
     [Parameter(Mandatory = $true)][string] $OutputDirectory,
-    [Parameter(Mandatory = $true)][ValidateSet('ue5_manny', 'ue4_mannequin', 'mascot_biped_tail')][string] $Profile,
+    [Parameter(Mandatory = $true)][ValidateSet('ue5_manny', 'ue4_mannequin', 'mascot_biped_tail', 'quadruped_cat')][string] $Profile,
     [ValidateSet('auto', 'arp', 'landmark')][string] $Backbone = 'auto',
     [string] $ProfileFile,
     [string] $HandLandmarks,
     [string] $RingProfile,
     [string] $BindingReport,
+    [string] $Landmarks,
     [string] $CompilerPython,
     [string] $Blender = $env:RAC_BLENDER
 )
@@ -116,7 +118,7 @@ if ($Backbone -eq 'landmark') {
     if ($HandLandmarks) { $route = 'arp'; $reason = 'Auto-Rig Pro operational and reviewed hand landmarks supplied' }
     else { $reason = 'Auto-Rig Pro operational but no -HandLandmarks file; the ARP route requires reviewed hand landmarks, so the landmark route ran' }
 } elseif (-not $humanoid) {
-    $reason = 'mascot profiles always use the landmark route (Auto-Rig Pro is humanoid-only)'
+    $reason = 'non-humanoid profiles use the landmark route (Auto-Rig Pro is humanoid-only)'
 } elseif (-not $arpAvailable) {
     $reason = "Auto-Rig Pro not operational ($arpDetail); landmark route ran"
 }
@@ -126,7 +128,7 @@ $riggedFbx = Join-Path $outputPath "${assetStem}_rigged.fbx"
 $gateReport = Join-Path $outputPath 'gate-rig.json'
 $deformDir = Join-Path $outputPath 'deform'
 $deformReport = Join-Path $outputPath 'deform-report.json'
-$landmarks = $null
+$landmarksPath = $null
 
 if ($route -eq 'arp') {
     $arpDir = Join-Path $outputPath 'arp'
@@ -142,17 +144,21 @@ if ($route -eq 'arp') {
     $riggedFbx = $candidate
 } else {
     $landmarkDir = Join-Path $outputPath 'landmarks'
-    if ($humanoid) {
+    if ($Landmarks) {
+        $landmarksPath = (Resolve-Path -LiteralPath $Landmarks).Path
+    } elseif ($Profile -eq 'quadruped_cat') {
+        throw 'Quadruped rigging needs -Landmarks bound to this exact input mesh; biped guides cannot describe four paws.'
+    } elseif ($humanoid) {
         Invoke-Blender -Label 'derive humanoid landmarks' -Arguments @('--python', (Join-Path $repoRoot 'scripts\blender\derive_humanoid_landmarks.py'), '--', $inputPath, $landmarkDir, '--profile', $profilePath)
-        $landmarks = Join-Path $landmarkDir 'humanoid-landmarks.json'
+        $landmarksPath = Join-Path $landmarkDir 'humanoid-landmarks.json'
     } else {
         if (-not $RingProfile -or -not $BindingReport) { throw 'Mascot landmarks need -RingProfile (fitted joint rings) and -BindingReport (texture payload binding).' }
         Invoke-Blender -Label 'derive mascot landmarks' -Arguments @('--python', (Join-Path $repoRoot 'scripts\blender\derive_mascot_landmarks.py'), '--', $inputPath, (Resolve-Path $RingProfile).Path, (Resolve-Path $BindingReport).Path, $landmarkDir)
-        $landmarks = Join-Path $landmarkDir 'mascot-landmarks.json'
+        $landmarksPath = Join-Path $landmarkDir 'mascot-landmarks.json'
     }
-    Invoke-Blender -Label 'build skeleton and bind' -Arguments @('--python', (Join-Path $repoRoot 'scripts\blender\rig_from_landmarks.py'), '--', $inputPath, $landmarks, $profilePath, $riggedFbx, (Join-Path $outputPath 'rig-candidate.json'))
+    Invoke-Blender -Label 'build skeleton and bind' -Arguments @('--python', (Join-Path $repoRoot 'scripts\blender\rig_from_landmarks.py'), '--', $inputPath, $landmarksPath, $profilePath, $riggedFbx, (Join-Path $outputPath 'rig-candidate.json'))
     Invoke-Blender -Label "gate rig ($Profile)" -Arguments @('--python', (Join-Path $repoRoot 'scripts\blender\gate_rig.py'), '--', $riggedFbx, $profilePath, $gateReport)
-    Invoke-Blender -Label 'deformation suite' -Arguments @('--python', (Join-Path $repoRoot 'scripts\blender\deform_test.py'), '--', $riggedFbx, $deformDir, $deformReport)
+    Invoke-Blender -Label 'deformation suite' -Arguments @('--python', (Join-Path $repoRoot 'scripts\blender\deform_test.py'), '--', $riggedFbx, $deformDir, $deformReport, '900', $Profile)
 }
 
 $receipt = [ordered]@{
@@ -164,7 +170,7 @@ $receipt = [ordered]@{
     route = $route
     reason = $reason
     auto_rig_pro = [ordered]@{ available = $arpAvailable; detail = $arpDetail }
-    landmarks = $landmarks
+    landmarks = $landmarksPath
     rigged_fbx = $riggedFbx
     gate_report = $(if (Test-Path -LiteralPath $gateReport) { $gateReport } else { $null })
     deform_report = $(if (Test-Path -LiteralPath $deformReport) { $deformReport } else { $null })

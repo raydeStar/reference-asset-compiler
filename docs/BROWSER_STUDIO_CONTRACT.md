@@ -738,3 +738,39 @@ against a guessed duration is not, and must not be shown.
   worth using; that remains a human gate like every other.
 - Any claim about an asset being finished. `production_ready` is the only field
   that speaks to that, and it is the compiler's to set.
+
+
+## Browser scene candidates: placement, floors and quadrupeds (2026-09-22)
+
+`profiles/skeletons/quadruped_cat.json` defines a standing domestic quadruped:
+30 bones, distinct forelegs and hindlegs, jaw, ears and a four-joint tail. It
+requires source-bound landmarks; biped guesses are refused. `run_rig_candidate.ps1`
+accepts `-Profile quadruped_cat -Landmarks <json> -Backbone landmark`. GLB input
+preserves PBR material in the native Blender authority. The FBX transport is
+retained for existing gates. The quadruped suite tests ten poses, and missing
+pose bones fail rather than yielding an empty success.
+
+`quadruped_cat_browser` and `ue5_manny_browser` preserve their canonical bone,
+parent and weight contracts with a 50,000-triangle budget explicitly for browser
+scenes. They do not replace the canonical 20,000-triangle production profiles,
+certify deformation quality or imply artistic approval.
+
+Two Blender helpers support already acquired candidates, not AI acquisition:
+
+```text
+blender -b --factory-startup --python-exit-code 1 --python scripts/blender/normalize_browser_asset.py -- <source.blend-or.glb> <output.glb> <receipt.json> <height-metres>
+blender -b --factory-startup --python-exit-code 1 --python scripts/blender/texture_planar_floor.py -- <room.blend-or.glb> <output.glb> <receipt.json> <conditioned-albedo.png> --tile-metres 3
+```
+
+Normalization anchors the floor and applies a uniform size; rigid props centre
+their footprint, while rigs preserve their anatomical origin. Rig placement is
+baked into the rest mesh and joints; topology, UVs, weights and materials remain.
+Native `.blend` files are retained. Importer bone widgets are not asset geometry.
+The floor pass changes only the material and UVs of explicitly selected low,
+upward faces; it never generates geometry. Both helpers refuse overwrites and
+write source/output hashes. Their receipts retain `human_approved: false` and
+`production_grade: false` until actual review and the applicable gates.
+
+For an assembled prop, `rac run-stage remesh ... --preserve-components` retains
+separate substantive parts. `--smooth-iterations 0` skips Laplacian smoothing
+for architecture. Mechanical topology/budget checks and visual review still apply.

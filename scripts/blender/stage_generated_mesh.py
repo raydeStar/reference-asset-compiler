@@ -30,6 +30,7 @@ import sys
 from pathlib import Path
 
 import bpy
+from mathutils import Vector
 
 
 def read_option(argv: list[str], name: str, default: str | None = None) -> str | None:
@@ -111,15 +112,20 @@ def main() -> int:
     # somebody else already applied.
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
 
-    before = tuple(round(value, 6) for value in mesh.dimensions)
-    tallest = max(before)
+    def world_dimensions():
+        bpy.context.view_layer.update()
+        corners = [mesh.matrix_world @ Vector(corner) for corner in mesh.bound_box]
+        return tuple(round(max(c[i] for c in corners) - min(c[i] for c in corners), 6) for i in range(3))
+
+    before = world_dimensions()
+    tallest = before[2]
     if tallest <= 0:
-        print("[STAGE] FAILED: the mesh has no extent to scale")
+        print("[STAGE] FAILED: the mesh has no vertical extent to scale")
         return 1
     factor = height_m / tallest
     mesh.scale = (factor, factor, factor)
     bpy.ops.object.transform_apply(location=False, rotation=False, scale=True)
-    after = tuple(round(value, 6) for value in mesh.dimensions)
+    after = world_dimensions()
 
     output.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.save_as_mainfile(filepath=str(output))
@@ -135,6 +141,7 @@ def main() -> int:
         "scale": {
             "requested_size": size_name,
             "requested_height_m": height_m,
+            "height_axis": "world-Z",
             "factor": round(factor, 8),
             "dimensions_before_m": list(before),
             "dimensions_after_m": list(after),
@@ -144,7 +151,7 @@ def main() -> int:
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
     print("[STAGE] wrote {0}: {1} triangles, {2} m tall (x{3:.4f})".format(
-        output.name, report["exported"]["triangles"], round(max(after), 3), factor))
+        output.name, report["exported"]["triangles"], round(after[2], 3), factor))
     return 0
 
 

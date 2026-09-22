@@ -24,6 +24,9 @@ from pathlib import Path
 import bpy
 from mathutils import Vector
 
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from deform_poses import select_poses  # noqa: E402
+
 # Each pose: bone -> (axis, degrees). Angles are deliberately large; a subtle
 # pose hides a subtle problem.
 POSES = {
@@ -149,6 +152,8 @@ def main() -> int:
     argv = sys.argv[sys.argv.index("--") + 1:]
     asset_path, out_dir, report_path = (Path(a) for a in argv[:3])
     resolution = int(argv[3]) if len(argv) > 3 else 900
+    profile_id = argv[4] if len(argv) > 4 else None
+    poses = select_poses(profile_id, POSES)
 
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.fbx(filepath=str(asset_path))
@@ -175,7 +180,7 @@ def main() -> int:
     warnings = []
     results = {}
 
-    for pose_name, spec in POSES.items():
+    for pose_name, spec in poses.items():
         clear_pose(armature)
         missing = []
         apply_pose(armature, spec, missing)
@@ -184,12 +189,9 @@ def main() -> int:
         posed = mesh_points(meshes, depsgraph)
 
         if missing:
-            warnings.append(
-                "{0}: skipped, rig has no {1}".format(pose_name, ", ".join(missing))
-            )
-            if len(missing) == len(spec):
-                results[pose_name] = {"skipped": True, "missing_bones": missing}
-                continue
+            failures.append("{0}: required pose bones missing: {1}".format(pose_name, ", ".join(missing)))
+            results[pose_name] = {"skipped": True, "missing_bones": missing}
+            continue
 
         deltas = [(posed[i] - rest_points[i]) for i in range(len(rest_points))]
         moved = [i for i, d in enumerate(deltas) if d.length > extent * 0.005]
@@ -231,6 +233,10 @@ def main() -> int:
                 )
             )
 
+        only_right = all(b.endswith("_r") for b in spec)
+        if only_right and moved and side_bias > -0.5:
+            failures.append("{0}: right-only pose moved the wrong half (bias {1:+.2f})".format(pose_name, side_bias))
+
         symmetric = (
             len(spec) == 2
             and any(b.endswith("_l") for b in spec)
@@ -256,6 +262,7 @@ def main() -> int:
     clear_pose(armature)
     report = {
         "asset": str(asset_path),
+        "skeleton_profile": profile_id,
         "poses": results,
         "failures": failures,
         "warnings": warnings,

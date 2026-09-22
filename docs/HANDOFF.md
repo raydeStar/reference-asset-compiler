@@ -3481,3 +3481,32 @@ JPEG `Stillwater-thumbnail-1080p.jpg` (1920 × 1080, 530,220 bytes). The exact p
 is retained in `thumbnail-prompt.txt`. Visually reviewed the generated image and
 JPEG for legible, correctly spelled text, framing and recognizable scene/assets.
 No website deployment or LinkedIn posting occurred.
+
+
+## 2026-09-22 — Moonlit tavern construction and browser rigs
+
+Built nine assets from source-derived ImageGen references through installed
+Hunyuan geometry and paint. The user explicitly deferred creative review until
+whole-scene assembly; no intermediate approval was fabricated. Framewright owns
+scene placement and light controls; compiler changes remain in this repository.
+See STATUS for the exact current local GLB/native authorities.
+
+New reusable work: source-bound quadruped skeleton and ten-pose deformation
+suite; GLB input to landmark binding; explicit browser profiles; floor/height
+normalization preserving topology, UVs, weights and material; planar floor
+material cleanup; optional component preservation; zero smoothing for hard
+architectural surfaces; Windows PowerShell child module-path isolation.
+
+Evidence: innkeeper rig-v1 body tests pass; tabby rig-v1/v2 failures retained and
+rig-v3 passes with per-paw guides. The first tableware reduction discarded two
+components and was replaced by a passing preserve-components reduction. Room
+Laplacian smoothing was stopped after over 30 minutes; a zero-smoothing reduction
+passed at 100k. Twelve-view room paint improved the wood but still missed stone
+floor detail, so an image-conditioned albedo was applied to 1,914 existing floor
+faces. Neutral poses retained. Detailed human fingers and photoreal likeness
+remain future quality work. Production flags stay false.
+
+Validation: full compiler suite, Ruff, stage syntax, wheel build and isolated
+wheel smoke passed. Real Blender tests cover component retention, vertical
+height, rig scale/bind round-trip, and floor-only UV/material changes. Local
+receipts remain under work/moonlit-tavern; generated assets are not in Git.

@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import os
+import shutil
 import sys
 import tempfile
 import unittest
@@ -35,6 +37,33 @@ print("stub finished")
 
 
 class StageRunnerTests(unittest.TestCase):
+    @unittest.skipUnless(os.name == "nt" and shutil.which("powershell.exe"),
+                         "Windows PowerShell integration")
+    def test_powershell_stage_loads_standard_modules_from_a_core_parent(self):
+        with tempfile.TemporaryDirectory(prefix="rac-powershell-") as raw:
+            root = Path(raw)
+            script = root / "scripts" / "probe.ps1"
+            script.parent.mkdir()
+            script.write_text(
+                "$ErrorActionPreference = 'Stop'\n"
+                "$hash = (Get-FileHash -LiteralPath $PSCommandPath).Hash\n"
+                "@{hash=$hash; config=$env:RAC_TEST_CONFIG} | ConvertTo-Json | "
+                "Set-Content -LiteralPath 'report.json'\n", encoding="utf-8")
+            # Write beside the source rather than depend on the caller's cwd.
+            script.write_text(script.read_text().replace(
+                "'report.json'", "(Join-Path $PSScriptRoot '../report.json')"))
+            (root / "source.fbx").write_bytes(b"source")
+            registry = {"probe": {"runner": "powershell", "script": "scripts/probe.ps1",
+                                  "arguments": (), "summary": "Module probe"}}
+            with mock.patch.dict(stages.STAGES, registry, clear=True), mock.patch.dict(
+                    os.environ, {"PSMODULEPATH": str(root / "missing-core-modules"),
+                                 "RAC_TEST_CONFIG": "retained"}):
+                result = run_stage("probe", root / "source.fbx", root / "out.glb",
+                                   root / "report.json", repo_root=root)
+            self.assertTrue(result["ok"], result)
+            self.assertEqual(len(result["receipt"]["hash"]), 64)
+            self.assertEqual(result["receipt"]["config"], "retained")
+
     def checkout(self, root: Path, mode: str = "ok") -> Path:
         """A checkout carrying one stub stage, registered as a python runner."""
         script = root / "scripts" / "stub_stage.py"

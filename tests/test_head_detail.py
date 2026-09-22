@@ -12,7 +12,6 @@ byte for byte.
 from __future__ import annotations
 
 import io
-import json
 import shutil
 import sys
 import tempfile

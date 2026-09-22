@@ -114,7 +114,14 @@ def main() -> int:
     scene = bpy.context.scene
     scene.unit_settings.system = "METRIC"
     scene.unit_settings.scale_length = 1.0
-    bpy.ops.import_scene.fbx(filepath=str(fbx_path))
+    if fbx_path.suffix.lower() in {".glb", ".gltf"}:
+        # Browser candidates keep their PBR materials through native glTF.
+        # The legacy landmark hash key remains accepted for existing callers.
+        bpy.ops.import_scene.gltf(filepath=str(fbx_path))
+    elif fbx_path.suffix.lower() == ".fbx":
+        bpy.ops.import_scene.fbx(filepath=str(fbx_path))
+    else:
+        raise RuntimeError("Rig input must be GLB, glTF or FBX")
     if [o for o in bpy.data.objects if o.type == "ARMATURE"]:
         raise RuntimeError("Payload already carries an armature")
     meshes = [o for o in bpy.data.objects if o.type == "MESH"]

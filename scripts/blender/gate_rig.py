@@ -144,8 +144,9 @@ def check_facing(armature, meshes, failures, warnings, report):
     # Skeleton: the toe joint sits ahead of the ankle.
     deltas = []
     for side in ("l", "r"):
-        ankle = head_world("foot_" + side)
-        toe = head_world("ball_" + side) or tail_world("foot_" + side)
+        paw_name = ("front_paw_" if head_world("front_paw_" + side) is not None else "foot_") + side
+        ankle = head_world(paw_name)
+        toe = head_world("ball_" + side) or tail_world(paw_name)
         if ankle and toe:
             deltas.append((toe - ankle).y)
     if deltas:
@@ -159,7 +160,7 @@ def check_facing(armature, meshes, failures, warnings, report):
             )
 
     # Left-hand side must sit on +X when facing -Y.
-    for pair in (("hand_l", "hand_r"), ("foot_l", "foot_r")):
+    for pair in (("hand_l", "hand_r"), ("foot_l", "foot_r"), ("front_paw_l", "front_paw_r"), ("hind_paw_l", "hind_paw_r")):
         left, right = head_world(pair[0]), head_world(pair[1])
         if left and right and abs(left.x - right.x) > 1e-4:
             facing["left_side_axis"] = "+X" if left.x > right.x else "-X"

@@ -40,6 +40,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--smooth-iterations", type=int, default=5)
     parser.add_argument("--smooth-lambda", type=float, default=0.28)
     parser.add_argument("--minimum-component-faces", type=int, default=24)
+    parser.add_argument("--preserve-components", action="store_true", help="Keep separate substantive parts of an assembled asset")
     return parser.parse_args(arguments)
 
 
@@ -57,8 +58,8 @@ def main() -> int:
         raise RuntimeError("Target triangles must be between 1,000 and the budget")
     if not 128 <= args.voxel_resolution <= 1024:
         raise RuntimeError("Voxel resolution must be between 128 and 1,024")
-    if not 1 <= args.smooth_iterations <= 30:
-        raise RuntimeError("Smooth iterations must be between 1 and 30")
+    if not 0 <= args.smooth_iterations <= 30:
+        raise RuntimeError("Smooth iterations must be between 0 and 30")
     if not 0.01 <= args.smooth_lambda <= 0.75:
         raise RuntimeError("Smooth lambda must be between 0.01 and 0.75")
 
@@ -105,7 +106,7 @@ def main() -> int:
     if "FINISHED" not in result:
         raise RuntimeError("Voxel remesh failed: {0}".format(sorted(result)))
     voxel_topology = topology(candidate)
-    surface_normalization = manifoldize_dominant_volume(candidate)
+    surface_normalization = manifoldize_dominant_volume(candidate, args.preserve_components)
     candidate.data.validate(verbose=True, clean_customdata=True)
     bpy.context.view_layer.objects.active = candidate
     candidate.select_set(True)
@@ -148,12 +149,15 @@ def main() -> int:
     }
     report_path.write_text(json.dumps(report_base, indent=2) + "\n", encoding="utf-8")
 
-    smooth = candidate.modifiers.new("DenseSurfaceCleanup", "LAPLACIANSMOOTH")
-    smooth.lambda_factor = args.smooth_lambda
-    smooth.lambda_border = 0.08
-    smooth.iterations = args.smooth_iterations
-    smooth.use_volume_preserve = True
-    bpy.ops.object.modifier_apply(modifier=smooth.name)
+    # Architectural edges may need no smoothing at all; an explicit zero also
+    # avoids a dense Laplacian solve that can dwarf the reduction itself.
+    if args.smooth_iterations:
+        smooth = candidate.modifiers.new("DenseSurfaceCleanup", "LAPLACIANSMOOTH")
+        smooth.lambda_factor = args.smooth_lambda
+        smooth.lambda_border = 0.08
+        smooth.iterations = args.smooth_iterations
+        smooth.use_volume_preserve = True
+        bpy.ops.object.modifier_apply(modifier=smooth.name)
     before_qem = topology(candidate)
     modifier = candidate.modifiers.new("GameTriangleBudget", "DECIMATE")
     modifier.decimate_type = "COLLAPSE"

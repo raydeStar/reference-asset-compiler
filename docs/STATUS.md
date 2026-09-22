@@ -2,7 +2,7 @@
 
 *Type: reference*
 
-Last updated: 2026-09-16. This file holds the current state only and is
+Last updated: 2026-09-22. This file holds the current state only and is
 rewritten in place. History is in [HANDOFF.md](HANDOFF.md) (append-only,
 dated); failures and retained lessons are in [DECISIONS.md](DECISIONS.md);
 scoped open work is in [AGENT_TASKS.md](AGENT_TASKS.md). The stage names below
@@ -12,6 +12,34 @@ Every `work/`, `out/` and `output/` path here is on the development workstation
 and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
+
+## Moonlit tavern scene candidates (browser, outside the UE cohort)
+
+The user commissioned a complete scene before creative approvals. Nine reference-
+conditioned assets are generated and textured: innkeeper, quadruped tabby, room
+shell, table, chair, bench, lantern, tableware and rug. A source-conditioned
+flagstone tile repairs the painter's plain floor on the existing room surface.
+Framewright holds 21 editable instances with warm/cool local lights. No human
+approval or UE production certification is recorded.
+
+Current artifacts under ignored `work/moonlit-tavern/`:
+
+- `final-v2/innkeeper/innkeeper.glb` and `.blend`: 48k triangles, 86-bone body
+  rig, five body stress poses pass. Head repaint transferred without changing
+  weights. Simplified fingers still need refinement for detailed articulation.
+- `final-v2/tabby/tabby.glb` and `.blend`: 48k triangles, 30-bone quadruped rig;
+  all ten limb, spine, head, tail, ear and jaw stress poses pass. Final guides
+  and evidence are in `tabby/rig-prep-v3` and `tabby/rig-v3`.
+- `final-v3/room-shell/room-shell.glb` and `.blend`: 100k triangles, 4k room
+  paint, explicit planar flagstone material. Geometry retained.
+- `final/<table|chair|bench|lantern|tableware|rug>/`: textured GLB/native pairs.
+  Tableware uses `remesh-v2` and `uv-v2`, preserving all three source components.
+- `BRIEF.md`, `assembled-scene.json`, `studio-import.json`, source images and
+  per-stage receipts retain the local construction trail and review state.
+
+Both final character GLBs pass Framewright's skeleton, bind and weight checks
+against explicit 50k **browser** profiles. Canonical 20k profiles are unchanged.
+These are animation-capable working assets, not approved character designs.
 
 ## Stillwater lakeside village (Three.js demo, outside the UE cohort)
 

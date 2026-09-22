@@ -14,7 +14,6 @@ Nothing here needs Blender or a GPU.
 """
 import io
 import json
-import struct
 import sys
 import tempfile
 import unittest

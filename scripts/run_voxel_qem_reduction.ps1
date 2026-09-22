@@ -7,6 +7,7 @@ param(
     [int] $VoxelResolution = 420,
     [int] $SmoothIterations = 5,
     [double] $SmoothLambda = 0.28,
+    [switch] $PreserveComponents,
     [string] $CompilerPython,
     [string] $Blender = $env:RAC_BLENDER
 )
@@ -56,10 +57,12 @@ Write-Host 'REDUCTION_STAGE_BEGIN backend=VoxelQEM -- coherent surface first, ex
 $previousPreference = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 try {
+    $componentArguments = @()
+    if ($PreserveComponents) { $componentArguments += '--preserve-components' }
     $runOutput = @(& $blenderPath '--background' '--factory-startup' '--python-exit-code' '1' '--python' $driver '--' `
         $inputPath $candidate $report '--triangle-budget' $TriangleBudget '--target-triangles' $TargetTriangles `
         '--voxel-resolution' $VoxelResolution '--smooth-iterations' $SmoothIterations `
-        '--smooth-lambda' $SmoothLambda 2>&1 | ForEach-Object { $_.ToString() } | Tee-Object -FilePath $log)
+        '--smooth-lambda' $SmoothLambda @componentArguments 2>&1 | ForEach-Object { $_.ToString() } | Tee-Object -FilePath $log)
     $exitCode = $LASTEXITCODE
 } finally {
     $ErrorActionPreference = $previousPreference

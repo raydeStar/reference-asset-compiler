@@ -88,7 +88,7 @@ def remove_tiny_components(obj: bpy.types.Object, minimum_faces: int) -> dict[st
     return {"components": removed_components, "faces": removed_faces}
 
 
-def manifoldize_dominant_volume(obj: bpy.types.Object) -> dict[str, int]:
+def manifoldize_dominant_volume(obj: bpy.types.Object, preserve_components: bool = False) -> dict[str, int]:
     """Keep the coherent volume, close boundaries, and normalize winding."""
     bm = bmesh.new()
     bm.from_mesh(obj.data)
@@ -111,7 +111,7 @@ def manifoldize_dominant_volume(obj: bpy.types.Object) -> dict[str, int]:
     discard = [
         face
         for component in components
-        if component is not largest
+        if component is not largest and not preserve_components
         for face in component
     ]
     if discard:
@@ -133,6 +133,7 @@ def manifoldize_dominant_volume(obj: bpy.types.Object) -> dict[str, int]:
     obj.data.update()
     return {
         "input_components": len(components),
+        "preserve_components": preserve_components,
         "discarded_faces": len(discard),
         "filled_boundary_edges": len(boundary),
         "remaining_boundary_edges": remaining_boundary,

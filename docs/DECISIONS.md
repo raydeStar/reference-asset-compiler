@@ -698,3 +698,25 @@ frames separately from the browser's playback-quality counters. Reframe the UI
 only in the private capture context; keep scene and asset authorities unchanged.
 Vite can inject the app stylesheet after head styles, so apply capture overrides
 after the app has loaded and inspect representative frames before rendering.
+
+
+## 2026-09-22 — Scene candidates expose assumptions hidden by isolated props
+
+- Height is world Z after import, not the longest bounding-box dimension. A
+  wide table or long cat must not be shrunk to the requested height as width.
+- The dominant-component cleanup is useful for isolated generated solids but
+  can discard real plates or mugs in an assembly. Preserve-components is an
+  explicit remesh option; the old default remains available.
+- Dense room Laplacian smoothing can cost far more than QEM. An explicit zero
+  preserves architectural edges and skips that solve; all topology checks remain.
+- glTF skinning ignores the mesh node transform. Bake uniform placement into
+  mesh vertices and rest joints so raw bounds and skin consumers agree. Exclude
+  importer-created bone widgets from measurement and export.
+- A 50k browser budget has its own named profile. Do not weaken a 20k production
+  profile or invent an approval waiver to make a browser candidate pass.
+- More paint views did not recover the room's flat floor detail. Apply a
+  reference-conditioned tile only to selected existing upward floor faces, with
+  a receipt and fixed-view review; never silently replace the room geometry.
+- A Python child of PowerShell Core inherits a PSModulePath incompatible with
+  Windows PowerShell 5.1. Clear that one inherited variable for PowerShell child
+  runners, preserving all other configuration.

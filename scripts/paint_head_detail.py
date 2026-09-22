@@ -34,7 +34,7 @@ import argparse
 import hashlib
 import io
 import json
-import struct
+import os
 import subprocess
 import sys
 import time
@@ -456,7 +456,8 @@ def main(argv=None) -> int:
     print("{0} painting {1} head faces of {2} ({3:.1%}) above {4:.3f} m, reference cropped to {5}".format(
         TAG, head_triangles, len(triangles), share, cut, crop.get("box")), flush=True)
     painted = subprocess.run(command, capture_output=True, text=True, errors="replace",
-                             stdin=subprocess.DEVNULL, timeout=3000)
+                             stdin=subprocess.DEVNULL, timeout=3000,
+                             env={key: value for key, value in os.environ.items() if key.upper() != "PSMODULEPATH"})
     head_glb = paint_dir / "head.glb"
     validation = paint_dir / "head.validation.json"
     if not head_glb.is_file() or not validation.is_file():

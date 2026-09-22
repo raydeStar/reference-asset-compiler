@@ -157,7 +157,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "script": "scripts/run_voxel_qem_reduction.ps1",
         "arguments": ("source", "output", "report"),
         "options": ("triangle_budget", "target_triangles", "voxel_resolution",
-                    "smooth_iterations", "smooth_lambda"),
+                    "smooth_iterations", "smooth_lambda", "preserve_components"),
         "prepare": "remesh",
         "needs": ("blender",),
         "summary": "Rebuild a generated surface on a uniform grid, then collapse it to a runtime budget.",
@@ -437,10 +437,18 @@ def run_stage(
         # quality got another, and nothing said so.
         command = [runner, str(script), "--", *arguments, *extra]
 
+    environment = None
+    if stage["runner"] == "powershell":
+        # A Python child of pwsh inherits its Core module search path. Windows
+        # PowerShell then tries Core's Utility module and loses Get-FileHash.
+        # Let 5.1 build its own standard path; all other configuration survives.
+        environment = {key: value for key, value in os.environ.items()
+                       if key.upper() != "PSMODULEPATH"}
     started = time.monotonic()
     try:
         finished = subprocess.run(
             command, capture_output=True, text=True, errors="replace", timeout=timeout,
+            env=environment,
             # Nothing here may ever wait to be typed at. A stage is run by a
             # queue worker whose own input is whatever its parent happened to
             # hand it -- under a service that is a pipe nobody will ever write
@@ -765,6 +773,8 @@ def prepare_remesh(source: Path, output: Path, options: dict[str, Any],
     """
     attempt = _attempt(output, "remesh")
     arguments = ["-InputMesh", str(Path(source).resolve()), "-OutputDirectory", str(attempt)]
+    if options.get("preserve_components"):
+        arguments += ["-PreserveComponents"]
     if blender:
         arguments += ["-Blender", str(blender)]
     for flag, name in (("-TriangleBudget", "triangle_budget"),

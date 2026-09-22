@@ -158,6 +158,7 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--target-triangles", type=int, help="Remesh target before the budget check")
     stage.add_argument("--voxel-resolution", type=int, help="Remesh grid resolution (default: 420)")
     stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
+    stage.add_argument("--preserve-components", action="store_true", help="Keep separate substantive parts during remeshing")
     stage.add_argument("--smooth-lambda", type=float, help="Remesh smoothing strength (default: 0.28)")
     stage.add_argument("--colour", help="The colour a model's glass was painted, e.g. teal")
     stage.add_argument("--transmission", type=float, help="How much the glass transmits, 0..1 (default: 0.85)")
@@ -318,6 +319,7 @@ def main(argv: list[str] | None = None) -> int:
                     "target_triangles": args.target_triangles,
                     "voxel_resolution": args.voxel_resolution,
                     "smooth_iterations": args.smooth_iterations,
+                    "preserve_components": args.preserve_components,
                     "smooth_lambda": args.smooth_lambda,
                     "colour": args.colour,
                     "transmission": args.transmission,
