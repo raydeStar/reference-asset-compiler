@@ -751,3 +751,30 @@ workers. Separately, a 768-pixel bar paint spilled about 14 GB into shared GPU
 memory and was stopped after 19 minutes. A fresh 512-pixel-view attempt with the
 same 4K atlas passed. Keep failed receipts and diagnose before choosing a fresh
 attempt; never turn a retry into an unrecorded success.
+
+## 2026-09-22 — Empty furniture and separate stock expose smaller repair boundaries
+
+The fused tavern cabinet's vessels were weak even after the architecture was
+split. Acquire the empty shelf, counter and four stock masters separately from
+source-derived references. Review vessel mouths and handles from above as well
+as fixed side views; paint alone cannot make a filled mouth hollow. Fit each
+instance against measured shelf triangles rather than assuming a perfectly flat
+deck or accepting floating props in a distant room render.
+
+Horizontal shelf paint retained stretched grey/orange stripes. A versioned
+material derivative maps a source-conditioned oak albedo onto selected existing
+horizontal faces, including undersides when requested. Preserve the raw paint,
+geometry/transforms and unselected UVs/material slots; do not call the changed
+UV regions unchanged. Real Blender regressions check those boundaries.
+
+GPU previews can consume the remaining paint headroom. Here, leaving the scene
+view initially helped; later both saved preview tabs had to close after the user
+authorized unused-app closure. Keep the 21504 MiB paint threshold intact and
+check fresh free memory. Firefox's per-process graphics counters overstated the
+memory actually released, so process accounting alone is not admission evidence.
+
+Windows PowerShell errors can wrap the real reason before many owner lines or
+begin without a script-name prefix under `-File`. Preserve that message before
+the location/metadata trailer; returning the last owner or a wrapped metadata
+fragment hides the refusal. The parser now covers both observed forms and keeps
+ordinary Python stderr behavior. The read-only live refusal was retained locally.

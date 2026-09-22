@@ -13,6 +13,39 @@ not replace image-conditioned acquisition with an eyeballed primitive room.
 Framewright owns library records, scene instances, review and project exports;
 the compiler owns the assets and their verification.
 
+## Separate stocked furniture from its contents
+
+Acquire empty shelving and a separate empty counter. Acquire each bottle,
+tankard, jar or pitcher as its own reference-conditioned master, then reuse
+those masters as independent scene instances. A cabinet full of fused vessels
+spends its geometry and texture budget on silhouettes that cannot be repaired
+or rearranged individually. Keep the earlier assembly as a fallback.
+
+Review open vessel mouths from above as well as the fixed four views. Check
+handle openings in geometry before painting. Normalize each master to a real
+height, then ray-cast its base footprint onto the acquired shelf deck. Check
+stock-to-stock bounding-box overlaps and inspect the assembled result; an
+isolated asset render does not prove shelf contact or headroom.
+
+If the painter stretches colour bands across horizontal boards, retain that
+attempt and derive an albedo swatch from the source reference with the image
+model. `scripts/blender/texture_horizontal_surfaces.py` applies it only to
+existing upward faces, optionally also downward faces. It checks geometry and
+unselected UV/material slots before export, refuses rigs and existing outputs,
+and emits a hash-bound receipt. This is downstream material repair, not fresh
+geometry acquisition or human approval.
+
+```powershell
+& $blender -b --factory-startup --python-exit-code 1 `
+  --python scripts/blender/texture_horizontal_surfaces.py -- `
+  acquired-shelf.blend repaired-shelf.glb material-repair.json reference-oak.png `
+  --minimum-up 0.65 --include-down --tile-metres 1.3
+```
+
+Inspect the derivative from all four directions. The mapping uses world XY
+metres, Z up, and intentionally leaves vertical faces on their original paint.
+Keep the image-generation prompt and lineage beside the material receipt.
+
 ## Extract retained modules
 
 `scripts/blender/partition_static_asset.py` takes a triangulated static `.blend`,

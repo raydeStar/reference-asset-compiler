@@ -3570,3 +3570,46 @@ passed. Local `delivery-validation.json` holds file sizes and SHA256 values.
 Framewright's local delivery directory contains `MODULAR-HANDOFF.md`, both
 versioned modular ZIPs and the actual browser review PNG. No generated media
 was added to either public source repository.
+
+## 2026-09-22 — Independent tavern shelf and stock
+
+Replaced the fused bar model with six separately acquired masters: empty oak
+shelf, empty counter, olive bottle, pewter tankard, stoneware jar and pottery
+pitcher. Four stock masters produce 18 individually editable placements. The
+current Framewright scene v10 has 62 available instances; only the old bar and
+the contact heights of two retained counter settings changed. The previous
+fused bar lives in a separate fallback scene. Characters, user inspection
+camera and local lights are preserved. No human approvals were recorded.
+
+All six source-derived images directly conditioned Hunyuan geometry and paint.
+Fixed geometry/texture views, elevated vessel-mouth views, paint geometry/UV
+receipts, normalized exports, imported profiles, content hashes, measured shelf
+contacts and stock bounding-box clearance were checked. The shelf's streaked
+horizontal paint was rejected and retained; a source-conditioned oak material
+derivative repairs existing shelf/counter faces without changing geometry.
+The new helper and workflow belong to this compiler; no Framewright source or
+deprecated private mirror change was needed.
+
+Framewright's actual browser rendered the room as TAV-010 working v5 and the
+shelf close-up as TAV-020 working v2, both 1536x1024 and bound to scene v10.
+Individual pitcher selection exposed its own placement controls. Browser
+warning/error logs were empty during this check. These are working candidates,
+not ratified assets or UE production results. The rejected cat face is unchanged.
+
+Evidence lives under ignored `work/moonlit-tavern/shelf-stock-v1/`; STATUS lists
+the masters, scene, review and delivery receipts. Framewright's local delivery
+directory has `SHELF-STOCK-HANDOFF.md`, a complete editable project archive,
+and a native update archive with the assembled room plus six new native/GLB
+masters. Prior deliveries remain available.
+
+Failures are retained: shelf/jar low-VRAM preflight refusals and the tankard
+painter's post-output native access violation. Explicit fresh shelf/jar attempts
+passed after preview memory was released; the tankard output independently
+reloaded and rendered after its validation. Steam changed Blender from 5.2.1
+to 5.2.2 during the task; final review/regression evidence uses 5.2.2.
+
+Validation: `scripts/verify.ps1` passed 580 tests and 169 subtests, Ruff, 178 stage
+syntax checks, wheel build and isolated install smoke. All seven optional tests
+skipped in that run then passed separately with real Blender enabled (six scene
+candidate cases and one partition case). The wrapped PowerShell refusal parser
+also passed a saved, actual Windows `-File` failure example.

@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -483,10 +484,8 @@ def run_stage(
     if finished.returncode != 0 and not survivable:
         # The failure travels with the payload. Hunting a log on another
         # machine is not diagnosis.
-        # A launcher that throws rather than refusing by tag still said
-        # something, on stderr, and "exited with code 1 without saying why" is
-        # what a studio showed while the launcher's own last line named the
-        # GPU it was waiting for. The last line it wrote travels instead.
+        # PowerShell can wrap the actual refusal ahead of a long owner list.
+        # Bring the reason, not merely the final process on the guest list.
         payload["error"] = refusal(finished.stdout) or refusal(finished.stderr) or last_words(
             finished.stderr, stage_name, finished.returncode)
         payload["stdout_tail"] = tail(finished.stdout)
@@ -975,11 +974,42 @@ def collect_produced(produced: dict[str, Path], output: Path, report: Path) -> N
 def last_words(stderr: str, stage_name: str, code: int) -> str:
     """What a stage said as it died, when it never refused by tag.
 
-    The last line of stderr that carries words, minus PowerShell's error
-    furniture, so a launcher's throw reaches the caller as the sentence it
-    was written as rather than as an exit code.
+    Prefer a PowerShell script's wrapped error message over its metadata or
+    the final line of an attached process list. Other runners retain their
+    last meaningful stderr line.
     """
     lines = [line.strip() for line in (stderr or "").splitlines() if line.strip()]
+    messages: list[str] = []
+    current: list[str] = []
+    explicit_header = False
+    for line in lines:
+        match = re.match(r"^(?!At ).+\.ps1\s*:\s*(.+)$", line, re.IGNORECASE)
+        if match:
+            if explicit_header and current:
+                messages.append(" ".join(current))
+            current = [match.group(1)]
+            explicit_header = True
+        elif re.match(r"^At .+:\d+ char:\d+", line):
+            # -File errors can start directly with a wrapped message, without
+            # a script-name prefix. Its location line still bounds the block.
+            if current:
+                messages.append(" ".join(current))
+            current = []
+            explicit_header = False
+        elif line.startswith(("+", "CategoryInfo", "FullyQualifiedErrorId")):
+            if explicit_header and current:
+                messages.append(" ".join(current))
+            current = []
+            explicit_header = False
+        else:
+            current.append(line)
+    if explicit_header and current:
+        messages.append(" ".join(current))
+    if messages:
+        said = messages[-1]
+        if len(said) > 600:
+            said = said[:597] + "..."
+        return "The {0} stage exited with code {1}: {2}".format(stage_name, code, said)
     lines = [line for line in lines
              if not line.startswith(("+ ", "At line:", "At C:", "CategoryInfo", "FullyQualifiedErrorId"))]
     if not lines:

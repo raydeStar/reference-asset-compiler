@@ -161,3 +161,67 @@ assert before['Floor'][0]==after['Floor'][0]
 assert before['Floor'][1]!=after['Floor'][1]
 ''')
     run(check)
+
+
+@pytest.mark.parametrize('include_down,expected_faces', [(False, 3), (True, 6)])
+def test_horizontal_material_preserves_geometry_and_vertical_uvs(tmp_path, include_down, expected_faces):
+    source, albedo = tmp_path/'shelves.blend', tmp_path/'oak.png'
+    setup = tmp_path/'shelves.py'
+    setup.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+for height in (0, 1, 2):
+    bpy.ops.mesh.primitive_cube_add(size=1,location=(.3,.2,height))
+    o=bpy.context.object
+    o.scale=(3,.5,.1)
+    o.data.materials.append(bpy.data.materials.new('Original'))
+image=bpy.data.images.new('Fixture',width=2,height=2)
+image.filepath_raw={str(albedo)!r}
+image.file_format='PNG'
+image.save()
+bpy.ops.wm.save_as_mainfile(filepath={str(source)!r})
+''')
+    run(setup)
+    output, report = tmp_path/'repaired.glb', tmp_path/'repair.json'
+    script = ROOT/'scripts/blender/texture_horizontal_surfaces.py'
+    flags = ['--include-down'] if include_down else []
+    run(script, source, output, report, albedo, *flags)
+    receipt = json.loads(report.read_text())
+    assert receipt['selected_faces'] == expected_faces
+    assert receipt['untouched_faces'] == 18-expected_faces
+    check = tmp_path/'check-horizontal.py'
+    check.write_text(f'''
+import bpy
+def snapshot(path):
+    bpy.ops.wm.open_mainfile(filepath=path)
+    return {{o.name: {{'matrix':[tuple(row) for row in o.matrix_world],
+        'vertices':[tuple(v.co) for v in o.data.vertices],
+        'faces':[tuple(p.vertices) for p in o.data.polygons],
+        'uvs':[[tuple(o.data.uv_layers.active.data[n].uv) for n in p.loop_indices] for p in o.data.polygons],
+        'materials':[o.data.materials[p.material_index].name for p in o.data.polygons],
+        'centres':[p.center.z for p in o.data.polygons]}} for o in bpy.context.scene.objects if o.type=='MESH'}}
+before=snapshot({str(source)!r})
+after=snapshot({str(output.with_suffix('.blend'))!r})
+for name,old in before.items():
+    new=after[name]
+    for field in ('matrix','vertices','faces'):assert old[field]==new[field]
+    for n,z in enumerate(old['centres']):
+        selected=z>.49 or ({include_down!r} and z<-.49)
+        if selected:
+            assert old['uvs'][n]!=new['uvs'][n]
+            assert new['materials'][n]=='Reference horizontal surface'
+        else:
+            assert old['uvs'][n]==new['uvs'][n]
+            assert old['materials'][n]==new['materials'][n]
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.import_scene.gltf(filepath={str(output)!r})
+assert sum(len(p.vertices)-2 for o in bpy.context.scene.objects if o.type=='MESH' for p in o.data.polygons)==36
+''')
+    run(check)
+    retained = output.read_bytes()
+    refused = subprocess.run([BLENDER, '-b', '--factory-startup', '--python-exit-code', '1',
+                              '--python', str(script), '--', str(source), str(output), str(report), str(albedo)],
+                             capture_output=True, text=True, timeout=90)
+    assert refused.returncode != 0
+    assert 'Preserve the existing candidate' in refused.stdout + refused.stderr
+    assert output.read_bytes() == retained

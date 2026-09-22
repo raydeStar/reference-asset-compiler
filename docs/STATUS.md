@@ -20,7 +20,7 @@ conditioned assets are generated and textured: innkeeper, quadruped tabby, room
 shell, table, chair, bench, lantern, tableware, rug and a static hearth insert. A source-conditioned
 flagstone tile repairs the painter's plain floor on the existing room surface.
 The original 22-instance scene is retained as a fallback. The modular rebuild
-now holds 43 editable instances with warm/cool local lights. No human
+now holds 62 editable instances with warm/cool local lights. No human
 approval or UE production certification is recorded.
 
 Current artifacts under ignored `work/moonlit-tavern/`:
@@ -38,14 +38,14 @@ Current artifacts under ignored `work/moonlit-tavern/`:
 - `BRIEF.md`, `assembled-scene.json`, `studio-import.json`, source images and
   per-stage receipts retain the local construction trail and review state.
 
-The current environment authority is **`modular-v1/`**, not the original room
-shell. Seven isolated source-derived references directly conditioned separate
+The current environment uses **`modular-v1/` plus `shelf-stock-v1/`**, not the
+original room shell. Seven isolated source-derived references conditioned separate
 AI geometry and paint: fireplace, stairs, stocked bar, window, wall bay, braced
 post and beam. The acquired floor is retained with 1,783 underside triangles
 copied as shallow flagstone infill beneath recesses exposed by the old fixtures.
 Its original 8,227 triangles remain unchanged. The eight architectural masters
-form 22 independently editable placements; 21 existing furnishing/character
-instances complete the room. Bar and stocked shelves remain one cabinet asset.
+formed the earlier 43-instance assembly. The fused stocked bar has since been
+replaced by an empty shelf, separate counter and individually acquired stock.
 
 - `modular-v1/final/<flagstone-floor|stairs|bar|window|wall|support|beam>/`:
   packed native/GLB masters. Fireplace uses `final/fireplace-finished-v2/`,
@@ -57,6 +57,32 @@ instances complete the room. Bar and stocked shelves remain one cabinet asset.
   hashes, and working shot v4. `browser-review.png` is the actual browser still.
 - `modular-v1/fallback-scene.json`: original room scene retained separately.
   `reference_manifest.json` retains source lineage and rejected timber cuts.
+
+The latest bar update is **`shelf-stock-v1/`**:
+
+- `final/<shelf-finished|counter-finished>/`: empty oak furniture, source-bound
+  horizontal wood material repair with unchanged geometry. Raw paint is retained.
+- `final/<bottle|tankard|jar|pitcher>/`: four separate textured GLB/native masters,
+  repeated as 18 independently editable stock instances. The jar lid is static;
+  the bottle material is opaque. No rig is needed for these props.
+- `layout.json` records measured shelf contact under each item and adjusted
+  heights for the two retained counter settings. `stock-clearance-final.json`
+  reports no stock bounding-box overlaps; it is not an exact mesh collision test.
+- `scene-after.json`: Framewright scene v10, 62 available instances. The user
+  inspection camera, lighting, character poses and unrelated objects are retained.
+  `fallback-before-stock.json` preserves the previous fused-bar scene separately.
+- `review-binding.json` and `detail-review-binding.json`: actual browser room
+  shot v5 and shelf-detail shot v2, both bound to scene v10 at 1536x1024.
+  `browser-review.png` and `browser-detail.png` are the corresponding stills.
+- `assembly-final/tavern.blend`, individual masters, references/prompts,
+  `visual-review.json`, `runtime-review.json` and `delivery-validation.json`
+  retain the local review and export evidence. Framewright's local delivery
+  directory contains `SHELF-STOCK-HANDOFF.md` and versioned project/native ZIPs.
+
+Shelf and jar paint attempts were refused before inference for insufficient
+VRAM; fresh admitted attempts are explicit `texture-v2` derivatives. The tankard
+painter faulted after writing validated output; independent reload and fixed-view
+review passed, but this is not a clean painter-process exit. Human gates remain open.
 
 The user rejected the cat's original face. `tabby/head-replacement-v3/` is
 **not promoted**: facial features improved, but the replacement bust still has
