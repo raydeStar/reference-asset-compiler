@@ -778,3 +778,37 @@ begin without a script-name prefix under `-File`. Preserve that message before
 the location/metadata trailer; returning the last owner or a wrapped metadata
 fragment hides the refusal. The parser now covers both observed forms and keeps
 ordinary Python stderr behavior. The read-only live refusal was retained locally.
+
+## 2026-09-22 — Regional paint needs continuous transports and protected joins
+
+The shipped innkeeper had 1,321 UV charts and shading discontinuities at 8,720
+of 8,721 duplicated positions. Averaging normals on UV-split indices reproduces
+the atlas seams as shading. Use an exact-position proxy for normal calculation
+and transfer corner normals back without welding the rigged authority. The
+painter's organic mode also needs vertex-normal conditioning explicitly.
+
+A regional OBJ with a unique `vt` per corner became disconnected triangles on
+Trimesh load. Share exact position/UV pairs; preserve actual seams. The first
+head paint is rejected and retained. Its files existed before its launcher was
+stopped, so do not describe it as an attempt that produced no output.
+
+Fewer UV charts alone do not prove a usable unwrap. Large generated clothing
+folds produced collapsed triangles or overlaps; broad projection repairs then
+exploded fragmentation. Check all three and reject regressions. The selected
+layout combines anatomical head/skin seams with an xatlas clothing candidate:
+2/4/511 islands. This is useful progress, not a hand-authored garment unwrap.
+
+Separate painters do not agree perfectly at region boundaries. A horizontal
+head cut includes vest shoulders: head/neck bone weights protect those faces.
+Clothing paint fades to original paint near atlas joins using surface distance;
+otherwise cuffs and collar show a visible sawtooth colour boundary. Retain the
+raw paint and both rejected combined reviews. Enlarging a sheet or smoothing
+normals cannot repair original finger or facial geometry.
+
+The 12-view 768-pixel clothing attempt had no output after 16 minutes and
+allocated 22.4 GiB dedicated plus 18.0 GiB shared GPU memory. Only its identified
+worker was stopped. A fresh explicit six-view attempt kept the 4K atlas and
+completed its maps in about four minutes. Both selected painters later exited
+with native access violation -1073741819 after successful geometry/UV validation.
+Keep those execution failures, independently load/render the maps, and do not
+retry inference merely to obtain a clean process exit.

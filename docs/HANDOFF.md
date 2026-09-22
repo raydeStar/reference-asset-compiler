@@ -3613,3 +3613,49 @@ syntax checks, wheel build and isolated install smoke. All seven optional tests
 skipped in that run then passed separately with real Blender enabled (six scene
 candidate cases and one partition case). The wrapped PowerShell refusal parser
 also passed a saved, actual Windows `-File` failure example.
+
+## 2026-09-22 — Innkeeper regional UV and texture repair
+
+Applied the earlier ninja lessons to the actual tavern innkeeper. The reusable
+route is documented in `REGIONAL_CHARACTER_TEXTURES.md`; all implementation
+belongs to this compiler. No Framewright source or deprecated mirror change
+was required. The working library and editable tavern now use revision 3,
+asset `93693a46-c933-49f3-b08f-a0fe295def40`, scene v11 with 62 placements.
+
+Separate head and clothing paints use 4096 PNG maps, with original exposed skin
+transferred to 2048. UV fragmentation fell from 1,321 charts to 517 (2 head,
+4 skin, 511 clothing). Shading normals cross UV splits on a proxy; original
+mesh/rig data does not. Head/neck bone weights and surface-distance clothing
+feathers protect the joins. The selected derivative is
+`work/moonlit-tavern/innkeeper/detail-v3/combined-v2/innkeeper-regional.glb`
+and its packed native file; STATUS binds the exact hash and supporting receipts.
+
+Ten calibrated face close-ups and twelve full-body beauty/albedo/matcap views
+were rendered. Face, beard and fabric detail improved; soft/faceted source
+geometry, simplified fingers, some baked lighting and hundreds of clothing
+charts remain limitations. This is a texture improvement, not a claim of
+photorealism, facial animation or human creative acceptance.
+
+The actual exported GLB preserves all source position/weight triangles, joint
+order, hierarchy, inverse binds, rest and world transforms. Imported bytes hash
+identically; Framewright's rig profile finds no missing bones or invalid weights.
+The original revision and database backup remain available. Scene verification
+proves the innkeeper asset binding is the only placement change; old rendered
+shots remain bound to their previous snapshots.
+
+Live browser review confirmed revision 3 and its three materials in the model
+inspector, generated its library thumbnail and opened it in Director Mode.
+The assembled tavern rendered with all 62 objects and the new innkeeper under
+the saved lighting. No browser warning/error logs appeared during this review.
+
+Rejected unwraps, disconnected-transport head paint, unprotected-join reviews,
+the stopped high-memory clothing attempt and two post-output native teardown
+crashes are retained under `detail-v3/`. Validated outputs were independently
+reloaded, baked, exported and rendered; the failed process receipts were never
+relabeled as passes. See DECISIONS for the causes and bounded corrections.
+
+Final compiler verification passed 596 tests and 169 subtests, Ruff, stage syntax,
+wheel build and isolated install smoke. Seven optional integration tests were
+skipped; this task separately exercised the new UV, paint transfer, GLB export
+and render stages on the actual Blender 5.2.2 innkeeper. No new package/model
+installation, source geometry acquisition or rerigging was needed.

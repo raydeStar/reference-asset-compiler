@@ -25,9 +25,12 @@ approval or UE production certification is recorded.
 
 Current artifacts under ignored `work/moonlit-tavern/`:
 
-- `final-v2/innkeeper/innkeeper.glb` and `.blend`: 48k triangles, 86-bone body
-  rig, five body stress poses pass. Head repaint transferred without changing
-  weights. Simplified fingers still need refinement for detailed articulation.
+- `innkeeper/detail-v3/combined-v2/innkeeper-regional.glb` and `.blend`: current
+  browser revision 3, 48k triangles and the original 86-bone body rig. Separate
+  4096 head/clothing PNG atlases, 2048 exposed skin, repaired shading normals
+  and feathered atlas joins. Original `final-v2/innkeeper/` remains preserved;
+  its five body stress poses passed. Simplified fingers and facial silhouette
+  still need geometry refinement for detailed articulation and close shots.
 - `final-v2/tabby/tabby.glb` and `.blend`: 48k triangles, 30-bone quadruped rig;
   all ten limb, spine, head, tail, ear and jaw stress poses pass. Final guides
   and evidence are in `tabby/rig-prep-v3` and `tabby/rig-v3`.
@@ -83,6 +86,34 @@ Shelf and jar paint attempts were refused before inference for insufficient
 VRAM; fresh admitted attempts are explicit `texture-v2` derivatives. The tankard
 painter faulted after writing validated output; independent reload and fixed-view
 review passed, but this is not a clean painter-process exit. Human gates remain open.
+
+The latest innkeeper update is **`innkeeper/detail-v3/`**:
+
+- `uv-v16/uv-report.json`: 1,321 original UV islands become 517 across three
+  sheets: head 2, exposed skin 4, clothing 511. Occupancy is 47.40%, 53.04%
+  and 49.42%, respectively. Finite/noncollapsed UVs and sampled overlap under
+  0.1% of occupied pixels pass; clothing fragmentation is reduced, not solved.
+- `head-paint-attempt002/` and `clothing-paint-attempt002/`: fresh source-crop
+  AI paints with unchanged geometry/UV receipts. Both faulted during native
+  teardown after validated PNGs were written. Independent reload, bake, export
+  and fixed-view review passed; the failed execution receipts remain failed.
+- `combined-v2/`: selected GLB/native, maps, paint receipt, ten face close-ups
+  and twelve full-body views. SHA256 of GLB:
+  `0b16accdce3c5e36bbca9eb8f0a3c5dee5fe51a479756f0fae5d582f709513ef`.
+  It is 35,007,904 bytes. `export-audit.json` proves source/export position and
+  skin-weight triangle correspondence, joint order, rest transforms, hierarchy,
+  inverse bind matrices and mesh world transforms unchanged.
+- `library-revision.json`, `imported-model-profile.json`, `scene-after.json`
+  and `delivery-checks.json`: Framewright asset
+  `93693a46-c933-49f3-b08f-a0fe295def40`, revision 3, scene v11. All 62 placements,
+  camera and lights retained; only the innkeeper's asset binding changed.
+  Browser rig profile still passes all 86 bones, bind and 40,184 split-vertex
+  weights. Prior shot stills retain their scene-v10 snapshots.
+
+The reusable [regional texture route](REGIONAL_CHARACTER_TEXTURES.md) lives in
+this compiler. It is an explicit operator workflow for the supported rigged
+humanoid authority, not a new automatic Framewright generation default. No
+human acceptance, facial rig upgrade or UE certification is implied.
 
 The user rejected the cat's original face. `tabby/head-replacement-v3/` is
 **not promoted**: facial features improved, but the replacement bust still has

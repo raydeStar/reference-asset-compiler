@@ -1,7 +1,7 @@
 """Hunyuan3D-Paint 2.1 for a studio: full atlas, lossless maps, topology kept.
 
 The hash-verified legacy runner (`run_hy3d21_pbr.py`) stays untouched. This is
-the variant a browser studio launches, and it patches four upstream behaviours
+the variant a browser studio launches, and it patches five upstream behaviours
 rather than editing them in place:
 
   1. `textureGenPipeline` calls `trimesh.load(path)` with processing ON, which
@@ -27,6 +27,9 @@ rather than editing them in place:
   4. Upstream's optional mesh inpaint module is absent on Windows; the OpenCV
      fallback is used, as the legacy runner does.
 
+  5. Painter normals are averaged on an exact-position proxy and expanded back
+     to the original indices. UV seams must not become lighting in the paint.
+
 The UV lock, the local model snapshots, the validation gate and its 1e-6
 tolerances match the legacy runner exactly, because those parts were right.
 
@@ -47,12 +50,15 @@ import huggingface_hub
 import numpy as np
 import torch
 import trimesh
+from seam_normals import install_seam_normal_repair
 
 parser = argparse.ArgumentParser()
 parser.add_argument("mesh", type=Path)
 parser.add_argument("reference", type=Path)
 parser.add_argument("output_obj", type=Path)
 parser.add_argument("--views", type=int, default=6, choices=range(6, 13))
+parser.add_argument("--smooth-conditioning-normals", action="store_true",
+                    help="Use seam-independent vertex normals for organic character conditioning; default keeps face normals")
 parser.add_argument("--resolution", type=int, default=512, choices=(512, 768))
 parser.add_argument("--atlas", type=int, default=4096, choices=(2048, 4096),
                     help="The sheet the maps are written at. The pipeline computes 4096 "
@@ -121,6 +127,11 @@ source = load_mesh(mesh_path)
 source_vertices = np.asarray(source.vertices, dtype=np.float64).copy()
 source_faces = np.asarray(source.faces, dtype=np.int64).copy()
 source_uv = np.asarray(source.visual.uv, dtype=np.float64).copy()
+
+# Hunyuan recomputes vertex normals from the UV-split transport. Share normals
+# at exact positions without collapsing any authored geometry or UV corners.
+normal_proxy = install_seam_normal_repair(trimesh.geometry, source_vertices, source_faces)
+print('HY3D21_SEAM_NORMALS', normal_proxy, flush=True)
 
 if not torch.cuda.is_available():
     raise RuntimeError("CUDA is required for Hunyuan3D-Paint 2.1")
@@ -226,6 +237,9 @@ previous_cwd = Path.cwd()
 os.chdir(UPSTREAM)
 try:
     painter = Hunyuan3DPaintPipeline(config)
+    if args.smooth_conditioning_normals:
+        painter.render.shader_type = 'vertex'
+    print('HY3D21_CONDITIONING_NORMALS', painter.render.shader_type, flush=True)
     result = painter(
         mesh_path=str(mesh_path),
         image_path=str(reference_path),

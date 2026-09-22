@@ -11,6 +11,7 @@ param(
     # the pipeline already computes and writes every map as PNG.
     [ValidateSet('legacy', 'studio')][string] $RunnerKind = 'legacy',
     [ValidateSet(2048, 4096)][int] $Atlas = 2048,
+    [switch] $SmoothConditioningNormals,
     [string] $DiagnosticsDir,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D-Paint runner, upstream checkout and models.' }),
     [int] $MinimumFreeVramMiB = 21504,
@@ -29,14 +30,21 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
 }
 $expectedRunnerHash = 'B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B'
-$expectedStudioRunnerHash = '82524CD435AF0A1B6FB455665FC4AC4C7ED333D7A654CCDBBE7872233B4D147F'
+$expectedStudioRunnerHash = '1CDA6CFDA24CC932B6428DCDA8771C4D91F05B0DC2B12F11DF064FA63968E4E3'
 $python = Join-Path $LegacyRoot '.venv-hy3d21\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d21_pbr.py'
 if ($RunnerKind -eq 'studio') {
     $runner = Join-Path (Split-Path -Parent $PSScriptRoot) 'workflows\texture\hunyuan3d21\run_hy3d21_studio.py'
     $expectedRunnerHash = $expectedStudioRunnerHash
+    $normalHelper = Join-Path (Split-Path -Parent $runner) 'seam_normals.py'
+    if ((Get-FileHash -LiteralPath $normalHelper -Algorithm SHA256).Hash -ne 'D6F166BB122DC8F6E0EC47B42644A53C2600FE7AFD3E3F049DFA9AC3BB6AAFDD') {
+        throw 'Studio normal helper changed; verify it and update its pinned hash before painting.'
+    }
 } elseif ($Atlas -ne 2048) {
     throw "The legacy runner writes a 2048 atlas only; ask for -RunnerKind studio to keep $Atlas"
+}
+if ($SmoothConditioningNormals -and $RunnerKind -ne 'studio') {
+    throw 'SmoothConditioningNormals requires RunnerKind studio.'
 }
 $upstream = Join-Path $LegacyRoot 'upstream\Hunyuan3D-2.1'
 $models = Join-Path $LegacyRoot 'models\hy3d21\Hunyuan3D-2.1'
@@ -83,6 +91,7 @@ $startedUtc = [DateTime]::UtcNow.ToString('o')
 $runnerArgs = @($runner, $meshPath, $referencePath, $outputPath, '--views', $Views, '--resolution', $Resolution)
 if ($RunnerKind -eq 'studio') {
     $runnerArgs += @('--atlas', $Atlas, '--legacy-root', $LegacyRoot)
+    if ($SmoothConditioningNormals) { $runnerArgs += '--smooth-conditioning-normals' }
 }
 if ($DiagnosticsDir) {
     $diagnosticsPath = [System.IO.Path]::GetFullPath($DiagnosticsDir)
@@ -112,6 +121,7 @@ $execution = [ordered]@{
     resolution = $Resolution
     runner_kind = $RunnerKind
     atlas = $Atlas
+    conditioning_normals = $(if ($SmoothConditioningNormals) { 'seam_independent_vertex' } else { 'face' })
     initial_free_vram_mib = $freeMiB
     gpu_utilization_percent = $utilization
     gpu_compute_owners = $computeApps

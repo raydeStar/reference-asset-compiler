@@ -95,12 +95,13 @@
       "id": "hunyuan3d21_studio_runner",
       "stage": "texture_candidate",
       "path": "texture/hunyuan3d21/run_hy3d21_studio.py",
-      "sha256": "82524CD435AF0A1B6FB455665FC4AC4C7ED333D7A654CCDBBE7872233B4D147F",
+      "sha256": "1CDA6CFDA24CC932B6428DCDA8771C4D91F05B0DC2B12F11DF064FA63968E4E3",
       "selection": "launched_by_run_hy3d21_texture_ps1_when_RunnerKind_studio",
       "runtime": "Windows_Python_3.11_CUDA_12.4",
-      "method": "trimesh force=mesh process=False on both loads so UV-corner splits survive; saves the computed 4096 atlas (or downsamples to 2048 on request); writes every map as PNG",
+      "method": "trimesh force=mesh process=False preserves UV-corner splits; normals use an exact-position proxy without changing geometry or UVs; optional smooth character conditioning; retains requested atlas and writes PNG maps",
       "topology_contract": "exact_face_order_geometry_and_UV_with_tolerance_1e-6",
-      "deployment": "run in place from this repository; scripts/run_hy3d21_texture.ps1 -RunnerKind studio verifies this sha256 before launching"
+      "deployment": "run in place from this repository; scripts/run_hy3d21_texture.ps1 -RunnerKind studio verifies this sha256 before launching",
+      "normal_helper": {"path": "texture/hunyuan3d21/seam_normals.py", "sha256": "D6F166BB122DC8F6E0EC47B42644A53C2600FE7AFD3E3F049DFA9AC3BB6AAFDD"}
     },
     {
       "id": "trellis2_existing_mesh_pbr",
