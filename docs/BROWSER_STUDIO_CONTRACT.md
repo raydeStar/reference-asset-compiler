@@ -679,6 +679,46 @@ canonicalize to the same text. Blender permits them and every engine target
 discourages them, so a refusal is honest and identical in both languages,
 where an escaping scheme is one more thing for each side to get wrong.
 
+### 14. A humanoid rig, as a candidate
+
+```
+rac run-stage rig --source <prepared-humanoid.glb> --output <rigged.glb> --report <r.json>
+```
+
+The portable landmark route (`run_rig_candidate.ps1 -Backbone landmark`)
+against `ue5_manny_browser`, followed by the browser payload export, in one
+named stage. It claims `<output-stem>-rig-attempt###` beside the output and
+keeps everything it wrote there: landmarks and their overlays, the native
+`.blend` and FBX, `gate-rig.json`, `deform-report.json`. The caller receives
+the rigged GLB and a `reference-asset-compiler.rig-candidate.v1` receipt.
+
+The receipt carries what a studio needs to decide whether to show the rig to a
+person, and nothing that would let it decide for them:
+
+- `bones`, `triangles`, `maximum_influences`, `weight_coverage`,
+  `geometry_unchanged` (binding may not move a vertex).
+- `gate` and `deformation`, each with `passed` and warnings. The five humanoid
+  poses (`arms_forward`, `left_arm_only`, `elbows_bent`, `knees_bent`,
+  `spine_twist`) with vertices moved, maximum displacement, side bias and the
+  bounding-volume ratio. The ratio is reported, not gated, so joint collapse is
+  still a thing a person looks for.
+- `unweighted_bones`: bones the binder gave no vertices, usually fingers on a
+  mitten-like hand. Reported so a clip that curls them is not a surprise.
+- `landmarks.status` stays `derived_pending_overlay_review`, and `notes` says
+  what was assumed (for example "crotch not detected; Manny proportion used").
+- `evidence_manifest`: `evidence/views.json`, in the same shape `review-views`
+  writes, listing the pose renders (`pass` is the pose, `view` front or side)
+  and the landmark overlays (`pass` is `landmarks`), each with its SHA-256.
+- `production_grade: false` and `requires_deformation_review: true`, always.
+
+It refuses, with the reason after `FAILED:`, when the source is not a
+GLB/glTF/FBX, when the attempt directory would be too deeply nested for Blender
+on Windows, when landmarks cannot be derived, when the gate or the deformation
+suite fails, when binding changes the geometry, or when the export does not
+carry exactly one armature. Auto-Rig Pro, quadrupeds and mascots are not behind
+this stage: each needs a licence or reviewed guides that a one-call stage
+cannot supply.
+
 ### The worked example both repositories assert
 
 Two joints, supplied out of order, with a rotation that is not the identity and

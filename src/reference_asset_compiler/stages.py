@@ -153,6 +153,19 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Collapse a staged mesh to a runtime budget, and measure what that cost.",
         "produces": "reference-asset-compiler.production-retopology-candidate.v1",
     },
+    "rig": {
+        "runner": "powershell",
+        "script": "scripts/run_rig_stage.ps1",
+        "arguments": ("source", "output", "report"),
+        "options": (),
+        "prepare": "rig",
+        "needs": ("blender",),
+        # The portable landmark route against ue5_manny_browser only. Auto-Rig
+        # Pro needs a licence and reviewed hand landmarks, and non-humanoids
+        # need reviewed guides; neither belongs behind a one-call stage.
+        "summary": "Rig a prepared humanoid to the UE5 Manny browser skeleton, gate it, and render its pose suite.",
+        "produces": "reference-asset-compiler.rig-candidate.v1",
+    },
     "remesh": {
         "runner": "powershell",
         "script": "scripts/run_voxel_qem_reduction.ps1",
@@ -395,6 +408,8 @@ def run_stage(
     elif prepare == "reduction":
         context = prepare_reduction(
             Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
+    elif prepare == "rig":
+        context = prepare_rig(Path(source), Path(output), resolve_blender(blender, required=False))
     elif prepare == "remesh":
         context = prepare_remesh(
             Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
@@ -755,6 +770,32 @@ def _attempt(output: Path, label: str) -> Path:
         if not attempt.exists():
             return attempt
     raise StageError("There are already 999 {0} attempts beside {1}".format(label, output))
+
+
+def prepare_rig(source: Path, output: Path, blender: str | None = None) -> dict[str, Any]:
+    """Claim an attempt directory for the humanoid rig route.
+
+    The route keeps everything it wrote -- landmarks, the native .blend, the
+    FBX, the gate and deformation reports -- in its attempt, and the caller is
+    handed the browser GLB and the receipt. The pose suite stays in the
+    attempt's evidence directory, which the receipt names, because a rig is
+    judged by looking at it bend rather than by any number here.
+    """
+    if Path(source).suffix.lower() not in (".glb", ".gltf", ".fbx"):
+        raise StageError("The rig stage takes a GLB, glTF or FBX mesh, not {0}.".format(
+            Path(source).suffix or "a file without an extension"))
+    attempt = _attempt(output, "rig")
+    arguments = ["-InputMesh", str(Path(source).resolve()), "-OutputDirectory", str(attempt)]
+    if blender:
+        arguments += ["-Blender", str(blender)]
+    return {
+        "arguments": arguments,
+        "produced": {
+            "output": attempt / "rigged.glb",
+            "report": attempt / "rig-stage-report.json",
+        },
+        "payload": {"attempt_directory": str(attempt)},
+    }
 
 
 def prepare_remesh(source: Path, output: Path, options: dict[str, Any],

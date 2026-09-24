@@ -3742,3 +3742,32 @@ Full RAC verification: 608 passed, 7 skipped, 169 subtests, lint clean, 183 stag
 files parsed, wheel build and isolated install passed. Framewright code unchanged;
 its full suite was not repeated for this artifact-only update. Live consumer clip
 selection/playback/end-frame inspection and both export paths were checked.
+
+## 2026-09-23 — `rac run-stage rig`: the humanoid landmark route as a named stage
+
+Framewright's M14 needs to rig a prepared humanoid by stage name, the way it
+already prepares and paints. Rigging existed only as `run_rig_candidate.ps1`
+plus loose Blender scripts, ending in FBX and `.blend`. The new `rig` stage
+(`scripts/run_rig_stage.ps1`, registered in `stages.py`) composes what exists:
+the landmark route against `ue5_manny_browser`, then `export_browser_payload.py`
+on the rigged `.blend`, then the pose suite and landmark overlays copied into
+`evidence/` with a `views.json` in the `review-views` shape. The receipt is
+`reference-asset-compiler.rig-candidate.v1`; it is always `production_grade:
+false` and `requires_deformation_review: true`. The contract is section 14 of
+docs/BROWSER_STUDIO_CONTRACT.md.
+
+Run on the generated Framewright ninja (18,000 triangles, source
+8af016cfebd0...): 10.7 s on CPU. The gate passed (86 bones, 4 influences, 0
+unweighted vertices, 100% coverage, geometry unchanged), and all five poses
+passed. 17 finger bones got no weights (index/middle/ring/pinky distal joints
+and the left thumb), and the crotch was not detected, so Manny's proportion was
+used; both are in the receipt. No GPU was used.
+
+A deep attempt path broke the landmark write inside Blender (Windows MAX_PATH).
+The launcher now refuses up front when its deepest file would pass 250
+characters, naming the length.
+
+Tests: tests/test_rig_stage.py (registry, attempt claiming, refusals; a real
+Blender cube refusal; a humanoid end to end when RAC_RIG_HUMANOID is set). The
+suite is 612 passed, 9 skipped. Sabotages caught: dropping the mesh-type
+refusal, and a receipt claiming production grade.
