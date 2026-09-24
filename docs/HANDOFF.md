@@ -3771,3 +3771,12 @@ Tests: tests/test_rig_stage.py (registry, attempt claiming, refusals; a real
 Blender cube refusal; a humanoid end to end when RAC_RIG_HUMANOID is set). The
 suite is 612 passed, 9 skipped. Sabotages caught: dropping the mesh-type
 refusal, and a receipt claiming production grade.
+
+Follow-up, same day: the first live run from Framewright failed at "build
+skeleton and bind". A studio stores models under their 64-character content
+hash, the landmark route names its outputs after its input, and from a normal
+job directory `<hash>_rigged.fbx` passed MAX_PATH. The stage now copies the
+input into its attempt as `source.<ext>` (byte-identical, so the landmark hash
+binding holds) and the receipt still names the original. The regression test
+nests a hash-named humanoid until the old naming cannot fit; the previous
+launcher fails it with the same message the live run gave.

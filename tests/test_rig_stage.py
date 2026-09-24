@@ -126,6 +126,25 @@ class RigStageBlenderTests(unittest.TestCase):
                 self.assertTrue((Path(receipt["evidence_directory"]) / view["file"]).is_file())
                 self.assertEqual(len(view["sha256"]), 64)
 
+    @unittest.skipUnless(HUMANOID, "Set RAC_RIG_HUMANOID to a prepared humanoid GLB")
+    def test_a_studio_file_named_by_its_hash_still_rigs_inside_the_path_limit(self):
+        # A studio stores models under their 64-character content hash, and the
+        # route used to name its outputs after the input: from an ordinary job
+        # directory that put the rigged file past MAX_PATH and binding died.
+        with tempfile.TemporaryDirectory(dir=os.environ.get("RAC_SHORT_TEMP")) as folder:
+            source = Path(folder) / ("a" * 64 + ".glb")
+            source.write_bytes(Path(HUMANOID).read_bytes())
+            job = Path(folder)
+            while len(str(job)) < 150:
+                job = job / "generated-models-job"
+            output = job / "step-2-rig.glb"
+            attempt_base = len(str(output.parent / "step-2-rig-rig-attempt001"))
+            # The old naming would not have fitted; the new one does.
+            self.assertGreaterEqual(attempt_base + len("candidate") + 2 + 64 + len("_rigged.blend1"), 260)
+            result = run_stage("rig", source, output, job / "step-2-rig.json", repo_root=ROOT, blender=BLENDER)
+            self.assertTrue(result["ok"], result.get("error"))
+            self.assertEqual(result["receipt"]["source"], str(source.resolve()))
+
 
 if __name__ == "__main__":
     unittest.main()

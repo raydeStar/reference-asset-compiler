@@ -53,7 +53,11 @@ if ((Test-Path -LiteralPath $outputPath) -and @(Get-ChildItem -LiteralPath $outp
 # Blender's Python on Windows cannot write past MAX_PATH, and the deepest
 # file this route writes sits well below the attempt directory. Refuse up front
 # with the reason, rather than let a landmark write fail inside Blender.
-$deepest = Join-Path $outputPath 'candidate\landmarks\overlay-three-quarter.png'
+$deepest = @(
+    (Join-Path $outputPath 'candidate\landmarks\overlay-three-quarter.png'),
+    (Join-Path $outputPath 'candidate\source_rigged.blend1'),
+    (Join-Path $outputPath 'candidate\deform\deform-left_arm_only-front.png')
+) | Sort-Object Length -Descending | Select-Object -First 1
 if ($deepest.Length -ge 250) {
     Fail "The attempt directory is too deeply nested for Blender on Windows ($($deepest.Length) characters to its deepest file; the limit is 260). Use a shorter output location."
 }
@@ -68,16 +72,21 @@ $payloadReport = Join-Path $outputPath 'browser-payload.json'
 $reportPath = Join-Path $outputPath 'rig-stage-report.json'
 
 # --- 1. Rig and gate --------------------------------------------------------
+# The route names everything it writes after its input's file name, and a
+# studio's stored files are named by their 64-character content hash: that
+# alone pushed the rigged FBX past MAX_PATH. A byte-identical copy under a
+# short name keeps every hash the landmarks bind to, and every name short.
+$stagedInput = Join-Path $outputPath ('source' + [System.IO.Path]::GetExtension($inputPath).ToLowerInvariant())
+Copy-Item -LiteralPath $inputPath -Destination $stagedInput
 $candidateArgs = @{
-    InputMesh = $inputPath; OutputDirectory = $candidateDir; Profile = 'ue5_manny'
+    InputMesh = $stagedInput; OutputDirectory = $candidateDir; Profile = 'ue5_manny'
     ProfileFile = $profileFile; Backbone = 'landmark'; Blender = $blenderPath
 }
 if ($CompilerPython) { $candidateArgs.CompilerPython = $CompilerPython }
 try { & (Join-Path $PSScriptRoot 'run_rig_candidate.ps1') @candidateArgs | ForEach-Object { Write-Output $_ } }
 catch { Fail ("The humanoid could not be rigged: " + $_.Exception.Message) }
 
-$stem = [System.IO.Path]::GetFileNameWithoutExtension($inputPath) -replace '_production$', ''
-$riggedBlend = Join-Path $candidateDir "${stem}_rigged.blend"
+$riggedBlend = Join-Path $candidateDir 'source_rigged.blend'
 foreach ($required in @($riggedBlend, (Join-Path $candidateDir 'gate-rig.json'), (Join-Path $candidateDir 'deform-report.json'), (Join-Path $candidateDir 'rig-candidate.json'))) {
     if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { Fail "The rig route finished without writing $required" }
 }
