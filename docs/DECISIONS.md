@@ -948,10 +948,19 @@ pose contracts. The user's rejection supersedes prior technical success wording.
   normal map is opaque on every texel, reached or not, and the margin makes
   opaque every miss within its width. A white emission pass can, baked
   without a margin. Baked with one, it counts the misses the margin covered as
-  reached: the brazier at 15k read 100% that way, while its rays reached 96.9%
-  (the throne at 40k: 99.98% against 95.7%). The maps are the same either way;
-  only the reading was wrong. `retopo_bake.py` read its coverage from alpha
-  too, and is fixed separately.
+  reached: the brazier at 15k read 100% that way, while its rays reached
+  99.74% (the throne at 40k: 99.98% against 99.96%). The maps are the same
+  either way; only the reading was wrong. `retopo_bake.py` read its coverage
+  from alpha too; see the next entry.
+- Compare masks at one resolution. Islands rasterised at 1024 and checked
+  against a 4096 coverage mask, picked every fourth texel, sample 1.5 texels
+  off their own centres; at island borders that lands in the gutter, which is
+  black without a margin. It read 96.9% and 95.7% for those 99.74% and 99.96%,
+  and was reported as such for a commit before the cause was found.
+- Each map's `texels_filled` counted every texel the coverage mask left
+  unwritten, gutter included: 5,059,706 on the brazier's base colour, which the
+  fill had not touched. It now counts the painted texels the fill actually
+  repaired: 39.
 - Appending one .blend into another renames clashing node groups: "glTF
   Material Output" became "glTF Material Output.001", and the throne's
   occlusion silently stopped being found. Match by the name before the suffix.

@@ -98,6 +98,18 @@ class FillTests(unittest.TestCase):
         self.assertTrue((pixels[:, 4:30, :3] == 0.0).all())
         self.assertTrue((pixels[:, 2:4, :3] > 0.0).all())
 
+    def test_counted_within_the_islands_the_gutter_it_grows_into_is_left_out(self):
+        written = np.zeros((16, 16), dtype=bool)
+        written[:, :4] = True
+        islands = np.zeros((16, 16), dtype=bool)
+        islands[:, :6] = True
+        pixels = sheet(written)
+        # Three rounds reach columns 4-6 and, wrapping, 13-15; only 4 and 5
+        # are island.
+        self.assertEqual(fill_unbaked(pixels, rounds=3, within=islands), 2 * 16)
+        self.assertTrue((pixels[:, 6, :3] > 0.0).all())
+        self.assertTrue((pixels[:, 13, :3] > 0.0).all())
+
     def test_nothing_written_means_nothing_to_grow(self):
         pixels = sheet(np.zeros((8, 8), dtype=bool))
         self.assertEqual(fill_unbaked(pixels), 0)

@@ -110,7 +110,8 @@ def fill_reach(written: np.ndarray, rounds: int = FILL_ROUNDS) -> np.ndarray:
     return known & ~start
 
 
-def fill_unbaked(pixels: np.ndarray, rounds: int = FILL_ROUNDS) -> int:
+def fill_unbaked(pixels: np.ndarray, rounds: int = FILL_ROUNDS,
+                 within: np.ndarray | None = None) -> int:
     """Grow baked colour into texels the bake never wrote.
 
     A texel with no hit keeps the clear value, and black is exactly the colour
@@ -128,7 +129,9 @@ def fill_unbaked(pixels: np.ndarray, rounds: int = FILL_ROUNDS) -> int:
     alpha is not, so the caller has to put a coverage mask there first (see the
     module docstring). Fills in place, leaves alpha at 1, and returns how many
     texels it actually wrote: a texel more than ``rounds`` away from anything
-    written keeps its clear value and is not counted.
+    written keeps its clear value and is not counted. With ``within`` (a mask
+    the size of the image, such as the UV islands) only the texels inside it
+    are counted, so the gutter it also grows into does not inflate the number.
     """
     rgb = pixels[..., :3]
     known = pixels[..., 3] > 0.5
@@ -149,7 +152,10 @@ def fill_unbaked(pixels: np.ndarray, rounds: int = FILL_ROUNDS) -> int:
         known |= grow
     pixels[..., :3] = rgb
     pixels[..., 3] = 1.0
-    return int((known & ~start).sum())
+    wrote = known & ~start
+    if within is not None:
+        wrote &= np.asarray(within, dtype=bool)
+    return int(wrote.sum())
 
 
 def coverage_summary(islands: np.ndarray, reached: np.ndarray, written: np.ndarray,

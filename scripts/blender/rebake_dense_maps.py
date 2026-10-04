@@ -58,8 +58,9 @@ import numpy as np
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+from bake_coverage import coverage_summary, fill_unbaked, rasterize  # noqa: E402
 from rebake_rules import painted_shares, plan_channels, ray_settings, uv_verdict  # noqa: E402
-from retopo_bake import fill_unbaked, sanitise_normal_map  # noqa: E402
+from retopo_bake import sanitise_normal_map  # noqa: E402
 
 GLTF_OUTPUT_GROUPS = ("glTF Material Output", "glTF Settings")
 
@@ -448,46 +449,6 @@ def coverage_overlap(tri_uv, raster=512):
     return (float((counts >= 2).sum()) / covered) if covered else 0.0, covered / float(raster * raster)
 
 
-def rasterize(tri_uv, raster):
-    """How many triangles claim each texel centre (row 0 is the bottom, as in Blender)."""
-    counts = np.zeros((raster, raster), dtype=np.int32)
-    pixels = tri_uv * raster
-    lows = np.floor(pixels.min(axis=1)).astype(np.int64)
-    highs = np.ceil(pixels.max(axis=1)).astype(np.int64)
-    lows = np.clip(lows, 0, raster - 1)
-    highs = np.clip(highs, 0, raster)
-    a, b, c = pixels[:, 0], pixels[:, 1], pixels[:, 2]
-    denominator = (b[:, 1] - c[:, 1]) * (a[:, 0] - c[:, 0]) + (c[:, 0] - b[:, 0]) * (a[:, 1] - c[:, 1])
-    usable = np.abs(denominator) > 1e-12
-    span = np.maximum(highs - lows, 0)
-    # Small triangles in one vectorised sweep; the few large ones one at a time.
-    small = usable & (span[:, 0] <= 4) & (span[:, 1] <= 4)
-    grid = np.stack(np.meshgrid(np.arange(4), np.arange(4), indexing="xy"), axis=-1).reshape(-1, 2)
-
-    def mark(indices, offsets):
-        px = lows[indices, None, 0] + offsets[None, :, 0]
-        py = lows[indices, None, 1] + offsets[None, :, 1]
-        cx, cy = px + 0.5, py + 0.5
-        aa, bb, cc, dd = a[indices], b[indices], c[indices], denominator[indices]
-        w1 = ((bb[:, None, 1] - cc[:, None, 1]) * (cx - cc[:, None, 0])
-              + (cc[:, None, 0] - bb[:, None, 0]) * (cy - cc[:, None, 1])) / dd[:, None]
-        w2 = ((cc[:, None, 1] - aa[:, None, 1]) * (cx - cc[:, None, 0])
-              + (aa[:, None, 0] - cc[:, None, 0]) * (cy - cc[:, None, 1])) / dd[:, None]
-        w3 = 1.0 - w1 - w2
-        inside = (w1 > 1e-6) & (w2 > 1e-6) & (w3 > 1e-6) & (px < raster) & (py < raster)
-        np.add.at(counts, (py[inside], px[inside]), 1)
-
-    indices = np.flatnonzero(small)
-    for start in range(0, len(indices), 20000):
-        mark(indices[start:start + 20000], grid)
-    for index in np.flatnonzero(usable & ~small):
-        width, height = int(span[index, 0]) + 1, int(span[index, 1]) + 1
-        offsets = np.stack(np.meshgrid(np.arange(width), np.arange(height), indexing="xy"),
-                           axis=-1).reshape(-1, 2)
-        mark(np.array([index]), offsets)
-    return counts
-
-
 def uv_health(obj, face_mask, uv_name) -> dict:
     tri_uv, tri_co = triangles_of(obj, face_mask, uv_name)
     if len(tri_uv) == 0:
@@ -613,7 +574,7 @@ def resample_mask(mask, size):
     return mask[np.ix_(rows, cols)]
 
 
-def settle(image, pixels, written, normal=False) -> dict:
+def settle(image, pixels, written, islands, normal=False) -> dict:
     """Fill what the bake never wrote, flatten implausible normals, write back.
 
     A bake's alpha cannot say which texels it wrote: a normal map comes back
@@ -621,10 +582,13 @@ def settle(image, pixels, written, normal=False) -> dict:
     ``written`` comes from a separate pass that baked plain white with the same
     margin: anything still black there was neither reached nor covered by the
     margin, and is grown over from its neighbours rather than shipped as black.
+    Only the painted ``islands`` are counted; the fill grows into the gutter
+    too, and those texels are nobody's surface.
     """
-    pixels[..., 3] = resample_mask(written, pixels.shape[0]).astype(np.float32)
+    size = pixels.shape[0]
+    pixels[..., 3] = resample_mask(written, size).astype(np.float32)
     share = float(pixels[..., 3].mean())
-    filled = fill_unbaked(pixels)
+    filled = fill_unbaked(pixels, within=resample_mask(islands, size))
     repaired = sanitise_normal_map(pixels) if normal else 0
     image.pixels.foreach_set(pixels.reshape(-1))
     image.update()
@@ -936,17 +900,21 @@ def main() -> int:
         seconds += spent
     written = masks["written"]
     # Reached is only meaningful inside the painted islands; the rest of the
-    # sheet is gutter, which the margin and the fill take care of.
+    # sheet is gutter, which the margin and the fill take care of. The islands
+    # are rasterised at the masks' own size, so every count below is in the
+    # largest map's texels; triangles reaching off the sheet are clipped by
+    # the rasteriser rather than squashed onto its border.
+    started_islands = time.monotonic()
     tri_uv, _ = triangles_of(low, painted, uv_name)
-    island_size = min(coverage_size, 1024)
-    islands = rasterize(np.clip(tri_uv, 0.0, 1.0), island_size) > 0
-    shares = painted_shares(islands, resample_mask(masks["reached"], island_size),
-                            resample_mask(written, island_size))
+    islands = rasterize(tri_uv, coverage_size) > 0
+    shares = painted_shares(islands, masks["reached"], written)
     bakes["coverage"] = {"resolution": coverage_size, "margin_px": margin,
                          "seconds": round(seconds, 1),
+                         "island_seconds": round(time.monotonic() - started_islands, 1),
                          "sheet_reached_share": round(float(masks["reached"].mean()), 4),
                          "sheet_written_share": round(float(written.mean()), 4),
-                         **shares}
+                         **shares,
+                         **coverage_summary(islands, masks["reached"], written)}
     print("[REBAKE] coverage passes at {0} in {1:.1f}s: rays reached {2} of the painted "
           "surface, {3} with the margin".format(
               coverage_size, seconds,
@@ -961,7 +929,7 @@ def main() -> int:
     seconds = bake_into(normal_image, low, dense, "NORMAL", target_materials, low_kept, rays,
                         max(1, args.samples), margin)
     bakes["normal"] = {"resolution": args.normal_resolution, "seconds": round(seconds, 1),
-                       **settle(normal_image, pixels_of(normal_image), written, normal=True)}
+                       **settle(normal_image, pixels_of(normal_image), written, islands, normal=True)}
     images["normal"] = normal_image
     print("[REBAKE] baked normal at {0} in {1:.1f}s".format(args.normal_resolution, seconds),
           flush=True)
@@ -969,7 +937,7 @@ def main() -> int:
     for channel, size, colour in jobs:
         image, seconds = emit_bake(channel, size, colour)
         bakes[channel] = {"resolution": size, "seconds": round(seconds, 1),
-                          **settle(image, pixels_of(image), written)}
+                          **settle(image, pixels_of(image), written, islands)}
         images[channel] = image
         print("[REBAKE] baked {0} at {1} in {2:.1f}s".format(channel, size, seconds), flush=True)
 

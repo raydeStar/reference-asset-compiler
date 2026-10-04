@@ -166,12 +166,14 @@ A bake's alpha cannot say which texels its rays reached -- a normal map comes
 back opaque everywhere, and the margin makes opaque every miss within its
 width -- so a separate pass bakes plain white, twice. Without a margin,
 whatever is still black was never reached (`painted_surface_reached_share`:
-96.9% for the brazier at 15k, 95.7% for the throne at 40k). With the maps'
+99.74% for the brazier at 15k, 99.96% for the throne at 40k). With the maps'
 16-texel margin it is what the maps will have written
-(`painted_surface_written_share`: 100% and 99.98%); the margin gave the misses
+(`painted_surface_written_share`: 100% for both); the margin gave the misses
 within its width a neighbour's colour, and whatever is still black after it is
-filled from its neighbours too. Read only the first as coverage: the second
-called the brazier fully reached.
+filled from its neighbours too. The painted islands are rasterised at the
+masks' own size, and `bakes.coverage` puts every missed texel in one bucket:
+the brazier's 18,805 were 18,766 margin, 39 filled, none left unbaked. Each
+map's `texels_filled` counts only painted texels, at that map's size.
 
 **The appearance gate.** Surface deviation cannot see paint, so the candidate
 is judged by eye. `scripts/blender/render_appearance_views.py` renders the
