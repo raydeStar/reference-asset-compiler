@@ -3780,3 +3780,205 @@ input into its attempt as `source.<ext>` (byte-identical, so the landmark hash
 binding holds) and the receipt still names the original. The regression test
 nests a hash-named humanoid until the old naming cannot fit; the previous
 launcher fails it with the same message the live run gave.
+
+## 2026-10-03 — Aether Wars full realistic asset commission, active
+
+User commissioned all 18 required environment/effects/audio categories for
+Framewright review before later individual approval and game import. Work is
+under ignored `work/aether-wars-2026-10-03/`; no game imports or human approvals.
+64 source-conditioned mesh masters acquired; ritual circle follows the brief's
+decal alternative after its thin reconstruction failed the manifold gate.
+P0 currently has 47 finished review models, including a regenerated seamed
+plinth (the flat original is retained/rejected), photoreal tintable quartz,
+true-size chains, measured stair rail, torch/brazier mounts and lantern glass.
+P1/P2 painting and finishing are still active; do not report the full commission
+complete. Read live JSON progress receipts and STATUS for continuation.
+
+Native Niagara PackV3 contains nine effects in a separate UE 5.8 staging
+project. Their Framewright videos are actual native captures, not intended to
+be converted to particles later. SurfaceV1 adds 13 decal materials, aether tint
+instances and reusable crystal/heartbeat pulse functions. Seven original DSP
+WAV loops are imported; format and level checks pass, listening remains pending.
+User explicitly freed the GPU and asks to inspect only when the full collection
+is complete. Inference remains single-job; fixed-view review now uses Cycles CPU
+to avoid VRAM pressure from concurrent EEVEE/browser previews.
+
+Continuation at 20:07 local: Mark rejected the chain-winch segmentation preview
+(melted chain drum) and explicitly moved its repair to the end. The finite paint
+queue now excludes `deferred-repairs.json` entries. The already-running elbow
+paint was allowed to finish; only the two queue coordinators were restarted.
+`resume_paint_after_defer.py` continues remaining P1 then P2 sequentially, with
+the winch skipped. Never import that rejected preview as a finished candidate.
+
+Banner kit-v3 uses corrected orthographic crown/crystal art and separate AI
+tattered cloth art; alpha MASK avoids blended-cloth grain. Both door assemblies
+have one OpenClose clip containing both hinge channels (Blender 5.2 SCENE export
+alone still split them). Temple assembly final is kit-v3-animation, crypt kit-v1.
+P0 native-final-v1 Blender sources match all 47 chosen GLBs. Pipe elbow and tee
+kit-v2-connected use measured 400 mm flange sections and port-centre pivots;
+the original axis-by-axis dimensions made those flanges elliptical.
+
+Watch `paint-p1-progress.json`, `paint-p2-progress.json`, simple/assembly/specialty
+finish progress, and `progress.json`. Helpers never grant human approval.
+Some Hunyuan workers retain a single stalled thread after complete validated
+artifacts; `cleanup_completed_painters.py` only terminates this commission's
+matching worker after output/CPU stability checks, recording forced cleanup.
+The first manual ceiling-fissure cleanup returned code zero; its companion
+operator-cleanup receipt explicitly overrides any clean-exit interpretation.
+
+PackV4 was saved with larger, brighter dust; native captures remain pending GPU
+availability. V4 authoring hit an AssetTools shutdown assertion after all saved
+receipts. Reopen/capture before declaring it verified. Surface decal captures
+and a final curated bundle/audit are still outstanding. Current count is not
+the final target: 121 models, 13 decals, 9 effects, 7 audio loops.
+
+20:48 continuation: crown source geometry was intact but its native long axis
+was Y. Sizing X as length caused the apparent missing bite. Do not use any
+unimported crown kit-v1/v3/v4/v5 finishes. Final crown is kit-v7-grain, based on
+kit-v6-oriented (-90 degrees about Z before sizing), preserving the whole
+acquired mesh. The abandoned six-block repair is not a selected asset. The
+same source-axis audit caught abyss-bridge; its inventory now requests +90 Z
+before sizing. Banner depth is intentionally restored to 18 cm in its finish.
+
+Five other trims use kit-v3-grain. The v2 bake attempts failed because socket
+empties were selected; corrected v3 deselects everything before selecting the
+mesh, while preserving sockets in export. Gauge final is kit-v2-dial, with a
+new AI orthographic enamel face replacing garbled painter numerals. Condenser
+final is kit-v3-surface: real recessed glass/quartz chamber plus rear geometry,
+albedo, roughness and metallic cleanup. Framewright glass rendering still needs
+an interactive check after painting. Import/model audit currently passes 87
+models before the last trim imports; read live counts rather than this snapshot.
+
+Current GPU coordinator: resume_paint_after_defer.py, then paint_batch.py 1/2.
+P2 now orders each chest body immediately before its lid for earlier hinge
+inspection. Simple/assembly finish watchers remain active; trim/specialty
+watchers have mostly completed. package_delivery.py and package_effects_v4.py
+are prepared but not run. delivery_ledger.py verifies exact current bytes and
+the 18-category/150-item count before the package can be made. Native V4 and
+SurfaceV1 all reopened successfully; native-dependency-manifest.json records
+their project closure, and the null-RHI reopen process exited cleanly.
+
+21:04 continuation: 94 current model candidates imported and audited, plus 29
+media/texture items = 123 of the intended 150. Carpet final kit-v2-source-art
+restores the original AI woven heraldry after the painter produced plain brown.
+It uses +90 X orientation, CPU-baked UV albedo/normal and a high-angle actual-mesh
+poster. Framewright ID 23463880-5909-45a0-8243-81d44cf7e7fb.
+
+The old P2 coordinator had loaded its order before the paired-lid update. Only
+that coordinator PID34356 was terminated; the active relic CLI PID25588 was
+allowed to complete unchanged. resume_paired_p2.py waits for that exact child
+and a valid receipt, then resumes paint_batch.py 2 with the current lid order.
+No inference was interrupted or retried. Common and royal body paint renders
+show realistic open interiors and preserved fittings. Chest fit review awaits
+painted lids. The winch remains explicitly deferred and unimported.
+
+21:35 continuation: 104 models are imported (94 earlier plus nine chest parts/
+assemblies and the weapon rack). Chest final revisions: common kit-v4-review,
+royal kit-v3-review, relic kit-v2-review. Measured rim/underside fitting replaces
+incorrect bounding-box lid seating. Royal hidden underside was blank; new AI
+materials/oak-interior-v1 completes it and replaces the common lid's patchy wood
+while preserving acquired metal straps. Native sources keep full-resolution
+textures. Assembled review GLBs use Blender JPEG quality 95 at original image
+resolution: Framewright caps GLB at 64 MiB and embedded textures at 48 MiB.
+Original oversized assemblies are retained, unimported. 103 models passed the
+last audit before the rack import. Rack final kit-v2-sockets has five sockets
+measured at actual top-notch floors (the generic three sockets were wrong).
+
+Urn kit-v1 has a shallow cavity and solid lower body; despite volume conservation
+its broken wedges were visually wrong and were never imported. kit-v2-hollow
+extends an internal cavity from the acquired radial outer profile (18 mm nominal
+walls); its eight manifold pieces conserve volume within 1.4e-8 relative error.
+kit-v3-settled is being generated to settle those hollow shards by Blender rigid
+body physics on a temporary, unexported floor. Review it before import; native
+Unreal Chaos is still post-approval. All existing urn revisions remain retained.
+
+Coin pile kit-v1 is operator-rejected (fused soft coins, lost heraldry), unimported.
+operator-repairs.json records it separately from Mark's winch deferral. A new
+single rigid coin reference, references/coin-single-v1.png, is ready. After the
+current P2 painter finishes, acquire/paint that single coin and build the pile
+from rigid acquired instances before repairing the winch LAST. Do not interrupt
+the current paint queue. The new single coin is source material, not an extra
+review item; the target remains 121 models / 150 total.
+
+Active paint coordinator is resume_paired_p2.py (session60444), which resumed
+paint_batch.py 2 after relic CLI25588 exited with a valid receipt. At 21:35 the
+book lectern is painting; ten of the original nineteen P2 masters are painted.
+Simple finisher remains active; assembly watcher has finished its original jobs.
+GPU stays reserved for painting. Native V4/decal/core captures and Framewright
+interactive glass/animation checks still await GPU availability.
+
+21:56 continuation: 115 models now in Framewright. New final selections: urn
+kit-v3-settled (all three states, eight closed hollow fragments; rest-pose volume
+audit passes); grab-ledge three heights and handhold kit-v2-grain; climbing-vines
+kit-v2-matte (no metallic bark); parkour-beam kit-v1; relic-pedestal and book-
+lectern kit-v2-mount (ray-measured receiving surface sockets and normals).
+Last full model audit was 113/113 clean before the vines and beam imports.
+
+Original P2 paint queue has 15/19 done, with swing-ring then the three abyss
+ruins pending. Simple finisher is still active. Session96514 runs
+acquire_coin_after_p2.py, waiting for all 19 original paint records, then acquires
+coin-single geometry ONLY. Do not overlap GPU native captures with that queued
+acquisition. Afterwards clean_coin_source.py is prepared (12k triangle QEM gate,
+UV and CPU review) but NOT RUN; inspect coin geometry before paint. The coin
+source is not in inventory and is not an extra review item. Use its source-spec
+with commission.texture after UV verification. Rebuild the pile from rigid
+instances, then complete native effects checks, then repair the winch LAST.
+
+Native preview stages now use distinct map names for Niagara, decals and core
+materials to avoid reusing a stale review level. All native capture scripts are
+still UNRUN. File-path preflight confirms the actual hero GLB exists for the
+core-material proof. package_delivery.py now also packages SourceMaterials and
+its prompt records. Full bundle and final review completion remain outstanding.
+
+
+2026-10-03 22:40 continuation: 119 models / 148 review items now current.
+All original P2 paint jobs finished. Ring, three abyss ruins imported after CPU
+views. Condenser kit-v4-browser resolves invisible nested transmissive quartz;
+packed native preserves its physical material. Actual Framewright common chest
+and temple door OpenClose, banner alpha, condenser and V4 flame playback checked.
+Nine V4 Niagara MP4s imported; nine V3 videos archived (video revision stacks
+are unsupported). All 13 SurfaceV1 decal captures inspected using surface-
+previews-v3: roll 90 and (10,height*50,width*50) projection dimensions. Both
+native core pulses have measurable temporal variation; 144 frames and receipts
+complete, but core capture process returned -1073741819 after closing its log.
+That limitation is recorded in effects/native-final-review.json.
+Coin-single new acquired source is cleaned/UVed/painted successfully and its
+actual paint render inspected. finish_coin_pile.py is currently settling 120
+rigid copies on CPU (session77513). Then render/import it, resolve its operator
+repair, and ONLY THEN start the user-rejected winch repair. Cleanup helper
+session98841 --linger still runs; stop it once all painting is complete.
+Last full current model audit: 119/119 pass. Package script not yet run.
+
+
+22:54 continuation: coin-pile kit-v2-coins is imported (74a41d8e-4d97-450b-
+a49b-9a1ef465e89f), all fixed views and actual Framewright 3D checked. 149/150.
+Winch repair started only afterwards. New builtin reference winch-mechanism-v1
+conditions new geometry; source-spec and reference_manifest under that source
+asset. clean_winch_source.py passed 100k QEM deviation gates, UV and all fixed
+views. Painting session40317 wrote validated output at 22:53, worker cleanup
+pending. finish_winch_repaired.py --geometry-preview passed assembly review:
+three measured bearing-interface parts plus 61 rigid acquired chain links.
+Final script without that flag will export chain-winch/kit-v3-repaired after
+canonical paint output exists. Uses uniform 1.8m height (~3m wide) to preserve
+mechanical circles rather than squeezing it into the earlier approximate box.
+Render, inspect and import final model, resolve deferred repair, run audits and
+package, stop cleanup helper98841, and verify GPU free before final handoff.
+
+
+2026-10-04 final handoff after workstation shutdown: all 150 review items were
+retained. Restarted Framewright Studio.exe --no-browser hidden, opened its local
+browser library, and freshly audited 121/121 current models plus all 18 family
+counts. Winch final is kit-v4-worn (968e5657-d6bc-4659-8d21-69714a7e92b8), NOT the
+shinier kit-v3-repaired; final fixed views passed Oct 3 and actual Framewright
+viewer passed Oct 4. Its 61 chain links are rigid acquired copies. Coin final is
+kit-v2-coins. Both repair records resolved with human approval still false.
+
+package_delivery.py completed delivery/AetherWars-Review-v1. verify_delivery.py
+read back 728 selected files, 6,704,354,969 bytes, zero missing/hash failures;
+exact selection is 121 models / 13 decals / 9 effect previews / 7 audio.
+evidence/delivery-completion.json records selection and bundle manifest hashes.
+The progress/coverage tools now recognize completed creation without promoting
+human or production gates. Owned cleanup helper stopped Oct 3; no inference
+jobs remain after restart. No game-project import, commit or push performed.
+Next step is Mark's individual asset review, then only approved assets move to
+the Unreal project. Optional characters were not part of this environment batch.

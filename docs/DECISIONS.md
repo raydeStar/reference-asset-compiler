@@ -852,3 +852,62 @@ rejects the original clip and passes the arms-down replacement, but deliberately
 keeps visual review required and human approval false. Read CHARACTER_ANIMATION.md
 before future clip work. Do not generalize the humanoid stance to cats or other
 pose contracts. The user's rejection supersedes prior technical success wording.
+
+## 2026-10-03 — Aether asset and native-effect evidence lessons
+
+- A flat plinth cannot be repaired by sandstone colour alone. The replacement
+  conditions new geometry on a visibly seamed reference, then uses feature QEM
+  and a bounded micrograin multiply that retains the painted masonry joints.
+- Check QEM `status` and `failures`, not only an optional `ok` field. The coin
+  pile inherited one 4e-11 m2 degenerate fin: removing that diagnosed face and
+  its loose vertex closed the surface without changing visible coin geometry.
+- Very thin floor/carpet assets need a useful paint-space height before UV
+  transport. Apply requested world dimensions and carpet rotation after paint.
+- Niagara Initialize Particle can overwrite direct spawn colour/size values.
+  Native captures exposed white motes and heartbeat despite successful saves.
+  PackV3 sets size in Initialize and colour/velocity through dedicated modules.
+- Full-editor Python is required for Cascade-to-Niagara conversion; the headless
+  commandlet lacks required Slate state. Native capture scripts need
+  `set_keep_python_script_alive(True)`, post-tick callbacks and a reentry guard.
+  Capture calls can reenter Slate while actors are being spawned.
+- A transmission material assigned to coarse pane faces produces jagged frame
+  boundaries. Lantern v4 bakes a UV transmission mask from acquired pale glass
+  paint within measured pane regions; iron framing retains its painted finish.
+- Keep GPU preview rendering out of paint runs. The same paint job slowed with
+  browser/EEVEE VRAM competition. CPU Cycles review uses twelve samples, OIDN on
+  CPU and eight threads while single-GPU inference continues.
+- Original synthesized WAV loops are valid audio deliverables, but numeric
+  checks and successful playback do not establish listening quality. This
+  session cannot hear returned audio; auditory review must stay explicit.
+
+### 2026-10-03: acquisition axes and material-pattern checks
+
+- Inspect source axes before applying independent dimension factors. The crown
+  moulding source ran along Y; scaling it as X made an intact cove resemble a
+  huge missing bite. Rotating the acquired mesh before sizing preserves it.
+  The same audit corrected the abyss bridge's finish orientation.
+- A successful texture receipt does not prove source pattern fidelity. The
+  carpet atlas lost its red/gold heraldry; direct source-art projection and CPU
+  UV baking restored it without regenerating the cloth geometry.
+- Blender engine enum availability is not evidence of the active renderer.
+  CPU review wrappers explicitly select CYCLES and log the selected device.
+- Framewright custom posters must be below 512 KiB. Render an actual-model
+  512-pixel poster when larger review PNGs exceed that limit.
+
+
+## 2026-10-03 — final Aether review corrections
+
+- Framewright supports revision families for Image/Model, but rejects Video
+  revisions with HTTP 400. Import the new native preview and archive the old
+  take through the ordinary recoverable API; retain original media evidence.
+- Nested glTF transmission made the condenser's enclosed quartz invisible in
+  the browser. kit-v4-browser disables transmission only on that enclosed core
+  in the GLB; the packed native Blend retains physical crystal transmission.
+- Native wall decal captures need roll 90 with projection half sizes ordered
+  (depth, height, width). Review light intensity 200 overexposed the texture;
+  V3 uses 5 and preserves all earlier captures as evidence.
+- Generated dense coin piles can fuse coins into soft geometry. The repaired
+  pile uses one newly acquired/painted coin and 120 rigid settled copies; source
+  coin stays construction evidence rather than inflating the review count.
+- Native core-material capture saved every frame/receipt, then UE crashed on
+  shutdown. Separate valid artifact evidence from a clean-process-exit claim.

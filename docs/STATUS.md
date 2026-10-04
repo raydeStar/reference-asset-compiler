@@ -2,7 +2,7 @@
 
 *Type: reference*
 
-Last updated: 2026-09-22. This file holds the current state only and is
+Last updated: 2026-10-04. This file holds the current state only and is
 rewritten in place. History is in [HANDOFF.md](HANDOFF.md) (append-only,
 dated); failures and retained lessons are in [DECISIONS.md](DECISIONS.md);
 scoped open work is in [AGENT_TASKS.md](AGENT_TASKS.md). The stage names below
@@ -12,6 +12,49 @@ Every `work/`, `out/` and `output/` path here is on the development workstation
 and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
+
+## Aether Wars realistic commission (creation complete; awaiting Mark review)
+
+All 150 environment review items are created and staged in Framewright: 121
+models/parts/variants, 13 decals, nine native Niagara systems with video previews,
+and seven original DSP audio loops. Covers all 18 required categories; optional
+boss/enemy characters are outside this environment batch. Every human approval
+remains pending. No assets were imported into the game project.
+
+Workspace: `work/aether-wars-2026-10-03/`. Framewright is running at
+`http://127.0.0.1:5179/`, active project **The Aether Wars — Realistic Asset Review**
+(`bff69ad8-3084-4321-aebc-95a73e0971e1`). Source references appear alongside final
+items and are excluded from the 150 count. Old V3 effect videos are archived.
+
+Final bundle: `work/aether-wars-2026-10-03/delivery/AetherWars-Review-v1/`.
+Contains self-contained review GLBs, 121 packed editable Blender files, masks,
+metadata, native UE dependency closure, final media, references/prompts and proof.
+On 2026-10-04, all 121 current model audits passed; all 18 category counts passed;
+728 packaged files (6,704,354,969 bytes) passed read-back hash verification.
+`evidence/delivery-completion.json` binds this receipt to the exact current
+Framewright selection and bundle manifest. `DELIVERY-VERIFIED.json` accompanies
+it. GPU inference and the owned cleanup helper are stopped; no generation queue
+remains. Framewright was restarted and the selection rechecked after shutdown.
+
+Final repairs: coin-pile `kit-v2-coins` uses 120 rigid copies of one acquired
+heraldic coin. Chain-winch `kit-v4-worn` was rebuilt LAST, after the other items:
+new acquired empty-drum mechanism, three separate mechanical parts, 61 rigid
+acquired chain links. Its actual Framewright model was checked after restart.
+Condenser `kit-v4-browser` makes enclosed quartz visible in the browser while
+its native Blend retains physical transmission. Seamed plinth, throne/canopy,
+27 quartz variants and the remaining kits retain their final selections in
+`evidence/delivery-ledger.json`; use those paths rather than older revisions.
+
+Native effects are `/Game/AetherReview/PackV4`; decals and pulse functions are
+`/Game/AetherReview/SurfaceV1` in the isolated AetherEffects project. Nine effects,
+13 decal projections, and both time-varying core functions were visually checked.
+Core capture wrote all frames/receipts but UE crashed on shutdown; this is
+recorded honestly in `effects/native-final-review.json`. Framewright chest/door
+animation, condenser glass, banner alpha, coin/winch models and media playback
+were checked. Audio decode/format/levels/loop boundaries pass; listening remains
+Mark's review. Gameplay collision, Chaos, doors/loot/climbing wiring, final
+quartz shader integration, game-project import, play tests and cooking await
+individual approvals and the later port. No production-ready flag is set.
 
 ## Moonlit tavern scene candidates (browser, outside the UE cohort)
 
