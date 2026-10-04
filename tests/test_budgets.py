@@ -66,6 +66,25 @@ class ClassificationTests(unittest.TestCase):
         # names do, so they may not make something cheaper.
         self.assertEqual(brazier["role"], "prop")
 
+    def test_notes_promote_only_through_unambiguous_words(self):
+        # A door frame's notes say its leaves are separate: door leaves, not foliage.
+        frame = decide("temple-frame", (1.4, 9.98, 12.05), notes="Measured clear opening 6 x 10 m. Independent leaves.")
+        vines = decide("wall-cover", (0.9, 0.16, 4.0), notes="hanging ivy for the crypt wall")
+
+        self.assertEqual(frame["role"], "prop")
+        self.assertEqual(vines["role"], "vegetation")
+
+    def test_notes_only_make_big_things_heroes(self):
+        # Notes mention neighbours: a brazier beside the throne, or a lamp lighting a statue, is still a prop...
+        brazier = decide("standing-brazier", (0.8, 0.8, 2.5), notes="flanks the throne on the dais")
+        lamp = decide("floor-lamp", (0.5, 0.5, 1.2), notes="lights the king's statue")
+        # ...while a 4.5 m toppled head is the set piece its notes say it is.
+        head = decide("abyss-head", (3.6, 4.1, 4.5), notes="toppled giant statue head")
+
+        self.assertEqual(brazier["role"], "prop")
+        self.assertEqual(lamp["role"], "prop")
+        self.assertEqual(head["role"], "hero")
+
     def test_a_given_role_wins(self):
         self.assertEqual(classify("Floor brazier", role="hero")[0], "hero")
 

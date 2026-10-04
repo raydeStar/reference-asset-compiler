@@ -79,9 +79,14 @@ def classify(name: str, notes: str = "", role: str | None = None,
     """The role an asset plays, and a sentence saying why.
 
     An explicit role wins. Otherwise the name decides; notes may only promote
-    to the roles the table lets them (never down to something cheaper). A role
-    that requires a shape -- kit pieces must be long and thin -- is skipped,
-    with the reason recorded, when the real dimensions say otherwise.
+    to the roles the table lets them (never down to something cheaper), and
+    only through that role's notes_keywords: notes describe neighbours and
+    parts ("independent leaves" of a door), so a role's broader name keywords
+    would misfire there. A role with notes_min_size is reached from notes only
+    when the asset is at least that big (a brazier "beside the throne" is not a
+    hero piece). A role that requires a shape -- kit pieces must be long and
+    thin -- is skipped, with the reason recorded, when the real dimensions say
+    otherwise.
     """
     policy = policy or load_policy()[0]
     roles = policy["roles"]
@@ -94,12 +99,19 @@ def classify(name: str, notes: str = "", role: str | None = None,
         return wanted, "its role was given as {0}".format(wanted)
     promotable = set(policy.get("notes_may_promote_to", []))
     elongation = _elongation(dims_m)
+    size_order = [entry["id"] for entry in policy["size_classes"]]
+    size = size_class(max(dims_m), policy) if dims_m else None
     skipped: list[str] = []
     for source, words in (("name", tokens(name)), ("notes", tokens(notes))):
         for entry in roles:
-            if source == "notes" and entry["id"] not in promotable:
-                continue
-            for keyword in entry.get("keywords", []):
+            if source == "notes":
+                if entry["id"] not in promotable:
+                    continue
+                at_least = entry.get("notes_min_size")
+                if at_least and size and size_order.index(size) < size_order.index(at_least):
+                    continue
+            keywords = entry.get("notes_keywords", []) if source == "notes" else entry.get("keywords", [])
+            for keyword in keywords:
                 if keyword not in words:
                     continue
                 needed = entry.get("require_elongation")

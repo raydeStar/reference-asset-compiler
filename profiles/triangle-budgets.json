@@ -13,18 +13,22 @@
       "id": "character",
       "description": "Anything that will be rigged and animated. Characters take the rig route, whose skeleton profile carries its own budget.",
       "keywords": ["character", "creature", "npc", "humanoid", "mascot", "biped", "quadruped", "monster"],
+      "notes_keywords": ["creature", "humanoid", "npc", "biped", "quadruped", "monster"],
       "budgets": null
     },
     {
       "id": "hero",
       "description": "A set piece the player stops and looks at: thrones, statues, shrines, the centrepiece of a room.",
       "keywords": ["hero", "throne", "statue", "guardian", "colossus", "colossal", "monument", "idol", "altar", "shrine", "sarcophagus", "effigy", "bust", "landmark", "centrepiece", "centerpiece"],
+      "notes_keywords": ["statue", "colossus", "colossal", "monument", "idol", "effigy", "shrine"],
+      "notes_min_size": "large",
       "budgets": {"tiny": 8000, "small": 15000, "medium": 25000, "large": 40000, "huge": 60000}
     },
     {
       "id": "vegetation",
       "description": "Plants, vines and roots: many thin parts, so a little more than a prop of the same size.",
       "keywords": ["vine", "vines", "ivy", "plant", "moss", "bush", "shrub", "tree", "root", "roots", "fern", "grass", "foliage", "flower", "leaf", "leaves", "hedge"],
+      "notes_keywords": ["vine", "vines", "ivy", "moss", "foliage", "fern", "shrub", "hedge", "bush"],
       "budgets": {"tiny": 3000, "small": 8000, "medium": 14000, "large": 20000, "huge": 30000}
     },
     {
@@ -43,6 +47,7 @@
     }
   ],
   "notes_may_promote_to": ["character", "hero", "vegetation"],
+  "notes_rule": "Notes mention neighbours and parts ('stands on a plinth', a door's 'independent leaves'), so they promote only through a role's notes_keywords, never its broader name keywords, and only to a role with notes_min_size when the asset is at least that big.",
   "notes_comment": "A name decides first. Notes may only raise a role (a 'toppled giant statue head' is a hero piece); they never make something cheaper, because notes mention neighbouring things ('stands on a plinth') far more often than names do.",
   "deviation": {
     "comment": "The reduction must stay this close to the reviewed surface, scaled to the object so a colossus is not held to a coin's tolerance.",

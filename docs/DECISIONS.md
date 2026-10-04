@@ -928,3 +928,16 @@ pose contracts. The user's rejection supersedes prior technical success wording.
   5k-17k kept its silhouette (p99 3-9 mm) and still lost its crisp bands and
   rivets at every rung; transferring the dense normals did not fix it, because
   the damage is UV drift, not shading. Budget before paint, or re-bake.
+
+## 2026-10-04 — notes promote only through unambiguous words, and heroes only when big
+
+- Keyword promotion from notes misfired: the temple door frame's notes say
+  "Independent leaves", and "leaves" is a vegetation keyword, so a frame was
+  budgeted as huge vegetation (30k) instead of a huge prop (20k). Found by the
+  re-bake session.
+- Notes describe neighbours and parts, not what the asset is. Roles now carry
+  `notes_keywords` (no leaf, leaves, root, tree for vegetation; no throne for
+  hero, since a throne names itself) and the hero role a `notes_min_size` of
+  large, so a brazier "beside the throne" or a lamp "lighting the statue" stays
+  a prop while a 4.5 m "toppled statue head" is still a hero piece. Names
+  classify as before.
