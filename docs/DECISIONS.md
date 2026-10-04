@@ -928,3 +928,29 @@ pose contracts. The user's rejection supersedes prior technical success wording.
   5k-17k kept its silhouette (p99 3-9 mm) and still lost its crisp bands and
   rivets at every rung; transferring the dense normals did not fix it, because
   the damage is UV drift, not shading. Budget before paint, or re-bake.
+
+## 2026-10-04 — paint that slid is baked back, and judged by eye
+
+- Re-baking from the dense original undoes the smear. The floor brazier
+  re-baked at 15k and 16.8k triangles scores 0.95-0.96 lit and 0.97-0.98 unlit
+  SSIM (worst of four views) against the delivered GLB; the same reductions
+  without a re-bake score at most 0.80 and 0.93. Surface deviation could not
+  tell the two apart; the fixed views can. `rebake-maps` is the stage.
+- On the brazier the eye and the surface gates agree: 15k is the lowest rung
+  both accept, and 11.2k passes neither. Below that, what fails the views is the
+  geometry (a kinked strap, a faceted rim), not the bake.
+- A scripted bake cannot rely on switching a material's active output: in
+  Blender 5.2 `is_active_output` stayed on the original output, the bake read
+  the untouched BSDF of an unlit scene, and every map came back black while
+  the run reported success. Rewire the active output's Surface socket instead,
+  and restore it afterwards.
+- `bake(use_clear=True)` leaves alpha at 1 on every texel, reached or not, so
+  alpha cannot measure bake coverage. A white emission pass can.
+  `retopo_bake.py` reads coverage from alpha, so its coverage has always
+  reported 100% and its hole fill never ran (follow-up task filed).
+- Appending one .blend into another renames clashing node groups: "glTF
+  Material Output" became "glTF Material Output.001", and the throne's
+  occlusion silently stopped being found. Match by the name before the suffix.
+- `review-views` renders with EEVEE, which needs the GPU. Cycles on the CPU with
+  a fixed seed is deterministic: the dense .blend and the delivered GLB of the
+  same prop rendered identically (SSIM 1.000), which is the gate's noise floor.

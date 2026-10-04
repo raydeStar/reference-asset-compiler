@@ -32,6 +32,7 @@ from .geometry_stage import (
 from .glass_colours import GlassColourError, named_colours, resolve_colour
 from .material_recipes import MaterialRecipeError, named_recipes, named_tones, parse_assignment
 from .human_scale import HumanScaleError, named_sizes, resolve_height
+from .rebake import MESH_SUFFIXES, RebakeError, check_binding, read_reduction
 from .resources import checkout_root
 
 BLENDER_ENVIRONMENT = "RAC_BLENDER"
@@ -152,6 +153,23 @@ STAGES: dict[str, dict[str, Any]] = {
         "needs": ("blender",),
         "summary": "Collapse a staged mesh to a runtime budget, and measure what that cost.",
         "produces": "reference-asset-compiler.production-retopology-candidate.v1",
+    },
+    "rebake-maps": {
+        "runner": "python",
+        "script": "scripts/rebake_maps.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("dense", "reduction_report", "appearance_reference", "reference_views",
+                    "uv_layout", "normal_resolution", "samples", "resolution", "threads",
+                    "no_climb"),
+        "prepare": "rebake-maps",
+        "needs": ("blender",),
+        # Chained after reduce-mesh on anything painted before it was reduced.
+        # The reduction moved the UVs with the collapse and the paint slid; this
+        # bakes it back from the dense original, then judges the result by its
+        # fixed views, because surface deviation cannot see paint. CPU only.
+        "summary": "Re-bake a reduced painted mesh's maps from its dense original, and hold it "
+                   "to the original's fixed views, climbing the budget ladder if it fails.",
+        "produces": "reference-asset-compiler.rebake-maps.v1",
     },
     "rig": {
         "runner": "powershell",
@@ -409,6 +427,9 @@ def run_stage(
     elif prepare == "reduction":
         context = prepare_reduction(
             Path(source), Path(output), options or {}, resolve_blender(blender, required=False))
+    elif prepare == "rebake-maps":
+        context = prepare_rebake_maps(Path(source), Path(output), options or {},
+                                      resolve_blender(blender))
     elif prepare == "rig":
         context = prepare_rig(Path(source), Path(output), resolve_blender(blender, required=False))
     elif prepare == "remesh":
@@ -759,6 +780,75 @@ def prepare_reduction(source: Path, output: Path, options: dict[str, Any],
         },
         "payload": {"attempt_directory": str(attempt)},
     }
+
+
+def prepare_rebake_maps(source: Path, output: Path, options: dict[str, Any],
+                        blender: str) -> dict[str, Any]:
+    """Refuse a re-bake that pairs the wrong files, before anything is baked.
+
+    A bake between two meshes that are not the same object transfers paint
+    without any error at all, so the pairing is proved here when it can be: a
+    reduction receipt names both files by hash, and a dense mesh or candidate
+    that does not match is refused in the caller's own terms.
+    """
+    for path, role in ((Path(source), "reduced candidate"),):
+        if path.suffix.lower() not in MESH_SUFFIXES:
+            raise StageError("The {0} must be .blend, .glb or .gltf, not {1}.".format(
+                role, path.suffix or "a file without an extension"))
+    dense = options.get("dense")
+    if not dense:
+        raise StageError(
+            "Re-baking needs the dense, painted original the reduction was made from: "
+            "pass --dense.")
+    dense = Path(dense).resolve()
+    if not dense.is_file():
+        raise StageError("The dense original does not exist: {0}".format(dense))
+    if dense.suffix.lower() not in MESH_SUFFIXES:
+        raise StageError("The dense original must be .blend, .glb or .gltf, not {0}.".format(
+            dense.suffix or "a file without an extension"))
+    if dense == Path(source).resolve():
+        raise StageError("The dense original and the reduced candidate are the same file.")
+
+    payload: dict[str, Any] = {"dense": str(dense)}
+    arguments = ["--dense", str(dense), "--blender", str(blender)]
+    if options.get("reduction_report") is not None:
+        report = Path(options["reduction_report"]).resolve()
+        try:
+            binding = check_binding(read_reduction(report), dense, Path(source))
+        except RebakeError as problem:
+            raise StageError(str(problem)) from problem
+        payload["reduction_binding"] = binding
+        arguments += ["--reduction-report", str(report)]
+    if options.get("appearance_reference") is not None:
+        reference = Path(options["appearance_reference"]).resolve()
+        if not reference.is_file():
+            raise StageError("The appearance reference does not exist: {0}".format(reference))
+        arguments += ["--appearance-reference", str(reference)]
+    if options.get("reference_views") is not None:
+        views = Path(options["reference_views"]).resolve()
+        if not (views / "views.json").is_file():
+            raise StageError("{0} holds no views.json to reuse.".format(views))
+        arguments += ["--reference-views", str(views)]
+    layout = options.get("uv_layout")
+    if layout is not None:
+        if layout not in ("auto", "keep", "fresh"):
+            raise StageError("The UV layout is auto, keep or fresh, not {0!r}.".format(layout))
+        arguments += ["--uv-layout", str(layout)]
+    threads = options.get("threads")
+    if threads is not None:
+        if not 1 <= int(threads) <= 64:
+            raise StageError("Threads run from 1 to 64.")
+        arguments += ["--threads", str(int(threads))]
+    for flag, name in (("--normal-resolution", "normal_resolution"), ("--samples", "samples"),
+                       ("--resolution", "resolution")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    if options.get("no_climb"):
+        arguments.append("--no-climb")
+    attempt = _attempt(output, "rebake")
+    arguments += ["--attempt-directory", str(attempt)]
+    payload["attempt_directory"] = str(attempt)
+    return {"arguments": arguments, "payload": payload}
 
 
 def _attempt(output: Path, label: str) -> Path:

@@ -127,6 +127,114 @@ reduced from 120k to 5k, 7.5k, 11k and 17k triangles kept its silhouette within
 4-9 mm and still lost its crisp iron bands at every rung). A painted asset
 reduced afterwards needs its maps re-baked from the dense original.
 
+## Re-baking a reduced painted prop
+
+The damage reduction does to a painted mesh is UV drift: the collapse moves
+vertices and interpolates their UVs, so the paint slides off the bands and
+rivets it was painted on. Transferring the dense normals does nothing for it.
+`rebake-maps` puts the paint back, chained after `reduce-mesh`:
+
+```powershell
+rac run-stage reduce-mesh --source painted.blend --output reduced.glb --report reduction.json --runtime-derivative
+rac run-stage rebake-maps --source reduced.glb --dense painted.blend --reduction-report reduction.json `
+    --appearance-reference delivered.glb --output runtime.glb --report rebake.json
+```
+
+**What is baked.** Each texel of the reduced mesh looks a few millimetres along
+its normal for the dense surface and takes what was painted there: base colour
+(with alpha, and the source's cutoff when it was a cutout), roughness and
+metallic packed the way glTF reads them, occlusion, transmission and emission
+when the source used them, and a tangent-space normal map that carries the
+dense surface's relief -- its geometry and any normal map it already had. Map
+sizes follow the source's (a 4096 atlas stays 4096; the normal map is 2048).
+The new material keeps the old one's name and constants. Only the painted atlas
+is re-baked: a flat material, a texture on another UV layer (the chest lids'
+oak interior) or a tiling texture cannot smear, and is kept as it was.
+
+**Which UVs.** The reduction's own, unless it damaged them: overlaps, flipped
+or 4x-stretched triangles or UVs off the sheet, each measured *against the
+source's own atlas* so a crowded layout is not blamed on the reduction
+(`scripts/blender/rebake_rules.py` has the tolerances). Past them, the painted
+faces are unwrapped afresh and baked onto that. The brazier at 15k and 16.8k
+kept its UVs; at 5k and 7.5k collapse had stretched 3% of the surface and it
+was unwrapped.
+
+**Short rays.** Twice the 99th-percentile gap the stage measures between the
+two surfaces, at least 1.5 mm, at most 1% of the object's diagonal (see *Bake
+rays must be short* below). The few texels further apart than that miss.
+A bake writes opaque texels whether or not its ray hit anything, so alpha
+cannot say which were reached: a separate pass bakes plain white first, and
+whatever is still black there is filled from its neighbours and counted
+(`painted_surface_reached_share`, 99.95-100% on the brazier).
+
+**The appearance gate.** Surface deviation cannot see paint, so the candidate
+is judged by eye. `scripts/blender/render_appearance_views.py` renders the
+reference and the candidate in the four fixed views, through the *reference's*
+cameras (framing a candidate by its own bounds would measure the millimetres
+its silhouette moved instead of the paint), in two passes: lit, and unlit base
+colour, where lighting can neither hide a smear nor invent one.
+`reference_asset_compiler.appearance` compares them with SSIM over the asset
+only -- over the whole frame, the grey background makes a ruined prop look 99%
+alike -- and every view must pass, never their average.
+
+| Floor brazier, worst of four views | lit SSIM | unlit SSIM |
+|---|---|---|
+| dense `.blend` vs the delivered GLB | 1.000 | 1.000 |
+| reduced without a re-bake, any rung 5k-16.8k | <= 0.80 | <= 0.933 |
+| re-baked 16.8k (indistinguishable) | 0.956 | 0.977 |
+| re-baked 15k (where the surface gates settled too) | 0.952 | 0.974 |
+| re-baked 11.2k (soft bowl shading) | 0.935 | 0.965 |
+| re-baked 7.5k (faceted rim) | 0.912 | 0.947 |
+| re-baked 5k (a strap kinked and cracked) | 0.872 | 0.918 |
+| **gate** | **>= 0.94** | **>= 0.96** |
+
+No smear passes, and a re-bake passes only where nobody could tell it from the
+original; the silhouettes must also overlap by 97%. The first row is the noise
+floor: renders are deterministic (Cycles, fixed seed), so the two files the
+commission delivered for the same asset score exactly 1.
+
+A view's mean can average one bad spot away, so the worst 16 px patch lying
+mostly on the asset is held to a floor too (>= 0.35 lit, >= 0.45 unlit).
+Silhouette edges keep it well below 1 for a faithful re-bake -- 0.455 lit and
+0.567 unlit at worst across nine accepted pilot props -- while the brazier's
+7.5k and 5k rungs fall to 0.21 and -0.03. It still cannot see everything: a
+crystal shard passed with one small dark fleck in its lit side view (not in
+its unlit paint, so seen through the transparent crystal), which is why every
+judged rung also leaves `comparison-beauty.png` beside its verdict -- original
+above, candidate below, four views -- and a person decides what is kept.
+
+**The ladder.** The reduction receipt binds both files by hash, so a dense mesh
+or candidate that is not the measured pair is refused before anything bakes. It
+also carries the ladder: when a candidate fails, the next rung is reduced with
+the same gates, role and mode, re-baked and judged again, until one passes or
+the ladder runs out -- then the receipt says to keep the source rather than
+ship a smear. Every rung tried stays in the attempt directory.
+
+**Then** the accepted GLB's PNGs are re-encoded losslessly by
+`compress-textures` (`--format png --colour-size 0 --data-size 0`): Blender
+writes them lightly compressed, and the same pixels came out 16-33% smaller
+across the pilot (28% overall). Map resolution is unchanged, so a re-baked prop
+weighs about what the original did, minus most of its geometry: nine pilot
+props went from 232 MB delivered to 187 MB.
+
+**A whole library.** `scripts/rebake_library.py --items items.json --out DIR`
+runs both stages over a list of props (`name`, `dense`, and optionally
+`reference`, `notes`, `role`, `work`), two at a time by default, recording each
+as it finishes so a stopped run resumes, and writes `summary.json` and a
+Markdown table of what was kept, saved and refused.
+
+Everything runs on the CPU: Cycles with `device = CPU`, no compute device, the
+denoiser off the GPU, and a fixed thread count (`--threads`, default 8), all
+printed and kept in the receipt (`reference-asset-compiler.rebake-maps.v1`).
+`review-views` renders with EEVEE, which needs the GPU, so the gate does not use
+it -- it reuses its cameras, lights and display transform instead.
+
+Two traps cost a run each. Blender does not reliably let a script move which
+material output is active, so a bake wired through a second output read the
+untouched BSDF of an unlit scene and came back black everywhere, while
+reporting success; the stage rewires the existing output instead. And the
+bake's alpha (above).
+
 ## Tri budget waivers
 
 An asset over its profile budget fails the gate unless the recipe records a
