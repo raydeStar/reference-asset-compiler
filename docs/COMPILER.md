@@ -162,10 +162,16 @@ was unwrapped.
 **Short rays.** Twice the 99th-percentile gap the stage measures between the
 two surfaces, at least 1.5 mm, at most 1% of the object's diagonal (see *Bake
 rays must be short* below). The few texels further apart than that miss.
-A bake writes opaque texels whether or not its ray hit anything, so alpha
-cannot say which were reached: a separate pass bakes plain white first, and
-whatever is still black there is filled from its neighbours and counted
-(`painted_surface_reached_share`, 99.95-100% on the brazier).
+A bake's alpha cannot say which texels its rays reached -- a normal map comes
+back opaque everywhere, and the margin makes opaque every miss within its
+width -- so a separate pass bakes plain white, twice. Without a margin,
+whatever is still black was never reached (`painted_surface_reached_share`:
+96.9% for the brazier at 15k, 95.7% for the throne at 40k). With the maps'
+16-texel margin it is what the maps will have written
+(`painted_surface_written_share`: 100% and 99.98%); the margin gave the misses
+within its width a neighbour's colour, and whatever is still black after it is
+filled from its neighbours too. Read only the first as coverage: the second
+called the brazier fully reached.
 
 **The appearance gate.** Surface deviation cannot see paint, so the candidate
 is judged by eye. `scripts/blender/render_appearance_views.py` renders the

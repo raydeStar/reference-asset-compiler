@@ -944,10 +944,14 @@ pose contracts. The user's rejection supersedes prior technical success wording.
   the untouched BSDF of an unlit scene, and every map came back black while
   the run reported success. Rewire the active output's Surface socket instead,
   and restore it afterwards.
-- `bake(use_clear=True)` leaves alpha at 1 on every texel, reached or not, so
-  alpha cannot measure bake coverage. A white emission pass can.
-  `retopo_bake.py` reads coverage from alpha, so its coverage has always
-  reported 100% and its hole fill never ran (follow-up task filed).
+- A bake's alpha cannot measure its coverage: after `bake(use_clear=True)` a
+  normal map is opaque on every texel, reached or not, and the margin makes
+  opaque every miss within its width. A white emission pass can, baked
+  without a margin. Baked with one, it counts the misses the margin covered as
+  reached: the brazier at 15k read 100% that way, while its rays reached 96.9%
+  (the throne at 40k: 99.98% against 95.7%). The maps are the same either way;
+  only the reading was wrong. `retopo_bake.py` read its coverage from alpha
+  too, and is fixed separately.
 - Appending one .blend into another renames clashing node groups: "glTF
   Material Output" became "glTF Material Output.001", and the throne's
   occlusion silently stopped being found. Match by the name before the suffix.

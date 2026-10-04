@@ -13,6 +13,8 @@ from __future__ import annotations
 import json
 from typing import Any
 
+import numpy as np
+
 # How much worse than the source's own atlas a reduction may leave its UVs
 # before they stop being baked onto. Measured against the source, so a layout
 # that was always a little crowded is not blamed on the reduction.
@@ -99,3 +101,26 @@ def plan_channels(materials: list[dict[str, dict[str, Any]]]) -> dict[str, dict[
         # baked as it ends up and blended.
         plan["alpha"]["cutoff"] = cutoffs.pop() if len(cutoffs) == 1 else None
     return plan
+
+
+def painted_shares(islands: np.ndarray, reached: np.ndarray,
+                   written: np.ndarray) -> dict[str, float | None]:
+    """How much of the painted surface the rays reached, and how much the bake wrote.
+
+    All three masks are one size: ``islands`` are the painted faces' texels,
+    ``reached`` comes from a white coverage pass baked without a margin, and
+    ``written`` from one baked with the maps' margin. Only ``reached`` says how
+    much of the surface a ray found: the margin also fills the misses within its
+    width, from their neighbours, so a margin-baked mask calls them reached.
+    Neither share exists when the painted faces cover no texel.
+    """
+    islands = np.asarray(islands, dtype=bool)
+    reached = np.asarray(reached, dtype=bool)
+    written = np.asarray(written, dtype=bool)
+    if not (islands.shape == reached.shape == written.shape):
+        raise ValueError("The island, reached and written masks must be the same size, not "
+                         "{0}, {1} and {2}".format(islands.shape, reached.shape, written.shape))
+    if not islands.any():
+        return {"painted_surface_reached_share": None, "painted_surface_written_share": None}
+    return {"painted_surface_reached_share": round(float(reached[islands].mean()), 4),
+            "painted_surface_written_share": round(float(written[islands].mean()), 4)}

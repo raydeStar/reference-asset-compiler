@@ -58,7 +58,7 @@ import numpy as np
 from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from rebake_rules import plan_channels, ray_settings, uv_verdict  # noqa: E402
+from rebake_rules import painted_shares, plan_channels, ray_settings, uv_verdict  # noqa: E402
 from retopo_bake import fill_unbaked, sanitise_normal_map  # noqa: E402
 
 GLTF_OUTPUT_GROUPS = ("glTF Material Output", "glTF Settings")
@@ -613,21 +613,22 @@ def resample_mask(mask, size):
     return mask[np.ix_(rows, cols)]
 
 
-def settle(image, pixels, hit, normal=False) -> dict:
-    """Fill what rays never reached, flatten implausible normals, write back.
+def settle(image, pixels, written, normal=False) -> dict:
+    """Fill what the bake never wrote, flatten implausible normals, write back.
 
-    A bake writes opaque texels whether or not its ray found anything, so
-    alpha cannot say which were reached. ``hit`` comes from a separate pass
-    that baked plain white: anything still black there was never reached, and
-    is grown over from its neighbours rather than shipped as black.
+    A bake's alpha cannot say which texels it wrote: a normal map comes back
+    opaque everywhere, and the margin makes opaque the misses it reaches.
+    ``written`` comes from a separate pass that baked plain white with the same
+    margin: anything still black there was neither reached nor covered by the
+    margin, and is grown over from its neighbours rather than shipped as black.
     """
-    pixels[..., 3] = resample_mask(hit, pixels.shape[0]).astype(np.float32)
-    reached = float(pixels[..., 3].mean())
+    pixels[..., 3] = resample_mask(written, pixels.shape[0]).astype(np.float32)
+    share = float(pixels[..., 3].mean())
     filled = fill_unbaked(pixels)
     repaired = sanitise_normal_map(pixels) if normal else 0
     image.pixels.foreach_set(pixels.reshape(-1))
     image.update()
-    return {"reached_share": round(reached, 4), "texels_filled": int(filled),
+    return {"written_share": round(share, 4), "texels_filled": int(filled),
             "normal_texels_flattened": int(repaired)}
 
 
@@ -907,35 +908,51 @@ def main() -> int:
         if principled(material) is not None]
     bsdf_sockets = {material.name: principled(material).outputs[0] for material in dense_all}
 
-    def emit_bake(channel, size, colour):
+    def emit_bake(channel, size, colour, bake_margin=margin):
         for material in dense_all:
             emit_graph(material, channel)
         image = new_image("T_{0}_{1}".format(label, "".join(
             part.title() for part in channel.split("_"))), size, colour=colour)
         try:
             seconds = bake_into(image, low, dense, "EMIT", target_materials, low_kept, rays, 1,
-                                margin)
+                                bake_margin)
         finally:
             for material in dense_all:
                 restore_surface(material, bsdf_sockets[material.name])
         return image, seconds
 
-    # Which texels a ray actually reached, at the largest size any map uses.
+    # Which texels a ray actually reached, at the largest size any map uses,
+    # baked twice. Without a margin it is what the rays reached. With the maps'
+    # margin it is what every map will have written -- the margin also covers
+    # the misses within its width -- and the rest is what the fill repairs. A
+    # mask baked with the margin alone counts those covered misses as reached.
     coverage_size = max([size for _, size, _ in jobs] + [args.normal_resolution])
-    mask_image, seconds = emit_bake("mask", coverage_size, colour=False)
-    hit = pixels_of(mask_image)[..., 0] > 0.5
-    bpy.data.images.remove(mask_image)
+    masks, seconds = {}, 0.0
+    for name, bake_margin in (("reached", 0), ("written", margin)):
+        mask_image, spent = emit_bake("mask", coverage_size, colour=False,
+                                      bake_margin=bake_margin)
+        masks[name] = pixels_of(mask_image)[..., 0] > 0.5
+        bpy.data.images.remove(mask_image)
+        seconds += spent
+    written = masks["written"]
     # Reached is only meaningful inside the painted islands; the rest of the
     # sheet is gutter, which the margin and the fill take care of.
     tri_uv, _ = triangles_of(low, painted, uv_name)
     island_size = min(coverage_size, 1024)
     islands = rasterize(np.clip(tri_uv, 0.0, 1.0), island_size) > 0
-    reached = float(resample_mask(hit, island_size)[islands].mean()) if islands.any() else 0.0
-    bakes["coverage"] = {"resolution": coverage_size, "seconds": round(seconds, 1),
-                         "sheet_reached_share": round(float(hit.mean()), 4),
-                         "painted_surface_reached_share": round(reached, 4)}
-    print("[REBAKE] coverage pass at {0} in {1:.1f}s: {2:.2%} of the painted surface reached"
-          .format(coverage_size, seconds, reached), flush=True)
+    shares = painted_shares(islands, resample_mask(masks["reached"], island_size),
+                            resample_mask(written, island_size))
+    bakes["coverage"] = {"resolution": coverage_size, "margin_px": margin,
+                         "seconds": round(seconds, 1),
+                         "sheet_reached_share": round(float(masks["reached"].mean()), 4),
+                         "sheet_written_share": round(float(written.mean()), 4),
+                         **shares}
+    print("[REBAKE] coverage passes at {0} in {1:.1f}s: rays reached {2} of the painted "
+          "surface, {3} with the margin".format(
+              coverage_size, seconds,
+              *("{0:.2%}".format(value) if value is not None else "none"
+                for value in (shares["painted_surface_reached_share"],
+                              shares["painted_surface_written_share"]))), flush=True)
 
     # Normal before the colour channels, with every dense material exactly as
     # authored: the normal pass reads their normal maps and bump as well as
@@ -944,7 +961,7 @@ def main() -> int:
     seconds = bake_into(normal_image, low, dense, "NORMAL", target_materials, low_kept, rays,
                         max(1, args.samples), margin)
     bakes["normal"] = {"resolution": args.normal_resolution, "seconds": round(seconds, 1),
-                       **settle(normal_image, pixels_of(normal_image), hit, normal=True)}
+                       **settle(normal_image, pixels_of(normal_image), written, normal=True)}
     images["normal"] = normal_image
     print("[REBAKE] baked normal at {0} in {1:.1f}s".format(args.normal_resolution, seconds),
           flush=True)
@@ -952,7 +969,7 @@ def main() -> int:
     for channel, size, colour in jobs:
         image, seconds = emit_bake(channel, size, colour)
         bakes[channel] = {"resolution": size, "seconds": round(seconds, 1),
-                          **settle(image, pixels_of(image), hit)}
+                          **settle(image, pixels_of(image), written)}
         images[channel] = image
         print("[REBAKE] baked {0} at {1} in {2:.1f}s".format(channel, size, seconds), flush=True)
 

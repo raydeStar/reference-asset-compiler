@@ -29,7 +29,13 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 sys.path.insert(0, str(ROOT / "scripts" / "blender"))
 
-from rebake_rules import UV_TOLERANCE, plan_channels, ray_settings, uv_verdict  # noqa: E402
+from rebake_rules import (  # noqa: E402
+    UV_TOLERANCE,
+    painted_shares,
+    plan_channels,
+    ray_settings,
+    uv_verdict,
+)
 from reference_asset_compiler import appearance  # noqa: E402
 from reference_asset_compiler.appearance import (  # noqa: E402
     AppearanceError,
@@ -316,6 +322,40 @@ class Rays(unittest.TestCase):
             ray_settings(-0.001, 1.0)
         with self.assertRaises(ValueError):
             ray_settings(0.001, 0.0)
+
+
+class Coverage(unittest.TestCase):
+    def setUp(self):
+        self.islands = np.zeros((20, 20), dtype=bool)
+        self.islands[2:18, 2:18] = True            # 256 painted texels
+        self.reached = self.islands.copy()
+        self.reached[5:9, 5:9] = False             # 16 the rays missed
+        self.written = self.reached.copy()
+        self.written[5:9, 5] = True                # 4 the margin then covered
+
+    def test_misses_the_margin_covered_are_written_not_reached(self):
+        shares = painted_shares(self.islands, self.reached, self.written)
+
+        self.assertEqual(shares["painted_surface_reached_share"], round(240 / 256, 4))
+        self.assertEqual(shares["painted_surface_written_share"], round(244 / 256, 4))
+
+    def test_the_gutter_does_not_count_either_way(self):
+        reached = self.reached | ~self.islands
+        shares = painted_shares(self.islands, reached, np.ones((20, 20), dtype=bool))
+
+        self.assertEqual(shares["painted_surface_reached_share"], round(240 / 256, 4))
+        self.assertEqual(shares["painted_surface_written_share"], 1.0)
+
+    def test_no_painted_texel_means_no_share_rather_than_zero(self):
+        empty = np.zeros((4, 4), dtype=bool)
+
+        self.assertEqual(painted_shares(empty, empty, empty),
+                         {"painted_surface_reached_share": None,
+                          "painted_surface_written_share": None})
+
+    def test_masks_of_different_sizes_are_refused(self):
+        with self.assertRaises(ValueError):
+            painted_shares(self.islands, self.reached, np.ones((10, 10), dtype=bool))
 
 
 class UvTrust(unittest.TestCase):
