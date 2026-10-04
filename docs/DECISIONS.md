@@ -958,3 +958,40 @@ pose contracts. The user's rejection supersedes prior technical success wording.
 - `review-views` renders with EEVEE, which needs the GPU. Cycles on the CPU with
   a fixed seed is deterministic: the dense .blend and the delivered GLB of the
   same prop rendered identically (SSIM 1.000), which is the gate's noise floor.
+## 2026-10-04 — a bake's alpha does not say which texels its rays reached
+
+- `retopo_bake.py` reported bake coverage as the share of the whole sheet with
+  alpha above 0.5, and let the same alpha decide what `fill_unbaked` repaired.
+  Measured on Blender 5.2.2 (CPU Cycles, `use_clear=True`, margin 24
+  `ADJACENT_FACES`): a NORMAL bake returns alpha 1 on every texel, reached or
+  not. On EMIT and AO bakes a missed texel keeps alpha 0 only until the margin
+  gets to it: the margin writes alpha 1 and a neighbour's colour into every
+  missed texel within its width. Outside the islands, alpha changed between
+  two identical bakes (100% vs 90.5% of the gutter opaque). The opaque
+  `generated_color` fill plays no part: `use_clear` overwrites it.
+- So the receipt overstated reach, and the fill ran only where alpha happened
+  to be 0. A holed sphere baked onto a prebuilt light mesh reported 93.7%
+  (Normal 100%, nothing filled) while its rays reached 52% of the island
+  texels, and 9.6% of the island texels shipped black. Most of those misses
+  were not the holes but the default 3 mm extrusion falling short of the
+  ~5 mm gap at the light mesh's quad centres -- a failure the old receipt
+  could never have shown.
+- Coverage now comes from two white-emission bakes through a view-layer
+  material override, which also covers faces with no material and leaves the
+  materials untouched: margin 0 gives what the rays reached, the passes' own
+  margin gives what the passes will write. Island texels come from rasterising
+  the light mesh's UVs (`scripts/blender/bake_coverage.py`); that agrees with
+  Blender's own island texels to 0.03%. `bake_coverage_pct` is now the reached
+  share of the islands, `texels_filled` the island texels the fill repaired,
+  and `bake_coverage` puts every missed texel in exactly one bucket: written by
+  the margin, filled, or left unbaked. On the same sphere: 52.35% reached, and
+  15,144 texels left unbaked, which is exactly the number of black island texels
+  in the delivered maps (half what shipped before). Both passes took 0.8 s at
+  1024.
+- Measure reach without a margin. A coverage mask baked with one counts the
+  misses the margin covered as reached; use that mask only to decide what to
+  fill.
+- `bake_coverage_pct` in reports written before this change is an alpha
+  reading, not a measurement (the office-chair canary's 100.0, the 99.78% in
+  `DEFECTS-CLOSEUP-REVIEW.md`). `build_production.py` now takes reach only
+  from a report that carries `bake_coverage`.

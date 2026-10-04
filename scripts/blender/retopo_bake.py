@@ -32,6 +32,7 @@ from __future__ import annotations
 import json
 import math
 import sys
+import time
 from pathlib import Path
 
 import bmesh
@@ -41,6 +42,11 @@ from collections import Counter, defaultdict
 from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 from mathutils.kdtree import KDTree
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+# fill_unbaked lives with the coverage rules now; it is still imported from
+# here by stages that predate the move.
+from bake_coverage import coverage_summary, fill_unbaked, rasterize  # noqa: E402
 
 
 def arg(argv, name, default, cast=str):
@@ -230,44 +236,18 @@ def sanitise_normal_map(pixels):
     return int(bad.sum())
 
 
-def fill_unbaked(pixels, rounds=12):
-    """Grow baked colour into texels the rays never reached.
-
-    A texel with no hit keeps the clear value, which is transparent black, and
-    black is exactly the colour that reads as damage. They cluster along island
-    edges and -- once the mesh is cut into body regions and stitched back --
-    along every region seam, which is why the per-region male arrived speckled
-    with dark blotches across an otherwise correct jacket.
-
-    Blender's bake margin already dilates, but only outward from an island into
-    its gutter; it does nothing for a hole INSIDE one. This grows the nearest
-    written colour into anything still unwritten, which also gives mip-mapping
-    something better than black to average with.
-
-    Takes and returns HxWx4 float32 with alpha as the written mask.
-    """
-    rgb = pixels[..., :3]
-    known = pixels[..., 3] > 0.5
-    filled = int((~known).sum())
-    for _ in range(rounds):
-        if known.all():
-            break
-        total = np.zeros_like(rgb)
-        count = np.zeros(known.shape, dtype=np.float32)
-        for dy, dx in ((-1, 0), (1, 0), (0, -1), (0, 1),
-                       (-1, -1), (-1, 1), (1, -1), (1, 1)):
-            shifted_rgb = np.roll(np.roll(rgb, dy, axis=0), dx, axis=1)
-            shifted_known = np.roll(np.roll(known, dy, axis=0), dx, axis=1)
-            total += shifted_rgb * shifted_known[..., None]
-            count += shifted_known
-        grow = (~known) & (count > 0)
-        if not grow.any():
-            break
-        rgb[grow] = total[grow] / count[grow][..., None]
-        known |= grow
-    pixels[..., :3] = rgb
-    pixels[..., 3] = 1.0
-    return filled
+def uv_triangles(obj):
+    """The active UV layer's triangles, (count, 3, 2): the layout a bake writes through."""
+    mesh = obj.data
+    layer = mesh.uv_layers.active
+    if layer is None:
+        return np.empty((0, 3, 2), dtype=np.float64)
+    mesh.calc_loop_triangles()
+    loops = np.empty(len(mesh.loop_triangles) * 3, dtype=np.int64)
+    mesh.loop_triangles.foreach_get("loops", loops)
+    uv = np.empty(len(mesh.loops) * 2, dtype=np.float64)
+    layer.data.foreach_get("uv", uv)
+    return uv.reshape(-1, 2)[loops.reshape(-1, 3)]
 
 
 def remesh_outcome(obj):
@@ -2293,14 +2273,10 @@ def main() -> int:
     if resolved:
         passes.insert(0, ("BaseColor", "EMIT", (0.0, 0.0, 0.0, 1.0), False))
 
-    for name, bake_type, fill, non_color in passes:
-        if name in {"BaseColor", "Roughness", "Metallic"}:
-            configure_source_emission(name)
-        image = bpy.data.images.new(
-            "BK_" + name, resolution, resolution, alpha=True)
-        image.generated_color = fill
-        if non_color:
-            image.colorspace_settings.name = "Non-Color"
+    margin = scene.render.bake.margin
+
+    def target_nodes(image):
+        """Make ``image`` the node every bake tree writes into."""
         nodes = []
         for tree in bake_trees:
             node = tree.nodes.new("ShaderNodeTexImage")
@@ -2318,30 +2294,125 @@ def main() -> int:
             node.select = True
             tree.nodes.active = node
             nodes.append((tree, node))
+        return nodes
 
+    def select_for_bake():
         bpy.ops.object.select_all(action="DESELECT")
         scene.render.bake.use_selected_to_active = report.get("reduced", True)
         if report.get("reduced", True):
             high.select_set(True)
         low.select_set(True)
         bpy.context.view_layer.objects.active = low
+
+    # --- coverage -------------------------------------------------------------
+    # Which texels the rays reached. A texel they miss keeps the clear value,
+    # and for BaseColor and AO that is black -- how ninja-man shipped a head
+    # that looked destroyed. The image's alpha cannot say which: on Blender
+    # 5.2.2 a normal map comes back opaque everywhere, the margin makes the
+    # missed texels it reaches opaque too, and the gutter's alpha changed
+    # between two identical bakes. So the coverage this stage reported came
+    # out near 100% whatever its rays did (see bake_coverage and
+    # docs/DECISIONS.md).
+    #
+    # What does say is the same bake with every source surface emitting plain
+    # white: black there was never reached. A view-layer override makes them
+    # white without touching a material, and also covers faces that have none;
+    # the bake still writes through the low mesh's own image nodes. Baked once
+    # without a margin it is what the rays reached, and once with the passes'
+    # margin it is everything the passes will write -- the rest is what the
+    # fill repairs. One set of rays serves every pass, so one measurement does.
+    coverage_material = bpy.data.materials.new("RAC_BakeCoverage")
+    coverage_material.use_nodes = True
+    coverage_tree = coverage_material.node_tree
+    coverage_tree.nodes.clear()
+    coverage_emit = coverage_tree.nodes.new("ShaderNodeEmission")
+    coverage_emit.inputs["Color"].default_value = (1.0, 1.0, 1.0, 1.0)
+    coverage_emit.inputs["Strength"].default_value = 1.0
+    coverage_out = coverage_tree.nodes.new("ShaderNodeOutputMaterial")
+    coverage_tree.links.new(coverage_emit.outputs["Emission"],
+                            coverage_out.inputs["Surface"])
+
+    def coverage_mask(pass_margin):
+        image = bpy.data.images.new("BK_Coverage", resolution, resolution, alpha=True)
+        image.colorspace_settings.name = "Non-Color"
+        nodes = target_nodes(image)
+        view_layer = bpy.context.view_layer
+        view_layer.material_override = coverage_material
+        # A constant emission needs one sample.
+        scene.cycles.samples = 1
         try:
-            bpy.ops.object.bake(type=bake_type, use_clear=True, margin=24)
+            select_for_bake()
+            bpy.ops.object.bake(type="EMIT", use_clear=True, margin=pass_margin)
+            pixels = np.array(image.pixels[:], dtype=np.float32).reshape(
+                resolution, resolution, 4)
+            return pixels[..., 0] > 0.5
+        finally:
+            view_layer.material_override = None
+            scene.cycles.samples = samples
+            for tree, node in nodes:
+                tree.nodes.remove(node)
+            bpy.data.images.remove(image)
+
+    started = time.monotonic()
+    failure = None
+    try:
+        reached = coverage_mask(0)
+        written = coverage_mask(margin)
+    except RuntimeError as error:
+        failure = "the bake coverage pass failed: {0}".format(error)
+    else:
+        islands = rasterize(uv_triangles(low), resolution) > 0
+        summary = coverage_summary(islands, reached, written)
+        if summary["reached_pct"] is None:
+            failure = ("the low mesh's UV layout covers no texel of the {0} sheet, "
+                       "so there is nothing to bake".format(resolution))
+    if failure:
+        report["ok"] = False
+        report["failure"] = failure
+        report_path.parent.mkdir(parents=True, exist_ok=True)
+        report_path.write_text(json.dumps(report, indent=2), encoding="utf-8")
+        print("[RETOPO] FAILED: {0}".format(report["failure"]))
+        return 1
+    report["bake_coverage"] = {
+        "measured_by": "white emission bakes: margin 0 for reached, margin {0} for "
+                       "written; islands rasterised from the low mesh's UVs".format(margin),
+        "resolution": resolution,
+        "margin_px": margin,
+        **summary,
+        "seconds": round(time.monotonic() - started, 1),
+    }
+    print("[RETOPO] coverage: rays reached {0}% of {1} island texels; of the {2} they "
+          "missed, {3} margin, {4} filled, {5} left unbaked".format(
+              summary["reached_pct"], summary["island_texels"], summary["unreached_texels"],
+              summary["unreached_written_by_margin"],
+              summary["unreached_filled_from_neighbours"], summary["unreached_left_unbaked"]))
+
+    for name, bake_type, fill, non_color in passes:
+        if name in {"BaseColor", "Roughness", "Metallic"}:
+            configure_source_emission(name)
+        image = bpy.data.images.new(
+            "BK_" + name, resolution, resolution, alpha=True)
+        image.generated_color = fill
+        if non_color:
+            image.colorspace_settings.name = "Non-Color"
+        nodes = target_nodes(image)
+        select_for_bake()
+        try:
+            bpy.ops.object.bake(type=bake_type, use_clear=True, margin=margin)
         except RuntimeError as error:
             print("[RETOPO] bake {0} failed: {1}".format(name, error))
             for tree, node in nodes:
                 tree.nodes.remove(node)
             continue
 
-        # A texel the rays never reached keeps the fill, and for BaseColor
-        # the fill is black. Alpha says which texels were actually written,
-        # so a bake that quietly missed is visible in the report instead of
-        # shipping as a black head.
+        # The coverage pass, not this image's alpha, says which texels the
+        # bake wrote; the fill grows colour into the rest.
         pixels = np.array(image.pixels[:], dtype=np.float32).reshape(
             resolution, resolution, 4)
-        hit = float((pixels[..., 3] > 0.5).mean())
-        coverage[name] = round(100.0 * hit, 2)
-        unbaked[name] = fill_unbaked(pixels)
+        pixels[..., 3] = written
+        fill_unbaked(pixels)
+        coverage[name] = summary["reached_pct"]
+        unbaked[name] = summary["unreached_filled_from_neighbours"]
         if name == "Normal":
             report["normal_texels_repaired"] = sanitise_normal_map(pixels)
             print("[RETOPO] normal map: {0} implausible texels flattened".format(
@@ -2358,10 +2429,16 @@ def main() -> int:
         print("[RETOPO] baked {0} -> {1}".format(name, path.name))
 
     report["baked"] = baked
+    # Per pass, as before, but now measured: the share of the UV islands'
+    # texels the rays reached, and how many island texels the rays missed and
+    # the margin did not cover were given a neighbour's colour instead. Every
+    # pass shares the rays, so the numbers repeat; bake_coverage has the
+    # breakdown. Reports written before 2026-10-04 hold an alpha reading here
+    # that measured nothing.
     report["bake_coverage_pct"] = coverage
     report["texels_filled"] = unbaked
-    print("[RETOPO] bake coverage: {0}".format(coverage))
-    print("[RETOPO] unreached texels filled from neighbours: {0}".format(unbaked))
+    print("[RETOPO] bake coverage (% of island texels reached): {0}".format(coverage))
+    print("[RETOPO] unreached island texels filled from neighbours: {0}".format(unbaked))
     has_basecolor = "BaseColor" in baked
     report["basecolor_status"] = (
         "baked_from_source"
