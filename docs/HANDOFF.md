@@ -3982,3 +3982,78 @@ human or production gates. Owned cleanup helper stopped Oct 3; no inference
 jobs remain after restart. No game-project import, commit or push performed.
 Next step is Mark's individual asset review, then only approved assets move to
 the Unreal project. Optional characters were not part of this environment batch.
+
+## 2026-10-04 — Reduced painted props keep their paint: `rebake-maps`, and the Aether Wars props reduced
+
+Mark's only feedback on the standing props was to cut vertices, and a
+reduction after painting slid the paint off them (`DECISIONS.md`, triangle
+budgets). This adds the stage that bakes it back and the gate that can see it,
+and runs both over the commission. Branch `feat/rebake-maps` (from
+`feat/triangle-budgets` 9af58b3, which `reduce-mesh --triangle-budget auto`
+needs): 2be0642 stage and gate, f4d0084 studio publisher, 1056b6b launcher
+quoting; a follow-up session added 923b76d, 7ba46e5, 5b98252, c3b743a (true bake
+reach, shared `bake_coverage`). Local commits only.
+
+**CPU only.** GPU at start: 2 GB used, 1% load, desktop processes only;
+nothing was stopped and nothing ran on it. Every bake and render is Cycles with
+`device = CPU`, compute device `NONE`, denoiser off the GPU, 8 threads, two
+props at a time; each receipt records it.
+
+**Stage.** `rac run-stage rebake-maps --source <reduced> --dense <painted.blend>
+--reduction-report <reduce-mesh receipt> --appearance-reference <delivered.glb>`.
+Contract and calibration: `COMPILER.md`, "Re-baking a reduced painted prop".
+Gate: every one of four views lit SSIM >= 0.94, unlit >= 0.96, worst 16 px patch
+>= 0.35 / 0.45, silhouettes 97%. On a refusal it reduces the next ladder rung and
+tries again. `scripts/rebake_library.py` runs a list of props;
+`scripts/publish_studio_revisions.py` places results in a studio's revision
+stacks.
+
+**Batch.** `work/aether-wars-2026-10-03/rebake-derivatives/`: `batch-items.json`,
+`batch-progress.json`, `summary.json` / `summary.md`, and per prop
+`<NN>/<stem>/` (reduction attempt, `runtime-rebake-attempt*/rung-N/` with bake,
+views, `appearance.json` and `comparison-beauty.png`, and `runtime.glb`).
+Review sheets for the brazier, chest base, pipe, cog, throne, crystal shard,
+lantern, tattered banner and royal chest lid are in `review/`.
+
+| Single-mesh props (105; 16 assemblies skipped) | Count | Triangles |
+|---|---|---|
+| Accepted: reduced, re-baked, passed the gate | 90 | 8,679,732 -> 1,511,473 (-82.6%) |
+| Kept: the budget says the source is close enough (crystal heroes 6 m / 8 m) | 6 | unchanged |
+| Refused by the appearance gate (6 crystal walls; chain single link) | 7 | source kept |
+| Refused by reduce-mesh's surface gates (pillar capital, relic chest base) | 2 | source kept |
+| Whole single-mesh library | 105 | 9,821,721 -> 2,653,462 (-73.0%) |
+
+Accepted: 57 unwrapped afresh, 33 kept the reduction's UVs, 10 climbed past
+their first rung; worst-view lit SSIM 0.944 (median 0.980), unlit 0.971 (median
+0.995). Floor brazier 119,994 -> 14,995; chest base 100,000 -> 10,000; pipe 1 m
+100,000 -> 5,200; cog 2 m 100,000 -> 15,000.
+
+**Refusals worth a decision.** The crystal walls' unlit paint matches (0.97-0.99)
+but their lit views stay at 0.85-0.925 up to 50.7k: highlights and refraction
+on hundreds of small transmissive facets. At 50.7k they look the same to the
+eye, so a lit threshold for transmissive crystals is Mark's call. Pillar capital
+and relic chest base: p99 deviation <= 4 mm at every rung, but a 6-9 edge hole
+in the source collapses shut and moves one spot 4-5 cm, so the max gate refuses
+every rung. Pinning boundary vertices during the collapse would fix it.
+
+**Incident.** Notes cut at 400 characters with an odd number of double quotes
+swallowed `--runtime-derivative` on the way to Blender (Windows PowerShell 5.1
+does not escape them for a native program). banner-rod-1p8m, banner-rod-2p3m,
+crypt-frame and temple-frame were reduced as production authorities. Fixed in
+1056b6b, all four re-run; the wrong-mode outputs are kept in
+`_trials/wrong-mode-quoted-notes/`. crypt-frame and temple-frame were budgeted
+as vegetation (their notes say "leaves" -- door leaves); origin/main e7c1f11
+now guards notes promotion. This branch predates it, so they have 30k, not 20k.
+
+**Framewright.** Mark approved the upload. The 90 accepted GLBs went in through
+the API as revisions of their delivered items (`publish-ledger.json`). The API
+makes an added revision current; each delivered original is kept as the
+previous revision. Human approval is still pending on all of them. Framewright
+branch `feat/rebake-maps` (ccbde00, local) adds `rebake-maps` to Prepare for
+runtime for textured models when the compiler offers it.
+
+**Limits.** The gate averages each view, and a worst-patch floor is not
+enough to catch every fleck: the 1 m cyan crystal shard passed with a small
+dark fleck seen through it in one lit view, which only the comparison sheet
+shows. Maps keep the source resolution, so a re-baked GLB weighs about what
+the original did (textures re-encoded losslessly, -28% against Blender's PNGs).

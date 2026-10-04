@@ -36,6 +36,16 @@ Framewright selection and bundle manifest. `DELIVERY-VERIFIED.json` accompanies
 it. GPU inference and the owned cleanup helper are stopped; no generation queue
 remains. Framewright was restarted and the selection rechecked after shutdown.
 
+Runtime derivatives (2026-10-04, `rebake-maps`, branch `feat/rebake-maps`): of
+105 single-mesh models, 90 were reduced, re-baked from their dense originals
+and passed the fixed-view appearance gate (8.68M -> 1.51M triangles); 15 keep
+their delivered source (6 crystal heroes already near budget, 6 crystal walls
+and the single chain link refused by the gate, pillar capital and relic chest
+base refused by reduce-mesh's surface gates). The 90 are revisions in
+Framewright, current by the API's default, with the originals kept beneath
+them; Mark's approval is pending on each. Assemblies (16) were not reduced.
+Outputs: `work/aether-wars-2026-10-03/rebake-derivatives/` (`summary.md`).
+
 Final repairs: coin-pile `kit-v2-coins` uses 120 rigid copies of one acquired
 heraldic coin. Chain-winch `kit-v4-worn` was rebuilt LAST, after the other items:
 new acquired empty-drum mechanism, three separate mechanical parts, 61 rigid
