@@ -757,6 +757,10 @@ def prepare_reduction(source: Path, output: Path, options: dict[str, Any],
         raise StageError("There are already 999 reduction attempts beside {0}".format(output))
 
     arguments = ["-InputMesh", str(Path(source).resolve()), "-OutputDirectory", str(attempt)]
+    # Switches before free text, so nothing a note says can stand between a
+    # switch and the launcher.
+    if options.get("runtime_derivative"):
+        arguments.append("-RuntimeDerivative")
     if blender:
         # Otherwise the launcher finds its own, which may not be the Blender
         # the studio named -- a difference nothing in a receipt would show.
@@ -764,14 +768,13 @@ def prepare_reduction(source: Path, output: Path, options: dict[str, Any],
     for flag, name in (("-TriangleBudget", "triangle_budget"),
                        ("-WeightFactor", "weight_factor"),
                        ("-MaximumP99M", "maximum_p99_m"),
-                       ("-MaximumMaxM", "maximum_max_m"),
-                       ("-AssetName", "asset_name"),
-                       ("-Role", "role"),
-                       ("-AssetNotes", "asset_notes")):
+                       ("-MaximumMaxM", "maximum_max_m")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
-    if options.get("runtime_derivative"):
-        arguments.append("-RuntimeDerivative")
+    for flag, name in (("-AssetName", "asset_name"), ("-Role", "role"),
+                       ("-AssetNotes", "asset_notes")):
+        if options.get(name) is not None:
+            arguments += [flag, launcher_text(options[name])]
     return {
         "arguments": arguments,
         "produced": {
@@ -851,6 +854,22 @@ def prepare_rebake_maps(source: Path, output: Path, options: dict[str, Any],
     return {"arguments": arguments, "payload": payload}
 
 
+def launcher_text(value: Any) -> str:
+    """Free text for a PowerShell launcher's parameter, made safe to forward.
+
+    The launchers hand these on to Blender, and Windows PowerShell 5.1 passes
+    an argument to a native program without escaping the double quotes inside
+    it. A note with an odd number of them -- Aether Wars notes quote their
+    socket names, [{"name": "SOCKET_LeftHinge", ...}], and were cut at 400
+    characters -- runs on into the arguments after it. On three props that
+    swallowed --runtime-derivative, so they were reduced as production
+    authorities: holes filled, judged as closed, one refused for it. Names and
+    notes are read for their words, so a double quote becomes a single one and
+    nothing else changes. (The launchers do the same, for direct callers.)
+    """
+    return str(value).replace('"', "'")
+
+
 def _attempt(output: Path, label: str) -> Path:
     """The next unused attempt directory beside a caller's chosen output.
 
@@ -918,12 +937,13 @@ def prepare_remesh(source: Path, output: Path, options: dict[str, Any],
                        ("-TargetTriangles", "target_triangles"),
                        ("-VoxelResolution", "voxel_resolution"),
                        ("-SmoothIterations", "smooth_iterations"),
-                       ("-SmoothLambda", "smooth_lambda"),
-                       ("-AssetName", "asset_name"),
-                       ("-Role", "role"),
-                       ("-AssetNotes", "asset_notes")):
+                       ("-SmoothLambda", "smooth_lambda")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
+    for flag, name in (("-AssetName", "asset_name"), ("-Role", "role"),
+                       ("-AssetNotes", "asset_notes")):
+        if options.get(name) is not None:
+            arguments += [flag, launcher_text(options[name])]
     return {
         "arguments": arguments,
         "produced": {

@@ -967,6 +967,18 @@ pose contracts. The user's rejection supersedes prior technical success wording.
 - `review-views` renders with EEVEE, which needs the GPU. Cycles on the CPU with
   a fixed seed is deterministic: the dense .blend and the delivered GLB of the
   same prop rendered identically (SSIM 1.000), which is the gate's noise floor.
+- Windows PowerShell 5.1 hands an argument to a native program without
+  escaping the double quotes inside it. Aether Wars notes quote their socket
+  names, and cut at 400 characters three of them had an odd number of quotes:
+  on the way to Blender they swallowed `--runtime-derivative`, and those props
+  were reduced as production authorities (holes filled, judged as closed;
+  crypt-frame refused for it). Names, roles and notes now travel without double
+  quotes, switches first, both in `stages.py` and in the launchers.
+- "Leaves" is not always foliage. A door frame's notes said "Independent
+  leaves" (door leaves), and notes may promote a role, so it was budgeted as
+  huge vegetation (30k) rather than a huge prop (20k). Harmless here -- more
+  triangles, not fewer -- but promotion by keyword in notes needs a guard.
+
 ## 2026-10-04 — a bake's alpha does not say which texels its rays reached
 
 - `retopo_bake.py` reported bake coverage as the share of the whole sheet with

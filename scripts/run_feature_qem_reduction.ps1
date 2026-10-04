@@ -61,13 +61,18 @@ Write-Host 'REDUCTION_STAGE_BEGIN backend=FeatureQEM -- collapse smooth acreage 
 $previousPreference = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 try {
+    # Windows PowerShell 5.1 hands an argument to a native program without
+    # escaping the double quotes inside it, so a note with an odd number of
+    # them runs on into the arguments after it: three Aether Wars props lost
+    # --runtime-derivative that way and were reduced as production authorities.
+    # Names and notes are read for their words; switches go first regardless.
     $optional = @()
-    if ($AssetName) { $optional += @('--asset-name', $AssetName) }
-    if ($Role) { $optional += @('--role', $Role) }
-    if ($AssetNotes) { $optional += @('--asset-notes', $AssetNotes) }
+    if ($RuntimeDerivative) { $optional += '--runtime-derivative' }
     if ($MaximumP99M) { $optional += @('--maximum-p99-m', $MaximumP99M) }
     if ($MaximumMaxM) { $optional += @('--maximum-max-m', $MaximumMaxM) }
-    if ($RuntimeDerivative) { $optional += '--runtime-derivative' }
+    if ($AssetName) { $optional += @('--asset-name', $AssetName.Replace('"', "'")) }
+    if ($Role) { $optional += @('--role', $Role.Replace('"', "'")) }
+    if ($AssetNotes) { $optional += @('--asset-notes', $AssetNotes.Replace('"', "'")) }
     $runOutput = @(& $blenderPath '--background' '--python-exit-code' '1' '--python' $driver '--' `
         $inputPath $candidate $review $report '--triangle-budget' $TriangleBudget `
         '--weight-factor' $WeightFactor @optional 2>&1 `
