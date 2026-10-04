@@ -10,6 +10,7 @@ from pathlib import Path
 from .cohort import audit_cohort
 from .cleanup import record_cleanup_receipt, validate_cleanup_input
 from .animation_export import select_animations
+from .budgets import decide as decide_budget
 from .contracts import ARTICULATION_MODES, ASSET_KINDS
 from .geometry_request import validate_geometry_request
 from .io import read_json, write_json
@@ -21,6 +22,16 @@ from .workspace import audit_workspace, create_workspace, promote_stage
 
 def print_payload(payload: dict) -> None:
     print(json.dumps(payload, indent=2))
+
+
+def _budget_argument(value: str) -> int | str:
+    """A whole number of triangles, or 'auto' to let the asset decide."""
+    if str(value).strip().lower() == "auto":
+        return "auto"
+    try:
+        return int(value)
+    except ValueError:
+        raise argparse.ArgumentTypeError("a triangle budget is a whole number or 'auto'")
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -112,7 +123,12 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--size", help="Real size as a landmark on a person, e.g. knee, waist, head")
     stage.add_argument("--size-adjust", type=float,
                        help="Nudge the named size, e.g. 0.85 for a little under it")
-    stage.add_argument("--triangle-budget", type=int, help="Runtime triangle budget for reduction")
+    stage.add_argument("--triangle-budget", type=_budget_argument,
+                       help="Runtime triangle budget for reduction, or 'auto' (the default) "
+                            "to decide from the asset's name and real size; see 'rac budget'")
+    stage.add_argument("--role", help="Budget role for reduction: prop, modular, vegetation, "
+                                      "hero or character; omit it and the name decides")
+    stage.add_argument("--asset-notes", help="Text that may promote the budget role")
     stage.add_argument("--weight-factor", type=float, help="How much reduction protects detail")
     stage.add_argument("--maximum-p99-m", type=float, help="Reduction p99 surface deviation ceiling")
     stage.add_argument("--maximum-max-m", type=float, help="Reduction maximum surface deviation ceiling")
@@ -183,6 +199,20 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--list", action="store_true",
                        help="Report the runnable stages and what is missing, and run nothing")
 
+    budget = subcommands.add_parser(
+        "budget", help="Decide a runtime triangle budget from what an asset is and its real size")
+    budget.add_argument("--name", required=True,
+                        help="The asset's name; words like 'throne', 'rail' or 'vines' decide its role")
+    budget.add_argument("--dims", type=float, nargs=3, required=True, metavar=("X", "Y", "Z"),
+                        help="Real dimensions in metres")
+    budget.add_argument("--role", help="prop, modular, vegetation, hero or character; "
+                                       "omit it and the name decides")
+    budget.add_argument("--notes", default="",
+                        help="Free text that may promote the role, e.g. 'toppled giant statue'")
+    budget.add_argument("--source-triangles", type=int,
+                        help="The mesh's current count, so a source already in budget is kept")
+    budget.add_argument("--repo-root", type=Path, help="A checkout whose budget table to use")
+
     cleanup_preflight = subcommands.add_parser(
         "cleanup-preflight", help="Verify an approved modeling mesh before cleanup"
     )
@@ -228,6 +258,11 @@ def main(argv: list[str] | None = None) -> int:
             content = select_animations(source.read_bytes(), args.clip)
             output.write_bytes(content)
             print_payload({"output": str(output), "clips": args.clip, "bytes": len(content)})
+            return 0
+        if args.command == "budget":
+            print_payload(decide_budget(
+                args.name, args.dims, args.role, args.notes, args.source_triangles,
+                args.repo_root))
             return 0
         if args.command in {"new", "plan"}:
             registry = load_registry()
@@ -308,6 +343,8 @@ def main(argv: list[str] | None = None) -> int:
                     "size": args.size,
                     "size_adjust": args.size_adjust,
                     "triangle_budget": args.triangle_budget,
+                    "role": args.role,
+                    "asset_notes": args.asset_notes,
                     "weight_factor": args.weight_factor,
                     "maximum_p99_m": args.maximum_p99_m,
                     "maximum_max_m": args.maximum_max_m,

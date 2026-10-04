@@ -911,3 +911,20 @@ pose contracts. The user's rejection supersedes prior technical success wording.
   coin stays construction evidence rather than inflating the review count.
 - Native core-material capture saved every frame/receipt, then UE crashed on
   shutdown. Separate valid artifact evidence from a clean-process-exit claim.
+
+## 2026-10-04 — a ceiling is not a target: triangle budgets by role and size
+
+- Every static object in the Aether Wars commission was cleaned to the
+  static-object profile's 100,000-triangle `maximum_triangles`, because nothing
+  else proposed a number. Pipes, flanges and handholds cost what 6 m doors did:
+  14.2M triangles across 121 models where a role/size budget gives about 2.1M.
+  `profiles/triangle-budgets.json` and `rac budget` now decide, and
+  `remesh`/`reduce-mesh` default to `auto`.
+- Keyword roles need a shape check: "chain" names kit pieces, but a chain winch
+  is a machine. Kit pieces must also be long and thin.
+- Notes may promote a role but never demote one: notes mention neighbours
+  ("stands on a plinth") far more often than names do.
+- Reducing after paint smears the paint. A 120k floor brazier collapsed to
+  5k-17k kept its silhouette (p99 3-9 mm) and still lost its crisp bands and
+  rivets at every rung; transferring the dense normals did not fix it, because
+  the damage is UV drift, not shading. Budget before paint, or re-bake.

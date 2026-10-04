@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import math
 from pathlib import Path
@@ -11,6 +12,7 @@ import sys
 
 import bmesh
 import bpy
+from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from reduce_quadriflow import (  # noqa: E402
@@ -20,6 +22,25 @@ from reduce_quadriflow import (  # noqa: E402
 )
 from reduction_verdict import surface_verdict  # noqa: E402
 
+# The budget rule is written once, in the package, and read here by path:
+# Blender's interpreter cannot import the package itself.
+_BUDGETS_PATH = (Path(__file__).resolve().parents[2]
+                 / "src" / "reference_asset_compiler" / "budgets.py")
+
+
+def _load_budgets():
+    spec = importlib.util.spec_from_file_location("rac_budgets", _BUDGETS_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def budget_argument(value: str) -> int | str:
+    """A whole number of triangles, or 'auto' to let the asset decide."""
+    if str(value).strip().lower() == "auto":
+        return "auto"
+    return int(value)
+
 
 def parse_args() -> argparse.Namespace:
     values = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
@@ -28,10 +49,17 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("output_blend", type=Path)
     parser.add_argument("review_glb", type=Path)
     parser.add_argument("report", type=Path)
-    parser.add_argument("--triangle-budget", type=int, default=20_000)
+    # 'auto' (the default) decides from what the asset is and its real size --
+    # profiles/triangle-budgets.json -- and climbs that table's ladder when the
+    # surface gates refuse a rung. A number is a single, explicit attempt.
+    parser.add_argument("--triangle-budget", type=budget_argument, default="auto")
+    parser.add_argument("--asset-name", help="Names the asset for the budget; defaults to the file")
+    parser.add_argument("--role", help="prop, modular, vegetation, hero or character")
+    parser.add_argument("--asset-notes", default="", help="Text that may promote the role")
     parser.add_argument("--weight-factor", type=float, default=20.0)
-    parser.add_argument("--maximum-p99-m", type=float, default=0.005)
-    parser.add_argument("--maximum-max-m", type=float, default=0.020)
+    # Unset: scaled to the object under 'auto', 5 mm / 20 mm for a number.
+    parser.add_argument("--maximum-p99-m", type=float)
+    parser.add_argument("--maximum-max-m", type=float)
     # One named mode rather than three loose relaxations, because the three
     # only make sense together and only for one kind of caller.
     #
@@ -153,58 +181,47 @@ def close_inherited_boundaries(obj: bpy.types.Object) -> dict[str, int]:
         bm.free()
 
 
-def main() -> int:
-    args = parse_args()
-    source = args.source.resolve()
-    output_blend = args.output_blend.resolve()
-    review_glb = args.review_glb.resolve()
-    report_path = args.report.resolve()
-    if source.suffix.lower() != ".blend" or not source.is_file():
-        raise RuntimeError("Feature QEM requires a topology-verified .blend source")
-    if any(path.exists() for path in (output_blend, review_glb, report_path)):
-        raise RuntimeError("Feature QEM refuses to overwrite an existing attempt")
+def object_dimensions(obj: bpy.types.Object) -> tuple[float, float, float]:
+    """Real extent in metres, measured on the world-space mesh."""
+    corners = [obj.matrix_world @ Vector(corner) for corner in obj.bound_box]
+    return tuple(max(c[i] for c in corners) - min(c[i] for c in corners) for i in range(3))
 
-    bpy.ops.wm.open_mainfile(filepath=str(source))
-    meshes = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
-    if len(meshes) != 1:
-        raise RuntimeError("Feature QEM requires exactly one mesh object")
-    authority = meshes[0]
-    authority.name = "SRC_RAC_ApprovedCleanup"
-    # Before anything measures or collapses it. A surface split along every UV
-    # seam is not the surface; it is the transport format's copy of it.
-    seam_repair = weld_seams(authority)
-    authority_topology = topology(authority)
-    source_triangles = int(authority_topology["triangles"])
-    if not 1_000 <= args.triangle_budget < source_triangles:
-        raise RuntimeError("Triangle budget must reduce the source and remain at least 1,000")
 
-    bpy.context.view_layer.objects.active = authority
+def choose_budget(args: argparse.Namespace, authority: bpy.types.Object, source: Path):
+    """The rungs to try and the gates to hold them to.
+
+    'auto' asks the budget table, from the asset's name and real size; a number
+    is one explicit attempt under the gates it names (or the old fixed ones).
+    """
+    if args.triangle_budget != "auto":
+        return (None, [int(args.triangle_budget)],
+                args.maximum_p99_m if args.maximum_p99_m is not None else 0.005,
+                args.maximum_max_m if args.maximum_max_m is not None else 0.020)
+    budgets = _load_budgets()
+    decision = budgets.decide(
+        args.asset_name or source.stem, object_dimensions(authority), args.role,
+        args.asset_notes, int(topology(authority)["triangles"]))
+    rungs = list(decision["ladder"]) or [decision["triangle_budget"]]
+    maximum_p99 = args.maximum_p99_m if args.maximum_p99_m is not None else decision["maximum_p99_m"]
+    maximum_max = args.maximum_max_m if args.maximum_max_m is not None else decision["maximum_max_m"]
+    return decision, rungs, maximum_p99, maximum_max
+
+
+def reduce_once(template, authority, authority_topology, budget, healed_triangles, group_name,
+                args, maximum_p99, maximum_max):
+    """Collapse a copy of the weighted template to one budget and judge it."""
     bpy.ops.object.select_all(action="DESELECT")
-    authority.select_set(True)
+    template.hide_set(False)
+    template.select_set(True)
+    bpy.context.view_layer.objects.active = template
     bpy.ops.object.duplicate()
+    template.hide_set(True)
     candidate = bpy.context.view_layer.objects.active
     candidate.name = "GEO_RAC_FeatureQEMCandidate"
-    if args.runtime_derivative:
-        # Not repaired, and said so rather than reported as zero holes found.
-        boundary_repair = {
-            "performed": False,
-            "boundary_edges_before": int(authority_topology["boundary_edges"]),
-            "reason": "A runtime derivative keeps the shell its reviewed source has. "
-                      "Filling inherited boundaries would add surface the source never "
-                      "had and then measure the difference as error.",
-        }
-    else:
-        boundary_repair = close_inherited_boundaries(candidate)
-    healed_triangles = int(topology(candidate)["triangles"])
-    weights, weight_summary = feature_weights(candidate)
-    group = candidate.vertex_groups.new(name="RAC_FeatureImportance")
-    for index, weight in enumerate(weights):
-        group.add([index], weight, "REPLACE")
-
     modifier = candidate.modifiers.new("RAC_FeatureWeightedQEM", "DECIMATE")
     modifier.decimate_type = "COLLAPSE"
-    modifier.ratio = args.triangle_budget / healed_triangles
-    modifier.vertex_group = group.name
+    modifier.ratio = budget / healed_triangles
+    modifier.vertex_group = group_name
     modifier.vertex_group_factor = args.weight_factor
     # Blender's contract says inversion collapses lower weights first. High
     # feature-importance weights therefore remain expensive to remove.
@@ -229,7 +246,7 @@ def main() -> int:
     )
     failures = []
     accepted = []
-    if candidate_topology["triangles"] > args.triangle_budget:
+    if candidate_topology["triangles"] > budget:
         failures.append("triangle budget exceeded")
     surface_failures, surface_accepted = surface_verdict(
         authority_topology, candidate_topology, args.runtime_derivative)
@@ -237,10 +254,123 @@ def main() -> int:
     accepted.extend(surface_accepted)
     if not finite:
         failures.append("candidate contains non-finite coordinates")
-    if deviation["p99_m"] > args.maximum_p99_m:
-        failures.append("p99 surface deviation exceeds {0} m".format(args.maximum_p99_m))
-    if deviation["max_m"] > args.maximum_max_m:
-        failures.append("maximum surface deviation exceeds {0} m".format(args.maximum_max_m))
+    if deviation["p99_m"] > maximum_p99:
+        failures.append("p99 surface deviation exceeds {0} m".format(maximum_p99))
+    if deviation["max_m"] > maximum_max:
+        failures.append("maximum surface deviation exceeds {0} m".format(maximum_max))
+    return candidate, candidate_topology, deviation, failures, accepted
+
+
+def keep_source(args, authority, source, authority_topology, decision,
+                output_blend, review_glb, report_path, seam_repair) -> int:
+    """The source is already within reach of its budget: deliver it unreduced."""
+    output_blend.parent.mkdir(parents=True, exist_ok=True)
+    bpy.ops.wm.save_as_mainfile(filepath=str(output_blend))
+    bpy.ops.object.select_all(action="DESELECT")
+    authority.select_set(True)
+    bpy.context.view_layer.objects.active = authority
+    bpy.ops.export_scene.gltf(
+        filepath=str(review_glb), export_format="GLB", use_selection=True,
+        export_materials="EXPORT" if args.runtime_derivative else "NONE")
+    report = {
+        "schema": "reference-asset-compiler.production-retopology-candidate.v1",
+        "status": "mechanical_pass",
+        "mode": "runtime-derivative" if args.runtime_derivative else "production-authority",
+        "budget_decision": {**decision, "attempts": []},
+        "reduction": "kept the source: it is already within reach of its budget",
+        "source": {"path": str(source), "sha256": sha256_file(source),
+                   "topology": authority_topology},
+        "seam_repair": seam_repair,
+        "output": {"path": str(output_blend), "sha256": sha256_file(output_blend),
+                   "review_glb": str(review_glb), "review_glb_sha256": sha256_file(review_glb),
+                   **authority_topology},
+        "failures": [],
+        "accepted_findings": [],
+        "requires_fixed_view_review": True,
+        "production_grade": False,
+    }
+    report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    print("RAC_FEATURE_QEM_CANDIDATE_OK report={0}".format(report_path), flush=True)
+    return 0
+
+
+def main() -> int:
+    args = parse_args()
+    source = args.source.resolve()
+    output_blend = args.output_blend.resolve()
+    review_glb = args.review_glb.resolve()
+    report_path = args.report.resolve()
+    if source.suffix.lower() != ".blend" or not source.is_file():
+        raise RuntimeError("Feature QEM requires a topology-verified .blend source")
+    if any(path.exists() for path in (output_blend, review_glb, report_path)):
+        raise RuntimeError("Feature QEM refuses to overwrite an existing attempt")
+
+    bpy.ops.wm.open_mainfile(filepath=str(source))
+    meshes = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
+    if len(meshes) != 1:
+        raise RuntimeError("Feature QEM requires exactly one mesh object")
+    authority = meshes[0]
+    authority.name = "SRC_RAC_ApprovedCleanup"
+    # Before anything measures or collapses it. A surface split along every UV
+    # seam is not the surface; it is the transport format's copy of it.
+    seam_repair = weld_seams(authority)
+    authority_topology = topology(authority)
+    source_triangles = int(authority_topology["triangles"])
+    decision, rungs, maximum_p99, maximum_max = choose_budget(args, authority, source)
+    if decision is not None and decision.get("triangle_budget") is None:
+        raise RuntimeError(decision["summary"])
+    if decision is not None and decision.get("keep_source"):
+        return keep_source(args, authority, source, authority_topology, decision,
+                           output_blend, review_glb, report_path, seam_repair)
+    for rung in rungs:
+        if not 1_000 <= rung < source_triangles:
+            raise RuntimeError("Triangle budget must reduce the source and remain at least 1,000")
+
+    bpy.context.view_layer.objects.active = authority
+    bpy.ops.object.select_all(action="DESELECT")
+    authority.select_set(True)
+    bpy.ops.object.duplicate()
+    candidate = bpy.context.view_layer.objects.active
+    candidate.name = "GEO_RAC_FeatureQEMCandidate"
+    if args.runtime_derivative:
+        # Not repaired, and said so rather than reported as zero holes found.
+        boundary_repair = {
+            "performed": False,
+            "boundary_edges_before": int(authority_topology["boundary_edges"]),
+            "reason": "A runtime derivative keeps the shell its reviewed source has. "
+                      "Filling inherited boundaries would add surface the source never "
+                      "had and then measure the difference as error.",
+        }
+    else:
+        boundary_repair = close_inherited_boundaries(candidate)
+    healed_triangles = int(topology(candidate)["triangles"])
+    weights, weight_summary = feature_weights(candidate)
+    group = candidate.vertex_groups.new(name="RAC_FeatureImportance")
+    for index, weight in enumerate(weights):
+        group.add([index], weight, "REPLACE")
+    template = candidate
+    template.hide_set(True)
+
+    # One rung at a time: the first budget the surface gates accept is the
+    # answer, and every refused rung stays in the receipt as the reason the
+    # next one was tried.
+    attempts = []
+    for rung in rungs:
+        candidate, candidate_topology, deviation, failures, accepted = reduce_once(
+            template, authority, authority_topology, rung, healed_triangles, group.name,
+            args, maximum_p99, maximum_max)
+        attempts.append({
+            "triangle_budget": rung,
+            "triangles": candidate_topology["triangles"],
+            "p99_m": deviation["p99_m"],
+            "max_m": deviation["max_m"],
+            "failures": list(failures),
+        })
+        if not failures or rung == rungs[-1]:
+            break
+        bpy.data.objects.remove(candidate, do_unlink=True)
+    bpy.data.objects.remove(template, do_unlink=True)
+    triangle_budget = attempts[-1]["triangle_budget"]
 
     output_blend.parent.mkdir(parents=True, exist_ok=True)
     # Persist the native authority before asking the glTF exporter for a review
@@ -276,6 +406,7 @@ def main() -> int:
         "schema": "reference-asset-compiler.production-retopology-candidate.v1",
         "status": "mechanical_pass" if not failures else "rejected",
         "mode": "runtime-derivative" if args.runtime_derivative else "production-authority",
+        "budget_decision": None if decision is None else {**decision, "attempts": attempts},
         "source": {
             "path": str(source),
             "sha256": sha256_file(source),
@@ -283,13 +414,14 @@ def main() -> int:
         },
         "backend": "Blender feature-weighted collapse QEM",
         "settings": {
-            "triangle_budget": args.triangle_budget,
-            "ratio": args.triangle_budget / healed_triangles,
+            "triangle_budget": triangle_budget,
+            "triangle_budget_requested": args.triangle_budget,
+            "ratio": triangle_budget / healed_triangles,
             "weight_factor": args.weight_factor,
             "importance": "70% edge curvature plus 30% inverse local face area",
             "invert_vertex_group": True,
-            "maximum_p99_m": args.maximum_p99_m,
-            "maximum_max_m": args.maximum_max_m,
+            "maximum_p99_m": maximum_p99,
+            "maximum_max_m": maximum_max,
             "voxelization": False,
         },
         "seam_repair": seam_repair,

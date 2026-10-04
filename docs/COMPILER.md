@@ -81,6 +81,52 @@ bone called `upperarm_l` hanging off the pelvis is a coincidence, not a rig.
 
 `ninja-man` failed exactly this check. See its `repair` block.
 
+## Triangle budgets: decided by what the asset is
+
+A profile's `maximum_triangles` is a **ceiling for gates, never a target**. Read
+as a target it gave every static object of the Aether Wars commission the same
+100,000 triangles, so a 1 m pipe cost what a 6 m door did and the 121 delivered
+models came to 14.2 million triangles; budgeted by role and size they would
+have been about 2.1 million.
+
+`profiles/triangle-budgets.json` decides instead, from two things every asset
+already has, a name and a real size:
+
+| Role | Recognised by | Budget |
+|---|---|---|
+| prop | everything not named otherwise | 2k tiny / 5k small / **10k medium** / 15k large / 20k huge |
+| modular | rail, curb, cornice, skirting, pipe, beam, ledge, stair... *and* long and thin | 2,000 + 1,500 per metre, at most 12,000 |
+| vegetation | vine, ivy, moss, root, foliage... | 3k / 8k / 14k / 20k / 30k |
+| hero | throne, statue, guardian, shrine, colossal... | 8k / 15k / 25k / 40k / 60k |
+| character | character, creature, humanoid... | none: the rig route's skeleton profile decides |
+
+Size classes come from the longest side (under 0.25 m, 0.75 m, 2 m, 5 m, then
+huge). A closed mesh has about two triangles per vertex, so an ordinary prop at
+10,000 triangles is about 5,000 vertices. An explicit role always wins; then the
+name; notes may only *promote* (a "toppled giant statue head" is a hero piece)
+and never make anything cheaper. A name that says "chain" on something that is
+not long and thin -- a chain winch -- is a prop, and the receipt says why.
+
+```powershell
+rac budget --name "Floor brazier" --dims 0.9 0.9 1.2   # -> prop, medium, 10,000
+```
+
+`reduce-mesh` and `remesh` default to `--triangle-budget auto`: the stage
+measures the mesh's real size inside Blender, asks the table, records the whole
+decision in its receipt (`budget_decision`), and `reduce-mesh` climbs the
+table's ladder (x1.5 per rung) when its surface gates refuse a rung instead of
+shipping damage. The gates scale with the object's diagonal, so a colossus is
+not held to a coin's tolerance. A source already within reach of its budget is
+kept rather than reduced. A number is still a single, explicit attempt.
+
+**Decide the budget before paint.** `remesh` runs before texturing, so the
+painter paints the final mesh and nothing has to be baked. Reducing a mesh
+*after* it is painted moves its UVs with the collapse: the paint smears across
+band edges and rivets, and no surface-deviation gate sees it (a floor brazier
+reduced from 120k to 5k, 7.5k, 11k and 17k triangles kept its silhouette within
+4-9 mm and still lost its crisp iron bands at every rung). A painted asset
+reduced afterwards needs its maps re-baked from the dense original.
+
 ## Tri budget waivers
 
 An asset over its profile budget fails the gate unless the recipe records a

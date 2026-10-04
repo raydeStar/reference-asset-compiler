@@ -147,7 +147,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "script": "scripts/run_feature_qem_reduction.ps1",
         "arguments": ("source", "output", "report"),
         "options": ("triangle_budget", "weight_factor", "maximum_p99_m", "maximum_max_m",
-                    "runtime_derivative"),
+                    "runtime_derivative", "asset_name", "role", "asset_notes"),
         "prepare": "reduction",
         "needs": ("blender",),
         "summary": "Collapse a staged mesh to a runtime budget, and measure what that cost.",
@@ -171,7 +171,8 @@ STAGES: dict[str, dict[str, Any]] = {
         "script": "scripts/run_voxel_qem_reduction.ps1",
         "arguments": ("source", "output", "report"),
         "options": ("triangle_budget", "target_triangles", "voxel_resolution",
-                    "smooth_iterations", "smooth_lambda", "preserve_components"),
+                    "smooth_iterations", "smooth_lambda", "preserve_components",
+                    "asset_name", "role", "asset_notes"),
         "prepare": "remesh",
         "needs": ("blender",),
         "summary": "Rebuild a generated surface on a uniform grid, then collapse it to a runtime budget.",
@@ -742,7 +743,10 @@ def prepare_reduction(source: Path, output: Path, options: dict[str, Any],
     for flag, name in (("-TriangleBudget", "triangle_budget"),
                        ("-WeightFactor", "weight_factor"),
                        ("-MaximumP99M", "maximum_p99_m"),
-                       ("-MaximumMaxM", "maximum_max_m")):
+                       ("-MaximumMaxM", "maximum_max_m"),
+                       ("-AssetName", "asset_name"),
+                       ("-Role", "role"),
+                       ("-AssetNotes", "asset_notes")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
     if options.get("runtime_derivative"):
@@ -824,7 +828,10 @@ def prepare_remesh(source: Path, output: Path, options: dict[str, Any],
                        ("-TargetTriangles", "target_triangles"),
                        ("-VoxelResolution", "voxel_resolution"),
                        ("-SmoothIterations", "smooth_iterations"),
-                       ("-SmoothLambda", "smooth_lambda")):
+                       ("-SmoothLambda", "smooth_lambda"),
+                       ("-AssetName", "asset_name"),
+                       ("-Role", "role"),
+                       ("-AssetNotes", "asset_notes")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
     return {

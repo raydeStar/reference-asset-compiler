@@ -170,6 +170,24 @@ class ReductionPreparationTests(unittest.TestCase):
         # defaults apply rather than a second set copied over here.
         self.assertNotIn("-WeightFactor", arguments)
 
+    def test_an_automatic_budget_and_its_role_reach_the_launcher(self):
+        prepared = prepare_reduction(self.source, self.output, {
+            "triangle_budget": "auto", "asset_name": "Floor brazier", "role": "prop"})
+
+        arguments = prepared["arguments"]
+        # 'auto' is decided inside Blender, where the mesh's real size is
+        # known, so it travels as the word rather than as a guessed number.
+        self.assertEqual(arguments[arguments.index("-TriangleBudget") + 1], "auto")
+        self.assertEqual(arguments[arguments.index("-AssetName") + 1], "Floor brazier")
+        self.assertEqual(arguments[arguments.index("-Role") + 1], "prop")
+
+    def test_no_budget_named_leaves_the_launcher_to_decide(self):
+        prepared = prepare_reduction(self.source, self.output, {})
+
+        # The launcher's own default is 'auto' from the budget table, not a
+        # number copied over here.
+        self.assertNotIn("-TriangleBudget", prepared["arguments"])
+
     def test_the_blender_a_studio_named_is_the_one_used(self):
         prepared = prepare_reduction(self.source, self.output, {}, blender="C:/named/blender.exe")
 

@@ -2,10 +2,17 @@
 param(
     [Parameter(Mandatory = $true)][string] $InputMesh,
     [Parameter(Mandatory = $true)][string] $OutputDirectory,
-    [int] $TriangleBudget = 20000,
+    # 'auto' decides from what the asset is and its real size, and climbs the
+    # budget table's ladder when the surface gates refuse a rung. A number is a
+    # single explicit attempt. See profiles/triangle-budgets.json.
+    [string] $TriangleBudget = 'auto',
+    [string] $AssetName = '',
+    [string] $Role = '',
+    [string] $AssetNotes = '',
     [double] $WeightFactor = 20.0,
-    [double] $MaximumP99M = 0.005,
-    [double] $MaximumMaxM = 0.020,
+    # Empty: scaled to the object under 'auto', 5 mm / 20 mm for a number.
+    [string] $MaximumP99M = '',
+    [string] $MaximumMaxM = '',
     # A derivative of a mesh somebody already reviewed, rather than a candidate
     # production authority. The driver explains what that changes.
     [switch] $RuntimeDerivative,
@@ -54,11 +61,16 @@ Write-Host 'REDUCTION_STAGE_BEGIN backend=FeatureQEM -- collapse smooth acreage 
 $previousPreference = $ErrorActionPreference
 $ErrorActionPreference = 'Continue'
 try {
+    $optional = @()
+    if ($AssetName) { $optional += @('--asset-name', $AssetName) }
+    if ($Role) { $optional += @('--role', $Role) }
+    if ($AssetNotes) { $optional += @('--asset-notes', $AssetNotes) }
+    if ($MaximumP99M) { $optional += @('--maximum-p99-m', $MaximumP99M) }
+    if ($MaximumMaxM) { $optional += @('--maximum-max-m', $MaximumMaxM) }
+    if ($RuntimeDerivative) { $optional += '--runtime-derivative' }
     $runOutput = @(& $blenderPath '--background' '--python-exit-code' '1' '--python' $driver '--' `
         $inputPath $candidate $review $report '--triangle-budget' $TriangleBudget `
-        '--weight-factor' $WeightFactor '--maximum-p99-m' $MaximumP99M `
-        '--maximum-max-m' $MaximumMaxM `
-        @(if ($RuntimeDerivative) { '--runtime-derivative' }) 2>&1 `
+        '--weight-factor' $WeightFactor @optional 2>&1 `
         | ForEach-Object { $_.ToString() } | Tee-Object -FilePath $log)
     $exitCode = $LASTEXITCODE
 } finally {

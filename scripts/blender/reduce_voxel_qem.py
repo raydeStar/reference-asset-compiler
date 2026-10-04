@@ -10,6 +10,7 @@ mandatory.
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 from pathlib import Path
 import sys
@@ -27,6 +28,25 @@ from reduce_voxel_quadriflow import (
     topology,
 )
 
+# The budget rule is written once, in the package, and read here by path:
+# Blender's interpreter cannot import the package itself.
+_BUDGETS_PATH = (Path(__file__).resolve().parents[2]
+                 / "src" / "reference_asset_compiler" / "budgets.py")
+
+
+def _load_budgets():
+    spec = importlib.util.spec_from_file_location("rac_budgets", _BUDGETS_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def budget_argument(value: str) -> int | str:
+    """A whole number of triangles, or 'auto' to let the asset decide."""
+    if str(value).strip().lower() == "auto":
+        return "auto"
+    return int(value)
+
 
 def parse_args() -> argparse.Namespace:
     arguments = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
@@ -34,8 +54,15 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("source", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("report", type=Path)
-    parser.add_argument("--triangle-budget", type=int, default=20_000)
-    parser.add_argument("--target-triangles", type=int, default=18_000)
+    # 'auto' (the default) decides from what the asset is and its real size --
+    # profiles/triangle-budgets.json. This is the stage that runs before paint,
+    # so it is where a budget costs nothing: the painter paints the final mesh.
+    parser.add_argument("--triangle-budget", type=budget_argument, default="auto")
+    # Unset: nine tenths of the budget, leaving the collapse room to land under it.
+    parser.add_argument("--target-triangles", type=int)
+    parser.add_argument("--asset-name", help="Names the asset for the budget; defaults to the file")
+    parser.add_argument("--role", help="prop, modular, vegetation, hero or character")
+    parser.add_argument("--asset-notes", default="", help="Text that may promote the role")
     parser.add_argument("--voxel-resolution", type=int, default=420)
     parser.add_argument("--smooth-iterations", type=int, default=5)
     parser.add_argument("--smooth-lambda", type=float, default=0.28)
@@ -54,8 +81,11 @@ def main() -> int:
         raise FileNotFoundError(source)
     if output.exists() or blend_path.exists() or report_path.exists():
         raise RuntimeError("Refusing to overwrite an existing reduction candidate")
-    if not 1_000 <= args.target_triangles <= args.triangle_budget:
-        raise RuntimeError("Target triangles must be between 1,000 and the budget")
+    if args.triangle_budget != "auto":
+        if args.target_triangles is None:
+            args.target_triangles = int(args.triangle_budget * 0.9)
+        if not 1_000 <= args.target_triangles <= args.triangle_budget:
+            raise RuntimeError("Target triangles must be between 1,000 and the budget")
     if not 128 <= args.voxel_resolution <= 1024:
         raise RuntimeError("Voxel resolution must be between 128 and 1,024")
     if not 0 <= args.smooth_iterations <= 30:
@@ -95,6 +125,18 @@ def main() -> int:
     candidate.name = "GEO_RAC_VoxelQEMCandidate"
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     source_topology = topology(candidate)
+    budget_decision = None
+    if args.triangle_budget == "auto":
+        budget_decision = _load_budgets().decide(
+            args.asset_name or source.stem, tuple(candidate.dimensions), args.role,
+            args.asset_notes, int(source_topology["triangles"]))
+        if budget_decision["triangle_budget"] is None:
+            raise RuntimeError(budget_decision["summary"])
+        args.triangle_budget = int(budget_decision["triangle_budget"])
+        if args.target_triangles is None:
+            args.target_triangles = int(args.triangle_budget * 0.9)
+        if not 1_000 <= args.target_triangles <= args.triangle_budget:
+            raise RuntimeError("Target triangles must be between 1,000 and the budget")
     cleanup = remove_tiny_components(candidate, args.minimum_component_faces)
 
     voxel_size = max(candidate.dimensions) / args.voxel_resolution
@@ -130,6 +172,7 @@ def main() -> int:
         },
         "backend": "Blender voxel remesh then collapse QEM",
         "lineage": "explicit form of accepted legacy chair triangle fallback",
+        "budget_decision": budget_decision,
         "settings": {
             "triangle_budget": args.triangle_budget,
             "target_triangles": args.target_triangles,

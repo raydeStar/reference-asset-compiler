@@ -29,6 +29,12 @@ the operational notes it does not carry.
   stage table in `docs/PIPELINE.md`. Store accepted and rejected evidence with
   hashes and concise reasons. Never label an asset production-ready from a
   render or import alone.
+- Never use a profile's `maximum_triangles` as a reduction target: it is a
+  ceiling. Let `remesh`/`reduce-mesh` decide (`--triangle-budget auto`, the
+  default) or ask `rac budget --name ... --dims X Y Z`; an ordinary prop is
+  about 10,000 triangles (5,000 vertices). Decide it before paint -- reducing a
+  painted mesh smears its texture unless its maps are re-baked. See
+  `docs/COMPILER.md`, "Triangle budgets".
 - Record outcomes as a dated entry appended to `docs/HANDOFF.md` and update
   `docs/STATUS.md` in place; add a lesson to `docs/DECISIONS.md` when something
   surprising happened.

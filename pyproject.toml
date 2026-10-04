@@ -33,6 +33,7 @@ packages = ["src/reference_asset_compiler"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "configs/model-adapters.json" = "reference_asset_compiler/data/model-adapters.json"
+"profiles/triangle-budgets.json" = "reference_asset_compiler/data/triangle-budgets.json"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

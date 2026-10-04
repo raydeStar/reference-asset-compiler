@@ -2,8 +2,14 @@
 param(
     [Parameter(Mandatory = $true)] [string] $InputMesh,
     [Parameter(Mandatory = $true)] [string] $OutputDirectory,
-    [int] $TriangleBudget = 20000,
-    [int] $TargetTriangles = 18000,
+    # 'auto' decides from what the asset is and its real size; see
+    # profiles/triangle-budgets.json. A number is used as given.
+    [string] $TriangleBudget = 'auto',
+    # Empty: nine tenths of the budget.
+    [string] $TargetTriangles = '',
+    [string] $AssetName = '',
+    [string] $Role = '',
+    [string] $AssetNotes = '',
     [int] $VoxelResolution = 420,
     [int] $SmoothIterations = 5,
     [double] $SmoothLambda = 0.28,
@@ -59,8 +65,12 @@ $ErrorActionPreference = 'Continue'
 try {
     $componentArguments = @()
     if ($PreserveComponents) { $componentArguments += '--preserve-components' }
+    if ($TargetTriangles) { $componentArguments += @('--target-triangles', $TargetTriangles) }
+    if ($AssetName) { $componentArguments += @('--asset-name', $AssetName) }
+    if ($Role) { $componentArguments += @('--role', $Role) }
+    if ($AssetNotes) { $componentArguments += @('--asset-notes', $AssetNotes) }
     $runOutput = @(& $blenderPath '--background' '--factory-startup' '--python-exit-code' '1' '--python' $driver '--' `
-        $inputPath $candidate $report '--triangle-budget' $TriangleBudget '--target-triangles' $TargetTriangles `
+        $inputPath $candidate $report '--triangle-budget' $TriangleBudget `
         '--voxel-resolution' $VoxelResolution '--smooth-iterations' $SmoothIterations `
         '--smooth-lambda' $SmoothLambda @componentArguments 2>&1 | ForEach-Object { $_.ToString() } | Tee-Object -FilePath $log)
     $exitCode = $LASTEXITCODE
