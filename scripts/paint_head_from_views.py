@@ -35,6 +35,13 @@ from reference_asset_compiler import view_projection as vp  # noqa: E402
 SIDE_LANDMARKS = (93, 89, 101, 86, 80, 61, 71, 53, 0)
 FRONT_SHARPNESS = 2.0
 HAIR_MIN_FACING = 0.06
+# The crown faces no picture. Rolled back over the top of the head by CROWN_ROLL degrees it
+# lands on the back picture's upper hair, so it takes real painted strands instead of a smear
+# grown in from the edges. Blended in as the hair turns upward (normal z from CROWN_FROM to
+# CROWN_FULL).
+CROWN_ROLL = 55.0
+CROWN_FROM = 0.15
+CROWN_FULL = 0.6
 SIDE_SHARPNESS = 6.0
 BACK_SHARPNESS = 4.0
 HELPERS = ("helper-l-eye", "helper-r-eye", "helper-upper-teeth", "helper-lower-teeth",
@@ -57,6 +64,37 @@ def head_triangles(z):
             lt.append((s, s + k, s + k + 1))
             vt.append((lv[0], lv[k], lv[k + 1]))
     return np.array(vt), np.array(lt)
+
+
+def paint_crown(tex, back, verts, normals, tris, uv, tris_uv, size, above):
+    """Repaint upward-facing hair from the back picture, rolled over the top.
+    Only above `above` (the ears' top): lower ledges of hair face up too, and
+    rolled they would land on the picture's neck."""
+    tri_id, bary = vp.uv_rasterize(uv, tris_uv, size)
+    texel = tri_id >= 0
+    ids = tris[tri_id[texel]]
+    pos = np.einsum("nk,nkj->nj", bary[texel], verts[ids])
+    nrm = np.einsum("nk,nkj->nj", bary[texel], normals[ids])
+    nrm /= np.linalg.norm(nrm, axis=1, keepdims=True) + 1e-12
+    weight = np.clip((nrm[:, 2] - CROWN_FROM) / (CROWN_FULL - CROWN_FROM), 0.0, 1.0)
+    weight *= np.clip((pos[:, 2] - above) / 0.02, 0.0, 1.0)
+    centre = (verts.min(0) + verts.max(0)) / 2
+    c, s = np.cos(np.radians(CROWN_ROLL)), np.sin(np.radians(CROWN_ROLL))
+    rel = pos - centre
+    rolled = centre + np.stack([rel[:, 0], rel[:, 1] * c + rel[:, 2] * s,
+                                -rel[:, 1] * s + rel[:, 2] * c], 1)
+    px = back.pixels(rolled)
+    h, w = back.image.shape[:2]
+    xi = np.clip(px[:, 0].astype(int), 0, w - 1)
+    yi = np.clip(px[:, 1].astype(int), 0, h - 1)
+    ok = (px[:, 0] >= 0) & (px[:, 0] < w) & (px[:, 1] >= 0) & (px[:, 1] < h)
+    if back.mask is not None:
+        ok &= back.mask[yi, xi]
+    weight = weight * ok
+    vals = tex[texel]
+    tex = tex.copy()
+    tex[texel] = vals * (1 - weight[:, None]) + back.colour(px) * weight[:, None]
+    return tex, int((weight > 0).sum())
 
 
 def main():
@@ -161,6 +199,11 @@ def main():
     htexel = vp.uv_rasterize(hair_uv, hair_lt, a.hair_size)[0] >= 0
     htex = vp.fill_unseen_3d(htex, hpainted, htexel, hwhere)
     htex = vp.fill_unpainted(htex, htexel)
+    htex, crown_texels = paint_crown(htex, next(v for v in views if v.name == "back"),
+                                     hair_v, hair_n, hair_t, hair_uv, hair_lt, a.hair_size,
+                                     float(head_v[tz["vg__ears"], 2].max()))
+    record["crown"] = {"roll_deg": CROWN_ROLL, "from_normal_z": CROWN_FROM,
+                       "full_normal_z": CROWN_FULL, "texels": crown_texels}
     Image.fromarray((np.clip(htex, 0, 1) * 255).astype(np.uint8)).save(out / "hair_basecolor.png")
 
     record["coverage"] = {

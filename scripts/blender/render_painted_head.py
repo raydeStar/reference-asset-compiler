@@ -42,6 +42,8 @@ def _args():
     p.add_argument("--expression", nargs="*", default=[])
     p.add_argument("--tag", default="neutral")
     p.add_argument("--samples", type=int, default=64)
+    p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
+                   help="Cycles device (CPU when the GPU is reserved)")
     return p.parse_args(argv)
 
 
@@ -144,15 +146,17 @@ def main():
     scene.render.engine = "CYCLES"
     scene.cycles.samples = a.samples
     scene.cycles.use_denoising = True
-    try:
-        prefs = bpy.context.preferences.addons["cycles"].preferences
-        prefs.compute_device_type = "OPTIX"
-        prefs.get_devices()
-        for d in prefs.devices:
-            d.use = True
-        scene.cycles.device = "GPU"
-    except Exception:
-        pass
+    scene.cycles.device = "CPU"
+    if a.device == "GPU":
+        try:
+            prefs = bpy.context.preferences.addons["cycles"].preferences
+            prefs.compute_device_type = "OPTIX"
+            prefs.get_devices()
+            for d in prefs.devices:
+                d.use = True
+            scene.cycles.device = "GPU"
+        except Exception:
+            pass
     scene.render.resolution_x = scene.render.resolution_y = a.resolution
     scene.view_settings.view_transform = "Standard"
     world = bpy.data.worlds.new("w")
