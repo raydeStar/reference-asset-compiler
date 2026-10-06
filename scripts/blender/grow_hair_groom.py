@@ -37,6 +37,8 @@ HAIRLINE_ABOVE_EYES = 0.062   # forehead height: front-facing skin below this is
 BRIGHTEN = 1.5
 WARM = np.array([1.1, 1.0, 0.86])
 PART_SWEEP = 0.7
+PART_RAMP = 0.035   # metres from the part over which the sideways sweep builds up
+WHORL_CALM = 0.045  # metres from the crown within which hair lies flatter
 TEMPLE_BEHIND_EYES = 0.03     # metres behind the eyes before hair may root at the temples
 CAP_INSET = 0.03              # metres the dark scalp cap stays inside the hair's edge
 
@@ -163,9 +165,12 @@ def main():
     # The parting: front hair sweeps away from it to either side as it goes back.
     part_x = float(whorl[0]) + a.part
     front_half = g_roots[:, 1] < float(whorl[1]) - 0.02
-    sweep = np.where(front_half, np.sign(g_roots[:, 0] - part_x), 0.0) * PART_SWEEP
-    # Ends: each lock runs a few steps past the silhouette (loose ends), curling outward.
-    overshoot = 2 + rng.integers(0, 7, n_g)
+    # The sweep grows with distance from the part, so locks either side never cross over it.
+    sweep = np.where(front_half, np.clip((g_roots[:, 0] - part_x) / PART_RAMP, -1.0, 1.0), 0.0) * PART_SWEEP
+    # Each lock rides the silhouette for 2.4-6.4 cm before it ends.
+    ride_len = rng.integers(6, 17, n_g)
+    whorl_lift = np.clip(np.linalg.norm(g_roots - whorl, axis=1) / WHORL_CALM, 0.25, 1.0)
+    crown_z = hairline_z + 0.05
     guides = []
     phase = rng.random(n_g) * 2 * np.pi
     wave_len = rng.uniform(a.wave_length[0], a.wave_length[1], n_g)
@@ -173,8 +178,9 @@ def main():
         p = g_roots[g].copy()
         n0 = g_n[g]
         out = [p.copy()]
-        outside = 0
         entered = False
+        ride = 0              # steps spent riding the silhouette
+        ride_n = None         # the silhouette's normal where the strand rides it
         arc = 0.0
         for k in range(MAX_STEPS):
             p_safe, n = head_push(p)
@@ -188,10 +194,20 @@ def main():
             flow = flow - n * np.dot(flow, n)
             flow /= np.linalg.norm(flow) + 1e-12
             # The top stands up longer: the volume on the crown.
-            lift = max(0.0, 1.0 - (0.022 if g_roots[g][2] > hairline_z + 0.03 else 0.035) * k)
+            lift = max(0.0, 1.0 - (0.021 if g_roots[g][2] > hairline_z + 0.03 else 0.035) * k)
+            # At the crown itself hair has no direction to fall: it lies flat and fans out
+            # instead of standing up in a tuft.
+            lift *= whorl_lift[g]
             fall = min(1.0, 0.024 * k)
-            curl_out = 0.6 if outside > 0 else 0.0
-            d = (lift + curl_out) * n + 0.35 * radial + 0.8 * flow + fall * np.array([0.0, 0.0, -1.0])
+            # The very ends of falling locks flick outward (loose ends); on top of the head
+            # "outward" is up, so there they just end.
+            flick = 0.6 if ride >= ride_len[g] - 2 and p[2] < crown_z else 0.0
+            d = (lift + flick) * n + 0.35 * radial + 0.8 * flow + fall * np.array([0.0, 0.0, -1.0])
+            if ride_n is not None and not flick:
+                # Riding the silhouette: turn along it instead of through it.
+                through = float(np.dot(d, ride_n))
+                if through > 0:
+                    d = d - ride_n * through
             d /= np.linalg.norm(d) + 1e-12
             side = np.cross(d, n)
             sl = np.linalg.norm(side)
@@ -207,17 +223,25 @@ def main():
             # (sideburns, hair over the ears).
             if p[1] < eye_y + 0.02 and p[2] < eye_z + 0.012:
                 break
-            out.append(p.copy())
-            # The shell is a layer over the scalp: a strand first crosses into it, then
-            # stops where it leaves it (the silhouette). One that never reaches it stays short.
-            if inside_shell(p):
+            # The shell is a layer over the scalp: a strand first crosses into it; where it
+            # reaches the silhouette it bends and rides along it (held just inside) for the
+            # rest of its length, as hair lies along the outside of a hairstyle. One that
+            # never reaches the shell stays short.
+            inside = inside_shell(p)
+            if inside and ride == 0:
                 entered = True
-                outside = 0
-            elif entered:
-                outside += 1
-                if outside >= overshoot[g]:
-                    break
+            elif entered or ride > 0:
+                ride += 1
+                loc, nor, _, _ = shell_bvh.find_nearest(Vector(p))
+                if loc is not None:
+                    ride_n = np.array(nor)
+                    if not inside and not flick:
+                        p = np.array(loc) - ride_n * 0.0015
             elif k >= 25:
+                out.append(p.copy())
+                break
+            out.append(p.copy())
+            if ride >= ride_len[g]:
                 break
         guides.append(np.array(out))
 
@@ -306,7 +330,7 @@ def main():
     inner = np.array([rim_tree.find(Vector(c))[2] > CAP_INSET for c in tri_c[cap_sel]])
     cap_tris = cap_t[inner]
     cap_verts = sv + sn * 0.0025
-    cap_colour = np.median(strand_cols, 0) * 0.7
+    cap_colour = np.median(strand_cols, 0) * 0.85
     np.savez_compressed(a.out, points=points, counts=counts, colours=colours, radius=radius,
                         cap_verts=cap_verts.astype(np.float32), cap_tris=cap_tris,
                         cap_colour=cap_colour.astype(np.float32))

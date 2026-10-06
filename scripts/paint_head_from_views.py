@@ -54,7 +54,7 @@ HAIR_MIN_FACING = 0.06
 CROWN_ROLL = 55.0
 NECK_HAIR_DARKER = 0.88
 BROW_CLEARANCE = 0.035   # metres above the eyes' centre: clear of the brows (no landmarks)
-LID_CLEARANCE = 0.012    # metres above the eyes' centre: clear of the lid crease
+BROW_ABOVE = 0.004       # metres above the brows' top where the forehead zone starts
 BROW_BAND = 0.005        # metres around the brow landmarks kept as brow
 NECK_BEHIND_EYES = 0.045  # metres behind the eyes where the neck (not the jaw and beard) begins
 REGROW_RADIUS = 0.006     # metres of untouched skin averaged onto each vertex
@@ -314,19 +314,20 @@ def main():
     # shell hides it; strands (grow_hair_groom.py) leave it showing. Texels there that no
     # picture saw (the old shell hid them) are regrown too.
     eyes = head_v[np.concatenate([z["vg__helper-l-eye"], z["vg__helper-r-eye"]])]
-    # Above the lids everything dark is hair except the brows themselves: the front picture's
-    # brow landmarks, carried onto the head through its registration, mark a band to keep.
-    zone = (where[..., 2] > eyes[:, 2].mean() + LID_CLEARANCE) \
+    # The forehead zone starts just above the brows (the front picture's brow landmarks,
+    # carried onto the head through its registration): below them the lids and brow bone
+    # keep the picture's shading, which sets the eyes. The brows themselves are kept.
+    brows = brow_points(receipt)
+    brow_top = (max(float(b[:, 1].max()) for b in brows) if brows is not None
+                else float(eyes[:, 2].mean()) + BROW_CLEARANCE)
+    zone = (where[..., 2] > brow_top + BROW_ABOVE) \
         | ((where[..., 1] > eyes[:, 1].mean() + TEMPLE_BEHIND_EYES) & (where[..., 2] > ears[:, 2].min())) \
         | ((np.abs(where[..., 0]) > np.abs(eyes[:, 0]).max() + BESIDE_EYES) & (where[..., 2] > eyes[:, 2].mean() - 0.025))
-    brows = brow_points(receipt)
     keep_brows = np.zeros_like(zone)
     if brows is not None:
         front = where[..., 1] < eyes[:, 1].mean() + 0.03
         keep_brows = front & near_polyline(where[..., [0, 2]], brows, BROW_BAND)
         zone &= ~keep_brows
-    else:
-        zone &= where[..., 2] > eyes[:, 2].mean() + BROW_CLEARANCE
     hairy |= painted & zone & (lum < NECK_HAIR_DARKER * skin_lum)
     regrow = hairy | (texel & zone & ~painted)
     # From skin only (the nearest painted neighbours include brows and lashes, which would

@@ -80,7 +80,7 @@ def main(argv=None):
         if not a.blender:
             p.error("--groom needs --blender (or $RAC_BLENDER)")
         shell = out / "hair-smooth.npz"
-        run([py, HERE / "smooth_hair_shell.py", a.hair_shell, shell])
+        run([py, HERE / "smooth_hair_shell.py", a.hair_shell, shell, "--iterations", "30"])
 
     run([py, HERE / "close_head_neck.py", a.template, a.conform, a.conform_receipt, head, head_json])
     run([py, HERE / "trim_hair_shell.py", a.template, head, shell, hair_hug])
