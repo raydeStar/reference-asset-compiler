@@ -43,7 +43,8 @@ STEP = 0.004            # metres per strand segment
 MAX_STEPS = 95
 HAIRLINE_ABOVE_EYES = 0.062   # forehead height: front-facing skin below this is face
 BRIGHTEN = 1.3
-WARM = np.array([1.16, 0.94, 0.76])   # toward the painting's copper
+WARM = np.array([1.2, 0.9, 0.66])   # toward the painting's red-brown copper
+SATURATE = 1.3      # the shell paint is greyer than the painting's hair
 RADIAL = 0.2        # how much hair fans out from the crown
 FLICK = 0.3         # share of a lock's length over which its end turns out (the shag's flicks)
 PART_SWEEP = 0.55
@@ -58,7 +59,8 @@ CLIMB_FRONT = 1.0   # ...except at the front hairline, where the swept-up front 
 LAYER_WAVE = 0.08   # how far (share of the depth) a lock weaves in and out of its layer
 MIN_ENVELOPE = 0.004  # metres: thinner than this the envelope has ended
 ENVELOPE_SMOOTHING = 25  # neighbour-averaging passes over the envelope depth
-ENVELOPE_MAX = 0.05   # metres: hair stands no taller off the scalp than this (a scan's bulge
+VOLUME = 1.3         # the scan's hair is tighter to the head than the painting's: grown out by this
+ENVELOPE_MAX = 0.06   # metres: hair stands no taller off the scalp than this (a scan's bulge
                       # would otherwise raise the few locks under it into tufts)
 SHADE_DEPTH = 0.025   # metres of hair over a strand at which it is fully in the shade of it
 SIDEBURN = 0.4        # sideburns end this far up the ear (0 = lobe, 1 = top)
@@ -196,7 +198,7 @@ def main():
         w /= w.sum()
         n = w @ sn[tri]
         n /= np.linalg.norm(n) + 1e-12
-        return loc, n, float(np.dot(p - loc, n)), min(float(w @ outer[tri]), ENVELOPE_MAX)
+        return loc, n, float(np.dot(p - loc, n)), min(VOLUME * float(w @ outer[tri]), ENVELOPE_MAX)
 
     # ------------------------------------------------------------------ roots on the scalp
     n_cand = (a.guides * (a.children + 1)) * 4
@@ -453,6 +455,8 @@ def main():
     strand_cols *= WARM       # toward the painting's copper
     # ...and inside the hair's palette: a lock sampling a stray red or grey texel stays brown.
     strand_cols = 0.65 * strand_cols + 0.35 * np.median(strand_cols, 0)
+    grey = (strand_cols @ np.array([0.2126, 0.7152, 0.0722]))[:, None]
+    strand_cols = np.clip(grey + SATURATE * (strand_cols - grey), 0.0, None)
     # Each lock (a guide and its children) is a shade lighter or darker than its neighbours.
     lock_shade = rng.uniform(0.85, 1.18, n_g)
     strand_guide = np.r_[np.arange(n_g), owner]

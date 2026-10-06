@@ -211,6 +211,8 @@ def main():
             pass
     scene.render.resolution_x = scene.render.resolution_y = a.resolution
     scene.view_settings.view_transform = "Standard"
+    # The paint carries the pictures' own light; a quarter stop down matches their brightness.
+    scene.view_settings.exposure = -0.25
     world = bpy.data.worlds.new("w")
     world.use_nodes = True
     world.node_tree.nodes["Background"].inputs["Color"].default_value = (0.62, 0.6, 0.58, 1)
