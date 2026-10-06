@@ -44,8 +44,8 @@ only as the hairstyle's envelope; `blender/grow_hair_groom.py` grows strands ins
 
 - **Envelope.** At every scalp vertex the hair reaches out to the shell's last crossing
   along the normal (the silhouette); zero where no hair lies over the skin. Smoothed
-  (25 passes) and capped at 5 cm, so a bulge in the scan does not raise the few locks under
-  it into a tuft.
+  (25 passes), grown 1.3x (the scan's hair is tighter to the head than the painting's) and
+  capped at 6 cm, so a bulge in the scan does not raise the few locks under it into a tuft.
 - **Guides** (300). Each lock is given a depth in that volume (most toward the outside),
   climbs to it off the scalp at a shallow angle (steeper only at the front hairline,
   where the swept-up front lock lifts) and flows along it: swept back, sweeping away
@@ -61,8 +61,8 @@ only as the hairstyle's envelope; `blender/grow_hair_groom.py` grows strands ins
   (same kind, same side of the part) from its own root, so the hair is one mass, then
   is drawn toward its own guide as it nears the tip, so locks stay wide and end in a
   point. A few percent are strays (flyaways).
-- **Colour** from the painted hair texture, kept inside the hair's palette, warmed
-  toward the painting's copper, darker the more hair lies over a strand (full shade under
+- **Colour** from the painted hair texture, kept inside the hair's palette, saturated 1.3x
+  and warmed toward the painting's red-brown copper (measured against the front picture), darker the more hair lies over a strand (full shade under
   2.5 cm) and toward the root.
 - A dark scalp cap under the strands, inset 1.5 cm inside the hair's edge and only where
   the strands are dense.
