@@ -42,6 +42,8 @@ def _args():
     p.add_argument("--expression", nargs="*", default=[])
     p.add_argument("--tag", default="neutral")
     p.add_argument("--samples", type=int, default=64)
+    p.add_argument("--strands", help="grow_hair_groom.py NPZ: draw the hair as strands over its "
+                   "scalp cap instead of the shell")
     p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
                    help="Cycles device (CPU when the GPU is reserved)")
     return p.parse_args(argv)
@@ -61,15 +63,22 @@ def mesh(name, verts, faces, uv=None):
     return ob
 
 
-def material(name, image_path, emission=0.55, roughness=0.85, specular=0.15):
+def material(name, image_path, emission=0.55, roughness=0.85, specular=0.15, darken=1.0):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
     nt = mat.node_tree
     bsdf = nt.nodes["Principled BSDF"]
     tex = nt.nodes.new("ShaderNodeTexImage")
     tex.image = bpy.data.images.load(image_path)
-    nt.links.new(tex.outputs["Color"], bsdf.inputs["Base Color"])
-    nt.links.new(tex.outputs["Color"], bsdf.inputs["Emission Color"])
+    colour = tex.outputs["Color"]
+    if darken != 1.0:
+        mul = nt.nodes.new("ShaderNodeVectorMath")
+        mul.operation = "SCALE"
+        mul.inputs["Scale"].default_value = darken
+        nt.links.new(colour, mul.inputs[0])
+        colour = mul.outputs["Vector"]
+    nt.links.new(colour, bsdf.inputs["Base Color"])
+    nt.links.new(colour, bsdf.inputs["Emission Color"])
     bsdf.inputs["Emission Strength"].default_value = emission
     bsdf.inputs["Roughness"].default_value = roughness
     if "Specular IOR Level" in bsdf.inputs:
@@ -137,9 +146,49 @@ def main():
     sub.levels = sub.render_levels = 2
 
     hv, ht = hz["verts"], hz["tris"]
-    hair = mesh("hair", hv, ht, hz["loop_uv"])
-    hair.data.materials.append(material("hair", a.hair_tex, emission=0.5, roughness=0.9,
-                                        specular=0.08))
+    if not a.strands:
+        hair = mesh("hair", hv, ht, hz["loop_uv"])
+        hair.data.materials.append(material("hair", a.hair_tex, emission=0.5, roughness=0.9,
+                                            specular=0.08))
+    else:
+        # Strands carry the hair; a dark scalp cap under them keeps skin from showing
+        # between them (the dense under-layer real hair has).
+        sz = np.load(a.strands)
+        cap = mesh("scalp-cap", sz["cap_verts"], sz["cap_tris"])
+        cm = bpy.data.materials.new("scalp-cap")
+        cm.use_nodes = True
+        cb = cm.node_tree.nodes["Principled BSDF"]
+        cb.inputs["Base Color"].default_value = (*sz["cap_colour"].tolist(), 1.0)
+        cb.inputs["Roughness"].default_value = 0.9
+        cap.data.materials.append(cm)
+        hv = sz["points"]
+        curves = bpy.data.hair_curves.new("groom")
+        curves.add_curves(sz["counts"].tolist())
+        curves.attributes["position"].data.foreach_set("vector", sz["points"].astype(np.float32).ravel())
+        rad = curves.attributes.get("radius") or curves.attributes.new("radius", "FLOAT", "POINT")
+        rad.data.foreach_set("value", sz["radius"].astype(np.float32))
+        col = curves.attributes.new("strand_colour", "FLOAT_COLOR", "POINT")
+        rgba = np.c_[sz["colours"], np.ones(len(sz["colours"]))].astype(np.float32)
+        col.data.foreach_set("color", rgba.ravel())
+        groom = bpy.data.objects.new("groom", curves)
+        bpy.context.scene.collection.objects.link(groom)
+        hm = bpy.data.materials.new("strands")
+        hm.use_nodes = True
+        nt = hm.node_tree
+        for node in list(nt.nodes):
+            if node.type != "OUTPUT_MATERIAL":
+                nt.nodes.remove(node)
+        bsdf = nt.nodes.new("ShaderNodeBsdfHairPrincipled")
+        bsdf.parametrization = "COLOR"
+        bsdf.inputs["Roughness"].default_value = 0.35
+        bsdf.inputs["Radial Roughness"].default_value = 0.4
+        attr = nt.nodes.new("ShaderNodeAttribute")
+        attr.attribute_name = "strand_colour"
+        attr.attribute_type = "GEOMETRY"
+        nt.links.new(attr.outputs["Color"], bsdf.inputs["Color"])
+        mat_out = next(n for n in nt.nodes if n.type == "OUTPUT_MATERIAL")
+        nt.links.new(bsdf.outputs[0], mat_out.inputs["Surface"])
+        curves.materials.append(hm)
 
     # Light and camera.
     scene = bpy.context.scene

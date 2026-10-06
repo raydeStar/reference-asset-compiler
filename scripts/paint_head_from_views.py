@@ -51,9 +51,14 @@ HAIR_MIN_FACING = 0.06
 # grown in from the edges. Blended in as the hair turns upward (normal z from CROWN_FROM to
 # CROWN_FULL).
 CROWN_ROLL = 55.0
-NECK_HAIR_DARKER = 0.8
-CROWN_FROM = 0.15
-CROWN_FULL = 0.6
+NECK_HAIR_DARKER = 0.88
+BROW_CLEARANCE = 0.035   # metres above the eyes' centre: clear of the brows (no landmarks)
+LID_CLEARANCE = 0.012    # metres above the eyes' centre: clear of the lid crease
+BROW_BAND = 0.007        # metres around the brow landmarks kept as brow
+BESIDE_EYES = 0.006      # metres outside the eyeballs where the temples begin
+TEMPLE_BEHIND_EYES = 0.02   # metres behind the eyes: the temples, clear of the cheeks
+CROWN_FROM = 0.10
+CROWN_FULL = 0.4
 SIDE_SHARPNESS = 6.0
 BACK_SHARPNESS = 4.0
 HELPERS = ("helper-l-eye", "helper-r-eye", "helper-upper-teeth", "helper-lower-teeth",
@@ -76,6 +81,43 @@ def head_triangles(z):
             lt.append((s, s + k, s + k + 1))
             vt.append((lv[0], lv[k], lv[k + 1]))
     return np.array(vt), np.array(lt)
+
+
+def brow_points(receipt):
+    """The front picture's two brows as (x, z) polylines on the head, or None.
+
+    The conform receipt holds the landmarks file and the picture's registration
+    (plane (x, -z) -> pixels); its inverse carries each brow landmark onto the head."""
+    pic = receipt.get("picture") or {}
+    path = pic.get("landmarks")
+    if not path or not Path(path).exists():
+        return None
+    d = json.loads(Path(path).read_text(encoding="utf-8"))
+    reg = pic["registration"]
+    if "landmarks_68" in d:
+        px, runs = np.array(d["landmarks_68"], float), (range(17, 22), range(22, 27))
+    else:
+        px, runs = np.array(d["landmarks_106"], float), (range(43, 52), range(97, 106))
+    plane = (px - np.array(reg["translation_px"])) @ np.array(reg["rotation"]) / reg["scale_px_per_m"]
+    xz = np.c_[plane[:, 0], -plane[:, 1]]
+    return [xz[list(r)] for r in runs]
+
+
+def near_polyline(xz, polylines, band):
+    """Which (x, z) points lie within `band` of any of the polylines."""
+    out = np.zeros(xz.shape[:-1], bool)
+    pts = np.concatenate(polylines)
+    lo, hi = pts.min(0) - band, pts.max(0) + band
+    cand = np.all((xz >= lo) & (xz <= hi), axis=-1)
+    q = xz[cand]
+    best = np.full(len(q), np.inf)
+    for line in polylines:
+        for a, b in zip(line[:-1], line[1:]):
+            ab = b - a
+            t = np.clip(((q - a) @ ab) / (ab @ ab + 1e-12), 0.0, 1.0)
+            best = np.minimum(best, np.linalg.norm(q - (a + t[:, None] * ab), axis=1))
+    out[cand] = best < band
+    return out
 
 
 def paint_crown(tex, back, verts, normals, tris, uv, tris_uv, size, above):
@@ -206,15 +248,38 @@ def main():
     # and where the shell no longer covers the neck that hair lands on the skin. Below the
     # ears and behind their front edge (clear of the beard), skin painted much darker than
     # the face (hair is a darker shade of the same hue) is treated as unseen and grown in
-    # from the skin around it.
+    # from the skin around it. (Regrowing the whole neck instead leaves flat streaks.)
     ears = head_v[tz["vg__ears"]]
     lum = tex @ np.array([0.2126, 0.7152, 0.0722])
     face_band = painted & (where[..., 2] > ears[:, 2].min()) & (where[..., 2] < ears[:, 2].max())
     skin_lum = float(np.median(lum[face_band]))
     neck = painted & (where[..., 2] < ears[:, 2].min()) & (where[..., 1] > ears[:, 1].min())
     hairy = neck & (lum < NECK_HAIR_DARKER * skin_lum)
-    painted = painted & ~hairy
-    record["neck_hair_texels_cleared"] = int(hairy.sum())
+    # The same in the hair zone - above the brows, and the temples behind the eyes' outer
+    # corners above the ears' lowest point: the pictures' hair painted onto the skin. A hair
+    # shell hides it; strands (grow_hair_groom.py) leave it showing. Texels there that no
+    # picture saw (the old shell hid them) are regrown too.
+    eyes = head_v[np.concatenate([z["vg__helper-l-eye"], z["vg__helper-r-eye"]])]
+    # Above the lids everything dark is hair except the brows themselves: the front picture's
+    # brow landmarks, carried onto the head through its registration, mark a band to keep.
+    zone = (where[..., 2] > eyes[:, 2].mean() + LID_CLEARANCE) \
+        | ((where[..., 1] > eyes[:, 1].mean() + TEMPLE_BEHIND_EYES) & (where[..., 2] > ears[:, 2].min())) \
+        | ((np.abs(where[..., 0]) > np.abs(eyes[:, 0]).max() + BESIDE_EYES) & (where[..., 2] > eyes[:, 2].mean() - 0.015))
+    brows = brow_points(receipt)
+    if brows is not None:
+        front = where[..., 1] < eyes[:, 1].mean() + 0.03
+        zone &= ~(front & near_polyline(where[..., [0, 2]], brows, BROW_BAND))
+    else:
+        zone &= where[..., 2] > eyes[:, 2].mean() + BROW_CLEARANCE
+    hairy |= painted & zone & (lum < NECK_HAIR_DARKER * skin_lum)
+    regrow = hairy | (texel & zone & ~painted)
+    # From skin only: the nearest painted neighbours include brows and lashes, which would
+    # paint the temples black.
+    skin_src = painted & ~hairy & (lum >= NECK_HAIR_DARKER * skin_lum)
+    regrown = vp.fill_unseen_3d(tex, skin_src, skin_src | regrow, where)
+    tex[regrow] = regrown[regrow]
+    painted = painted | regrow
+    record["hair_on_skin_texels_regrown"] = int(regrow.sum())
     tex = vp.fill_unseen_3d(tex, painted, texel, where)
     tex = vp.fill_unpainted(tex, texel)
     Image.fromarray((np.clip(tex, 0, 1) * 255).astype(np.uint8)).save(out / "head_basecolor.png")
