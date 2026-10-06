@@ -61,6 +61,7 @@ REGROW_RADIUS = 0.006     # metres of untouched skin averaged onto each vertex
 REGROW_EDGE = 10          # texels of paint beside cleared hair regrown with it (its pale rim)
 REGROW_FEATHER = 16.0     # texels over which regrown skin blends into the paint
 BESIDE_EYES = 0.006      # metres outside the eyeballs where the temples begin
+SIDE_OF_FACE = 0.014     # metres outside the eyeballs where the side of the face (hair falls there) begins
 TEMPLE_BEHIND_EYES = 0.02   # metres behind the eyes: the temples, clear of the cheeks
 CROWN_FROM = 0.10
 CROWN_FULL = 0.4
@@ -322,7 +323,8 @@ def main():
                 else float(eyes[:, 2].mean()) + BROW_CLEARANCE)
     zone = (where[..., 2] > brow_top + BROW_ABOVE) \
         | ((where[..., 1] > eyes[:, 1].mean() + TEMPLE_BEHIND_EYES) & (where[..., 2] > ears[:, 2].min())) \
-        | ((np.abs(where[..., 0]) > np.abs(eyes[:, 0]).max() + BESIDE_EYES) & (where[..., 2] > eyes[:, 2].mean() - 0.025))
+        | ((np.abs(where[..., 0]) > np.abs(eyes[:, 0]).max() + BESIDE_EYES) & (where[..., 2] > eyes[:, 2].mean() - 0.025)) \
+        | ((np.abs(where[..., 0]) > np.abs(eyes[:, 0]).max() + SIDE_OF_FACE) & (where[..., 2] > ears[:, 2].min() + 0.005))
     keep_brows = np.zeros_like(zone)
     if brows is not None:
         front = where[..., 1] < eyes[:, 1].mean() + 0.03

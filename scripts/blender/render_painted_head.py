@@ -140,8 +140,10 @@ def main():
         for vi in f:
             loop_uv.append((px[vi, 0] / w, 1.0 - px[vi, 1] / h))
     eyes = mesh("eyes", ev, ef, np.array(loop_uv))
-    eyes.data.materials.append(material("eyes", a.front, emission=0.6, roughness=0.2,
-                                        specular=0.5))
+    # The iris colour is the picture's: a strong cornea reflection of the grey surroundings
+    # would wash brown eyes to blue-grey.
+    eyes.data.materials.append(material("eyes", a.front, emission=0.9, roughness=0.35,
+                                        specular=0.12))
     sub = eyes.modifiers.new("smooth", "SUBSURF")
     sub.levels = sub.render_levels = 2
 

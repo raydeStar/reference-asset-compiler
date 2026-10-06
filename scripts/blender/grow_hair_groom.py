@@ -169,6 +169,9 @@ def main():
     sweep = np.where(front_half, np.clip((g_roots[:, 0] - part_x) / PART_RAMP, -1.0, 1.0), 0.0) * PART_SWEEP
     # Each lock rides the silhouette for 2.4-6.4 cm before it ends.
     ride_len = rng.integers(6, 17, n_g)
+    side_fall = np.clip((np.abs(g_n[:, 0]) - 0.45) / 0.4, 0.0, 1.0)
+    side_flow = np.array([0.0, 0.35, -1.0])
+    ear_front_y = float(ears[:, 1].min())
     whorl_lift = np.clip(np.linalg.norm(g_roots - whorl, axis=1) / WHORL_CALM, 0.25, 1.0)
     crown_z = hairline_z + 0.05
     guides = []
@@ -190,7 +193,10 @@ def main():
             radial -= n * np.dot(radial, n)
             rl = np.linalg.norm(radial)
             radial = radial / rl if rl > 1e-6 else np.zeros(3)
-            flow = fringe_flow if fringe[g] else back_flow + np.array([sweep[g], 0.0, 0.0])
+            # On the sides of the head hair falls rather than sweeping back: it comes down
+            # around the ears.
+            flow = fringe_flow if fringe[g] else (back_flow + np.array([sweep[g], 0.0, 0.0])) * (1.0 - side_fall[g]) \
+                + side_flow * side_fall[g]
             flow = flow - n * np.dot(flow, n)
             flow /= np.linalg.norm(flow) + 1e-12
             # The top stands up longer: the volume on the crown.
@@ -222,6 +228,9 @@ def main():
             # ends before it falls past the eyes; behind them it may fall to the jaw
             # (sideburns, hair over the ears).
             if p[1] < eye_y + 0.02 and p[2] < eye_z + 0.012:
+                break
+            # In front of the ears it ends at the earlobes (sideburns), clear of the cheek.
+            if p[1] < ear_front_y and p[2] < ear_bottom + 0.008:
                 break
             # The shell is a layer over the scalp: a strand first crosses into it; where it
             # reaches the silhouette it bends and rides along it (held just inside) for the
