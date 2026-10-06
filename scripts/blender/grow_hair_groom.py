@@ -34,7 +34,9 @@ HELPERS = ("helper-l-eye", "helper-r-eye", "helper-upper-teeth", "helper-lower-t
 STEP = 0.004            # metres per strand segment
 MAX_STEPS = 95
 HAIRLINE_ABOVE_EYES = 0.062   # forehead height: front-facing skin below this is face
-BRIGHTEN = 1.3
+BRIGHTEN = 1.5
+WARM = np.array([1.1, 1.0, 0.86])
+PART_SWEEP = 0.7
 TEMPLE_BEHIND_EYES = 0.03     # metres behind the eyes before hair may root at the temples
 CAP_INSET = 0.03              # metres the dark scalp cap stays inside the hair's edge
 
@@ -44,14 +46,17 @@ def _args():
     p = argparse.ArgumentParser()
     for name in ("template", "head", "shell", "hair_tex", "out"):
         p.add_argument(name)
-    p.add_argument("--guides", type=int, default=2000)
-    p.add_argument("--children", type=int, default=40)
+    p.add_argument("--guides", type=int, default=1200)
+    p.add_argument("--children", type=int, default=65)
     p.add_argument("--seed", type=int, default=7)
-    p.add_argument("--wave-length", type=float, default=0.055)
+    p.add_argument("--wave-length", type=float, nargs=2, default=(0.045, 0.07),
+                   help="range of wave lengths (metres); each lock draws its own")
     p.add_argument("--wave", type=float, default=0.55)
     p.add_argument("--fringe", type=float, default=0.25,
                    help="share of the front roots whose locks fall forward over the forehead")
-    p.add_argument("--clump", type=float, default=0.75)
+    p.add_argument("--clump", type=float, default=0.85)
+    p.add_argument("--part", type=float, default=0.012,
+                   help="metres the parting sits to the side of the crown (x)")
     return p.parse_args(argv)
 
 
@@ -155,8 +160,15 @@ def main():
     fringe = (g_roots[:, 1] < front_y + 0.035) & (rng.random(n_g) < a.fringe)
     back_flow = np.array([0.0, 1.0, -0.55])
     fringe_flow = np.array([0.0, -1.0, -0.9])
+    # The parting: front hair sweeps away from it to either side as it goes back.
+    part_x = float(whorl[0]) + a.part
+    front_half = g_roots[:, 1] < float(whorl[1]) - 0.02
+    sweep = np.where(front_half, np.sign(g_roots[:, 0] - part_x), 0.0) * PART_SWEEP
+    # Ends: each lock runs a few steps past the silhouette (loose ends), curling outward.
+    overshoot = 2 + rng.integers(0, 7, n_g)
     guides = []
     phase = rng.random(n_g) * 2 * np.pi
+    wave_len = rng.uniform(a.wave_length[0], a.wave_length[1], n_g)
     for g in range(n_g):
         p = g_roots[g].copy()
         n0 = g_n[g]
@@ -172,18 +184,21 @@ def main():
             radial -= n * np.dot(radial, n)
             rl = np.linalg.norm(radial)
             radial = radial / rl if rl > 1e-6 else np.zeros(3)
-            flow = fringe_flow if fringe[g] else back_flow
+            flow = fringe_flow if fringe[g] else back_flow + np.array([sweep[g], 0.0, 0.0])
             flow = flow - n * np.dot(flow, n)
             flow /= np.linalg.norm(flow) + 1e-12
             # The top stands up longer: the volume on the crown.
             lift = max(0.0, 1.0 - (0.022 if g_roots[g][2] > hairline_z + 0.03 else 0.035) * k)
-            fall = min(1.0, 0.03 * k)
-            d = lift * n + 0.35 * radial + 0.8 * flow + fall * np.array([0.0, 0.0, -1.0])
+            fall = min(1.0, 0.024 * k)
+            curl_out = 0.6 if outside > 0 else 0.0
+            d = (lift + curl_out) * n + 0.35 * radial + 0.8 * flow + fall * np.array([0.0, 0.0, -1.0])
             d /= np.linalg.norm(d) + 1e-12
             side = np.cross(d, n)
             sl = np.linalg.norm(side)
             if sl > 1e-6:
-                d = d + a.wave * np.sin(2 * np.pi * arc / a.wave_length + phase[g]) * side / sl
+                # Waves loosen toward the ends, as tousled hair does.
+                amp = a.wave * (0.4 + 0.6 * min(1.0, arc / 0.10))
+                d = d + amp * np.sin(2 * np.pi * arc / wave_len[g] + phase[g]) * side / sl
                 d /= np.linalg.norm(d)
             p = p_safe + d * STEP
             arc += STEP
@@ -200,7 +215,7 @@ def main():
                 outside = 0
             elif entered:
                 outside += 1
-                if outside >= 2:
+                if outside >= overshoot[g]:
                     break
             elif k >= 25:
                 break
@@ -256,11 +271,16 @@ def main():
     cap_lum = 1.25 * float(np.median(lum))
     strand_cols *= np.minimum(1.0, cap_lum / np.maximum(lum, 1e-6))[:, None]
     strand_cols *= BRIGHTEN   # the shell paint is baked under flat light; strands are shaded
+    strand_cols *= WARM       # toward the painting's copper
+    # Each lock (a guide and its children) is a shade lighter or darker than its neighbours.
+    lock_shade = rng.uniform(0.82, 1.22, n_g)
+    strand_guide = np.r_[np.arange(n_g), owner]
+    strand_cols *= lock_shade[strand_guide][:, None]
     start = 0
     for s, col in zip(strands, strand_cols):
         m = len(s)
         u = np.linspace(0.0, 1.0, m)
-        colours[start:start + m] = col[None, :] * (0.6 + 0.6 * np.sqrt(u))[:, None]
+        colours[start:start + m] = col[None, :] * (0.65 + 0.75 * np.sqrt(u))[:, None]
         radius[start:start + m] = 0.00034 * (1.0 - 0.7 * u)
         start += m
     # The scalp cap: scalp skin pushed out a little and darkened, so skin never shows

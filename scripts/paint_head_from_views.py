@@ -23,6 +23,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from scipy import ndimage
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -54,7 +55,11 @@ CROWN_ROLL = 55.0
 NECK_HAIR_DARKER = 0.88
 BROW_CLEARANCE = 0.035   # metres above the eyes' centre: clear of the brows (no landmarks)
 LID_CLEARANCE = 0.012    # metres above the eyes' centre: clear of the lid crease
-BROW_BAND = 0.007        # metres around the brow landmarks kept as brow
+BROW_BAND = 0.005        # metres around the brow landmarks kept as brow
+NECK_BEHIND_EYES = 0.045  # metres behind the eyes where the neck (not the jaw and beard) begins
+REGROW_RADIUS = 0.006     # metres of untouched skin averaged onto each vertex
+REGROW_EDGE = 10          # texels of paint beside cleared hair regrown with it (its pale rim)
+REGROW_FEATHER = 16.0     # texels over which regrown skin blends into the paint
 BESIDE_EYES = 0.006      # metres outside the eyeballs where the temples begin
 TEMPLE_BEHIND_EYES = 0.02   # metres behind the eyes: the temples, clear of the cheeks
 CROWN_FROM = 0.10
@@ -81,6 +86,54 @@ def head_triangles(z):
             lt.append((s, s + k, s + k + 1))
             vt.append((lv[0], lv[k], lv[k + 1]))
     return np.array(vt), np.array(lt)
+
+
+def smooth_regrow(tex, source, regrow, where, verts, tris, uv, tris_uv, size):
+    """Skin colour for `regrow` texels, smooth across the surface.
+
+    Copying the few nearest painted texels leaves flat cells. Instead each mesh vertex
+    takes the mean colour of the source texels within REGROW_RADIUS of it; vertices
+    without enough of them are solved harmonically across the mesh (smooth
+    gradients between the known ones); texels then interpolate their triangle's
+    vertex colours."""
+    from scipy.sparse import coo_matrix, diags
+    from scipy.sparse.linalg import spsolve
+    from scipy.spatial import cKDTree
+
+    used = np.unique(tris)
+    tree = cKDTree(where[source])
+    src_col = tex[source]
+    vcol = np.zeros((len(verts), 3))
+    known = np.zeros(len(verts), bool)
+    groups = tree.query_ball_point(verts[used], REGROW_RADIUS, workers=-1)
+    for vi, g in zip(used, groups):
+        if len(g) >= 8:
+            vcol[vi] = src_col[g].mean(0)
+            known[vi] = True
+    # Vertices whose neighbourhood is mostly regrow paint are not trusted either.
+    reg_tree = cKDTree(where[regrow]) if regrow.any() else None
+    if reg_tree is not None:
+        near_reg = reg_tree.query_ball_point(verts[used], REGROW_RADIUS * 0.5, workers=-1)
+        for vi, g in zip(used, near_reg):
+            if len(g) > 0:
+                known[vi] = False
+    e = np.concatenate([tris[:, [0, 1]], tris[:, [1, 2]], tris[:, [2, 0]]])
+    n = len(verts)
+    adj = coo_matrix((np.ones(2 * len(e)), (np.r_[e[:, 0], e[:, 1]], np.r_[e[:, 1], e[:, 0]])),
+                     shape=(n, n)).tocsr()
+    adj.data[:] = 1.0
+    lap = (diags(np.asarray(adj.sum(1)).ravel()) - adj).tocsr()
+    unk = np.intersect1d(used, np.flatnonzero(~known))
+    kn = np.flatnonzero(known)
+    if len(unk) and len(kn):
+        a = lap[unk][:, unk] + 1e-6 * diags(np.ones(len(unk)))
+        rhs = -(lap[unk][:, kn] @ vcol[kn]) + 1e-6 * vcol[kn].mean(0)
+        vcol[unk] = np.column_stack([spsolve(a.tocsc(), rhs[:, c]) for c in range(3)])
+    tri_id, bary = vp.uv_rasterize(uv, tris_uv, size)
+    out = tex.copy()
+    sel = regrow & (tri_id >= 0)
+    out[sel] = np.einsum("nk,nkc->nc", bary[sel], vcol[tris[tri_id[sel]]])
+    return out
 
 
 def brow_points(receipt):
@@ -253,7 +306,8 @@ def main():
     lum = tex @ np.array([0.2126, 0.7152, 0.0722])
     face_band = painted & (where[..., 2] > ears[:, 2].min()) & (where[..., 2] < ears[:, 2].max())
     skin_lum = float(np.median(lum[face_band]))
-    neck = painted & (where[..., 2] < ears[:, 2].min()) & (where[..., 1] > ears[:, 1].min())
+    eye_centres = head_v[np.concatenate([z["vg__helper-l-eye"], z["vg__helper-r-eye"]])]
+    neck = painted & (where[..., 2] < ears[:, 2].min()) & (where[..., 1] > eye_centres[:, 1].mean() + NECK_BEHIND_EYES)
     hairy = neck & (lum < NECK_HAIR_DARKER * skin_lum)
     # The same in the hair zone - above the brows, and the temples behind the eyes' outer
     # corners above the ears' lowest point: the pictures' hair painted onto the skin. A hair
@@ -264,20 +318,29 @@ def main():
     # brow landmarks, carried onto the head through its registration, mark a band to keep.
     zone = (where[..., 2] > eyes[:, 2].mean() + LID_CLEARANCE) \
         | ((where[..., 1] > eyes[:, 1].mean() + TEMPLE_BEHIND_EYES) & (where[..., 2] > ears[:, 2].min())) \
-        | ((np.abs(where[..., 0]) > np.abs(eyes[:, 0]).max() + BESIDE_EYES) & (where[..., 2] > eyes[:, 2].mean() - 0.015))
+        | ((np.abs(where[..., 0]) > np.abs(eyes[:, 0]).max() + BESIDE_EYES) & (where[..., 2] > eyes[:, 2].mean() - 0.025))
     brows = brow_points(receipt)
+    keep_brows = np.zeros_like(zone)
     if brows is not None:
         front = where[..., 1] < eyes[:, 1].mean() + 0.03
-        zone &= ~(front & near_polyline(where[..., [0, 2]], brows, BROW_BAND))
+        keep_brows = front & near_polyline(where[..., [0, 2]], brows, BROW_BAND)
+        zone &= ~keep_brows
     else:
         zone &= where[..., 2] > eyes[:, 2].mean() + BROW_CLEARANCE
     hairy |= painted & zone & (lum < NECK_HAIR_DARKER * skin_lum)
     regrow = hairy | (texel & zone & ~painted)
-    # From skin only: the nearest painted neighbours include brows and lashes, which would
-    # paint the temples black.
+    # From skin only (the nearest painted neighbours include brows and lashes, which would
+    # paint the temples black), and smoothly (see smooth_regrow).
     skin_src = painted & ~hairy & (lum >= NECK_HAIR_DARKER * skin_lum)
-    regrown = vp.fill_unseen_3d(tex, skin_src, skin_src | regrow, where)
-    tex[regrow] = regrown[regrow]
+    # The picture's paint just beside cleared hair carries a pale rim (its soft hair edge):
+    # regrow a thin band of it too, then feather the regrown colour into the paint around.
+    band = ndimage.binary_dilation(regrow, iterations=REGROW_EDGE) & texel & ~keep_brows
+    regrown = smooth_regrow(tex, skin_src & ~band, band, where, head_v, head_t, head_uv, head_lt,
+                            a.head_size)
+    alpha = np.clip(ndimage.distance_transform_edt(band) / REGROW_FEATHER, 0.0, 1.0)[..., None]
+    alpha[regrow | (band & ~painted)] = 1.0     # nothing painted there to blend with
+    tex = tex * (1.0 - alpha) + regrown * alpha
+    regrow = band
     painted = painted | regrow
     record["hair_on_skin_texels_regrown"] = int(regrow.sum())
     tex = vp.fill_unseen_3d(tex, painted, texel, where)
