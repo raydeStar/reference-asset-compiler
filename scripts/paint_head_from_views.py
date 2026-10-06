@@ -24,6 +24,7 @@ from pathlib import Path
 
 import numpy as np
 from scipy import ndimage
+from scipy.spatial import cKDTree
 from PIL import Image
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
@@ -59,10 +60,15 @@ BROW_BAND = 0.005        # metres around the brow landmarks kept as brow
 NECK_BEHIND_EYES = 0.045  # metres behind the eyes where the neck (not the jaw and beard) begins
 REGROW_RADIUS = 0.006     # metres of untouched skin averaged onto each vertex
 REGROW_EDGE = 10          # texels of paint beside cleared hair regrown with it (its pale rim)
-REGROW_FEATHER = 16.0     # texels over which regrown skin blends into the paint
+REGROW_FEATHER = 36.0     # texels over which regrown skin blends into the paint
 BESIDE_EYES = 0.006      # metres outside the eyeballs where the temples begin
 SIDE_OF_FACE = 0.014     # metres outside the eyeballs where the side of the face (hair falls there) begins
 TEMPLE_BEHIND_EYES = 0.02   # metres behind the eyes: the temples, clear of the cheeks
+EAR_KEEP = 0.006          # metres around the ears whose paint is kept (the side regrow skips them)
+SIDE_FEATHER = 70.0       # texels over which the regrown side of the face blends into the cheek
+MIRROR_DARKER = 0.85      # around the brows: this much darker than the mirror side is a stray lock
+MIRROR_MATCH = 0.01       # metres: the two sides of a scanned face differ by this much in depth
+MIRROR_REACH = 0.015      # metres around the brow landmarks the repair looks at (a lock crossing the tail)
 CROWN_FROM = 0.10
 CROWN_FULL = 0.4
 SIDE_SHARPNESS = 6.0
@@ -136,6 +142,49 @@ def smooth_regrow(tex, source, regrow, where, verts, tris, uv, tris_uv, size):
     out[sel] = np.einsum("nk,nkc->nc", bary[sel], vcol[tris[tri_id[sel]]])
     return out
 
+
+def mirror_repair(tex, painted, where, region, mid_x, brow_band):
+    """Stray hair over one brow, replaced from the other side.
+
+    Within `region` (around both brows), a painted texel much darker than the painted texel
+    at its mirror position across the face's midline is taken as a lock the picture drew
+    over the skin. The side with more of them (counted beside the brows: two painted brows
+    differ in shape, the lock lies beside) takes the other side's colours, blended in toward
+    the region's edge. Where the other side was not seen either (hair hid it), the texel is
+    handed back as unseen, for the regrow. Returns the texture, the painted mask, a record
+    and the blend weights."""
+    if not region.any():
+        return tex, painted, {}, np.zeros(region.shape, np.float32)
+    pos = where[region]
+    mirror = pos.copy()
+    mirror[:, 0] = 2.0 * mid_x - mirror[:, 0]
+    dist, j = cKDTree(pos).query(mirror)
+    match = dist < MIRROR_MATCH
+    col = tex[region]
+    mcol = col[j]
+    seen = painted[region]
+    mseen = seen[j]
+    w = np.array([0.2126, 0.7152, 0.0722])
+    bad = match & seen & mseen & (col @ w < MIRROR_DARKER * (mcol @ w))
+    side = pos[:, 0] > mid_x
+    beside = bad & ~brow_band[region]
+    dirty = bool(beside[side].sum() > beside[~side].sum())
+    on_dirty = (side == dirty) & match
+    mask = np.zeros(region.shape, np.float32)
+    mask[region] = on_dirty & mseen
+    inside = ndimage.distance_transform_edt(region)
+    alpha = mask * np.clip(inside / 12.0, 0.0, 1.0)
+    src = tex.copy()
+    src[region] = mcol
+    tex = tex * (1.0 - alpha[..., None]) + src * alpha[..., None]
+    unseen = np.zeros(region.shape, bool)
+    unseen[region] = on_dirty & ~mseen & seen
+    painted = painted & ~unseen
+    info = {"repaired_side": "+x" if dirty else "-x", "region_texels": int(region.sum()),
+            "darker_beside_brow": int(beside[side == dirty].sum()),
+            "darker_beside_brow_other_side": int(beside[side != dirty].sum()),
+            "transplanted": int((on_dirty & mseen).sum()), "handed_to_regrow": int(unseen.sum())}
+    return tex, painted, info, alpha
 
 def brow_points(receipt):
     """The front picture's two brows as (x, z) polylines on the head, or None.
@@ -321,6 +370,29 @@ def main():
     brows = brow_points(receipt)
     brow_top = (max(float(b[:, 1].max()) for b in brows) if brows is not None
                 else float(eyes[:, 2].mean()) + BROW_CLEARANCE)
+    # A lock the front picture draws across one brow: the other brow is the better witness.
+    eye_l = head_v[z["vg__helper-l-eye"]].mean(0)
+    eye_r = head_v[z["vg__helper-r-eye"]].mean(0)
+    mid_x = float(eye_l[0] + eye_r[0]) / 2.0
+    eye_reach = float(np.abs(eyes[:, 0] - mid_x).max())
+    eye_radius = float(np.linalg.norm(head_v[z["vg__helper-l-eye"]] - eye_l, axis=1).max())
+    off_eyes = np.minimum(np.linalg.norm(where - eye_l, axis=-1), np.linalg.norm(where - eye_r, axis=-1)) \
+        > eye_radius + 0.002
+    off = np.abs(where[..., 0] - mid_x)
+    if brows is not None:
+        front_face = where[..., 1] < eyes[:, 1].mean() + 0.05
+        around_brows = texel & front_face & off_eyes & (where[..., 2] > eyes[:, 2].mean() + 0.006) \
+            & (off > 0.015) & near_polyline(where[..., [0, 2]], brows, MIRROR_REACH)
+        brow_band = near_polyline(where[..., [0, 2]], brows, BROW_BAND)
+        tex, painted, record["brow_mirror"], mirror_alpha = mirror_repair(tex, painted, where, around_brows,
+                                                                          mid_x, brow_band)
+    else:
+        around_brows = np.zeros_like(texel)
+        mirror_alpha = np.zeros(texel.shape, np.float32)
+    # Review aid: where the brow region lies (grey) and what was transplanted (white), in UV.
+    Image.fromarray((np.maximum(around_brows * 0.35, mirror_alpha) * 255).astype(np.uint8)).save(
+        out / "brow_mirror_mask.png")
+    lum = tex @ np.array([0.2126, 0.7152, 0.0722])
     zone = (where[..., 2] > brow_top + BROW_ABOVE) \
         | ((where[..., 1] > eyes[:, 1].mean() + TEMPLE_BEHIND_EYES) & (where[..., 2] > ears[:, 2].min())) \
         | ((np.abs(where[..., 0]) > np.abs(eyes[:, 0]).max() + BESIDE_EYES) & (where[..., 2] > eyes[:, 2].mean() - 0.025)) \
@@ -331,17 +403,33 @@ def main():
         keep_brows = front & near_polyline(where[..., [0, 2]], brows, BROW_BAND)
         zone &= ~keep_brows
     hairy |= painted & zone & (lum < NECK_HAIR_DARKER * skin_lum)
-    regrow = hairy | (texel & zone & ~painted)
+    # The side of the face and the temples: every picture has hair there (sideburns, locks
+    # falling past the temples), dark or half-blended into the skin. Regrown whole, ears kept,
+    # and blended into the cheek over a wide band.
+    near_ear = np.zeros_like(texel)
+    near_ear[texel] = cKDTree(ears).query(where[texel])[0] < EAR_KEEP
+    whole = texel & ~near_ear & (
+        ((off > np.abs(eyes[:, 0] - mid_x).max() + SIDE_OF_FACE) & (where[..., 2] > ears[:, 2].min() + 0.005))
+        | ((where[..., 1] > eyes[:, 1].mean() + TEMPLE_BEHIND_EYES) & (where[..., 2] > ears[:, 2].min())))
+    whole &= ~keep_brows
+    hairy |= whole & painted
+    regrow = hairy | (texel & zone & ~painted) | whole
     # From skin only (the nearest painted neighbours include brows and lashes, which would
     # paint the temples black), and smoothly (see smooth_regrow).
     skin_src = painted & ~hairy & (lum >= NECK_HAIR_DARKER * skin_lum)
     # The picture's paint just beside cleared hair carries a pale rim (its soft hair edge):
     # regrow a thin band of it too, then feather the regrown colour into the paint around.
     band = ndimage.binary_dilation(regrow, iterations=REGROW_EDGE) & texel & ~keep_brows
+    alpha = np.clip(ndimage.distance_transform_edt(band) / REGROW_FEATHER, 0.0, 1.0)
+    alpha[regrow | (band & ~painted)] = 1.0     # nothing painted there to blend with
+    out_of_side = ndimage.distance_transform_edt(~whole)
+    wide = texel & (out_of_side < SIDE_FEATHER) & ~keep_brows
+    alpha = np.maximum(alpha, np.where(wide, 1.0 - out_of_side / SIDE_FEATHER, 0.0))
+    band |= wide
+    alpha[band & ~painted] = 1.0                # (unseen texels hold no colour to blend with)
+    alpha = alpha[..., None]
     regrown = smooth_regrow(tex, skin_src & ~band, band, where, head_v, head_t, head_uv, head_lt,
                             a.head_size)
-    alpha = np.clip(ndimage.distance_transform_edt(band) / REGROW_FEATHER, 0.0, 1.0)[..., None]
-    alpha[regrow | (band & ~painted)] = 1.0     # nothing painted there to blend with
     tex = tex * (1.0 - alpha) + regrown * alpha
     regrow = band
     painted = painted | regrow

@@ -28,7 +28,8 @@ from mathutils import Vector
 HELPERS = ("helper-l-eye", "helper-r-eye", "helper-upper-teeth", "helper-lower-teeth",
            "helper-tongue")
 VIEWS = {"front": 0.0, "three-quarter": 35.0, "side": 90.0, "back": 180.0,
-         "three-quarter-left": -35.0}
+         "three-quarter-left": -35.0, "top": 0.0, "top-back": 180.0}
+ELEVATION = {"top": 65.0, "top-back": 50.0}   # degrees above the horizon; the rest are level
 
 
 def _args():
@@ -237,7 +238,8 @@ def main():
     dist = height * 85 / 36 * 1.25
     for view in a.views:
         ang = math.radians(VIEWS[view])
-        d = Vector((math.sin(ang), -math.cos(ang), 0.0))
+        el = math.radians(ELEVATION.get(view, 0.0))
+        d = Vector((math.sin(ang) * math.cos(el), -math.cos(ang) * math.cos(el), math.sin(el)))
         cam.location = centre + d * dist
         cam.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
         scene.render.filepath = str(out / "{}-{}.png".format(a.tag, view))

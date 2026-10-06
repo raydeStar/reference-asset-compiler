@@ -23,9 +23,51 @@ without renders, about 2 min more for nine 1024 px Cycles renders.
    55° back over the top of the head.
 4. **Hair the pictures call skin** (`trim_hair_by_paint.py`). Shell triangles
    below the ears whose paint is nearer the median skin than the median hair
-   are dropped. Paint step 3 also clears hair the profile draws over the neck: below the ears, behind their front edge, and darker than 0.8 of the face's skin brightness.
+   are dropped. Paint step 3 also clears hair the pictures draw on the skin:
+   - over the neck, below the ears and behind their front edge, texels darker than
+     0.88 of the face's skin brightness;
+   - the same rule above the brows and beside the eyes;
+   - the side of the face and the temples (sideburns and locks in every picture) are
+     regrown whole from the skin around them, ears kept, blended into the cheek over
+     70 texels;
+   - a lock drawn across one brow: around the brows, the side with more painted
+     texels much darker than their mirror across the face (counted beside the brows)
+     takes the other side's colours; where the other side was hidden too, the texel is
+     regrown. `brow_mirror_mask.png` shows the region and what was transplanted.
 5. **Review renders** (`blender/render_painted_head.py --device CPU`): five
-   views and four expressions.
+   views and four expressions. `--views top top-back` adds raised views for the crown.
+
+## Strand groom (`--groom`)
+
+The scan's hair shell is smoothed (`smooth_hair_shell.py`, 30 Taubin passes) and kept
+only as the hairstyle's envelope; `blender/grow_hair_groom.py` grows strands inside it.
+
+- **Envelope.** At every scalp vertex the hair reaches out to the shell's last crossing
+  along the normal (the silhouette); zero where no hair lies over the skin. Smoothed
+  (25 passes) and capped at 5 cm, so a bulge in the scan does not raise the few locks under
+  it into a tuft.
+- **Guides** (300). Each lock is given a depth in that volume (most toward the outside),
+  climbs to it off the scalp at a shallow angle (steeper only at the front hairline,
+  where the swept-up front lock lifts) and flows along it: swept back, sweeping away
+  from the parting, falling behind the ears at the sides. Each lock has its own heading
+  and a C-curve toward one side, broad S-waves, and weaves a little in and out of its
+  layer. Its last stretch turns out of the layer, and where it reaches the envelope's
+  edge its end is free and flicks out: the layered cut's ends. On top of the head "out"
+  is up, so there ends lie along the flow instead. Nothing roots in front of the ears below
+  the brows (hair there lies flat and reads as a painted sticker). Fringe locks come in bands
+  along the hairline, lie low, sweep out from the part like curtains and fall over the
+  forehead.
+- **Children** (255 per guide). Each follows the blend of its nearest guides' shapes
+  (same kind, same side of the part) from its own root, so the hair is one mass, then
+  is drawn toward its own guide as it nears the tip, so locks stay wide and end in a
+  point. A few percent are strays (flyaways).
+- **Colour** from the painted hair texture, kept inside the hair's palette, warmed
+  toward the painting's copper, darker the more hair lies over a strand (full shade under
+  2.5 cm) and toward the root.
+- A dark scalp cap under the strands, inset 1.5 cm inside the hair's edge and only where
+  the strands are dense.
+
+About 70 s for the groom on the CPU; about 77k strands.
 
 The same inputs give byte-identical meshes and textures (checked with a replay
 on 2026-10-06). `manifest.json` in the output records every input and output
@@ -58,5 +100,5 @@ The likeness matches the InsightFace run: the features hold to the picture withi
 - Behind the jaw, the neck keeps a faint grey shadow where the profile picture's hair was cleared from the skin.
 - The front-left crown keeps some dark smear: those surfaces face sideways,
   not up, so the crown fill does not reach them.
-- Hair is a painted shell, not cards or strands.
+- The groom is Cycles strands, not game hair cards yet.
 - The head only: body, hands and rig integration are separate stages.
