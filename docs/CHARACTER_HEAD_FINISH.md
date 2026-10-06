@@ -23,7 +23,7 @@ without renders, about 2 min more for nine 1024 px Cycles renders.
    55° back over the top of the head.
 4. **Hair the pictures call skin** (`trim_hair_by_paint.py`). Shell triangles
    below the ears whose paint is nearer the median skin than the median hair
-   are dropped.
+   are dropped. Paint step 3 also clears hair the profile draws over the neck: below the ears, behind their front edge, and darker than 0.8 of the face's skin brightness.
 5. **Review renders** (`blender/render_painted_head.py --device CPU`): five
    views and four expressions.
 
@@ -39,13 +39,23 @@ hash.
 | Python, NumPy, SciPy, Pillow | open source (PSF, BSD, HPND) |
 | Blender (renders, template export) | GPL |
 | MakeHuman hm08 template via MPFB | assets CC0, MPFB GPL |
-| **InsightFace buffalo_l landmark models** (used upstream, in conform and paint landmarks) | **non-commercial research licence: not open source.** Replace with MediaPipe Face Landmarker (Apache-2.0) and map its points to the 106-point indices the scripts use |
+| Face landmarks: `detect_face_landmarks_dwpose.py`, DWPose `dw-ll_ucoco_384` weights run directly with PyTorch | Apache-2.0 weights, BSD PyTorch: open source. The conform and paint scripts read its 68-point layout. |
+| InsightFace buffalo_l (`detect_face_landmarks.py`, the earlier route) | non-commercial research licence: **not open source; do not use for the pipeline.** The ComfyUI DWPose wrapper code is OpenPose-licensed (non-commercial), so it is not used either; only the weights are. |
 | Head acquisition and the front/side/back guidance pictures | frozen inputs from earlier work; their generators' licences still need confirming |
 
-## Known gaps (v9, Ennix)
+## Open route, end to end (v10, Ennix, 2026-10-06)
+
+1. `detect_face_landmarks_dwpose.py` runs on the front picture, a front render of the template, and the left profile.
+2. `conform_head_template.py` uses `--picture-landmarks`, `--template-landmarks` and `--template-camera` with those JSONs (68-point). It takes 14 s.
+3. `finish_template_head.py` uses the same template and profile JSONs. It takes about 70 s without renders.
+
+The likeness matches the InsightFace run: the features hold to the picture within 0.10 mm median, and the eyes shift the same.
+
+## Known gaps (v9/v10, Ennix)
 
 - In profile, the collar dips to a point at the throat, and the nape has one
   notch where a hair flap meets the neck.
+- Behind the jaw, the neck keeps a faint grey shadow where the profile picture's hair was cleared from the skin.
 - The front-left crown keeps some dark smear: those surfaces face sideways,
   not up, so the crown fill does not reach them.
 - Hair is a painted shell, not cards or strands.

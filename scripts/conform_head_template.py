@@ -48,6 +48,26 @@ NOSE_LANDMARKS = (76, 77, 78, 79, 80, 82, 83, 84, 85, 86)
 JAW_LANDMARKS = (0, 2, 3, 4, 5, 6, 7, 8, 14, 15, 16, 18, 19, 20, 21, 22, 23, 24, 30, 31, 32)
 FEATURE_LANDMARKS = EYE_LANDMARKS + MOUTH_LANDMARKS + NOSE_LANDMARKS + JAW_LANDMARKS
 REGISTRATION_LANDMARKS = (35, 39, 89, 93, 77, 83, 80, 86, 52, 61, 71, 53)
+# The same roles in the 68-point layout (iBUG 300-W; DWPose, Apache-2.0): eyes 36-47,
+# mouth 48-67, nose tip/base/wings 30-35, the jaw below the ears 3-13. It has no pupil
+# points: each eye's outline centre stands in (appended as 68 and 69).
+LANDMARK_SETS = {
+    106: {"features": EYE_LANDMARKS + MOUTH_LANDMARKS + NOSE_LANDMARKS + JAW_LANDMARKS,
+          "jaw": JAW_LANDMARKS, "registration": REGISTRATION_LANDMARKS, "pupils": (("r", 38), ("l", 88))},
+    68: {"features": tuple(range(36, 48)) + tuple(range(48, 68)) + tuple(range(30, 36)) + tuple(range(3, 14)),
+         "jaw": tuple(range(3, 14)), "registration": (36, 39, 42, 45, 30, 33, 31, 35, 48, 54, 51, 57),
+         "pupils": (("r", 68), ("l", 69))},
+}
+
+
+def read_landmarks(path):
+    """(pixels, layout) from a detect_face_landmarks*.py JSON: InsightFace's 106
+    points, or the open 68-point layout with the two eye centres appended."""
+    d = json.loads(Path(path).read_text(encoding="utf-8"))
+    if "landmarks_68" in d:
+        px = np.array(d["landmarks_68"], float)
+        return np.vstack([px, px[36:42].mean(0), px[42:48].mean(0)]), 68
+    return np.array(d["landmarks_106"], float), 106
 LANDMARK_WEIGHT = 4.0
 JAW_WEIGHT = 1.5
 PUPIL_SHIFT_LIMIT = 0.003   # metres an eyeball may move to meet the picture's pupil
@@ -140,13 +160,16 @@ def main(argv=None):
     picture = None
     if a.picture_landmarks:
         cam = json.loads(Path(a.template_camera).read_text(encoding="utf-8"))
-        tpl_px = np.array(json.loads(Path(a.template_landmarks).read_text())["landmarks_106"])
+        tpl_px, tpl_layout = read_landmarks(a.template_landmarks)
         img = json.loads(Path(a.picture_landmarks).read_text(encoding="utf-8"))
-        img_px = np.array(img["landmarks_106"])
+        img_px, layout = read_landmarks(a.picture_landmarks)
+        if layout != tpl_layout:
+            raise SystemExit("picture and template landmarks use different layouts")
+        sets = LANDMARK_SETS[layout]
         feature_tris = tris[(active & body)[tris].all(1)]
         ids, bary, found = tc.bind_pixels(t.verts, feature_tris, cam, tpl_px)
-        use = np.array([i for i in FEATURE_LANDMARKS if found[i]])
-        stable = np.array([i for i in REGISTRATION_LANDMARKS if found[i]])
+        use = np.array([i for i in sets["features"] if found[i]])
+        stable = np.array([i for i in sets["registration"] if found[i]])
 
         def front(points):          # world -> picture-like plane (x right, -z down)
             return np.c_[points[:, 0], -points[:, 2]]
@@ -157,7 +180,7 @@ def main(argv=None):
         goal = first.copy()
         goal[:, 0], goal[:, 2] = back[:, 0], -back[:, 1]
         before_mm = np.linalg.norm(front(first[use]) - back[use], axis=1) * 1000
-        weight = np.where(np.isin(use, JAW_LANDMARKS), JAW_WEIGHT, LANDMARK_WEIGHT)
+        weight = np.where(np.isin(use, sets["jaw"]), JAW_WEIGHT, LANDMARK_WEIGHT)
         lm = tc.SurfaceLandmarks(ids=ids[use], bary=bary[use], points=goal[use],
                                  weight=weight, free_axis=1)
         # The picture outranks the acquisition at the lid margins and lips. Only
@@ -174,9 +197,10 @@ def main(argv=None):
         fitted = fit.verts
         after = np.einsum("lk,lkj->lj", bary, fitted[ids])
         after_mm = np.linalg.norm(front(after[use]) - back[use], axis=1) * 1000
-        pupils = {side: back[k] for side, k in (("r", 38), ("l", 88))}
+        pupils = {side: back[k] for side, k in sets["pupils"]}
         picture = {
-            "landmarks": str(a.picture_landmarks), "image": img.get("image"),
+            "landmarks": str(a.picture_landmarks), "layout": layout, "detector": img.get("detector"),
+            "image": img.get("image"),
             "image_sha256": img.get("image_sha256"),
             "template_landmarks": str(a.template_landmarks),
             "registration": {"scale_px_per_m": float(ps), "rotation": pr.tolist(),

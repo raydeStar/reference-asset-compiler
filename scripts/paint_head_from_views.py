@@ -33,6 +33,17 @@ from reference_asset_compiler import view_projection as vp  # noqa: E402
 # Visible in a profile and bound on the template: outer eye corner and inner,
 # brow tail, nose tip and base, mouth corner, upper and lower lip, chin.
 SIDE_LANDMARKS = (93, 89, 101, 86, 80, 61, 71, 53, 0)
+# The same in the 68-point layout, for a left profile (the subject's left side shows):
+# outer corner of the left eye, its brow tail, nose tip and base, left mouth corner,
+# upper and lower lip. The hidden side's points are guesses and stay out.
+SIDE_LANDMARKS_68 = (45, 26, 30, 33, 54, 51, 57)
+
+
+def read_landmarks(path):
+    d = json.loads(Path(path).read_text(encoding="utf-8"))
+    if "landmarks_68" in d:
+        return np.array(d["landmarks_68"], float), SIDE_LANDMARKS_68
+    return np.array(d["landmarks_106"], float), SIDE_LANDMARKS
 FRONT_SHARPNESS = 2.0
 HAIR_MIN_FACING = 0.06
 # The crown faces no picture. Rolled back over the top of the head by CROWN_ROLL degrees it
@@ -40,6 +51,7 @@ HAIR_MIN_FACING = 0.06
 # grown in from the edges. Blended in as the hair turns upward (normal z from CROWN_FROM to
 # CROWN_FULL).
 CROWN_ROLL = 55.0
+NECK_HAIR_DARKER = 0.8
 CROWN_FROM = 0.15
 CROWN_FULL = 0.6
 SIDE_SHARPNESS = 6.0
@@ -147,11 +159,13 @@ def main():
             # tip and base, mouth corner, lips, chin -- on the fitted head (bound
             # through the template render) against where the profile has them.
             cam = json.loads(Path(a.template_camera).read_text(encoding="utf-8"))
-            tpl_px = np.array(json.loads(Path(a.template_landmarks).read_text())["landmarks_106"])
-            side_px = np.array(json.loads(Path(a.side_landmarks).read_text())["landmarks_106"])
+            tpl_px, side_set = read_landmarks(a.template_landmarks)
+            side_px, side_set2 = read_landmarks(a.side_landmarks)
+            if side_set != side_set2:
+                raise SystemExit("side and template landmarks use different layouts")
             rest = tz["verts"].astype(np.float64)
             ids, bary, found = tc.bind_pixels(rest, head_t, cam, tpl_px)
-            use = np.array([k for k in SIDE_LANDMARKS if found[k]])
+            use = np.array([k for k in side_set if found[k]])
             pts = np.einsum("lk,lkj->lj", bary[use], head_v[ids[use]])
             # The features place the face: the generated hair around it differs
             # from the mesh's by centimetres, so the silhouette cannot. A
@@ -188,6 +202,19 @@ def main():
     tex, cov, painted, where = vp.bake(views, head_v, head_n, head_t, head_uv, head_lt,
                                        a.head_size, (occ_v, occ_t), buffers=buffers)
     texel = vp.uv_rasterize(head_uv, head_lt, a.head_size)[0] >= 0
+    # Hair the pictures draw over the neck: the profile shows locks hanging behind the ear,
+    # and where the shell no longer covers the neck that hair lands on the skin. Below the
+    # ears and behind their front edge (clear of the beard), skin painted much darker than
+    # the face (hair is a darker shade of the same hue) is treated as unseen and grown in
+    # from the skin around it.
+    ears = head_v[tz["vg__ears"]]
+    lum = tex @ np.array([0.2126, 0.7152, 0.0722])
+    face_band = painted & (where[..., 2] > ears[:, 2].min()) & (where[..., 2] < ears[:, 2].max())
+    skin_lum = float(np.median(lum[face_band]))
+    neck = painted & (where[..., 2] < ears[:, 2].min()) & (where[..., 1] > ears[:, 1].min())
+    hairy = neck & (lum < NECK_HAIR_DARKER * skin_lum)
+    painted = painted & ~hairy
+    record["neck_hair_texels_cleared"] = int(hairy.sum())
     tex = vp.fill_unseen_3d(tex, painted, texel, where)
     tex = vp.fill_unpainted(tex, texel)
     Image.fromarray((np.clip(tex, 0, 1) * 255).astype(np.uint8)).save(out / "head_basecolor.png")
