@@ -1,0 +1,94 @@
+"""Rig any T-posed character blend onto the UE5 Manny skeleton, end to end.
+
+  py -3.12 scripts/rig_ue5_character.py <character.blend> <out_dir> \
+      --manny-dir <dir with manny_refpose.json + manny_anim_poses.json> \
+      [--template hm08.npz --head-npz head.npz] [--arm-ratio 0.42]
+
+Stages (each writes into <out_dir>, which must not exist):
+  1. ortho/      calibrated orthographic renders  (blender/render_ortho_views.py)
+  2. keypoints/  DWPose body keypoints, front + side  (detect_body_landmarks_dwpose.py)
+  3. plan.json   joint plan from keypoints + mesh slices  (blender/plan_ue5_joints.py)
+  4. fit/        skin + Manny-axis export rig  (blender/fit_ue5_manny_rig.py)
+  5. fit/poses/  real Manny animation frames on the result  (blender/pose_ue5_anim_test.py)
+
+The Manny dumps come from scripts/ue5/dump_manny_reference.py (Epic content,
+kept out of Git). Tools are found through rac_env (Blender, DWPose weights and
+a torch Python); override with --blender / --torch-python / --dwpose.
+"""
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SCRIPTS = ROOT / "scripts"
+DEFAULT_BLENDER = r"C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe"
+DEFAULT_COMFY = Path(r"C:\Users\Ayric\Source\Repos\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable")
+
+
+def run(cmd, log):
+    with open(log, "w", encoding="utf-8") as fh:
+        proc = subprocess.run([str(c) for c in cmd], stdout=fh, stderr=subprocess.STDOUT)
+    if proc.returncode:
+        raise RuntimeError(f"Stage failed ({proc.returncode}); see {log}")
+
+
+def main():
+    p = argparse.ArgumentParser()
+    p.add_argument("blend")
+    p.add_argument("out")
+    p.add_argument("--manny-dir", required=True)
+    p.add_argument("--template")
+    p.add_argument("--head-npz")
+    p.add_argument("--arm-ratio", default="0.42")
+    p.add_argument("--name", default="Character")
+    p.add_argument("--blender", default=os.environ.get("RAC_BLENDER", DEFAULT_BLENDER))
+    p.add_argument("--torch-python", default=os.environ.get("RAC_TORCH_PYTHON", str(DEFAULT_COMFY / "python_embeded" / "python.exe")))
+    p.add_argument("--dwpose", default=os.environ.get("RAC_DWPOSE", str(
+        DEFAULT_COMFY / "ComfyUI/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt")))
+    a = p.parse_args()
+    out = Path(a.out).resolve()
+    if out.exists():
+        raise SystemExit("Choose a new output directory; earlier rigs are evidence.")
+    (out / "logs").mkdir(parents=True)
+    blend = Path(a.blend).resolve()
+    manny = Path(a.manny_dir).resolve()
+    blender = [a.blender, "--background", "--factory-startup"]
+    run(blender + [blend, "--python-exit-code", "1", "--python", SCRIPTS / "blender/render_ortho_views.py", "--",
+                   out / "ortho", "2048"], out / "logs/1-ortho.log")
+    (out / "keypoints").mkdir()
+    for view in ("front", "left"):
+        run([a.torch_python, "-I", SCRIPTS / "detect_body_landmarks_dwpose.py", out / "ortho" / f"{view}.png",
+             out / "keypoints" / f"{view}.json", "--model", a.dwpose, "--overlay", out / "keypoints" / f"{view}.png"],
+            out / f"logs/2-keypoints-{view}.log")
+    plan_args = ["--front-kp", out / "keypoints/front.json", "--side-kp", out / "keypoints/left.json",
+                 "--ortho", out / "ortho/ortho.json", "--out", out / "plan.json", "--arm-ratio", a.arm_ratio]
+    fit_extra = []
+    if a.template and a.head_npz:
+        plan_args += ["--template", Path(a.template).resolve(), "--head-npz", Path(a.head_npz).resolve()]
+        fit_extra = ["--template", Path(a.template).resolve(), "--head-npz", Path(a.head_npz).resolve()]
+    run(blender + [blend, "--python-exit-code", "1", "--python", SCRIPTS / "blender/plan_ue5_joints.py", "--"] + plan_args,
+        out / "logs/3-plan.log")
+    run(blender + [blend, "--python-exit-code", "1", "--python", SCRIPTS / "blender/fit_ue5_manny_rig.py", "--",
+                   "--plan", out / "plan.json", "--manny", manny / "manny_refpose.json", "--out", out / "fit",
+                   "--name", a.name] + fit_extra,
+        out / "logs/4-fit.log")
+    run(blender + [out / "fit" / f"{a.name}_UE5.blend", "--python-exit-code", "1", "--python", SCRIPTS / "blender/pose_ue5_anim_test.py",
+                   "--", manny / "manny_refpose.json", manny / "manny_anim_poses.json", out / "fit/poses", "--res", "720",
+                   "--lens", "70"], out / "logs/5-poses.log")
+    report = json.loads((out / "fit/fit-report.json").read_text())
+    receipts = json.loads((out / "fit/poses/pose-receipts.json").read_text())
+    summary = {"blend": str(blend), "plan": json.loads((out / "plan.json").read_text())["derivation"],
+               "bones": report["bone_count"], "deform_bones": report["deform_bones"],
+               "idle_fingertip_cm": next((r["fingertip_height_cm"] for r in receipts if r["pose"].startswith("MM_Idle")), None),
+               "export_blend": report["outputs"]["export_blend"]}
+    (out / "summary.json").write_text(json.dumps(summary, indent=1))
+    print(json.dumps(summary, indent=1))
+
+
+if __name__ == "__main__":
+    sys.exit(main())
