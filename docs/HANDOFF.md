@@ -4069,12 +4069,15 @@ refinement"; lessons in DECISIONS.
   (0.72, 0.72, 0.90). Ear L*a*b* shift (-1.6, +4.0, -1.4), neck (-1.8, +1.3, 0.0).
 - The stage is deterministic: a build's output matches a standalone run byte
   for byte, and the surface stage's "before" matches `rebuild-v5`.
-- Build: `work/ennix-character-v1/rebuild-v7` (`--manny-dir
-  work/ennix-character-v1/rig-ue5`), a full pass with UE5 exports.
+- Build: `work/ennix-character-v1/rebuild-v8` (`--manny-dir
+  work/ennix-character-v1/rig-ue5`), a full pass with UE5 exports. Head,
+  groom, body and both paints match `rebuild-v7` byte for byte; v8's recipe
+  only adds the left guidance (`head-left.png`) to the frozen inputs.
 - Review: `scripts/build_face_paint_review.py` renders before/after with the
   same groom, lights and camera beside the guidance (front, painting for the
   three-quarter view, left profile), plus close-ups and the region overlay:
-  `rebuild-v7/face-paint-review/face-paint-{sheet,details,regions}.png`.
+  `rebuild-v8/face-paint-review/face-paint-{sheet,details,regions}.png`.
+  `scripts/preview_head_texture.py` gives unlit views in seconds for tuning.
 - Still open: the face's detail is capped by the guidance's resolution; the
   three-quarter view has no guidance of its own; the light strip in front of
   each ear and the ears' flat inner paint come from the older side paint.

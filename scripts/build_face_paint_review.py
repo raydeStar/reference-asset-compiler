@@ -11,7 +11,7 @@ Every head shown wears its groom: no bald or grey clay beside the painting.
 
 Usage:
   python scripts/build_face_paint_review.py <rebuild_dir> <out_dir> --blender <exe> \
-      --left-guidance ennix-head-left-v1.png [--resolution 1024] [--samples 64]
+      [--left-guidance head-left.png] [--resolution 1024] [--samples 64]
 """
 
 from __future__ import annotations
@@ -124,11 +124,15 @@ def main():
     p.add_argument("build", help="a rebuild_ennix.py output with face-paint/")
     p.add_argument("out")
     p.add_argument("--blender", required=True)
-    p.add_argument("--left-guidance", required=True, help="the left-profile head guidance picture")
+    p.add_argument("--left-guidance", help="the left-profile head guidance picture "
+                   "(default: the build's frozen inputs/head-left.png)")
     p.add_argument("--resolution", type=int, default=1024)
     p.add_argument("--samples", type=int, default=64)
     a = p.parse_args()
     build, out = Path(a.build).resolve(), Path(a.out).resolve()
+    a.left_guidance = Path(a.left_guidance or build / "inputs/head-left.png")
+    if not a.left_guidance.is_file():
+        p.error(f"No left guidance at {a.left_guidance}: pass --left-guidance")
     before_tex, after_tex = build / "paint/head_basecolor.png", build / "face-paint/head_basecolor.png"
     if not after_tex.is_file():
         p.error("No face-paint/head_basecolor.png in the build: run it with a recipe that has face_paint.")

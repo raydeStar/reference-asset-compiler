@@ -33,8 +33,9 @@ NumPy **2.1.3**, SciPy **1.15.1**, Pillow **10.4.0**. The render workstation use
 an RTX 4090 and OptiX. The Blender scripts use factory startup, not installed
 commercial add-ons. GPU rendering is configured explicitly in the scripts.
 
-The 25-file frozen input bundle is `work/ennix-character-v1/rebuild-inputs/`.
-Its 83.76 MiB of inputs includes the acquired body, conformed template, original
+The frozen input bundle is `work/ennix-character-v1/rebuild-inputs/`: 26 files
+(85.47 MiB) for recipe `20261009`, which added the left head guidance
+(`head-left.png`) for the face-paint review. It includes the acquired body, conformed template, original
 reference, retained inferred witnesses, landmarks, and CC0 oral meshes. Large
 inputs are deliberately outside Git. Keep the bundle alongside the repository
 or take it from the local delivery package; a source-code checkout alone is not
@@ -102,9 +103,13 @@ texture beside the guidance (front, painting for three-quarter, left):
 ```powershell
 py -3.12 scripts/build_face_paint_review.py work/ennix-character-v1/<build> `
   work/ennix-character-v1/<build>/face-paint-review `
-  --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe' `
-  --left-guidance <head-guidance>/ennix-head-left-v1.png
+  --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe'
 ```
+
+`scripts/preview_head_texture.py` shows head textures unlit on the conformed
+head (front, three-quarter, side, and the front in the guidance's own frame) in
+seconds, for tuning a paint stage between renders. Its bald views are tuning
+aids, not review images.
 
 ## Repeatability evidence
 

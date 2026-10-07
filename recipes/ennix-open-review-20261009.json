@@ -125,6 +125,11 @@
       "sha256": "3150be398e48e8ba1feac164c3143c16c0b2e959d9ffb6155f0171f59cfb4ea9",
       "bytes": 625419,
       "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-assets\\makehuman-system\\tongue\\tongue01\\tongue01_diffuse.png"
+    },
+    "head-left.png": {
+      "sha256": "ca43268c34ca62f4f0f036742927a8248f6df2e872963f4b91d7e28137cf77d4",
+      "bytes": 1788807,
+      "source": "C:\\Users\\Ayric\\Documents\\Codex\\2026-10-04\\task-5\\head-guidance-v1\\ennix-head-left-v1.png"
     }
   },
   "groom": {
