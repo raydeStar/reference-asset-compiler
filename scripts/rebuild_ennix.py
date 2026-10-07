@@ -27,7 +27,8 @@ def main():
     p.add_argument("--inputs", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--blender", required=True)
-    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261007.json"))
+    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261008.json"))
+    p.add_argument("--manny-dir", help="Manny reference dumps (scripts/ue5/dump_manny_reference.py); enables the UE5 rig stage")
     a = p.parse_args()
     inputs, out = Path(a.inputs).resolve(), Path(a.out).resolve()
     recipe_path = Path(a.recipe).resolve()
@@ -67,9 +68,10 @@ def main():
     def save():
         (out / "build-receipt.json").write_text(json.dumps(receipt, indent=2), encoding="utf-8")
 
-    def run(script, args, blender=False, allowed_codes=(0,)):
+    def run(script, args, blender=False, allowed_codes=(0,), blend=None):
         source = ROOT / "scripts" / script
-        cmd = ([a.blender, "-b", "--factory-startup", "--python-exit-code", "1", "--python", str(source), "--"]
+        cmd = ([a.blender, "-b", "--factory-startup"] + ([str(blend)] if blend else [])
+               + ["--python-exit-code", "1", "--python", str(source), "--"]
                if blender else [sys.executable, str(source)]) + [str(x) for x in args]
         item = {"script": script, "script_sha256": sha(source), "argv": cmd}
         receipt["commands"].append(item)
@@ -122,6 +124,14 @@ def main():
     run("blender/bind_ennix_assembly.py", [assembly, out / "proxy-rig/Ennix_proxy_rigged.blend", out / "rigged"], True)
     native = out / "rigged/Ennix_Rigged.blend"
     run("blender/export_ennix_groom.py", [native, out / "export/Ennix_Groom.abc"], True)
+    if a.manny_dir and "ue5" in recipe:
+        # Manny-conformant game rig: measured joints, solid-voxel weights, Manny's bone axes.
+        run("rig_ue5_character.py", [native, out / "ue5", "--manny-dir", Path(a.manny_dir).resolve(),
+            "--template", local / "template.npz", "--head-npz", out / "head.npz", "--name", "Ennix",
+            "--arm-ratio", recipe["ue5"]["arm_ratio"], "--blender", a.blender])
+        game = out / "ue5/fit/Ennix_UE5.blend"
+        run("blender/export_ue5_character.py", [out / "export/Ennix_UE5.fbx"], True, blend=game)
+        run("blender/export_ennix_groom.py", [game, out / "export/Ennix_Groom_UE5.abc"], True)
     run("blender/pose_ennix_review.py", [native, out / "pose", "--samples", recipe["samples"]], True)
     run("blender/audit_ennix_repeatability.py", [native, out / "semantic-audit.json"], True)
     run("validate_ennix_visuals.py", [local / "original.png", local / "body-front.png",

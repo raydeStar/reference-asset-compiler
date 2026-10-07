@@ -92,6 +92,12 @@ def _args():
     p.add_argument("--part", type=float, default=0.012,
                    help="metres the parting sits to the side of the crown (x)")
     p.add_argument("--volume", type=float, default=VOLUME)
+    p.add_argument("--envelope-max", type=float, default=ENVELOPE_MAX,
+                   help="metres: the tallest the hair may stand off the scalp")
+    p.add_argument("--side-back", type=float, default=0.9,
+                   help="how far side locks run back (vs down) past the ears; lower covers the ears")
+    p.add_argument("--fringe-sweep", type=float, default=1.2,
+                   help="how far fringe locks curtain out from the part (0 = straight down)")
     p.add_argument("--tip-flick", type=float, default=FLICK)
     p.add_argument("--layer-wave", type=float, default=LAYER_WAVE)
     p.add_argument("--part-min-sweep", type=float, default=0.0,
@@ -207,7 +213,7 @@ def main():
         w /= w.sum()
         n = w @ sn[tri]
         n /= np.linalg.norm(n) + 1e-12
-        return loc, n, float(np.dot(p - loc, n)), min(a.volume * float(w @ outer[tri]), ENVELOPE_MAX)
+        return loc, n, float(np.dot(p - loc, n)), min(a.volume * float(w @ outer[tri]), a.envelope_max)
 
     # ------------------------------------------------------------------ roots on the scalp
     n_cand = (a.guides * (a.children + 1)) * 4
@@ -270,7 +276,7 @@ def main():
     # the ears.
     side_fall = np.clip((np.abs(g_n[:, 0]) - 0.45) / 0.4, 0.0, 1.0)
     # ...behind the ears: the ears stay clear.
-    side_flow = np.array([0.0, 0.9, -0.8])
+    side_flow = np.array([0.0, a.side_back, -0.8])
     ear_front_y = float(ears[:, 1].min())
     climb = np.where(g_roots[:, 1] < front_y + 0.03, CLIMB_FRONT, CLIMB)
     # Depth in the envelope: most locks lie toward the outside, the rest fill underneath.
@@ -308,7 +314,7 @@ def main():
             rl = np.linalg.norm(radial)
             radial = radial / rl if rl > 1e-6 else np.zeros(3)
             # Curtains: fringe locks also sweep out from the part toward the brow ends.
-            flow = fringe_flow + np.array([1.2 * sweep[g], 0.0, 0.0]) if fringe[g] else \
+            flow = fringe_flow + np.array([a.fringe_sweep * sweep[g], 0.0, 0.0]) if fringe[g] else \
                 (back_flow + np.array([sweep[g], 0.0, 0.0])) * (1.0 - side_fall[g]) + side_flow * side_fall[g]
             ft = 0.8 * flow + RADIAL * radial
             ft = ft - n * np.dot(ft, n)
