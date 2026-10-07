@@ -4024,3 +4024,31 @@ Final editor expression probe: target names and set_morph_target weights read
 back, but mouth/blink captures did not visibly establish the expected motion.
 Keep UE facial playback unresolved; native expression evidence is separate.
 Local delivery includes this limitation and the retained probes.
+
+## 2026-10-07 — Ennix on Manny's skeleton (Claude)
+
+Mark's notes after the playable handoff: the rig was broken against UE5, the
+hair fell off when animated, the arms reached the knees, and face, hair and
+texture were "decent, not there". Findings and fixes:
+
+- Rig. Landmark joints were measured through the sash and the sleeves, so
+  hips and elbows were asymmetric by up to 9 cm. Bone heat failed on the open,
+  layered outfit, the stage fell back to envelope weights without saying so,
+  and the bone axes were unlike Manny's. `scripts/rig_ue5_character.py`
+  replaces this:
+  - DWPose ortho keypoints plus mesh slices give the joints;
+  - weights come from a slice-filled voxel solid, by visibility;
+  - the export rig has Manny's axes.
+  It runs in about 45 s. Retargeted clips match Manny to 0.0 degrees per
+  bone in UE.
+- Arms: shoulder to fingertip was 0.49 of the height, as in the painting
+  (Manny 0.40). `--arm-ratio 0.42` remaps them, so idle hands hang at 72 cm.
+- Hair in UE: a skinning groom with no binding asset never attaches; rigid
+  does (game repo `Tools/EnnixPlayer.py`).
+- Groom: recipe `ennix-open-review-20261008` is fuller and curlier, with
+  fringe on the forehead and the ears partly covered (new
+  `grow_hair_groom.py` options). `rebuild_ennix.py --manny-dir` adds the
+  UE5 stage. `rebuild-v5` is the selected build.
+- Still open: face paint (cheek blotches, stubble) and outfit softness, both
+  capped by the source pictures' resolution. An open upscaler (e.g.
+  Real-ESRGAN) needs Mark's OK to download weights.

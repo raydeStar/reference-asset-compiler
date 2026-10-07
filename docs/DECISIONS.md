@@ -968,3 +968,12 @@ pose contracts. The user's rejection supersedes prior technical success wording.
   mip residency for the bounded review; do not mistake blurry streamed mips for
   a bad bake. Explicit base-colour/roughness materials avoid FBX emission/Phong
   conversion differences. Never promote a character merely because import passes.
+
+## 2026-10-07 — Bone heat is not a weighting strategy for scanned outfits
+
+Blender's bone heat, and its voxel remesh used as a watertight proxy, both
+fail on open, layered clothing scans: the remesh returns hundreds of
+fragments. `rig_from_landmarks.py` then fell back to envelope weights without
+failing the stage. Use `fit_ue5_manny_rig.py`'s slice-filled voxel solid,
+with inverse-distance weights only toward bones each vertex can see through
+the solid. Treat any envelope fallback as a failure.
