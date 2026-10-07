@@ -11,10 +11,20 @@
   "roles": [
     {
       "id": "character",
-      "description": "Anything that will be rigged and animated. Characters take the rig route, whose skeleton profile carries its own budget.",
+      "description": "Anything that will be rigged and animated. A character is budgeted by its tier, not its size: how close the camera holds it, for how long, and how many share the screen.",
       "keywords": ["character", "creature", "npc", "humanoid", "mascot", "biped", "quadruped", "monster"],
       "notes_keywords": ["creature", "humanoid", "npc", "biped", "quadruped", "monster"],
-      "budgets": null
+      "budgets": null,
+      "counts": "LOD0 of everything the skeletal mesh ships: body, outfit, hands, head, eyes, teeth and tongue. Groom strands are a separate asset and are not counted.",
+      "tier_rule": "A given tier wins; otherwise a word in the name picks one. A character with no tier keeps its skeleton profile's flat tri_budget, so nothing gets more triangles until someone says what it is. The gate fails above the top of the range; the bottom is what the tier is entitled to, never a requirement.",
+      "spend_comment": "Spend a tier where the eye reads: the face, the hands, the silhouette and the garment's hems and folds. A flat stretch of jacket earns none of it.",
+      "tiers": [
+        {"id": "hero", "description": "The playable character: up close for the whole game, in cutscenes and at the front of every shot.", "keywords": ["hero", "player", "playable", "protagonist"], "triangles": 70000, "range": [60000, 80000]},
+        {"id": "boss", "description": "A boss: alone on screen, framed big and fought for minutes.", "keywords": ["boss"], "triangles": 65000, "range": [50000, 80000]},
+        {"id": "elite", "description": "An elite or mini-boss: one or two among regular enemies, read from mid range.", "keywords": ["elite", "miniboss", "champion"], "triangles": 35000, "range": [30000, 40000]},
+        {"id": "regular", "description": "A regular enemy: several on screen at once, read from mid to far.", "keywords": ["enemy", "grunt", "minion", "mob"], "triangles": 20000, "range": [15000, 25000]},
+        {"id": "npc", "description": "A townsperson or vendor: many in a scene, met up close only to talk.", "keywords": ["npc", "villager", "townsperson", "vendor", "merchant", "innkeeper", "shopkeeper"], "triangles": 15000, "range": [10000, 20000]}
+      ]
     },
     {
       "id": "hero",

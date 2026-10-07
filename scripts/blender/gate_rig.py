@@ -5,18 +5,37 @@ is no --force flag and there will not be one. The one escape hatch is
 `tri_budget_waiver` in the profile, which must name a reason and an approver;
 an exceeded budget without a waiver is a hard failure.
 
+The triangle ceiling is the character's tier when one is declared -- `--tier`,
+or `character_tier` folded into the profile -- read from
+profiles/triangle-budgets.json: a hero may carry up to 80,000 triangles, a
+regular enemy 25,000. Without a tier the profile's flat `tri_budget` stays.
+
 Usage:
   blender -b --factory-startup --python scripts/blender/gate_rig.py \
-      -- <asset.fbx> <profile.json> <report.json>
+      -- <asset.fbx> <profile.json> <report.json> [--tier hero|boss|elite|regular|npc]
 """
 
 from __future__ import annotations
 
+import argparse
+import importlib.util
 import json
 import sys
 from pathlib import Path
 
 import bpy
+
+# The budget rule is written once, in the package, and read here by path:
+# Blender's interpreter cannot import the package itself.
+_BUDGETS_PATH = (Path(__file__).resolve().parents[2]
+                 / "src" / "reference_asset_compiler" / "budgets.py")
+
+
+def _load_budgets():
+    spec = importlib.util.spec_from_file_location("rac_budgets", _BUDGETS_PATH)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
 
 
 def load_scene(path: Path) -> None:
@@ -307,10 +326,22 @@ def check_mesh(obj, profile, failures, warnings):
     return entry
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("asset", type=Path)
+    parser.add_argument("profile", type=Path)
+    parser.add_argument("report", type=Path)
+    parser.add_argument("--tier", help="The character's tier in profiles/triangle-budgets.json; "
+                                       "its ceiling replaces the profile's flat tri_budget")
+    return parser.parse_args(sys.argv[sys.argv.index("--") + 1:])
+
+
 def main() -> int:
-    argv = sys.argv[sys.argv.index("--") + 1:]
-    asset_path, profile_path, report_path = (Path(a) for a in argv[:3])
+    args = parse_args()
+    asset_path, profile_path, report_path = args.asset, args.profile, args.report
     profile = json.loads(profile_path.read_text(encoding="utf-8-sig"))
+    # Decided before the scene loads, so an unknown tier fails fast and by name.
+    budget_rule = _load_budgets().rig_gate_budget(profile, args.tier)
 
     load_scene(asset_path)
     failures: list[str] = []
@@ -340,7 +371,9 @@ def main() -> int:
     total_tris = sum(m["tris"] for m in report["meshes"])
     report["total_tris"] = total_tris
 
-    budget = profile.get("tri_budget")
+    budget = budget_rule["tri_budget"]
+    report["tri_budget"] = budget
+    report["tri_budget_rule"] = budget_rule
     waiver = profile.get("tri_budget_waiver")
     if budget is not None and total_tris > budget:
         if waiver and waiver.get("reason") and waiver.get("approved_by"):
@@ -351,9 +384,13 @@ def main() -> int:
             )
             report["budget_waived"] = True
         else:
+            tier = budget_rule.get("character_tier")
             failures.append(
-                "budget: {0} tris exceeds profile budget {1} and no "
-                "tri_budget_waiver is recorded".format(total_tris, budget)
+                "budget: {0} tris exceeds {1} {2} and no "
+                "tri_budget_waiver is recorded".format(
+                    total_tris,
+                    "the {0} tier's ceiling".format(tier["id"]) if tier else "profile budget",
+                    budget)
             )
             report["budget_waived"] = False
 
@@ -371,13 +408,15 @@ def main() -> int:
         for f in failures:
             print("  - {0}".format(f))
         return 1
+    tier = budget_rule.get("character_tier")
     print(
-        "[GATE RIG] Passed {0} against '{1}'. {2} bones, {3} tris, "
-        "max {4} influences, 0 unweighted.".format(
+        "[GATE RIG] Passed {0} against '{1}'. {2} bones, {3} tris{4}, "
+        "max {5} influences, 0 unweighted.".format(
             label,
             profile["profile_id"],
             report.get("bone_count", 0),
             total_tris,
+            " (the {1} tier allows {0:,})".format(budget, tier["id"]) if tier else "",
             max((m.get("max_influences", 0) for m in report["meshes"]), default=0),
         )
     )

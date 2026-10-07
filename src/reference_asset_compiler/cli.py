@@ -227,6 +227,8 @@ def build_parser() -> argparse.ArgumentParser:
                         help="Real dimensions in metres")
     budget.add_argument("--role", help="prop, modular, vegetation, hero or character; "
                                        "omit it and the name decides")
+    budget.add_argument("--tier", help="A character's tier: hero, boss, elite, regular or npc; "
+                                       "implies --role character")
     budget.add_argument("--notes", default="",
                         help="Free text that may promote the role, e.g. 'toppled giant statue'")
     budget.add_argument("--source-triangles", type=int,
@@ -282,7 +284,7 @@ def main(argv: list[str] | None = None) -> int:
         if args.command == "budget":
             print_payload(decide_budget(
                 args.name, args.dims, args.role, args.notes, args.source_triangles,
-                args.repo_root))
+                args.repo_root, args.tier))
             return 0
         if args.command in {"new", "plan"}:
             registry = load_registry()

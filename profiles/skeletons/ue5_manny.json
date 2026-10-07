@@ -117,7 +117,9 @@
     "index_metacarpal_r",
     "middle_metacarpal_r",
     "ring_metacarpal_r",
-    "pinky_metacarpal_r"
+    "pinky_metacarpal_r",
+    "interaction",
+    "center_of_mass"
   ],
   "allow_unlisted_bones": false,
   "max_influences": 4,

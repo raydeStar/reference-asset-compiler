@@ -93,12 +93,119 @@ class ClassificationTests(unittest.TestCase):
             classify("Floor brazier", role="furniture")
         self.assertIn("prop", str(refusal.exception))
 
-    def test_characters_take_the_rig_route(self):
-        decision = decide("innkeeper", (0.6, 0.4, 1.8), role="character")
+    def test_a_character_without_a_tier_keeps_its_skeleton_profile_ceiling(self):
+        decision = decide("wolf creature", (0.6, 0.4, 1.8))
 
+        # Nothing gets more triangles until someone says what it is.
+        self.assertEqual(decision["role"], "character")
+        self.assertIsNone(decision["tier"])
         self.assertIsNone(decision["triangle_budget"])
         self.assertEqual(decision["ladder"], [])
-        self.assertIn("rig route", decision["summary"])
+        self.assertIn("tier", decision["summary"])
+
+
+class CharacterTierTests(unittest.TestCase):
+    """A character costs what its screen time earns, not what its size says.
+
+    Mark, 2026-10-07: characters may run high when it makes sense; random
+    objects may not. The hero is up close all game, a regular enemy shares the
+    screen with five others.
+    """
+
+    def test_each_tier_has_the_agreed_range(self):
+        ranges = {tier: (decide("someone", (0.6, 0.4, 1.8), tier=tier)["triangle_floor"],
+                         decide("someone", (0.6, 0.4, 1.8), tier=tier)["triangle_ceiling"])
+                  for tier in ("hero", "boss", "elite", "regular", "npc")}
+
+        self.assertEqual(ranges, {"hero": (60_000, 80_000), "boss": (50_000, 80_000),
+                                  "elite": (30_000, 40_000), "regular": (15_000, 25_000),
+                                  "npc": (10_000, 20_000)})
+
+    def test_the_hero_is_budgeted_near_seventy_thousand(self):
+        hero = decide("Ennix", (2.1, 0.4, 1.73), tier="hero")
+
+        self.assertEqual(hero["role"], "character")
+        self.assertEqual(hero["triangle_budget"], 70_000)
+        self.assertIn("groom strands excluded", hero["summary"])
+
+    def test_a_tier_ignores_size(self):
+        small = decide("goblin grunt", (0.4, 0.3, 0.9), role="character")
+        large = decide("ogre grunt", (1.4, 1.0, 3.0), role="character")
+
+        self.assertEqual(small["tier"], "regular")
+        self.assertEqual(small["triangle_budget"], large["triangle_budget"])
+
+    def test_a_name_can_give_the_tier(self):
+        self.assertEqual(decide("innkeeper", (0.6, 0.4, 1.8), role="character")["tier"], "npc")
+        self.assertEqual(decide("ice boss", (2, 2, 4), role="character")["tier"], "boss")
+        self.assertIn("'innkeeper'",
+                      decide("innkeeper", (0.6, 0.4, 1.8), role="character")["tier_reason"])
+
+    def test_a_given_tier_wins_over_the_name(self):
+        decision = decide("innkeeper", (0.6, 0.4, 1.8), role="character", tier="elite")
+
+        self.assertEqual(decision["tier"], "elite")
+        self.assertEqual(decision["tier_reason"], "its tier was given as elite")
+
+    def test_a_tier_on_something_that_is_not_a_character_is_refused(self):
+        with self.assertRaises(BudgetError) as refusal:
+            decide("Floor brazier", (0.9, 0.9, 1.2), role="prop", tier="hero")
+        self.assertIn("character", str(refusal.exception))
+
+    def test_an_unknown_tier_is_refused_by_name(self):
+        with self.assertRaises(BudgetError) as refusal:
+            decide("Ennix", (2.1, 0.4, 1.73), tier="wizard")
+        self.assertIn("hero", str(refusal.exception))
+
+    def test_the_ladder_climbs_to_the_tiers_ceiling_and_no_further(self):
+        self.assertEqual(decide("Ennix", (2.1, 0.4, 1.73), tier="hero")["ladder"], [70_000, 80_000])
+
+    def test_a_source_over_the_ceiling_is_never_kept(self):
+        over = decide("Ennix", (2.1, 0.4, 1.73), tier="hero", source_triangles=90_000)
+        under = decide("Ennix", (2.1, 0.4, 1.73), tier="hero", source_triangles=79_000)
+
+        # 90,000 is close to 70,000 by the ladder's rule, but it fails the gate.
+        self.assertFalse(over["keep_source"])
+        self.assertEqual(over["ladder"], [80_000])
+        self.assertTrue(under["keep_source"])
+
+
+class RigGateBudgetTests(unittest.TestCase):
+    """The strict rig gate's ceiling: the tier when one is declared, else the profile's flat number."""
+
+    PROFILE = {"profile_id": "ue5_manny", "tri_budget": 20_000, "tri_budget_waiver": None}
+
+    def test_without_a_tier_the_flat_ceiling_stays(self):
+        rule = budgets.rig_gate_budget(self.PROFILE)
+
+        self.assertEqual(rule["tri_budget"], 20_000)
+        self.assertEqual(rule["source"], "skeleton_profile")
+        self.assertIsNone(rule["character_tier"])
+
+    def test_a_tier_replaces_the_flat_ceiling_with_its_top(self):
+        rule = budgets.rig_gate_budget(self.PROFILE, "hero")
+
+        self.assertEqual(rule["tri_budget"], 80_000)
+        self.assertEqual(rule["source"], "character_tier")
+        self.assertEqual(rule["character_tier"]["range"], [60_000, 80_000])
+        self.assertEqual(rule["replaces_profile_tri_budget"], 20_000)
+        self.assertIn("Groom strands", rule["character_tier"]["counts"])
+        self.assertEqual(len(rule["policy"]["sha256"]), 64)
+
+    def test_a_tier_can_be_folded_into_the_profile_like_a_waiver(self):
+        folded = dict(self.PROFILE, character_tier="regular")
+
+        self.assertEqual(budgets.rig_gate_budget(folded)["tri_budget"], 25_000)
+        # A tier named on the command line wins over the folded one.
+        self.assertEqual(budgets.rig_gate_budget(folded, "npc")["tri_budget"], 20_000)
+
+    def test_an_unknown_tier_fails_before_the_gate_measures_anything(self):
+        with self.assertRaises(BudgetError):
+            budgets.rig_gate_budget(self.PROFILE, "wizard")
+
+    def test_a_tier_can_be_stricter_than_the_flat_ceiling(self):
+        self.assertEqual(budgets.rig_gate_budget(self.PROFILE, "npc")["tri_budget"], 20_000)
+        self.assertLess(budgets.rig_gate_budget({"tri_budget": 50_000}, "elite")["tri_budget"], 50_000)
 
 
 class SizeAndGateTests(unittest.TestCase):
@@ -162,6 +269,33 @@ class TableTests(unittest.TestCase):
                 elif role["id"] != "character":
                     self.assertIn("per_metre", role)
 
+    def test_character_tiers_left_every_other_budget_alone(self):
+        # Props stay low; only characters were given room.
+        policy, _ = budgets.load_policy()
+        roles = {role["id"]: role for role in policy["roles"]}
+
+        self.assertEqual(roles["prop"]["budgets"], {"tiny": 2000, "small": 5000, "medium": 10000,
+                                                    "large": 15000, "huge": 20000})
+        self.assertEqual(roles["hero"]["budgets"], {"tiny": 8000, "small": 15000, "medium": 25000,
+                                                    "large": 40000, "huge": 60000})
+        self.assertEqual(roles["vegetation"]["budgets"], {"tiny": 3000, "small": 8000, "medium": 14000,
+                                                          "large": 20000, "huge": 30000})
+        self.assertEqual(roles["modular"]["per_metre"], {"base": 2000, "per_metre": 1500, "cap": 12000})
+
+    def test_every_tier_is_complete_and_its_target_inside_its_range(self):
+        policy, _ = budgets.load_policy()
+        character = next(role for role in policy["roles"] if role["id"] == "character")
+        ids = [tier["id"] for tier in character["tiers"]]
+
+        self.assertEqual(len(ids), len(set(ids)))
+        for tier in character["tiers"]:
+            with self.subTest(tier=tier["id"]):
+                floor, ceiling = tier["range"]
+                self.assertLessEqual(floor, tier["triangles"])
+                self.assertLessEqual(tier["triangles"], ceiling)
+                self.assertTrue(tier["description"])
+                self.assertTrue(tier["keywords"])
+
     def test_the_decision_names_the_table_it_came_from(self):
         decision = decide("Crate", (1, 1, 1))
 
@@ -179,6 +313,17 @@ class BudgetCommandTests(unittest.TestCase):
         decision = json.loads(output.getvalue())
         self.assertEqual(decision["role"], "prop")
         self.assertEqual(decision["triangle_budget"], 10_000)
+
+    def test_rac_budget_takes_a_characters_tier(self):
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = cli.main(["budget", "--name", "Ennix", "--dims", "2.1", "0.4", "1.73",
+                             "--tier", "hero"])
+
+        self.assertEqual(code, 0)
+        decision = json.loads(output.getvalue())
+        self.assertEqual((decision["role"], decision["tier"]), ("character", "hero"))
+        self.assertEqual(decision["triangle_ceiling"], 80_000)
 
     def test_rac_budget_refusals_use_the_normal_error_channel(self):
         errors = io.StringIO()

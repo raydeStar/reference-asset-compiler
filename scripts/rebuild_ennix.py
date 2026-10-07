@@ -27,7 +27,7 @@ def main():
     p.add_argument("--inputs", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--blender", required=True)
-    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261009.json"))
+    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261010.json"))
     p.add_argument("--manny-dir", help="Manny reference dumps (scripts/ue5/dump_manny_reference.py); enables the UE5 rig stage")
     a = p.parse_args()
     inputs, out = Path(a.inputs).resolve(), Path(a.out).resolve()
@@ -62,6 +62,7 @@ def main():
                "commands": [], "production_ready": False, "completed": False}
     receipt["dependencies"] = {name: importlib.metadata.version(name) for name in ("numpy", "scipy", "pillow")}
     receipt["skeleton_profile_sha256"] = sha(ROOT / "profiles/skeletons/ue5_manny.json")
+    receipt["triangle_budgets_sha256"] = sha(ROOT / "profiles/triangle-budgets.json")
     logs = out / "logs"
     logs.mkdir()
 
@@ -114,7 +115,15 @@ def main():
         "--hair-roughness", .45, "--save-blend", out / "head-before-anatomy.blend"], True)
     run("blender/finish_ennix_anatomy.py", [out / "head-before-anatomy.blend", out / "head.npz",
         local / "makehuman", out / "head.blend", "--template", local / "template.npz"], True)
-    run("blender/prepare_ennix_body.py", [local / "body-acquisition.blend", out / "body", "--triangles", recipe["body_review_triangles"]], True)
+    if "body" in recipe:
+        # Hands and garment each get their own count (recipe 20261010 onward).
+        body = recipe["body"]
+        body_args = ["--triangles", body["garment_triangles"], "--hand-triangles", body["hand_triangles"],
+                     "--hands-beyond-abs-x", body["hands_beyond_abs_x_m"],
+                     "--measure-samples", body.get("measure_samples", 0)]
+    else:
+        body_args = ["--triangles", recipe["body_review_triangles"]]
+    run("blender/prepare_ennix_body.py", [local / "body-acquisition.blend", out / "body", *body_args], True)
     run("paint_ennix_body.py", [out / "body/body.npz", local / "body-front.png", local / "body-back.png",
         out / "body/paint", "--side", local / "body-left.png"])
     assembly = out / "assembly/Ennix_Character_Review.blend"
@@ -148,17 +157,30 @@ def main():
     run("validate_ennix_visuals.py", [local / "original.png", local / "body-front.png",
         out / "assembly/front_preview.png", out / "visual-validation"])
     # A failed artistic/budget gate is retained review evidence, never a waiver.
-    run("blender/gate_rig.py", [out / "rigged/Ennix_Body_Face.fbx", ROOT / "profiles/skeletons/ue5_manny.json",
-        out / "export/gate-rig.json"], True, allowed_codes=(0, 1))
-    if not (out / "export/gate-rig.json").is_file():
-        raise RuntimeError("Rig gate crashed before producing its receipt")
+    # The tier, when the recipe names one, sets the triangle ceiling in place of
+    # the skeleton profile's flat number (profiles/triangle-budgets.json).
+    tier = ["--tier", recipe["character_tier"]] if recipe.get("character_tier") else []
+    gates = [(out / "rigged/Ennix_Body_Face.fbx", out / "export/gate-rig.json")]
+    if (out / "export/Ennix_UE5.fbx").is_file():
+        gates.append((out / "export/Ennix_UE5.fbx", out / "export/gate-rig-ue5.json"))
+    for fbx, report in gates:
+        run("blender/gate_rig.py", [fbx, ROOT / "profiles/skeletons/ue5_manny.json", report, *tier],
+            True, allowed_codes=(0, 1))
+        if not report.is_file():
+            raise RuntimeError("Rig gate crashed before producing its receipt")
     run("blender/deform_test.py", [out / "rigged/Ennix_Body_Face.fbx", out / "export/deformation",
         out / "export/deformation.json", 900, "ue5_manny"], True)
     receipt["completed"] = True
     receipt["outputs"] = {str(f.relative_to(out)): sha(f) for f in out.rglob("*")
         if f.is_file() and "inputs" not in f.relative_to(out).parts and f.name != "build-receipt.json"}
+    gate = json.loads((out / "export/gate-rig.json").read_text())
+    tier_id = (gate["tri_budget_rule"].get("character_tier") or {}).get("id")
+    budget_limit = "{0:,} triangles {1} {2} of {3:,}".format(
+        gate["total_tris"], "within" if gate["total_tris"] <= gate["tri_budget"] else "exceed",
+        "the {0} tier's ceiling".format(tier_id) if tier_id else "the skeleton profile's flat ceiling",
+        gate["tri_budget"])
     receipt["limits"] = ["Human likeness and texture approval pending", "No cooked runtime proof",
-        "120k outfit review budget exceeds the current strict 20k skeleton profile ceiling", "Held inspection pose is not a moving idle"]
+        budget_limit, "Held inspection pose is not a moving idle"]
     save()
     print(f"The fitting is reproducible, sir. Review receipt: {out / 'build-receipt.json'}", flush=True)
 

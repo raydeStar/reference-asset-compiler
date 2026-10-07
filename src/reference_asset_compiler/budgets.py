@@ -6,10 +6,14 @@ read as a target gave a 1 m pipe the same budget as a 6 m door. The answer here
 comes from two things any asset already has: a name, and a real size.
 
 - The **role** says what kind of thing it is: a prop, a modular kit piece paid
-  for every time it repeats, vegetation, a hero set piece, or a character (which
-  takes the rig route and its skeleton profile's budget instead). An explicit
-  role always wins; otherwise the name decides, then the notes, then "prop".
-- The **size class** comes from the longest real dimension.
+  for every time it repeats, vegetation, a hero set piece, or a character. An
+  explicit role always wins; otherwise the name decides, then the notes, then
+  "prop".
+- The **size class** comes from the longest real dimension. Characters ignore
+  it: a character's **tier** (hero, boss, elite, regular enemy, NPC) says how
+  close the camera holds it and how many share the screen, and the strict rig
+  gate (``scripts/blender/gate_rig.py``) holds it to that tier's ceiling
+  instead of its skeleton profile's flat ``tri_budget``.
 - The surface gates scale with the object's diagonal, so a colossus is not held
   to a coin's tolerance, and the **ladder** says what to try next when they
   refuse a budget rather than shipping damage.
@@ -126,6 +130,73 @@ def classify(name: str, notes: str = "", role: str | None = None,
     return "prop", "nothing in its name or notes marks it as anything but a prop"
 
 
+def _character_entry(policy: dict[str, Any]) -> dict[str, Any]:
+    return next(entry for entry in policy["roles"] if entry["id"] == "character")
+
+
+def character_tier(name: str = "", tier: str | None = None,
+                   policy: dict[str, Any] | None = None) -> tuple[dict[str, Any] | None, str]:
+    """A character's tier, and a sentence saying why.
+
+    A given tier wins and an unknown one is refused by name. Otherwise a word
+    in the name picks one ('ennix-hero', 'goblin-grunt'); with neither, there
+    is no tier and the skeleton profile's flat ceiling still applies.
+    """
+    policy = policy or load_policy()[0]
+    tiers = _character_entry(policy).get("tiers", [])
+    if tier:
+        wanted = tier.strip().lower()
+        for entry in tiers:
+            if entry["id"] == wanted:
+                return entry, "its tier was given as {0}".format(wanted)
+        raise BudgetError("Unknown character tier {0!r}; choose one of {1}.".format(
+            tier, ", ".join(entry["id"] for entry in tiers)))
+    words = tokens(name)
+    for entry in tiers:
+        for keyword in entry.get("keywords", []):
+            if keyword in words:
+                return entry, "its name says '{0}'".format(keyword)
+    return None, "nothing in its name gives it a tier"
+
+
+def rig_gate_budget(profile: dict[str, Any], tier: str | None = None,
+                    repo_root: Path | None = None) -> dict[str, Any]:
+    """The triangle ceiling the strict rig gate holds a skinned asset to.
+
+    ``tier`` (or the profile's ``character_tier``, which a recipe can fold in
+    as it folds in a waiver) replaces the skeleton profile's flat
+    ``tri_budget`` with the top of that tier's range. Without one the flat
+    number stays, so nothing gets more triangles until someone says what it
+    is. The waiver rule is the gate's and is unchanged.
+    """
+    wanted = tier or profile.get("character_tier")
+    flat = profile.get("tri_budget")
+    flat_text = "{0:,}".format(flat) if flat is not None else "none"
+    if not wanted:
+        return {"tri_budget": flat, "source": "skeleton_profile", "character_tier": None,
+                "summary": "No character tier is declared, so the skeleton profile's flat "
+                           "tri_budget ({0}) applies.".format(flat_text)}
+    policy, path = load_policy(repo_root)
+    entry, reason = character_tier(tier=wanted, policy=policy)
+    floor, ceiling = (int(value) for value in entry["range"])
+    return {
+        "tri_budget": ceiling,
+        "source": "character_tier",
+        "character_tier": {
+            "id": entry["id"],
+            "reason": reason,
+            "triangles": int(entry["triangles"]),
+            "range": [floor, ceiling],
+            "counts": _character_entry(policy).get("counts"),
+        },
+        "replaces_profile_tri_budget": flat,
+        "summary": "A {0} character: at most {1:,} triangles at LOD0 (about {2:,}; the tier "
+                   "runs {3:,}-{1:,}), in place of the skeleton profile's flat {4}.".format(
+                       entry["id"], ceiling, int(entry["triangles"]), floor, flat_text),
+        "policy": {"path": str(path), "sha256": hashlib.sha256(path.read_bytes()).hexdigest()},
+    }
+
+
 def size_class(longest_m: float, policy: dict[str, Any] | None = None) -> str:
     policy = policy or load_policy()[0]
     for entry in policy["size_classes"]:
@@ -150,18 +221,25 @@ def _check_dimensions(dims_m: Iterable[float]) -> tuple[float, float, float]:
 
 def decide(name: str, dims_m: Iterable[float], role: str | None = None, notes: str = "",
            source_triangles: int | None = None,
-           repo_root: Path | None = None) -> dict[str, Any]:
+           repo_root: Path | None = None, tier: str | None = None) -> dict[str, Any]:
     """The triangle budget, surface gates and fallback ladder for one asset.
 
-    ``triangle_budget`` is None for characters (they are budgeted by their
-    skeleton profile). ``keep_source`` is True when the source is already within
-    reach of the budget, so reducing it would cost more than it saves.
+    A character's budget comes from its tier (given, or a word in its name);
+    a character with no tier has ``triangle_budget`` None and keeps its
+    skeleton profile's flat ceiling. A given tier makes the asset a character.
+    ``keep_source`` is True when the source is already within reach of the
+    budget, so reducing it would cost more than it saves.
     """
     policy, path = load_policy(repo_root)
     dims = _check_dimensions(dims_m)
     longest = max(dims)
     diagonal = math.sqrt(sum(value * value for value in dims))
-    role_id, reason = classify(name, notes, role, policy, dims)
+    if tier and not role:
+        role_id, reason = "character", "its tier was given as {0}".format(tier.strip().lower())
+    else:
+        role_id, reason = classify(name, notes, role, policy, dims)
+    if tier and role_id != "character":
+        raise BudgetError("A tier budgets a character; {0!r} is a {1}.".format(name, role_id))
     size = size_class(longest, policy)
     entry = next(item for item in policy["roles"] if item["id"] == role_id)
 
@@ -170,7 +248,18 @@ def decide(name: str, dims_m: Iterable[float], role: str | None = None, notes: s
     maximum_max = max(deviation["max_floor_m"], deviation["max_fraction_of_diagonal"] * diagonal)
 
     budget: int | None
-    if entry.get("per_metre"):
+    floor: int | None = None
+    ceiling: int | None = None
+    tier_entry: dict[str, Any] | None = None
+    tier_reason: str | None = None
+    if role_id == "character":
+        tier_entry, tier_reason = character_tier(name, tier, policy)
+    if tier_entry is not None:
+        budget = int(tier_entry["triangles"])
+        floor, ceiling = (int(value) for value in tier_entry["range"])
+        summary = ("A {0} character: about {1:,} triangles, {2:,}-{3:,} at LOD0 "
+                   "with groom strands excluded.".format(tier_entry["id"], budget, floor, ceiling))
+    elif entry.get("per_metre"):
         rule = entry["per_metre"]
         budget = _round_budget(min(rule["cap"], rule["base"] + rule["per_metre"] * longest))
         summary = "A modular piece {0:.1f} m long: about {1:,} triangles.".format(longest, budget)
@@ -180,8 +269,9 @@ def decide(name: str, dims_m: Iterable[float], role: str | None = None, notes: s
         summary = "A {0} {1}: about {2:,} triangles.".format(size, noun, budget)
     else:
         budget = None
-        summary = ("A character takes the rig route; its skeleton profile sets its budget, "
-                   "not this table.")
+        summary = ("A character with no tier keeps its skeleton profile's flat ceiling; "
+                   "give it one of {0} to budget it here.".format(
+                       ", ".join(item["id"] for item in entry.get("tiers", []))))
 
     ladder_rule = policy["ladder"]
     ladder: list[int] = []
@@ -192,9 +282,15 @@ def decide(name: str, dims_m: Iterable[float], role: str | None = None, notes: s
         while len(ladder) < int(ladder_rule["maximum_rungs"]):
             ladder.append(rung)
             rung = _round_budget(rung * float(ladder_rule["factor"]))
+        if ceiling is not None:
+            # A tier's ceiling is the gate's: the ladder may climb to it, never past.
+            ladder = [value for value in ladder if value < ceiling] + [ceiling]
         if source_triangles:
-            ceiling = float(ladder_rule["keep_source_above_fraction"]) * int(source_triangles)
-            ladder = [rung for rung in ladder if rung < ceiling]
+            near_source = float(ladder_rule["keep_source_above_fraction"]) * int(source_triangles)
+            ladder = [rung for rung in ladder if rung < near_source]
+            if not ladder and ceiling is not None and int(source_triangles) > ceiling:
+                # Near the source is not near enough when the source is over the gate.
+                ladder = [ceiling]
             keep_source = not ladder
             if keep_source:
                 summary += " The source ({0:,}) is already close enough; keep it.".format(
@@ -205,11 +301,15 @@ def decide(name: str, dims_m: Iterable[float], role: str | None = None, notes: s
         "name": name,
         "role": role_id,
         "role_reason": reason,
+        "tier": tier_entry["id"] if tier_entry else None,
+        "tier_reason": tier_reason,
         "size_class": size,
         "dimensions_m": [round(value, 4) for value in dims],
         "longest_m": round(longest, 4),
         "diagonal_m": round(diagonal, 4),
         "triangle_budget": budget,
+        "triangle_floor": floor,
+        "triangle_ceiling": ceiling,
         "maximum_p99_m": round(maximum_p99, 5),
         "maximum_max_m": round(maximum_max, 5),
         "ladder": ladder,
