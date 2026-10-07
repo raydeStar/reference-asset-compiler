@@ -30,6 +30,7 @@ from __future__ import annotations
 import argparse
 import json
 import sys
+from pathlib import Path
 
 import bpy
 import numpy as np
@@ -90,6 +91,14 @@ def _args():
                    help="share of children that leave their lock (flyaways)")
     p.add_argument("--part", type=float, default=0.012,
                    help="metres the parting sits to the side of the crown (x)")
+    p.add_argument("--volume", type=float, default=VOLUME)
+    p.add_argument("--tip-flick", type=float, default=FLICK)
+    p.add_argument("--layer-wave", type=float, default=LAYER_WAVE)
+    p.add_argument("--part-min-sweep", type=float, default=0.0,
+                   help="minimum sideways flow at the part; prevents upright isolated locks")
+    p.add_argument("--strand-radius", type=float, default=0.00034)
+    p.add_argument("--coherent-waves", action="store_true", help="neighbouring roots share a curl field instead of unrelated phases")
+    p.add_argument("--nape-drop", type=float, default=0.0, help="maximum descent below the ear lobes; zero keeps full guide lengths")
     return p.parse_args(argv)
 
 
@@ -134,7 +143,7 @@ def main():
     hz = np.load(a.shell)
     hv, ht = hz["verts"].astype(np.float64), hz["tris"]
     huv = hz["loop_uv"].reshape(len(ht), 3, 2)
-    img = bpy.data.images.load(a.hair_tex)
+    img = bpy.data.images.load(str(Path(a.hair_tex).resolve()))
     tw, th = img.size
     tex = np.asarray(img.pixels[:], np.float32).reshape(th, tw, 4)[..., :3]   # bottom row first
     # The painted texture is sRGB; strand colours are shaded as linear.
@@ -198,7 +207,7 @@ def main():
         w /= w.sum()
         n = w @ sn[tri]
         n /= np.linalg.norm(n) + 1e-12
-        return loc, n, float(np.dot(p - loc, n)), min(VOLUME * float(w @ outer[tri]), ENVELOPE_MAX)
+        return loc, n, float(np.dot(p - loc, n)), min(a.volume * float(w @ outer[tri]), ENVELOPE_MAX)
 
     # ------------------------------------------------------------------ roots on the scalp
     n_cand = (a.guides * (a.children + 1)) * 4
@@ -254,6 +263,9 @@ def main():
     front_half = g_roots[:, 1] < float(whorl[1]) - 0.02
     # The sweep grows with distance from the part, so locks either side never cross over it.
     sweep = np.where(front_half, np.clip((g_roots[:, 0] - part_x) / PART_RAMP, -1.0, 1.0), 0.0) * PART_SWEEP
+    if a.part_min_sweep:
+        side_sign = np.where(g_roots[:, 0] >= part_x, 1.0, -1.0)
+        sweep[front_half] = side_sign[front_half] * np.maximum(np.abs(sweep[front_half]), a.part_min_sweep)
     # On the sides of the head hair falls rather than sweeping back: it comes down around
     # the ears.
     side_fall = np.clip((np.abs(g_n[:, 0]) - 0.45) / 0.4, 0.0, 1.0)
@@ -268,7 +280,7 @@ def main():
     climb[fringe] = CLIMB
     steps = (rng.uniform(a.length[0], a.length[1], n_g) / STEP).astype(int).clip(8, MAX_STEPS)
     tail_len = rng.integers(1, 5, n_g)
-    flick_from = ((1.0 - FLICK * rng.uniform(0.6, 1.2, n_g)) * steps).astype(int)
+    flick_from = ((1.0 - a.tip_flick * rng.uniform(0.6, 1.2, n_g)) * steps).astype(int)
     phase = rng.random(n_g) * 2 * np.pi
     phase2 = rng.random(n_g) * 2 * np.pi
     wave_len = rng.uniform(a.wave_length[0], a.wave_length[1], n_g)
@@ -276,6 +288,14 @@ def main():
     # Each lock bends its own way: a C-curve to one side, and a slightly different heading.
     curl = rng.uniform(-a.curl, a.curl, n_g)
     heading = rng.uniform(-0.25, 0.25, n_g)
+    if a.coherent_waves:
+        # Neighbouring locks should agree about which way a curl bends.
+        # Uncorrelated phases make a handsome shag look like a bird's leasehold.
+        gx, gy, gz = g_roots.T
+        phase = 30.0 * gx + 24.0 * gy + 18.0 * gz
+        phase2 = 22.0 * gx - 18.0 * gy
+        curl = a.curl * np.sin(22.0 * gx + 16.0 * gy)
+        heading = 0.12 * np.sin(19.0 * gx - 11.0 * gy)
     guides, g_frames = [], []
     for g in range(n_g):
         p = g_roots[g].copy()
@@ -318,7 +338,7 @@ def main():
                 d = ft + lift_out * (0.9 * n + 0.4 * up)
                 t_here = 1.0
             else:
-                target = np.clip(depth[g] + LAYER_WAVE * np.sin(2 * np.pi * arc / weave_len[g] + phase2[g]),
+                target = np.clip(depth[g] + a.layer_wave * np.sin(2 * np.pi * arc / weave_len[g] + phase2[g]),
                                  0.15, 0.97) * b
                 # Climb to the layer quickly; leave it slowly, so at the envelope's thin edge the
                 # lock runs out of the volume (a free end) instead of tucking under.
@@ -342,6 +362,8 @@ def main():
                 break
             # In front of the ears it ends part way down them (sideburns), clear of the cheek.
             if p[1] < ear_front_y and p[2] < sideburn_z:
+                break
+            if a.nape_drop and p[2] < ear_bottom - a.nape_drop:
                 break
             pts_g.append(p.copy())
             nor_g.append(n2)
@@ -471,7 +493,7 @@ def main():
         # Dark at the root, the copper toward the tip.
         shade *= 0.72 + 0.4 * np.sqrt(u)
         colours[start:start + m] = col[None, :] * shade[:, None]
-        radius[start:start + m] = 0.00034 * (1.0 - 0.7 * u)
+        radius[start:start + m] = a.strand_radius * (1.0 - 0.85 * u)
         start += m
     # The scalp cap: scalp skin pushed out a little and darkened, so skin never shows
     # between strands (the dense under-layer real hair has).

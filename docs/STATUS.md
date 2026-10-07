@@ -2,7 +2,7 @@
 
 *Type: reference*
 
-Last updated: 2026-10-04. This file holds the current state only and is
+Last updated: 2026-10-07. This file holds the current state only and is
 rewritten in place. History is in [HANDOFF.md](HANDOFF.md) (append-only,
 dated); failures and retained lessons are in [DECISIONS.md](DECISIONS.md);
 scoped open work is in [AGENT_TASKS.md](AGENT_TASKS.md). The stage names below
@@ -12,6 +12,39 @@ Every `work/`, `out/` and `output/` path here is on the development workstation
 and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
+
+## Ennix character: reproducible review, not production-ready
+
+Selected workspace: `work/ennix-character-v1/rebuild-proof-v3/`; independent
+repeat: `rebuild-proof-v4/`. [Rebuild and review guide](ENNIX_REBUILD.md) gives the
+exact command, input pack, licenses, paths and limitations. The final editable
+file is `rigged/Ennix_Rigged.blend`; the relaxed held review is
+`pose/Ennix_Held_Inspection.blend` (not a moving idle).
+
+Source-aligned proportions/face paint, coherent seeded hair, actual CC0 oral
+meshes, continuous neck/collar repair, source-baked outfit and free measured rig
+are retained. Body FBX has 86 bones and 34 facial controls; groom has 77,550
+strands. Two full builds reproduce numeric geometry/strand arrays and base
+textures exactly. Canonical audits match all native geometry, winding, UVs,
+materials, weights, morphs, rest bones and groom; raw face order and rendered
+pixels can differ. Exported deformation suite passes five poses. Strict rig
+contract has one failure: 136,587 triangles against the 20k ceiling. No waiver.
+Source silhouette IoU is 0.802 against 0.900; centre error 3.61px passes.
+
+Unreal review is `/Game/EnnixReview/20261007/V5/BP_Ennix_Review` with mesh, groom
+and binding. All 34 morphs and all 77,550 curves imported. Combined editor render
+was checked after enabling transient animation updates on the spawned preview.
+Player/map replacement and PIE/cooked runtime were not performed. Hair import
+uses explicit coordinate conversion and a brown review material because Blender
+Alembic omits the custom per-strand colour attribute. Native colours stay intact.
+
+Existing Hunyuan acquisition is allowed by Mark. All new processing uses open
+tools; no new inference, proprietary rig add-on or generated image was used.
+UE facial target playback remains unverified despite imported target names.
+Human likeness/texture approval, lower-detail production topology, expression
+polish, retarget/moving animation and runtime acceptance remain open. Full repo
+verification: 638 tests passed, 10 skipped, 181 subtests; lint, stage syntax,
+wheel build and isolated installed-wheel checks passed. Local delivery only.
 
 ## Aether Wars realistic commission (creation complete; awaiting Mark review)
 

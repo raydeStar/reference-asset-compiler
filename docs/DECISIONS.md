@@ -941,3 +941,30 @@ pose contracts. The user's rejection supersedes prior technical success wording.
   large, so a brazier "beside the throne" or a lamp "lighting the statue" stays
   a prop while a 4.5 m "toppled statue head" is still a hero piece. Names
   classify as before.
+
+
+## 2026-10-07 — repeatability and actual consumer checks for Ennix
+
+- Blender helper teeth are fitting cages, not visible dental assets. Use the
+  corresponding CC0 MakeHuman system meshes with MHCLO barycentric fitting;
+  transport expression deltas through the same correspondence.
+- Unrelated guide curl phases look like tangled wire. Seeded spatial phases
+  produce coherent neighbouring locks; preserve source hair-envelope conditioning.
+- Mirroring a side witness invents the one-sided red sash on the opposite leg.
+  Restrict that witness and restrict end-on arm projection to the torso region.
+- Freeze coordinates and inspect body landmarks: an asymmetric sash can drag a
+  naive torso centreline away from the actual torso. Original finger landmarks
+  also missed the repaired flat hands; corrected measurements precede weighting.
+- BMesh edge sets and extrusion face order are not byte-stable. Sort traversal;
+  compare canonical polygon winding/UV/material data in addition to coordinates,
+  bones, weights and morphs. Do not call two .blend hashes repeatability proof.
+- Blender Alembic preserves strand geometry but drops custom strand_colour.
+  Retain native colour authority and explicitly report the UE material fallback.
+- UE GroomFactory creates an empty groom; HairStrandsFactory imports Alembic.
+  Hair needs the AlembicHairImporter plugin, correct handedness conversion, and
+  a bound skin-cache-enabled component. The editor animation-update switch is
+  transient: apply it to the spawned instance, then capture on a later tick.
+- A scene capture does not request texture mips like the live viewport. Force
+  mip residency for the bounded review; do not mistake blurry streamed mips for
+  a bad bake. Explicit base-colour/roughness materials avoid FBX emission/Phong
+  conversion differences. Never promote a character merely because import passes.

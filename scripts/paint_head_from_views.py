@@ -81,7 +81,7 @@ def head_triangles(z):
     """Fan triangles of the kept skin polygons, as vertex and loop (UV) indices."""
     helper = np.zeros(len(z["verts"]), bool)
     for g in HELPERS:
-        if "vg__" + g in z.files:
+        if "vg__" + g in z:
             helper[z["vg__" + g]] = True
     vt, lt = [], []
     for i in z["keep_polys"]:
@@ -374,7 +374,6 @@ def main():
     eye_l = head_v[z["vg__helper-l-eye"]].mean(0)
     eye_r = head_v[z["vg__helper-r-eye"]].mean(0)
     mid_x = float(eye_l[0] + eye_r[0]) / 2.0
-    eye_reach = float(np.abs(eyes[:, 0] - mid_x).max())
     eye_radius = float(np.linalg.norm(head_v[z["vg__helper-l-eye"]] - eye_l, axis=1).max())
     off_eyes = np.minimum(np.linalg.norm(where - eye_l, axis=-1), np.linalg.norm(where - eye_r, axis=-1)) \
         > eye_radius + 0.002

@@ -106,10 +106,14 @@ def main(argv=None):
     body[t.groups["body"]] = True
     head_w = t.bone_weight("head") + t.bone_weight("neck_01")
     active = body & (head_w >= 0.3)
-    scalp = np.zeros_like(body); scalp[t.polygon_vertices(_region(a.mpfb_data, "scalp_solid"))] = True
-    lids = np.zeros_like(body); lids[t.polygon_vertices(_region(a.mpfb_data, "eyelids_solid"))] = True
-    lips = np.zeros_like(body); lips[t.polygon_vertices(_region(a.mpfb_data, "lips_solid"))] = True
-    face = np.zeros_like(body); face[t.polygon_vertices(_region(a.mpfb_data, "face_solid"))] = True
+    scalp = np.zeros_like(body)
+    scalp[t.polygon_vertices(_region(a.mpfb_data, "scalp_solid"))] = True
+    lids = np.zeros_like(body)
+    lids[t.polygon_vertices(_region(a.mpfb_data, "eyelids_solid"))] = True
+    lips = np.zeros_like(body)
+    lips[t.polygon_vertices(_region(a.mpfb_data, "lips_solid"))] = True
+    face = np.zeros_like(body)
+    face[t.polygon_vertices(_region(a.mpfb_data, "face_solid"))] = True
 
     z = np.load(a.acquisition)
     acq_v, acq_t = z["verts"].astype(np.float64), z["tris"]

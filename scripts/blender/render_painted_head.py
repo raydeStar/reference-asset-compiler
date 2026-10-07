@@ -47,6 +47,12 @@ def _args():
                    "scalp cap instead of the shell")
     p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
                    help="Cycles device (CPU when the GPU is reserved)")
+    p.add_argument("--subdivision", type=int, default=0)
+    p.add_argument("--save-blend", help="save a packed editable character review with expression keys")
+    p.add_argument("--oral-helpers", action="store_true", help="include the template's teeth and tongue")
+    p.add_argument("--skin-emission", type=float, default=0.55)
+    p.add_argument("--hair-tint", type=float, nargs=3, default=(1, 1, 1))
+    p.add_argument("--hair-roughness", type=float, default=0.35)
     return p.parse_args(argv)
 
 
@@ -70,7 +76,7 @@ def material(name, image_path, emission=0.55, roughness=0.85, specular=0.15, dar
     nt = mat.node_tree
     bsdf = nt.nodes["Principled BSDF"]
     tex = nt.nodes.new("ShaderNodeTexImage")
-    tex.image = bpy.data.images.load(image_path)
+    tex.image = bpy.data.images.load(str(Path(image_path).resolve()))
     colour = tex.outputs["Color"]
     if darken != 1.0:
         mul = nt.nodes.new("ShaderNodeVectorMath")
@@ -89,7 +95,7 @@ def material(name, image_path, emission=0.55, roughness=0.85, specular=0.15, dar
 
 def main():
     a = _args()
-    out = Path(a.out_dir)
+    out = Path(a.out_dir).resolve()
     out.mkdir(parents=True, exist_ok=True)
     for ob in list(bpy.data.objects):
         bpy.data.objects.remove(ob, do_unlink=True)
@@ -100,8 +106,6 @@ def main():
 
     verts = z["verts"].copy()
     mix = dict(item.split("=") for item in a.expression)
-    for name, w in mix.items():
-        verts += float(w) * z["ex__" + name]
 
     helper = np.zeros(len(verts), bool)
     eye = np.zeros(len(verts), bool)
@@ -126,27 +130,67 @@ def main():
         remap[used] = np.arange(len(used))
         return verts[used], [remap[f] for f in faces], used
 
-    sv, sf, _ = compact(skin_faces)
+    def expressions(ob, used):
+        ob.shape_key_add(name="Basis")
+        for name in z.files:
+            if name.startswith("ex__"):
+                key = ob.shape_key_add(name=name[4:])
+                key.data.foreach_set("co", (verts[used] + z[name][used]).astype(np.float32).ravel())
+                key.value = float(mix.get(name[4:], 0.0))
+
+    sv, sf, skin_used = compact(skin_faces)
     head = mesh("head", sv, sf, np.concatenate(skin_uv))
-    head.data.materials.append(material("skin", a.head_tex))
+    expressions(head, skin_used)
+    head.data.materials.append(material("skin", a.head_tex, emission=a.skin_emission))
+    if a.subdivision:
+        sub = head.modifiers.new("continuous-skin", "SUBSURF")
+        sub.levels = sub.render_levels = a.subdivision
 
     # Eyeballs: planar UVs from the front picture's registration.
-    ev, ef, _ = compact(eye_faces)
-    img = bpy.data.images.load(a.front)
+    ev, ef, eye_used = compact(eye_faces)
+    img = bpy.data.images.load(str(Path(a.front).resolve()))
     w, h = img.size
-    plane = np.stack([ev[:, 0], -ev[:, 2]], 1)
+    texture_ev = z["texture_verts"][eye_used] if "texture_verts" in z else ev
+    plane = np.stack([texture_ev[:, 0], -texture_ev[:, 2]], 1)
     px = reg["scale_px_per_m"] * plane @ np.array(reg["rotation"]).T + np.array(reg["translation_px"])
     loop_uv = []
     for f in ef:
         for vi in f:
             loop_uv.append((px[vi, 0] / w, 1.0 - px[vi, 1] / h))
     eyes = mesh("eyes", ev, ef, np.array(loop_uv))
+    expressions(eyes, eye_used)
     # The iris colour is the picture's: a strong cornea reflection of the grey surroundings
     # would wash brown eyes to blue-grey.
     eyes.data.materials.append(material("eyes", a.front, emission=0.9, roughness=0.35,
                                         specular=0.12))
     sub = eyes.modifiers.new("smooth", "SUBSURF")
     sub.levels = sub.render_levels = 2
+
+    if a.oral_helpers:
+        for group in ("helper-upper-teeth", "helper-lower-teeth", "helper-tongue"):
+            ids = z["vg__" + group]
+            selected = np.zeros(len(verts), bool)
+            selected[ids] = True
+            faces = []
+            for i in z["keep_polys"]:
+                start, count = int(z["loop_starts"][i]), int(z["loop_totals"][i])
+                face = z["loops"][start:start + count]
+                if selected[face].all():
+                    faces.append(face)
+            if not faces:
+                continue
+            ov, of, used = compact(faces)
+            ob = mesh(group, ov, of)
+            expressions(ob, used)
+            mat = bpy.data.materials.new(group)
+            mat.diffuse_color = (0.32, 0.07, 0.06, 1.0) if group.endswith("tongue") else (0.7, 0.62, 0.46, 1.0)
+            mat.use_nodes = True
+            bsdf = mat.node_tree.nodes["Principled BSDF"]
+            bsdf.inputs["Base Color"].default_value = mat.diffuse_color
+            bsdf.inputs["Roughness"].default_value = 0.42
+            ob.data.materials.append(mat)
+            sub = ob.modifiers.new("smooth", "SUBSURF")
+            sub.levels = sub.render_levels = 1
 
     hv, ht = hz["verts"], hz["tris"]
     if not a.strands:
@@ -171,7 +215,7 @@ def main():
         rad = curves.attributes.get("radius") or curves.attributes.new("radius", "FLOAT", "POINT")
         rad.data.foreach_set("value", sz["radius"].astype(np.float32))
         col = curves.attributes.new("strand_colour", "FLOAT_COLOR", "POINT")
-        rgba = np.c_[sz["colours"], np.ones(len(sz["colours"]))].astype(np.float32)
+        rgba = np.c_[sz["colours"] * np.array(a.hair_tint), np.ones(len(sz["colours"]))].astype(np.float32)
         col.data.foreach_set("color", rgba.ravel())
         groom = bpy.data.objects.new("groom", curves)
         bpy.context.scene.collection.objects.link(groom)
@@ -183,7 +227,7 @@ def main():
                 nt.nodes.remove(node)
         bsdf = nt.nodes.new("ShaderNodeBsdfHairPrincipled")
         bsdf.parametrization = "COLOR"
-        bsdf.inputs["Roughness"].default_value = 0.35
+        bsdf.inputs["Roughness"].default_value = a.hair_roughness
         bsdf.inputs["Radial Roughness"].default_value = 0.4
         attr = nt.nodes.new("ShaderNodeAttribute")
         attr.attribute_name = "strand_colour"
@@ -205,7 +249,7 @@ def main():
             prefs.compute_device_type = "OPTIX"
             prefs.get_devices()
             for d in prefs.devices:
-                d.use = True
+                d.use = d.type != "CPU"
             scene.cycles.device = "GPU"
         except Exception:
             pass
@@ -246,6 +290,9 @@ def main():
         cam.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
         scene.render.filepath = str(out / "{}-{}.png".format(a.tag, view))
         bpy.ops.render.render(write_still=True)
+    if a.save_blend:
+        bpy.ops.file.pack_all()
+        bpy.ops.wm.save_as_mainfile(filepath=str(Path(a.save_blend).resolve()))
     print("rendered", a.tag, a.views, "->", out)
 
 

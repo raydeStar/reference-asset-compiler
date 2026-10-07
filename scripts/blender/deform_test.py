@@ -150,7 +150,7 @@ def place_camera(centre, extent, angle_deg):
 
 def main() -> int:
     argv = sys.argv[sys.argv.index("--") + 1:]
-    asset_path, out_dir, report_path = (Path(a) for a in argv[:3])
+    asset_path, out_dir, report_path = (Path(a).resolve() for a in argv[:3])
     resolution = int(argv[3]) if len(argv) > 3 else 900
     profile_id = argv[4] if len(argv) > 4 else None
     poses = select_poses(profile_id, POSES)

@@ -323,14 +323,16 @@ def sample(image, px):
 
 
 def bake(views, verts, normals, tris, uv, tris_uv, size, occluders,
-         depth_tolerance=0.004, buffers=None, min_facing=0.25):
+         depth_tolerance=0.004, buffers=None, min_facing=0.25, view_weights=None):
     """Weighted multi-view paint per texel.
 
     Returns (texture, coverage, painted, positions): `positions` is each
     texel's surface point, for filling what no view painted. A view only
     paints surface that faces it at least `min_facing` (cosine): a glancing
     projection smears whatever lies next to the outline. `buffers` caches
-    each view's depth buffer between meshes sharing occluders.
+    each view's depth buffer between meshes sharing occluders. Optional
+    `view_weights` maps view names to functions of world-space surface points;
+    these limit inferred views to regions that their pictures actually describe.
     """
     tri_id, bary = uv_rasterize(uv, tris_uv, size)
     texel = tri_id >= 0
@@ -360,6 +362,8 @@ def bake(views, verts, normals, tris, uv, tris_uv, size, occluders,
         if view.mask is not None:
             seen &= view.mask[yi, xi]
         wt = facing * seen
+        if view_weights is not None and view.name in view_weights:
+            wt *= np.clip(view_weights[view.name](pos), 0.0, 1.0)
         acc += view.colour(px) * wt[:, None]
         wsum += wt
     tex = np.zeros((size, size, 3))

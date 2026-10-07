@@ -133,14 +133,15 @@ def main():
     # Expression units: load each at weight 0, read its delta against Basis.
     units_dir = Path(LocationService.get_mpfb_data("targets")) / "expression" / "units" / a.race
     expr = {}
-    keys = body.data.shape_keys.key_blocks
     for path in sorted(units_dir.glob("*.target.gz")):
         name = path.name[: -len(".target.gz")]
         TargetService.load_target(body, str(path), weight=0.0, name="ex-" + name)
         sk = body.data.shape_keys.key_blocks["ex-" + name]
         ref = sk.relative_key
-        a_co = np.empty(n * 3); sk.data.foreach_get("co", a_co)
-        b_co = np.empty(n * 3); ref.data.foreach_get("co", b_co)
+        a_co = np.empty(n * 3)
+        sk.data.foreach_get("co", a_co)
+        b_co = np.empty(n * 3)
+        ref.data.foreach_get("co", b_co)
         d = (a_co - b_co).reshape(-1, 3) @ np.array(body.matrix_world)[:3, :3].T
         expr[name] = d.astype(np.float32)
 

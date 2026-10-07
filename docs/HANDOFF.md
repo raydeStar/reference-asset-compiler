@@ -3982,3 +3982,45 @@ human or production gates. Owned cleanup helper stopped Oct 3; no inference
 jobs remain after restart. No game-project import, commit or push performed.
 Next step is Mark's individual asset review, then only approved assets move to
 the Unreal project. Optional characters were not part of this environment batch.
+
+
+## 2026-10-07 — Ennix open-tool repair and repeatability pass
+
+Mark explicitly allowed the existing Hunyuan mesh, requiring open-source tools
+for everything from here. Retained frozen acquisition and reference images;
+used Blender 5.2.2/Python/NumPy/SciPy/Pillow and CC0 MakeHuman oral assets. No ARP,
+InsightFace or new generated images. See ENNIX_REBUILD.md and recipe
+recipes/ennix-open-review-20261007.json. Twenty-five hash-pinned inputs live at
+work/ennix-character-v1/rebuild-inputs; they are intentionally not in Git.
+
+Selected candidate: rebuild-proof-v3; independent rebuild-proof-v4 validates
+repeatability. Head/body/strand NPZs and both baked maps match bytes. Canonical
+semantic native audits match all coordinates, polygon winding/UV/materials,
+weights, morphs, bone rest data and groom. Ordered polygon streams differ after
+BMesh neck extrusion; raw renders/container hashes are not deterministic claims.
+All five exported deformation checks pass. Strict gate fails ONLY budget:
+136587 > 20000 triangles. Fixed source mask IoU .80179 < .90; bbox centre 3.61px.
+These are retained failures, not hidden/waived. Facial extremes and hand/jacket
+artistic polish remain. No moving idle or cooked runtime was claimed.
+
+Game editor importer enabled AlembicHairImporter (installed, previously off),
+after checking no unsaved maps/content and a brief restart. Correct import
+factory is HairStrandsFactory, not GroomFactory. Final isolated import V5 has
+34 morphs, 77550 curves, groom binding, explicit review shaders and combined
+BP_Ennix_Review. Skin cache and per-instance editor animation updates are needed
+for bound hair in the editor capture. Alembic strips custom strand colours;
+UE brown material is explicit and native per-strand colours remain in Blender.
+V1/V2/HairV3/V4 are earlier import attempts; do not select them for delivery.
+
+Full verify: 638 passed, 10 skipped, 181 subtests, lint/syntax/wheel/isolated-wheel
+success. Corrected nine pre-existing lint findings without behavior changes.
+The build recipe uses factory startup and Python exit-code 1, preserves all
+sources, writes stage logs/hashes, and rejects an existing output directory.
+No push/publish, player replacement, saved level modification, gameplay or
+runtime acceptance. Next gate is Mark's visual review, then agree a production
+triangle budget and reduce/rebake before promoting the character.
+
+Final editor expression probe: target names and set_morph_target weights read
+back, but mouth/blink captures did not visibly establish the expected motion.
+Keep UE facial playback unresolved; native expression evidence is separate.
+Local delivery includes this limitation and the retained probes.

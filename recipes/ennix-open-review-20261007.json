@@ -1,0 +1,162 @@
+{
+  "schema": "ennix-open-rebuild.v1",
+  "inputs": {
+    "template.npz": {
+      "sha256": "d559a1902097b11ed5cddcf9d2f2e6a5ea949531f6bf84f6ca6eea0242934c8a",
+      "bytes": 969687,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\template\\hm08-male.npz"
+    },
+    "head.npz": {
+      "sha256": "b5ebc1a1aa12a0718d7b2051adc344ca5164cea54a1d4534fe408515ae7fee21",
+      "bytes": 32580306,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\finish-v19\\head.npz"
+    },
+    "head.json": {
+      "sha256": "24558bcf6d9d3fe9b7161dd2c72748c6dad5861f07caff23df114f1ee9fddaeb",
+      "bytes": 13959,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\finish-v19\\head.json"
+    },
+    "hair.npz": {
+      "sha256": "20cd28e895bf856eb525382922e3b21e625a747d0afa327c10a2408bfba7aa1c",
+      "bytes": 610600,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\finish-v19\\hair-smooth.npz"
+    },
+    "head-basecolor.png": {
+      "sha256": "7a102acb5abed44621e842c8c9b91d0fc0670030fb16b4c79889810f4d2871b0",
+      "bytes": 1772301,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\finish-v19\\paint\\head_basecolor.png"
+    },
+    "hair-basecolor.png": {
+      "sha256": "1f928db207136f2dc9df152a397435a8d8d1eea2835f4aef7304c69e18b89ab8",
+      "bytes": 3705690,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\finish-v19\\paint\\hair_basecolor.png"
+    },
+    "head-front.png": {
+      "sha256": "e8069bbf6411251c0e741ec634fd638845d5c3427c9abf73ec6ba947b3ca1978",
+      "bytes": 1735762,
+      "source": "C:\\Users\\Ayric\\Documents\\Codex\\2026-10-04\\task-5\\head-guidance-v1\\ennix-head-front-v1.png"
+    },
+    "original.png": {
+      "sha256": "7cc4de5ed02e597cb3f3ef87f618273c347aec588b6960b0ecaca14a312f219a",
+      "bytes": 1748828,
+      "source": "C:\\Users\\Ayric\\Documents\\Codex\\2026-10-04\\task-5\\reference\\1000022106.png"
+    },
+    "original-head-crop.png": {
+      "sha256": "9426d556deb3f0e73d18bd5a7ff068b1f7fcb8187c695c07ba27acbd8c6fc079",
+      "bytes": 696132,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-20261007\\original-head-crop.png"
+    },
+    "original-landmarks.json": {
+      "sha256": "d98bb93702b1d4437823d6da92f319fff5ddd060c64a9ffb44739226fcd3081e",
+      "bytes": 6186,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-20261007\\original-landmarks.json"
+    },
+    "placement.json": {
+      "sha256": "4de1cab63d0aa0087132fe37ff17187c7f0cb01bb2f23e7e996f2df5b70606fa",
+      "bytes": 280,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\character-v3\\head-placement-measurement.json"
+    },
+    "rig-landmarks.json": {
+      "sha256": "a55bb1641d14cee062f21155d0df03f8d91e85985076f5bc4f372be11bc1c8c2",
+      "bytes": 28628,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rig-v2\\landmarks.json"
+    },
+    "body-acquisition.blend": {
+      "sha256": "638df5c778de28ff042d1c3a71d38e4486f35ec09e258a5feb9eab1b70c21704",
+      "bytes": 39591361,
+      "source": "C:\\Users\\Ayric\\Documents\\Codex\\2026-10-04\\task-5\\timed-recovery-20261005\\assembly-v15b\\ennix-neck-transition-blended-v15b.blend"
+    },
+    "front-landmarks.json": {
+      "sha256": "3f6889d7f027ee5b3bcc0e4c82126434f53c6116a0d186019e53beecc3688674",
+      "bytes": 6236,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\landmarks\\dw-front.json"
+    },
+    "body-front.png": {
+      "sha256": "30304b86cc53ad7c82331ddf59a6c448f8aad5feeb3239c0ce88b611b3408c9b",
+      "bytes": 528229,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\ennix-aetherwars-v2\\input-preparation-v1\\prepared\\front.png"
+    },
+    "body-back.png": {
+      "sha256": "e9fbf5e8fd81a6936d0c3d6d5ba67e05f7aeb9deac5ae2675ab85faef2e9401f",
+      "bytes": 525599,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\ennix-aetherwars-v2\\input-preparation-v1\\prepared\\back.png"
+    },
+    "body-left.png": {
+      "sha256": "ca6371db89b70c73ca0eda824a414ffbaaa46e5fce9e3b3bc981cf125c24c4bc",
+      "bytes": 285768,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\ennix-aetherwars-v2\\input-preparation-v1\\prepared\\left.png"
+    },
+    "makehuman/teeth/teeth_base/teeth.mhmat": {
+      "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+      "bytes": 1086,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-assets\\makehuman-system\\teeth\\teeth_base\\teeth.mhmat"
+    },
+    "makehuman/teeth/teeth_base/teeth.png": {
+      "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+      "bytes": 1799930,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-assets\\makehuman-system\\teeth\\teeth_base\\teeth.png"
+    },
+    "makehuman/teeth/teeth_base/teeth_base.mhclo": {
+      "sha256": "9edc3deff3bb97a95c791878064dd069a74a38f95ea6d9707a9ba68d888b3b5c",
+      "bytes": 263220,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-assets\\makehuman-system\\teeth\\teeth_base\\teeth_base.mhclo"
+    },
+    "makehuman/teeth/teeth_base/teeth_base.obj": {
+      "sha256": "f55198069e55d360c4b4cc7ecb1cc292b2c7665753ab8b65eabf46a8783f2875",
+      "bytes": 313110,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-assets\\makehuman-system\\teeth\\teeth_base\\teeth_base.obj"
+    },
+    "makehuman/tongue/tongue01/tongue01.mhclo": {
+      "sha256": "61d825899cd78ff3146fa1324118060cb44b095fae1427d408c199ade74e3c9e",
+      "bytes": 2113,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-assets\\makehuman-system\\tongue\\tongue01\\tongue01.mhclo"
+    },
+    "makehuman/tongue/tongue01/tongue01.mhmat": {
+      "sha256": "7769df66c69b8c09a0ec713d70d8381abbb08ac82207369f5413970495cd4340",
+      "bytes": 1261,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-assets\\makehuman-system\\tongue\\tongue01\\tongue01.mhmat"
+    },
+    "makehuman/tongue/tongue01/tongue01.obj": {
+      "sha256": "12f4a6a9f85abae2ce3b4aa42d8119e1f679a437e0e89cb928ec68b29a7a1587",
+      "bytes": 17155,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-assets\\makehuman-system\\tongue\\tongue01\\tongue01.obj"
+    },
+    "makehuman/tongue/tongue01/tongue01_diffuse.png": {
+      "sha256": "3150be398e48e8ba1feac164c3143c16c0b2e959d9ffb6155f0171f59cfb4ea9",
+      "bytes": 625419,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\source-assets\\makehuman-system\\tongue\\tongue01\\tongue01_diffuse.png"
+    }
+  },
+  "groom": {
+    "guides": 550,
+    "children": 140,
+    "seed": 7,
+    "wave": 0.65,
+    "wave_length": [
+      0.06,
+      0.1
+    ],
+    "curl": 0.9,
+    "clump": 0.65,
+    "strays": 0.035,
+    "length": [
+      0.1,
+      0.18
+    ],
+    "volume": 1.4,
+    "tip_flick": 0.1,
+    "layer_wave": 0.14,
+    "part_min_sweep": 0.85,
+    "strand_radius": 0.00023,
+    "nape_drop": 0.05
+  },
+  "body_review_triangles": 120000,
+  "samples": 32,
+  "resolution": 768,
+  "production_ready": false,
+  "license_note": "Existing Hunyuan acquisition is explicitly allowed. All new processing uses Blender, Python, NumPy/SciPy/Pillow and repository code. Oral assets are CC0 MakeHuman system assets. No Auto-Rig Pro, InsightFace or new generated images.",
+  "license_sources": [
+    "https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html",
+    "https://static.makehumancommunity.org/about/license.html"
+  ]
+}
