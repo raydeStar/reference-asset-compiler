@@ -68,7 +68,9 @@ def main():
     only = argv[argv.index("--only") + 1].split(",") if "--only" in argv else None
     scene.camera = cam
     views = {"front": (Vector((0, -5.2, 1.0)),), "three_quarter": (Vector((-3.4, -3.9, 1.15)),),
-             "side": (Vector((5.2, 0, 1.0)),)}
+             "side": (Vector((5.2, 0, 1.0)),), "back": (Vector((1.2, 4.6, 1.9)),)}
+    wanted = argv[argv.index("--views") + 1].split(",") if "--views" in argv else ["front", "three_quarter", "side"]
+    views = {k: v for k, v in views.items() if k in wanted}
     pelvis_scale = rest["pelvis"][1][2] / manny_ref["pelvis"][2]
     receipts = []
     for pose in [{"anim": "RefPose", "time": 0, "bones": None}] + poses:
@@ -107,6 +109,8 @@ def main():
         for view, (loc,) in views.items():
             cam.location = loc + follow
             target = Vector((0, 0, 0.92)) + follow
+            if "--follow-z" in argv:              # clips off the ground (hanging, gliding)
+                target.z = Pp["spine_03"][2] / 100.0
             cam.rotation_euler = (target - loc).to_track_quat("-Z", "Y").to_euler()
             scene.render.filepath = str(out / f"{tag}_{view}.png")
             bpy.ops.render.render(write_still=True)
