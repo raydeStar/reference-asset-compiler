@@ -10,6 +10,11 @@ and applied before anything measures anything.
 None of this runs Blender. What is exercised here is the arithmetic and the
 refusals, which is where the mistakes are.
 """
+import json
+import os
+import shutil
+import subprocess
+import sys
 import tempfile
 import unittest
 from pathlib import Path
@@ -200,6 +205,68 @@ class ReductionPreparationTests(unittest.TestCase):
         prepared = prepare_reduction(self.source, self.output, {}, blender=None)
 
         self.assertNotIn("-Blender", prepared["arguments"])
+
+    def test_a_note_that_quotes_something_keeps_its_words_but_not_its_double_quotes(self):
+        prepared = prepare_reduction(self.source, self.output, {
+            "runtime_derivative": True,
+            "asset_notes": 'Independent leaves. [{"name": "SOCKET_LeftHinge"}]'})
+
+        arguments = prepared["arguments"]
+        notes = arguments[arguments.index("-AssetNotes") + 1]
+        self.assertNotIn('"', notes)
+        self.assertIn("SOCKET_LeftHinge", notes)
+        # And the switch comes before any free text at all.
+        self.assertLess(arguments.index("-RuntimeDerivative"), arguments.index("-AssetNotes"))
+
+    @unittest.skipUnless(os.name == "nt" and shutil.which("powershell.exe"),
+                         "Windows PowerShell integration")
+    def test_a_quoted_note_cannot_swallow_the_runtime_derivative_switch(self):
+        # The launcher forwards its parameters to Blender the way this probe
+        # forwards them to Python, and Windows PowerShell 5.1 does not escape
+        # the double quotes inside an argument it hands to a native program. A
+        # note cut with an odd number of them -- crypt-frame's had 15 --
+        # swallowed --runtime-derivative on the way, and the prop was reduced
+        # as a production authority.
+        dump = self.root / "dump.py"
+        dump.write_text("import json, sys\nopen(sys.argv[1], 'w').write(json.dumps(sys.argv[2:]))\n",
+                        encoding="utf-8")
+        probe = self.root / "probe.ps1"
+        probe.write_text(
+            "param([string]$InputMesh, [string]$OutputDirectory, [string]$Blender,\n"
+            "      [string]$TriangleBudget, [string]$AssetName, [string]$Role,\n"
+            "      [string]$AssetNotes, [switch]$RuntimeDerivative, [string]$Python, [string]$Dump)\n"
+            "New-Item -ItemType Directory -Force -Path $OutputDirectory | Out-Null\n"
+            "$optional = @()\n"
+            "if ($AssetNotes) { $optional += @('--asset-notes', $AssetNotes) }\n"
+            "if ($RuntimeDerivative) { $optional += '--runtime-derivative' }\n"
+            "& $Python $Dump (Join-Path $OutputDirectory 'argv.json') @optional\n", encoding="utf-8")
+        odd = ('Measured clear opening 3 x 5 m. Independent leaves. '
+               '[{"name": "SOCKET_LeftHinge", "location_m": [-1.49, 0.0, 0.01]}, {"name": "SO')
+        self.assertEqual(odd.count('"') % 2, 1)
+        prepared = prepare_reduction(self.source, self.output, {
+            "runtime_derivative": True, "triangle_budget": "auto", "asset_notes": odd})
+
+        subprocess.run(["powershell.exe", "-NoProfile", "-NonInteractive", "-ExecutionPolicy",
+                        "Bypass", "-File", str(probe), *prepared["arguments"],
+                        "-Python", sys.executable, "-Dump", str(dump)],
+                       check=True, capture_output=True, stdin=subprocess.DEVNULL, timeout=60)
+
+        received = json.loads((Path(prepared["payload"]["attempt_directory"]) / "argv.json")
+                              .read_text(encoding="utf-8"))
+        self.assertIn("--runtime-derivative", received)
+        self.assertIn("SOCKET_LeftHinge", received[received.index("--asset-notes") + 1])
+
+    def test_the_launchers_forward_names_and_notes_without_double_quotes(self):
+        # For a caller that runs a launcher directly, without this module.
+        root = Path(__file__).resolve().parents[1] / "scripts"
+        for name in ("run_feature_qem_reduction.ps1", "run_voxel_qem_reduction.ps1"):
+            text = (root / name).read_text(encoding="utf-8-sig")
+            with self.subTest(launcher=name):
+                self.assertIn("$AssetNotes.Replace('\"', \"'\")", text)
+                self.assertIn("$AssetName.Replace('\"', \"'\")", text)
+        feature = (root / "run_feature_qem_reduction.ps1").read_text(encoding="utf-8-sig")
+        self.assertLess(feature.index("$optional += '--runtime-derivative'"),
+                        feature.index("'--asset-notes'"))
 
 
 if __name__ == "__main__":

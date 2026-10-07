@@ -66,9 +66,11 @@ try {
     $componentArguments = @()
     if ($PreserveComponents) { $componentArguments += '--preserve-components' }
     if ($TargetTriangles) { $componentArguments += @('--target-triangles', $TargetTriangles) }
-    if ($AssetName) { $componentArguments += @('--asset-name', $AssetName) }
-    if ($Role) { $componentArguments += @('--role', $Role) }
-    if ($AssetNotes) { $componentArguments += @('--asset-notes', $AssetNotes) }
+    # Double quotes do not survive Windows PowerShell 5.1's call to a native
+    # program; names and notes are read for their words, so they go as single.
+    if ($AssetName) { $componentArguments += @('--asset-name', $AssetName.Replace('"', "'")) }
+    if ($Role) { $componentArguments += @('--role', $Role.Replace('"', "'")) }
+    if ($AssetNotes) { $componentArguments += @('--asset-notes', $AssetNotes.Replace('"', "'")) }
     $runOutput = @(& $blenderPath '--background' '--factory-startup' '--python-exit-code' '1' '--python' $driver '--' `
         $inputPath $candidate $report '--triangle-budget' $TriangleBudget `
         '--voxel-resolution' $VoxelResolution '--smooth-iterations' $SmoothIterations `

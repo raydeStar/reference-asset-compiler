@@ -15,36 +15,32 @@ truthfully reports 0 of 7 assets ready.
 
 ## Ennix character: reproducible review, not production-ready
 
-Selected workspace: `work/ennix-character-v1/rebuild-proof-v3/`; independent
-repeat: `rebuild-proof-v4/`. [Rebuild and review guide](ENNIX_REBUILD.md) gives the
-exact command, input pack, licenses, paths and limitations. The final editable
-file is `rigged/Ennix_Rigged.blend`; the relaxed held review is
-`pose/Ennix_Held_Inspection.blend` (not a moving idle).
+Selected build: `work/ennix-character-v1/rebuild-v8/`, recipe
+`ennix-open-review-20261009`, built with `--manny-dir work/ennix-character-v1/rig-ue5`.
+[Rebuild and review guide](ENNIX_REBUILD.md) gives the exact command, the frozen
+26-file input bundle (85.47 MiB, outside Git), licenses, paths and limitations.
+Editable file `rigged/Ennix_Rigged.blend`; game export `export/Ennix_UE5.fbx` on a
+Manny-conformant skeleton (`scripts/rig_ue5_character.py`) with
+`export/Ennix_Groom_UE5.abc`; held review `pose/Ennix_Held_Inspection.blend`.
 
-Source-aligned proportions/face paint, coherent seeded hair, actual CC0 oral
-meshes, continuous neck/collar repair, source-baked outfit and free measured rig
-are retained. Body FBX has 86 bones and 34 facial controls; groom has 77,550
-strands. Two full builds reproduce numeric geometry/strand arrays and base
-textures exactly. Canonical audits match all native geometry, winding, UVs,
-materials, weights, morphs, rest bones and groom; raw face order and rendered
-pixels can differ. Exported deformation suite passes five poses. Strict rig
-contract has one failure: 136,587 triangles against the 20k ceiling. No waiver.
-Source silhouette IoU is 0.802 against 0.900; centre error 3.61px passes.
+Head, groom strands, body and both head paints reproduce byte for byte across
+independent builds (rebuild-v5..v8); the face-paint stage
+(`scripts/refine_ennix_face_paint.py`) is deterministic and measured against
+the guidance: blush capped, stubble filled, scalp shaded under the groom's
+roots, ear and neck tone evened. Review sheet:
+`rebuild-v8/face-paint-review/face-paint-sheet.png`, before/after beside the
+guidance at front, three-quarter and side. Containers (FBX/blend) and rendered
+pixels are not claimed byte-identical; canonical audits compare their content.
+Strict rig contract has one failure: 136,587 triangles against the 20k ceiling.
+No waiver.
 
-Unreal review is `/Game/EnnixReview/20261007/V5/BP_Ennix_Review` with mesh, groom
-and binding. All 34 morphs and all 77,550 curves imported. Combined editor render
-was checked after enabling transient animation updates on the spawned preview.
-Player/map replacement and PIE/cooked runtime were not performed. Hair import
-uses explicit coordinate conversion and a brown review material because Blender
-Alembic omits the custom per-strand colour attribute. Native colours stay intact.
-
-Existing Hunyuan acquisition is allowed by Mark. All new processing uses open
-tools; no new inference, proprietary rig add-on or generated image was used.
-UE facial target playback remains unverified despite imported target names.
-Human likeness/texture approval, lower-detail production topology, expression
-polish, retarget/moving animation and runtime acceptance remain open. Full repo
-verification: 638 tests passed, 10 skipped, 181 subtests; lint, stage syntax,
-wheel build and isolated installed-wheel checks passed. Local delivery only.
+The playable game character lives in the Aether Wars UE project (rigid groom,
+exact Manny retarget); the older editor review is
+`/Game/EnnixReview/20261007/V5/BP_Ennix_Review`. Existing Hunyuan acquisition is
+allowed by Mark; all new processing uses open tools, with no new inference or
+generated images. Still open: face detail is capped by the guidance pictures'
+resolution, human likeness/texture approval, a production triangle budget,
+expression polish and UE facial playback, and cooked-runtime acceptance.
 
 ## Aether Wars realistic commission (creation complete; awaiting Mark review)
 
@@ -68,6 +64,16 @@ On 2026-10-04, all 121 current model audits passed; all 18 category counts passe
 Framewright selection and bundle manifest. `DELIVERY-VERIFIED.json` accompanies
 it. GPU inference and the owned cleanup helper are stopped; no generation queue
 remains. Framewright was restarted and the selection rechecked after shutdown.
+
+Runtime derivatives (2026-10-04, `rebake-maps`, branch `feat/rebake-maps`): of
+105 single-mesh models, 90 were reduced, re-baked from their dense originals
+and passed the fixed-view appearance gate (8.68M -> 1.51M triangles); 15 keep
+their delivered source (6 crystal heroes already near budget, 6 crystal walls
+and the single chain link refused by the gate, pillar capital and relic chest
+base refused by reduce-mesh's surface gates). The 90 are revisions in
+Framewright, current by the API's default, with the originals kept beneath
+them; Mark's approval is pending on each. Assemblies (16) were not reduced.
+Outputs: `work/aether-wars-2026-10-03/rebake-derivatives/` (`summary.md`).
 
 Final repairs: coin-pile `kit-v2-coins` uses 120 rigid copies of one acquired
 heraldic coin. Chain-winch `kit-v4-worn` was rebuilt LAST, after the other items:

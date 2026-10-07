@@ -942,6 +942,124 @@ pose contracts. The user's rejection supersedes prior technical success wording.
   a prop while a 4.5 m "toppled statue head" is still a hero piece. Names
   classify as before.
 
+## 2026-10-04 — paint that slid is baked back, and judged by eye
+
+- Re-baking from the dense original undoes the smear. The floor brazier
+  re-baked at 15k and 16.8k triangles scores 0.95-0.96 lit and 0.97-0.98 unlit
+  SSIM (worst of four views) against the delivered GLB; the same reductions
+  without a re-bake score at most 0.80 and 0.93. Surface deviation could not
+  tell the two apart; the fixed views can. `rebake-maps` is the stage.
+- On the brazier the eye and the surface gates agree: 15k is the lowest rung
+  both accept, and 11.2k passes neither. Below that, what fails the views is the
+  geometry (a kinked strap, a faceted rim), not the bake.
+- A scripted bake cannot rely on switching a material's active output: in
+  Blender 5.2 `is_active_output` stayed on the original output, the bake read
+  the untouched BSDF of an unlit scene, and every map came back black while
+  the run reported success. Rewire the active output's Surface socket instead,
+  and restore it afterwards.
+- A bake's alpha cannot measure its coverage: after `bake(use_clear=True)` a
+  normal map is opaque on every texel, reached or not, and the margin makes
+  opaque every miss within its width. A white emission pass can, baked
+  without a margin. Baked with one, it counts the misses the margin covered as
+  reached: the brazier at 15k read 100% that way, while its rays reached
+  99.74% (the throne at 40k: 99.98% against 99.96%). The maps are the same
+  either way; only the reading was wrong. `retopo_bake.py` read its coverage
+  from alpha too; see the next entry.
+- Compare masks at one resolution. Islands rasterised at 1024 and checked
+  against a 4096 coverage mask, picked every fourth texel, sample 1.5 texels
+  off their own centres; at island borders that lands in the gutter, which is
+  black without a margin. It read 96.9% and 95.7% for those 99.74% and 99.96%,
+  and was reported as such for a commit before the cause was found.
+- Each map's `texels_filled` counted every texel the coverage mask left
+  unwritten, gutter included: 5,059,706 on the brazier's base colour, which the
+  fill had not touched. It now counts the painted texels the fill actually
+  repaired: 39.
+- Appending one .blend into another renames clashing node groups: "glTF
+  Material Output" became "glTF Material Output.001", and the throne's
+  occlusion silently stopped being found. Match by the name before the suffix.
+- `review-views` renders with EEVEE, which needs the GPU. Cycles on the CPU with
+  a fixed seed is deterministic: the dense .blend and the delivered GLB of the
+  same prop rendered identically (SSIM 1.000), which is the gate's noise floor.
+- Windows PowerShell 5.1 hands an argument to a native program without
+  escaping the double quotes inside it. Aether Wars notes quote their socket
+  names, and cut at 400 characters three of them had an odd number of quotes:
+  on the way to Blender they swallowed `--runtime-derivative`, and those props
+  were reduced as production authorities (holes filled, judged as closed;
+  crypt-frame refused for it). Names, roles and notes now travel without double
+  quotes, switches first, both in `stages.py` and in the launchers.
+- "Leaves" is not always foliage. A door frame's notes said "Independent
+  leaves" (door leaves), and notes may promote a role, so it was budgeted as
+  huge vegetation (30k) rather than a huge prop (20k). Harmless here -- more
+  triangles, not fewer -- but promotion by keyword in notes needs a guard.
+
+## 2026-10-04 — a bake's alpha does not say which texels its rays reached
+
+- `retopo_bake.py` reported bake coverage as the share of the whole sheet with
+  alpha above 0.5, and let the same alpha decide what `fill_unbaked` repaired.
+  Measured on Blender 5.2.2 (CPU Cycles, `use_clear=True`, margin 24
+  `ADJACENT_FACES`): a NORMAL bake returns alpha 1 on every texel, reached or
+  not. On EMIT and AO bakes a missed texel keeps alpha 0 only until the margin
+  gets to it: the margin writes alpha 1 and a neighbour's colour into every
+  missed texel within its width. Outside the islands, alpha changed between
+  two identical bakes (100% vs 90.5% of the gutter opaque). The opaque
+  `generated_color` fill plays no part: `use_clear` overwrites it.
+- So the receipt overstated reach, and the fill ran only where alpha happened
+  to be 0. A holed sphere baked onto a prebuilt light mesh reported 93.7%
+  (Normal 100%, nothing filled) while its rays reached 52% of the island
+  texels, and 9.6% of the island texels shipped black. Most of those misses
+  were not the holes but the default 3 mm extrusion falling short of the
+  ~5 mm gap at the light mesh's quad centres -- a failure the old receipt
+  could never have shown.
+- Coverage now comes from two white-emission bakes through a view-layer
+  material override, which also covers faces with no material and leaves the
+  materials untouched: margin 0 gives what the rays reached, the passes' own
+  margin gives what the passes will write. Island texels come from rasterising
+  the light mesh's UVs (`scripts/blender/bake_coverage.py`); that agrees with
+  Blender's own island texels to 0.03%. `bake_coverage_pct` is now the reached
+  share of the islands, `texels_filled` the island texels the fill repaired,
+  and `bake_coverage` puts every missed texel in exactly one bucket: written by
+  the margin, filled, or left unbaked. On the same sphere: 52.35% reached, and
+  15,144 texels left unbaked, which is exactly the number of black island texels
+  in the delivered maps (half what shipped before). Both passes took 0.8 s at
+  1024.
+- Measure reach without a margin. A coverage mask baked with one counts the
+  misses the margin covered as reached; use that mask only to decide what to
+  fill.
+- `bake_coverage_pct` in reports written before this change is an alpha
+  reading, not a measurement (the office-chair canary's 100.0, the 99.78% in
+  `DEFECTS-CLOSEUP-REVIEW.md`). `build_production.py` now takes reach only
+  from a report that carries `bake_coverage`.
+
+### 2026-10-04 - Ennix: local surface repair does not recover anatomy
+
+Unsharp/Laplacian detail amplification on the raw marching-cubes face turned
+triangulation into visible wrinkles and spikes even at a 1.5 mm displacement
+cap. Reject that V2 result; V3 restores the original facial positions. Smooth
+normals improve display but cannot create modeled eyelids, lips or sockets.
+
+A boolean cut can leave a manifold surface while failing to separate fingers
+when cutter normals are inward. Correct outward cutter normals and validate
+actual open gaps plus distal connected components, not just manifold counts.
+V3 has four distal components per hand, but those flat slotted fingers still
+fail anatomical fidelity. Keep technical geometry checks separate from visual
+acceptance and rig readiness. Sources and closeups live in the Ennix V3 repair
+directory; no blind whole-body regeneration or gate promotion followed.
+
+### 2026-10-05 - Ennix part acquisition gains and limits
+
+The runner's left slot sees the front image's right side, confirmed against
+installed preprocessor mapping and actual official example images. For dorsal
+hand front with thumb image-right, use radial/thumb edge as left; palm as back.
+Retain unused ulnar guidance under supplementary_views, not the required exactly
+three-entry derivation views list. Request preflight caught that metadata issue
+before inference; original invalid metadata is retained as evidence.
+
+Detailed isolated head guidance improves facial volume but does not ensure usable
+eyelids or clean hair. Dense closed geometry is not anatomical approval. The hand
+acquisition is useful for measured placement; overlapping capped wrist surfaces
+still need a joined deformable topology. Record that distinction explicitly.
+Do not silently reduce a raw head to fit Framewright's model review limits or
+claim the unmodified original GLB equals Blender's import triangle count.
 
 ## 2026-10-07 — repeatability and actual consumer checks for Ennix
 

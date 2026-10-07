@@ -3983,6 +3983,242 @@ jobs remain after restart. No game-project import, commit or push performed.
 Next step is Mark's individual asset review, then only approved assets move to
 the Unreal project. Optional characters were not part of this environment batch.
 
+## 2026-10-04 — Reduced painted props keep their paint: `rebake-maps`, and the Aether Wars props reduced
+
+Mark's only feedback on the standing props was to cut vertices, and a
+reduction after painting slid the paint off them (`DECISIONS.md`, triangle
+budgets). This adds the stage that bakes it back and the gate that can see it,
+and runs both over the commission. Branch `feat/rebake-maps` (from
+`feat/triangle-budgets` 9af58b3, which `reduce-mesh --triangle-budget auto`
+needs): 2be0642 stage and gate, f4d0084 studio publisher, 1056b6b launcher
+quoting; a follow-up session added 923b76d, 7ba46e5, 5b98252, c3b743a (true bake
+reach, shared `bake_coverage`). Local commits only.
+
+**CPU only.** GPU at start: 2 GB used, 1% load, desktop processes only;
+nothing was stopped and nothing ran on it. Every bake and render is Cycles with
+`device = CPU`, compute device `NONE`, denoiser off the GPU, 8 threads, two
+props at a time; each receipt records it.
+
+**Stage.** `rac run-stage rebake-maps --source <reduced> --dense <painted.blend>
+--reduction-report <reduce-mesh receipt> --appearance-reference <delivered.glb>`.
+Contract and calibration: `COMPILER.md`, "Re-baking a reduced painted prop".
+Gate: every one of four views lit SSIM >= 0.94, unlit >= 0.96, worst 16 px patch
+>= 0.35 / 0.45, silhouettes 97%. On a refusal it reduces the next ladder rung and
+tries again. `scripts/rebake_library.py` runs a list of props;
+`scripts/publish_studio_revisions.py` places results in a studio's revision
+stacks.
+
+**Batch.** `work/aether-wars-2026-10-03/rebake-derivatives/`: `batch-items.json`,
+`batch-progress.json`, `summary.json` / `summary.md`, and per prop
+`<NN>/<stem>/` (reduction attempt, `runtime-rebake-attempt*/rung-N/` with bake,
+views, `appearance.json` and `comparison-beauty.png`, and `runtime.glb`).
+Review sheets for the brazier, chest base, pipe, cog, throne, crystal shard,
+lantern, tattered banner and royal chest lid are in `review/`.
+
+| Single-mesh props (105; 16 assemblies skipped) | Count | Triangles |
+|---|---|---|
+| Accepted: reduced, re-baked, passed the gate | 90 | 8,679,732 -> 1,511,473 (-82.6%) |
+| Kept: the budget says the source is close enough (crystal heroes 6 m / 8 m) | 6 | unchanged |
+| Refused by the appearance gate (6 crystal walls; chain single link) | 7 | source kept |
+| Refused by reduce-mesh's surface gates (pillar capital, relic chest base) | 2 | source kept |
+| Whole single-mesh library | 105 | 9,821,721 -> 2,653,462 (-73.0%) |
+
+Accepted: 57 unwrapped afresh, 33 kept the reduction's UVs, 10 climbed past
+their first rung; worst-view lit SSIM 0.944 (median 0.980), unlit 0.971 (median
+0.995). Floor brazier 119,994 -> 14,995; chest base 100,000 -> 10,000; pipe 1 m
+100,000 -> 5,200; cog 2 m 100,000 -> 15,000.
+
+**Refusals worth a decision.** The crystal walls' unlit paint matches (0.97-0.99)
+but their lit views stay at 0.85-0.925 up to 50.7k: highlights and refraction
+on hundreds of small transmissive facets. At 50.7k they look the same to the
+eye, so a lit threshold for transmissive crystals is Mark's call. Pillar capital
+and relic chest base: p99 deviation <= 4 mm at every rung, but a 6-9 edge hole
+in the source collapses shut and moves one spot 4-5 cm, so the max gate refuses
+every rung. Pinning boundary vertices during the collapse would fix it.
+
+**Incident.** Notes cut at 400 characters with an odd number of double quotes
+swallowed `--runtime-derivative` on the way to Blender (Windows PowerShell 5.1
+does not escape them for a native program). banner-rod-1p8m, banner-rod-2p3m,
+crypt-frame and temple-frame were reduced as production authorities. Fixed in
+1056b6b, all four re-run; the wrong-mode outputs are kept in
+`_trials/wrong-mode-quoted-notes/`. crypt-frame and temple-frame were budgeted
+as vegetation (their notes say "leaves" -- door leaves); origin/main e7c1f11
+now guards notes promotion. This branch predates it, so they have 30k, not 20k.
+
+**Framewright.** Mark approved the upload. The 90 accepted GLBs went in through
+the API as revisions of their delivered items (`publish-ledger.json`). The API
+makes an added revision current; each delivered original is kept as the
+previous revision. Human approval is still pending on all of them. Framewright
+branch `feat/rebake-maps` (ccbde00, local) adds `rebake-maps` to Prepare for
+runtime for textured models when the compiler offers it.
+
+**Limits.** The gate averages each view, and a worst-patch floor is not
+enough to catch every fleck: the 1 m cyan crystal shard passed with a small
+dark fleck seen through it in one lit view, which only the comparison sheet
+shows. Maps keep the source resolution, so a re-baked GLB weighs about what
+the original did (textures re-encoded losslessly, -28% against Blender's PNGs).
+
+## 2026-10-04 - Ennix local geometry acquisition and human review delivery
+
+Completed one image-conditioned local Hunyuan3D-2mv acquisition in
+`work/ennix-aetherwars-v2/`, preserving v1 intake and every earlier refusal
+receipt. The GPU guard was not weakened. The user closed Unreal before
+inference; the successful run admitted at 21,978 MiB free and exited 0.
+Cached model revision: `3a761b539b29fe4ff64714813aa9560fd66f5de0`.
+The original front is authoritative; source-derived left/back are interpreted.
+
+Raw GLB SHA256:
+`0ed6601e837db28044e6abacb219849ebb6c684892fa046b627ad155dbdaeda2`.
+249,839 vertices / 499,686 triangles. Official fixed-view rendering produced
+four inspected actual clay views plus beauty views. The 1.8 m editable Blend
+is retained; its import reports four fewer triangles, recorded in its stage
+receipt rather than represented as bit-identical. No semantic sculpt edits.
+
+The broad outfit is present, but fused fingers, soft face/hardware and thin
+ragged sash prevent treating this as a usable character. Recommend refinement
+before human modeling approval. No human approval was entered. Only technical
+candidate acquisition is passed; ledger audit is valid and production false.
+No texture, retopology, skeleton/weights or game integration was attempted.
+
+Framewright pending model: `126212fd-bdad-410a-94a9-448b0c67e1da`, Ennix
+collection `5d5006a7-2b60-4cd0-95be-ce89d4e2c3e1`. The four clay previews and
+25,580,584-byte source bundle are private Library items, exact identities in
+`evidence/library-delivery-v1.json`. The ordered direct create fallback was
+used after the prepared helper could not start in the local environment;
+all five succeeded and local Library identity metadata was persisted.
+
+Source ZIP SHA256:
+`13acb67f989881b8e9a1b56e85d40ad29eaa804f376ab19a0b8d0087f586de8a`.
+Includes raw/native sources, references, settings, lineage, review renders,
+ledger and HANDOFF.txt. The earlier generic preflight assessment is superseded
+by this established-workflow evidence and must not be used as current status.
+
+Game: no saved changes. Original Quinn mesh/SK_Mannequin/ABP_Manny_Combat,
+hand_r/hand_l carry/power dependencies and BP backup are recorded in the task
+workspace. Integration later needs new `/Game/AetherWars/Characters/Ennix/`
+assets plus a reversible BP_ThirdPersonCharacter mesh switch, only after
+geometry/rig approval and ownership coordination. Verify attachment sockets,
+held objects, powers/combat notifies, locomotion, traversal, camera and collision.
+
+Verification: 725 tests passed, 10 skipped, 193 subtests passed; Ruff and
+190 stage syntax checks passed. Wheel build remained blocked offline by
+missing hatchling>=1.26, so do not describe the full verification as passing.
+No dependencies installed, source code changed, commits or pushes performed.
+
+## 2026-10-04 - Ennix bounded modeling repair, partial result retained
+
+Source thread requested repair before human approval. Inspected native mesh
+and actual head/hand/sash closeups: raw topology is closed, but fingers are
+fused, face shallow, sash edge noisy. No new inference was launched.
+
+V2 localized unsharp detail visibly amplified triangular facets on the face;
+rejected. Inward boolean cutters retained finger bridges despite manifold
+counts; also rejected. Every source/receipt/preview is kept. V3 uses outward
+cutter normals, restores the source face, and retains only scoped hand/sash
+changes plus smooth shading. Three actual gaps per hand, four disconnected
+distal finger sections per hand, 0 open/non-manifold edges, 502,066 triangles.
+KD-tree comparison measured exactly 0 position change for original head and
+body outside hand/sash scope. Sash displacement capped at 1.2 mm; original
+raw candidate hash remains unchanged. No semantic approval was entered.
+
+V3 Blend SHA256:
+bd5045fa0a86bc495d443514874e220c5b1bbb785967f487f250bfc3597d5e96
+V3 GLB SHA256:
+9210ac805853489da018aeaf9a4f4db46396c158cb120c235b9355cd86798c7e
+Source bundle SHA256:
+e1287aa908d38696f7e32e84d2e564bf678c901b31db69deb90e3566a6f982fe
+
+Retained under `work/ennix-aetherwars-v2/modeling-derivatives/local-repair-v3/`.
+Four matching actual clay views and seven closeups were rendered/inspected.
+Six public-to-user private Library PNGs and an editable source ZIP were saved;
+identities are in `library-delivery.json`. Framewright outcome is recorded in
+`framewright-import.json`, without altering the original candidate or reviews.
+
+Do NOT approve this as faithful anatomy: slotted fingers are still flat and
+lack knuckle/joint anatomy; face lacks eyelids, sockets and lips. Smooth
+shading is not recovered facial detail. Candidate selection needs targeted
+reference-conditioned head/hand acquisition or artist sculpting/retopology,
+not another blind whole-body retry. No texture/rig/game work, costs, installs,
+external reference uploads, commits or pushes. All game content remains intact.
+
+## 2026-10-05 - Ennix targeted acquisition capability and reference preflight
+
+Confirmed the pinned single/multiview runners and cached FP16 weights. Read
+the actual workshop head-fit implementation: it requires an armature, UV
+islands, body texture and production head FBX, so it cannot be run directly
+against the current raw Ennix mesh. No generic hand replacement driver exists
+in the inspected compiler scripts/recipes or Framewright integration docs.
+
+Ran the official head crop utility against existing prepared RGBA views and
+inspected pixels. Front/back square crops include shoulders/collar while the
+side crop shows a narrower extent. They are not selected for acquisition.
+Requested matched isolated head/short-neck front, left, back images derived
+from the unchanged original; hand dorsal/palmar/side views are also required
+for a later part attempt. Detailed instructions, crop hashes and bounded
+one-attempt plan are retained under the Ennix workspace's
+`targeted-parts/preflight-v1/`. The cropper ran in verified Python 3.12 because
+the painter venv launcher could not start its Store Python base in the sandbox;
+no package or environment was changed. This was not an inference failure.
+
+No new inference, body modification, texture, rig, gate promotion or game
+change. Next: materialize exact supplied part-reference Library IDs, inspect
+images/masks, then one guarded offline multiview head attempt and actual clay
+anatomy review before a measured geometry-only fitting adapter.
+
+## 2026-10-05 - Ennix isolated head workspace prepared; await exact inputs
+
+Source thread is generating coherent 1024-square head front/left/back views.
+Created `work/ennix-head-component-v1/` through the official `rac new` entry
+point, retaining the exact original user image as immutable authority. The
+established isolated-head static component classification is for acquisition
+only; parent humanoid rig/deformation/runtime gates remain unchanged.
+Intake audit passed. `pending-inputs.json` has no invented IDs/hashes, all image
+and mask checks false, launch_ready false. No runnable request or candidate
+attempt directory was created, and no inference launched. One future offline
+40-step/512-octree/seed-42 multiview attempt is planned only after exact-ID
+materialization and image/mask inspection. Parent body/assets remain untouched.
+
+## 2026-10-05 - Ennix isolated head/hand acquisitions and measured hand placement
+
+ENNIX - ISOLATED HAND ACQUISITION AND MEASURED PLACEMENT V1
+
+Both head and hand inference succeeded once, offline under unchanged GPU guards.
+This hand has five rounded digits, nails/knuckles and actual palm volume, a clear
+improvement over the prior flat slotted fingers. Four clay and four neutral
+views inspected. Raw hand: 316,060 vertices / 632,120 triangles. Blender import
+reports 8 fewer triangles. No texture, joint topology, rig or weights exist.
+
+Placement uses this left hand and an explicitly mirrored right counterpart.
+Uniform scales: left .1780648026; right .1807768967. Original body fingertip
+reach preserved. Source forearm cut z=-.5; starts at body |x|=.790 m, body cut
+at |x|=.800 m. Axes put dorsal surfaces upward and thumbs forward in T-pose.
+238,013 body vertices inside |x|<.799 m retained exactly; original head and
+clothes unchanged. All originals and earlier variants remain intact.
+
+IMPORTANT: the 10 mm wrist overlap is a placement diagnostic, not a welded
+joint. A visible step remains. It needs local joining and deformation-aware
+retopology, then rig/weights and animation checks. Assembly: 1,416,164 triangles
+across three separately closed meshes; manifold counts do not prove rig readiness.
+The head acquisition remains separate because eyes and fragmented hair need repair.
+
+This bundle includes exact references/guidance, hand GLB/Blend, fitted GLB/Blend,
+body source, scripts, measurements, receipts and actual previews. Human modeling
+and all downstream gates remain pending. Audit integrity passed for body/head/hand,
+production_ready false for all. No Unreal content, editor/build state or player
+configuration changed; no external generation, installs, costs, commits or pushes.
+
+Head GLB SHA256: d9a7ae21b1b54c89158c5e95db25fdea22fc5d13e17ae81c84813867fcb5b6c8
+Hand GLB SHA256: 8138f2223d204d33d10745b9c8555a28d9d72471b8f9a2758cfbcacdfbb6672c
+Fit GLB SHA256: 90e45afee56d29b5834148e875ff8df3896fc7b06adaef4b19216878bbfe4ecc
+
+Private Library checkpoint delivery completed: 14 actual rendered PNGs and two
+editable-source ZIPs. Exact identities are in each component's
+`evidence/component-library-index.json` and task delivery index. Head source ZIP:
+libfile_0938d12292108191aad413052208a8d9 (131,641,886 bytes). Hand/placement ZIP:
+libfile_16500b57d7308191aa95421f5a914779 (106,121,767 bytes). Framewright pending
+hand item baa9f3d7-b10a-4ebc-a2bc-d4f6856c95c3 and pending placement item
+814727e7-8a7a-47cc-860f-ef6bccc4af56; collection unchanged. Raw head exceeds model
+review limits and is delivered as actual views plus full editable source.
 
 ## 2026-10-07 — Ennix open-tool repair and repeatability pass
 

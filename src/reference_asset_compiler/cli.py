@@ -187,6 +187,26 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
     stage.add_argument("--preserve-components", action="store_true", help="Keep separate substantive parts during remeshing")
     stage.add_argument("--smooth-lambda", type=float, help="Remesh smoothing strength (default: 0.28)")
+    stage.add_argument("--dense", type=Path,
+                       help="The dense, painted original a reduced mesh is re-baked from")
+    stage.add_argument("--reduction-report", type=Path,
+                       help="The reduction's receipt: proves the re-bake pairs the right files "
+                            "and offers the budget ladder to climb")
+    stage.add_argument("--appearance-reference", type=Path,
+                       help="What a re-baked candidate must look like (default: the dense mesh)")
+    stage.add_argument("--reference-views", type=Path,
+                       help="Fixed views of the appearance reference rendered earlier, reused "
+                            "when they match it exactly")
+    stage.add_argument("--uv-layout", choices=("auto", "keep", "fresh"),
+                       help="Bake onto the reduction's own UVs (keep), a fresh unwrap, or keep "
+                            "them unless the reduction damaged them (auto, the default)")
+    stage.add_argument("--normal-resolution", type=int,
+                       help="Re-baked normal map size (default: 2048)")
+    stage.add_argument("--threads", type=int,
+                       help="CPU threads for a re-bake's Blender runs (default: 8)")
+    stage.add_argument("--no-climb", action="store_true",
+                       help="Judge one re-baked candidate; do not reduce and re-bake the next "
+                            "budget rung when it fails")
     stage.add_argument("--colour", help="The colour a model's glass was painted, e.g. teal")
     stage.add_argument("--transmission", type=float, help="How much the glass transmits, 0..1 (default: 0.85)")
     stage.add_argument("--minimum-share", type=float,
@@ -381,6 +401,14 @@ def main(argv: list[str] | None = None) -> int:
                     "colour": args.colour,
                     "transmission": args.transmission,
                     "minimum_share": args.minimum_share,
+                    "dense": args.dense,
+                    "reduction_report": args.reduction_report,
+                    "appearance_reference": args.appearance_reference,
+                    "reference_views": args.reference_views,
+                    "uv_layout": args.uv_layout,
+                    "normal_resolution": args.normal_resolution,
+                    "threads": args.threads,
+                    "no_climb": args.no_climb or None,
                 })
             print_payload(payload)
             return 0 if payload["ok"] else 1

@@ -152,6 +152,23 @@ def asset_kind(asset):
         if declared:
             return declared
     return "humanoid"
+
+
+def bake_reached_islands(retopo):
+    """The share of the UV islands the retopo bake's rays reached, 0-1, or None.
+
+    Only a report that carries ``bake_coverage`` measured it. Before that, its
+    ``bake_coverage_pct`` was a sheet-wide alpha reading that came back near
+    100% whether the rays reached or not, so it is not taken as a measurement.
+    Every pass shares the rays; the lowest is taken all the same.
+    """
+    if "bake_coverage" not in retopo:
+        return None
+    measured = [value for value in (retopo.get("bake_coverage_pct") or {}).values()
+                if isinstance(value, (int, float))]
+    return round(min(measured) / 100.0, 3) if measured else None
+
+
 # Resolved rather than hard-coded: see scripts/rac_env.py. A path that is
 # right on one machine is what makes a repo unrunnable on every other.
 BLENDER = None
@@ -532,16 +549,15 @@ def build(asset, args):
     # The bake must have reached the UV islands. A texel the rays never hit
     # keeps the pass fill, and for BaseColor that fill is black -- which is
     # how ninja-man shipped a head that looked like its texture had been
-    # destroyed when the geometry was fine. The texture gate already measures
-    # island coverage, so compare the two.
-    islands = result.get("gate-tex", {}).get("uv_islands", {}).get("coverage_pct")
-    hit = result.get("retopo", {}).get("bake_coverage_pct", {}).get("BaseColor")
-    result["bake_reached_islands"] = None
-    if islands and hit is not None:
-        result["bake_reached_islands"] = round(hit / islands, 3)
-        if hit < 0.9 * islands:
-            print("[BUILD] {0}: bake reached only {1}% of the sheet against "
-                  "{2}% of it covered by UV islands".format(asset, hit, islands))
+    # destroyed when the geometry was fine. The retopo report measures the
+    # share of island texels its rays reached directly (a white coverage
+    # pass); this used to divide a sheet-wide alpha reading, which measured
+    # nothing, by the texture gate's island coverage.
+    reached = bake_reached_islands(result.get("retopo", {}))
+    result["bake_reached_islands"] = reached
+    if reached is not None and reached < 0.9:
+        print("[BUILD] {0}: the bake's rays reached only {1:.1%} of the UV "
+              "islands".format(asset, reached))
 
     result["ok"] = bool(
         result.get("retopo", {}).get("ok")

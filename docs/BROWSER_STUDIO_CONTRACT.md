@@ -389,6 +389,21 @@ Fixed views (section 8) are rendered for the **source and the derivative
 both**. Comparing the two is the review; a derivative's views on their own show
 only that something rendered.
 
+A source that was **already painted** needs one more stage. The collapse moves
+its UVs, the paint slides with them, and no deviation threshold sees it:
+
+```
+rac run-stage rebake-maps --source <runtime.glb> --dense <adopted.blend> --reduction-report <r.json> \
+    --output <rebaked.glb> --report <rebake.json> [--appearance-reference <reviewed.glb>]
+```
+
+It re-bakes the dense mesh's maps onto the reduction, compares four fixed views
+of both through the same cameras, and climbs the reduction's budget ladder
+until a rung looks like the original or none does. `status` is `accepted` or
+`rejected`, `production_grade` stays `false`, and a person still reviews the
+pair. It refuses a dense mesh or candidate the reduction receipt does not name
+by hash. See `docs/COMPILER.md`, "Re-baking a reduced painted prop".
+
 ### 10. Surfaces, and the detail a mesh already implies
 
 ```

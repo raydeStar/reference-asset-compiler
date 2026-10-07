@@ -33,8 +33,10 @@ the operational notes it does not carry.
   ceiling. Let `remesh`/`reduce-mesh` decide (`--triangle-budget auto`, the
   default) or ask `rac budget --name ... --dims X Y Z`; an ordinary prop is
   about 10,000 triangles (5,000 vertices). Decide it before paint -- reducing a
-  painted mesh smears its texture unless its maps are re-baked. See
-  `docs/COMPILER.md`, "Triangle budgets".
+  painted mesh smears its texture unless its maps are re-baked: chain
+  `rebake-maps` after `reduce-mesh`, which re-bakes from the dense original and
+  holds the result to the original's fixed views. See `docs/COMPILER.md`,
+  "Triangle budgets" and "Re-baking a reduced painted prop".
 - Record outcomes as a dated entry appended to `docs/HANDOFF.md` and update
   `docs/STATUS.md` in place; add a lesson to `docs/DECISIONS.md` when something
   surprising happened.
@@ -48,6 +50,7 @@ the operational notes it does not carry.
 Everything except the two AI stages runs on CPU: the ledger and audit, prop and
 pre-rigged character compiles, retopology and UV transport, the free landmark
 rig, deformation tests, fixed-view renders, UE import verification, the gallery
-build and retarget, and every test. If the GPU is owned by another workload,
+build and retarget, re-baking a reduced painted prop and its appearance gate
+(Cycles on the CPU, by design), and every test. If the GPU is owned by another workload,
 say so in your report and skip only `run_hy3d_geometry.ps1` and
 `run_hy3d21_texture.ps1`.
