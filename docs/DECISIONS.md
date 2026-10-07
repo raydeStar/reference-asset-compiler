@@ -1120,3 +1120,35 @@ the solid. Treat any envelope fallback as a failure.
   front-painted texels greyed the upper lip and blotched the corners. Where the
   front picture painted squarely its stubble already matches (moustache L* 56.5
   against 56.0): fill only where it did not.
+
+## 2026-10-07 — characters are budgeted by tier; find where a scan's triangles are before cutting
+
+- The skeleton profiles' flat 20,000 held the playable hero to a villager's
+  ceiling, so Ennix failed the strict gate at 136,595 triangles with every other
+  check passing. Characters now have tiers by screen time in
+  `profiles/triangle-budgets.json` (hero 60-80k, boss 50-80k, elite 30-40k,
+  regular enemy 15-25k, NPC 10-20k; LOD0, groom strands excluded), and
+  `gate_rig.py --tier` gates at the top of the range. Without a tier the flat
+  number stays, so nothing gains triangles until someone says what it is.
+- Ennix's "120k outfit" was mostly hands. The acquisition's preserved hands are
+  890,490 of its 1,326,239 triangles (beyond |x| 0.80 m the density jumps from
+  about 130 to 6,800 vertices per centimetre slab), so the uniform collapse
+  left 28,920 on the hands and 91,173 on everything else. Measure the regions
+  first, then give each its own count.
+- To hold a region still in Blender's collapse, give it weight 0 in the
+  Decimate modifier's vertex group with factor 1000: that adds edge length x 2 x
+  1000 to its edges' cost. Weight 1 leaves an edge to quadric error alone.
+  Without the hold, a pure quadric pass over the garment took the 6k hands on
+  down to 3.2k.
+- A fold/hem/outline weight did not help. The modifier's weight term is a
+  length in metres times the factor, while quadric costs are squared metres
+  (about 1e-8 to 1e-6 here). At factor 20 the weight swamped the error: the
+  garment came out 1.07 mm from the source at p99, worse than a uniform 54k
+  (0.38 mm) in its folds too. At 1e-4 it measured the same as no weight
+  (0.32 mm). Quadric error alone already keeps the density at folds and hems
+  (233 against 145 triangles per dm² on flat cloth, the ratio the 120k body
+  had). So the hold is the only weight used.
+- Gating only the proxy FBX hid a failure in the file that ships: the UE5
+  export carries Manny's `interaction` and `center_of_mass` bones, which the
+  `ue5_manny` profile did not list. They are optional now, and the rebuild gates
+  both files.

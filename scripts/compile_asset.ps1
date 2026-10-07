@@ -129,6 +129,11 @@ if ($recipeData.budget_waiver) {
 if ($recipeData.texture_waiver) {
     $profile.texture_waiver = $recipeData.texture_waiver
 }
+# A character's tier (profiles/triangle-budgets.json) replaces the profile's
+# flat tri_budget with that tier's ceiling inside gate_rig.py.
+if ($recipeData.character_tier) {
+    $profile | Add-Member -NotePropertyName character_tier -NotePropertyValue $recipeData.character_tier -Force
+}
 $resolvedProfile = Join-Path $workDir 'resolved-profile.json'
 # Windows PowerShell 5.1 -Encoding utf8 emits a BOM, which json.loads rejects.
 [System.IO.File]::WriteAllText($resolvedProfile, ($profile | ConvertTo-Json -Depth 10), (New-Object System.Text.UTF8Encoding $false))

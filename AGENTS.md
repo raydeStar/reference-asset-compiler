@@ -37,6 +37,10 @@ the operational notes it does not carry.
   `rebake-maps` after `reduce-mesh`, which re-bakes from the dense original and
   holds the result to the original's fixed views. See `docs/COMPILER.md`,
   "Triangle budgets" and "Re-baking a reduced painted prop".
+- A character's budget is its tier, not the skeleton profile's flat 20,000:
+  declare `character_tier` (hero, boss, elite, regular, npc) in the recipe or
+  pass `gate_rig.py --tier`. Props stay low; only characters get the room. See
+  `docs/COMPILER.md`, "Character tiers".
 - Record outcomes as a dated entry appended to `docs/HANDOFF.md` and update
   `docs/STATUS.md` in place; add a lesson to `docs/DECISIONS.md` when something
   surprising happened.

@@ -26,9 +26,9 @@ the bottom of this page; the current state per asset is `STATUS.md`.
 | Stage | Script | Why |
 |---|---|---|
 | Stage textures | `compile_asset.ps1` | Copies textures under their shipped names *before* export, so the FBX carries a working relative reference |
-| Resolve profile | `compile_asset.ps1` | Folds the asset's tri-budget waiver into the declared skeleton profile so the gate has one file to read |
+| Resolve profile | `compile_asset.ps1` | Folds the asset's tri-budget waiver and character tier into the declared skeleton profile so the gate has one file to read |
 | Normalize | `blender\normalize_ue5.py` | Bakes uniform scale and origin into mesh and armature *data*, rebuilds materials from declared texture paths, applies optional repairs |
-| Gate | `blender\gate_rig.py` | Hard asserts against the skeleton profile. Exit 1 on violation |
+| Gate | `blender\gate_rig.py` | Hard asserts against the skeleton profile, with the triangle ceiling taken from the character's tier when one is declared. Exit 1 on violation |
 | Turnaround | `blender\render_turnaround.py` | Fixed front / three-quarter / side / back, beauty and clay |
 | Deformation | `blender\deform_test.py` | Poses the rig and proves the skin follows the correct side |
 | Texture gate | `gate_texture.py` | Measures baked lighting, texel density, UV fragmentation |
@@ -98,7 +98,7 @@ already has, a name and a real size:
 | modular | rail, curb, cornice, skirting, pipe, beam, ledge, stair... *and* long and thin | 2,000 + 1,500 per metre, at most 12,000 |
 | vegetation | vine, ivy, moss, root, foliage... | 3k / 8k / 14k / 20k / 30k |
 | hero | throne, statue, guardian, shrine, colossal... | 8k / 15k / 25k / 40k / 60k |
-| character | character, creature, humanoid... | none: the rig route's skeleton profile decides |
+| character | character, creature, humanoid... | by **tier**, not size: hero 60-80k, boss 50-80k, elite 30-40k, regular enemy 15-25k, NPC 10-20k (see below) |
 
 Size classes come from the longest side (under 0.25 m, 0.75 m, 2 m, 5 m, then
 huge). A closed mesh has about two triangles per vertex, so an ordinary prop at
@@ -126,6 +126,55 @@ band edges and rivets, and no surface-deviation gate sees it (a floor brazier
 reduced from 120k to 5k, 7.5k, 11k and 17k triangles kept its silhouette within
 4-9 mm and still lost its crisp iron bands at every rung). A painted asset
 reduced afterwards needs its maps re-baked from the dense original.
+
+## Character tiers: what the camera spends on them
+
+A character is budgeted by its screen time, not its size. The hero is up close
+for the whole game; a regular enemy shares the screen with five others; a
+villager is met up close only to talk. The flat 20,000 of the skeleton profiles
+gave all of them one number, and it is why the playable Ennix failed the strict
+gate at 136,595 triangles while every other check passed.
+
+| Tier | Recognised by (in a character's name) | About | Range |
+|---|---|---|---|
+| hero | hero, player, playable, protagonist | 70,000 | 60,000-80,000 |
+| boss | boss | 65,000 | 50,000-80,000 |
+| elite | elite, miniboss, champion | 35,000 | 30,000-40,000 |
+| regular | enemy, grunt, minion, mob | 20,000 | 15,000-25,000 |
+| npc | npc, villager, townsperson, vendor, merchant, innkeeper, shopkeeper | 15,000 | 10,000-20,000 |
+
+The count is LOD0 of everything the skeletal mesh ships (body, outfit, hands,
+head, eyes, teeth, tongue); groom strands are a separate asset and are not
+counted. A given tier wins, then a word in the name. A character with **no**
+tier keeps its skeleton profile's flat `tri_budget`, so nothing gets more
+triangles until someone says what it is. Props, hero set pieces, vegetation and
+kit pieces are unchanged: characters were given room, random objects were not.
+
+```powershell
+rac budget --name Ennix --dims 2.1 0.4 1.73 --tier hero   # -> character, hero, about 70,000 (60,000-80,000)
+```
+
+The strict gate takes the tier and holds the asset to the top of its range in
+place of the profile's flat number. The report records which rule applied
+(`tri_budget_rule`), and the waiver rule is unchanged:
+
+```powershell
+blender -b --factory-startup --python scripts/blender/gate_rig.py -- `
+    Ennix_UE5.fbx profiles/skeletons/ue5_manny.json gate-rig.json --tier hero
+```
+
+A recipe declares it as `"character_tier": "hero"`; `compile_asset.ps1` folds it
+into the resolved profile as it folds a waiver, and `scripts/rebuild_ennix.py`
+passes it on the command line.
+
+Spend a tier where the eye reads: the face, the hands, the silhouette and the
+garment's hems and folds, not a flat stretch of jacket. Look where a scan's
+triangles actually are before cutting: Ennix's acquisition had two thirds of its
+1.33M triangles in the preserved hands, so a uniform 120k collapse left 29k on
+the hands and 91k on the coat. Giving each region its own count (6k hands, 48k
+coat) brought him to about 70k with the coat 0.32 mm from the source at p99.
+Quadric-error collapse already keeps density at folds and hems; an extra weight
+for them measured no better (DECISIONS, 2026-10-07).
 
 ## Re-baking a reduced painted prop
 
