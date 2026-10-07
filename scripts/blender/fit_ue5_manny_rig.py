@@ -40,7 +40,6 @@ import json
 import sys
 from pathlib import Path
 
-import bmesh
 import bpy
 import numpy as np
 from mathutils import Matrix, Quaternion, Vector

@@ -146,7 +146,8 @@ class Clips:
             if t <= t1:
                 u = smooth((t - t0) / (t1 - t0))
                 break
-        mix = lambda A, B: {s: tuple(float(v) for v in lerp(A[s], B[s], u)) for s in A}
+        def mix(A, B):
+            return {s: tuple(float(v) for v in lerp(A[s], B[s], u)) for s in A}
         look = 22.0 * math.sin(math.pi * min(1.0, t / 0.4))
         return self.on_wall(hands=mix(a["hands"], b["hands"]), feet=mix(a["feet"], b["feet"]),
                             pelvis=tuple(lerp(a["pelvis"], b["pelvis"], u)), look=(look, 0.0))

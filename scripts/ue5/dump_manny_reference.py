@@ -54,10 +54,10 @@ for name, path in sorted(found.items()):
         sample = {}
         for n in names:
             t = unreal.AnimPoseExtensions.get_bone_pose(pose, n, unreal.AnimPoseSpaces.WORLD)
-            l = unreal.AnimPoseExtensions.get_bone_pose(pose, n, unreal.AnimPoseSpaces.LOCAL)
+            local = unreal.AnimPoseExtensions.get_bone_pose(pose, n, unreal.AnimPoseSpaces.LOCAL)
             sample[n] = {'pos': [t.translation.x, t.translation.y, t.translation.z],
                          'quat': [t.rotation.x, t.rotation.y, t.rotation.z, t.rotation.w],
-                         'lquat': [l.rotation.x, l.rotation.y, l.rotation.z, l.rotation.w]}
+                         'lquat': [local.rotation.x, local.rotation.y, local.rotation.z, local.rotation.w]}
         poses.append({'anim': name, 'path': path, 'time': fraction * anim.get_play_length(), 'bones': sample})
 with open(os.path.join(out_dir, 'manny_anim_poses.json'), 'w') as f:
     json.dump({'found': found, 'poses': poses}, f)
