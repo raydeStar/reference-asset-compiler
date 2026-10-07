@@ -111,6 +111,49 @@ head (front, three-quarter, side, and the front in the guidance's own frame) in
 seconds, for tuning a paint stage between renders. Its bald views are tuning
 aids, not review images.
 
+## Hero-tier budget (recipe `ennix-open-review-20261010`)
+
+Ennix is gated as a **hero** (profiles/triangle-budgets.json: about 70,000, at
+most 80,000 at LOD0, groom strands excluded) instead of the skeleton profile's
+flat 20,000. Recipe `20261010` names the tier (`character_tier`) and replaces
+the uniform `body_review_triangles: 120000` with a `body` block: garment 48,000,
+hands 6,000, hands beyond |x| 0.80 m along the T-pose arms. Everything else
+(inputs, head, groom, face paint, rig) is unchanged from `20261009`.
+
+- **Where the triangles were.** The acquisition's preserved hands are 890,490 of
+  its 1,326,239 triangles; past |x| 0.80 m the density jumps from about 130 to
+  6,800 vertices per centimetre slab. The uniform 120k left 28,920 on the hands
+  and 91,173 on the garment.
+- **How it is cut.** `prepare_ennix_body.py --hand-triangles` collapses the
+  hands to their count while the garment is held still, then the garment while
+  the hands are held still, both by quadric error alone. The receipt
+  (`body/body-preparation.json`, `reduction`) records the counts and, with
+  `--measure-samples`, the distance from 40,000 source vertices per region.
+- **Measured on the CPU** (the same stage, outside a full build): hands 5,761,
+  garment 48,238. At p99 the garment sits 0.32 mm from the source (folds and
+  hems 0.35 mm, outline 0.33 mm, maximum 0.69 mm); the 120k body was 0.16 mm and
+  a uniform 54k 0.38 mm. The head parts are 17,028 (head 8,748, teeth 7,120,
+  tongue 448, scalp cap 432, eyes 280), so the character should land near
+  70,500 before the neck overlap is cleared. Body paint coverage is unchanged
+  (70.5% against 70.3%).
+- **Gates.** `rebuild_ennix.py` passes the recipe's tier to `gate_rig.py` and now
+  gates the UE5 game export (`export/gate-rig-ue5.json`) as well as
+  `rigged/Ennix_Body_Face.fbx`.
+- **Not yet built end to end.** The full rebuild renders on the GPU and is
+  waiting for it, so `rebuild_ennix.py` still defaults to `20261009`; pass
+  `--recipe recipes/ennix-open-review-20261010.json`. Then compare the outfit:
+
+```powershell
+py -3.12 scripts/build_outfit_review.py work/ennix-character-v1/rebuild-v8 `
+  work/ennix-character-v1/<new build> work/ennix-character-v1/<new build>/outfit-review `
+  --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe'
+```
+
+It renders the same painted, groomed close-ups (jacket front and back, sash and
+belt, sleeve and hand, trousers and boots, the back three-quarter outline) from
+both assemblies with a difference column, the full figure beside the body
+guidance, and the outfit's triangle edges over its paint.
+
 ## Repeatability evidence
 
 Two independent final builds reproduce the head NPZ, strand NPZ, body NPZ and

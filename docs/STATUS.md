@@ -32,7 +32,11 @@ roots, ear and neck tone evened. Review sheet:
 guidance at front, three-quarter and side. Containers (FBX/blend) and rendered
 pixels are not claimed byte-identical; canonical audits compare their content.
 Strict rig contract has one failure: 136,587 triangles against the 20k ceiling.
-No waiver.
+No waiver. Characters are now budgeted by tier (docs/COMPILER.md, "Character
+tiers"): recipe `ennix-open-review-20261010` gates Ennix as a hero (at most
+80,000) with a 48k garment and 6k hands, measured on the CPU at about 70,500
+triangles. Its full rebuild and the outfit before/after review wait for the GPU
+(ENNIX_REBUILD.md, "Hero-tier budget").
 
 The playable game character lives in the Aether Wars UE project (rigid groom,
 exact Manny retarget); the older editor review is

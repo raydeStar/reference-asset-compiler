@@ -27,7 +27,7 @@ def main():
     p.add_argument("--inputs", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--blender", required=True)
-    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261010.json"))
+    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261009.json"))
     p.add_argument("--manny-dir", help="Manny reference dumps (scripts/ue5/dump_manny_reference.py); enables the UE5 rig stage")
     a = p.parse_args()
     inputs, out = Path(a.inputs).resolve(), Path(a.out).resolve()

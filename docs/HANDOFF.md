@@ -4317,3 +4317,30 @@ refinement"; lessons in DECISIONS.
 - Still open: the face's detail is capped by the guidance's resolution; the
   three-quarter view has no guidance of its own; the light strip in front of
   each ear and the ears' flat inner paint come from the older side paint.
+
+## 2026-10-07 — Character tier budgets; Ennix recipe for the hero tier (Claude)
+
+Mark: characters may run high when it makes sense; random objects may not.
+Characters now have tiers in `profiles/triangle-budgets.json` (hero 60-80k,
+boss 50-80k, elite 30-40k, regular enemy 15-25k, NPC 10-20k; LOD0, groom strands
+excluded). `gate_rig.py --tier` (or a recipe's `character_tier`, folded in by
+`compile_asset.ps1`) gates at the top of the range, and `rac budget --tier`
+reports it. No tier keeps the flat 20k. Prop, set-piece, vegetation and kit
+budgets are unchanged and pinned by a test. Docs: COMPILER.md, "Character
+tiers"; lessons in DECISIONS.
+
+- Ennix recipe `ennix-open-review-20261010`: hero tier, garment 48k and hands
+  6k (the uniform 120k spent 28,920 on the hands, which are two thirds of the
+  acquisition). `prepare_ennix_body.py --hand-triangles` gives each region its
+  own count. Measured on the CPU: garment 0.32 mm p99 from the source, about
+  70,500 triangles in all. A fold/hem/outline weight measured no better and is
+  not used. The old single-count path still reproduces v8's body byte for byte.
+- `ue5_manny` profiles: Manny's `interaction` and `center_of_mass` bones are
+  optional; the UE5 export carries them and failed the strict gate on them.
+  `rebuild_ennix.py` gates both FBX files.
+- New review: `scripts/build_outfit_review.py` (+ `blender/render_outfit_review.py`),
+  painted and groomed before/after close-ups with a difference column and a
+  wire-over-paint sheet.
+- **Open:** the full 20261010 rebuild and its outfit review were not run: Mark
+  needed the GPU. `rebuild_ennix.py` still defaults to `20261009` until that
+  build passes the hero-tier gate; switch the default then.
