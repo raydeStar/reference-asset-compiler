@@ -977,3 +977,28 @@ fragments. `rig_from_landmarks.py` then fell back to envelope weights without
 failing the stage. Use `fit_ue5_manny_rig.py`'s slice-filled voxel solid,
 with inverse-distance weights only toward bones each vertex can see through
 the solid. Treat any envelope fallback as a failure.
+
+## 2026-10-07 — Face paint: measure against the picture, not its lighting
+
+- The front guidance's own blush is as red as the texture's (a* about 10 over
+  plain cheek), so matching it calms nothing; the render's lights and skin
+  emission make it read as blotches. Cap it at a share of the measured redness
+  and spread it so patches lose their edges.
+- Taking out a* alone leaves a brown stain: the guidance's blush is also darker
+  (-0.45 L* per a*). Remove it along that measured direction.
+- DWPose points 0-3 and 13-16 outline the cheeks, not the jaw, and seen from the
+  front their depth wanders: the right jaw end sat 2.7 cm forward of the left,
+  so a sideburn drawn from it cut across the cheek. Take the jaw's ends from
+  the template's ear group.
+- A jaw height looked up by azimuth round the head folds behind the jaw angle
+  and patterned the neck. Use signed distance across the jaw line.
+- The guidance's under-jaw darkness (-19 L*) is cast shadow; painted in, the
+  render doubles it into a smear. Measure the neck at mid-neck.
+- A smooth field read back per vertex creases along the coarse side-of-face
+  triangles; smooth it again in texture space. Replacing a low-pass keeps old
+  band edges as detail; clamp detail where it is replaced.
+- The paint's lips do not sit on the guidance's landmarks (the surface stage
+  blends in the painting's mouth), so a landmark-shaped moustache over
+  front-painted texels greyed the upper lip and blotched the corners. Where the
+  front picture painted squarely its stubble already matches (moustache L* 56.5
+  against 56.0): fill only where it did not.

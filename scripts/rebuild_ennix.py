@@ -27,7 +27,7 @@ def main():
     p.add_argument("--inputs", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--blender", required=True)
-    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261008.json"))
+    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261009.json"))
     p.add_argument("--manny-dir", help="Manny reference dumps (scripts/ue5/dump_manny_reference.py); enables the UE5 rig stage")
     a = p.parse_args()
     inputs, out = Path(a.inputs).resolve(), Path(a.out).resolve()
@@ -86,17 +86,28 @@ def main():
         if result.returncode not in allowed_codes:
             raise RuntimeError(f"Stage failed; retained log: {log}")
 
+    def flags(params):
+        args = []
+        for key, value in params.items():
+            args += ["--" + key.replace("_", "-"), *(value if isinstance(value, list) else [value])]
+        return args
+
     run("refine_ennix_proportions.py", [local / "head.npz", local / "head.json", local / "original-landmarks.json", out / "head.npz"])
     run("refine_ennix_surface.py", ["--template", local / "template.npz", "--head", local / "head.npz",
         "--receipt", local / "head.json", "--texture", local / "head-basecolor.png",
         "--original-landmarks", local / "original-landmarks.json", "--out", out / "paint", "--restore-brows"])
-    groom_args = []
-    for key, value in recipe["groom"].items():
-        groom_args += ["--" + key.replace("_", "-"), *(value if isinstance(value, list) else [value])]
+    head_paint = out / "paint/head_basecolor.png"
+    if "face_paint" in recipe:
+        # Measured colour pass: blush, stubble, hairline root shadow, ear and neck tone.
+        run("refine_ennix_face_paint.py", ["--template", local / "template.npz", "--head", local / "head.npz",
+            "--receipt", local / "head.json", "--texture", head_paint, "--landmarks", local / "front-landmarks.json",
+            "--guidance", local / "head-front.png", "--painting", out / "paint/original-aligned.png",
+            "--hair-shell", local / "hair.npz", "--out", out / "face-paint", *flags(recipe["face_paint"])])
+        head_paint = out / "face-paint/head_basecolor.png"
     run("blender/grow_hair_groom.py", [local / "template.npz", local / "head.npz", local / "hair.npz",
-        local / "hair-basecolor.png", out / "strands.npz", *groom_args, "--coherent-waves"], True)
+        local / "hair-basecolor.png", out / "strands.npz", *flags(recipe["groom"]), "--coherent-waves"], True)
     run("blender/render_painted_head.py", [local / "template.npz", out / "head.npz", local / "head.json",
-        local / "hair.npz", out / "paint/head_basecolor.png", local / "hair-basecolor.png", local / "head-front.png",
+        local / "hair.npz", head_paint, local / "hair-basecolor.png", local / "head-front.png",
         out / "head-review", "--strands", out / "strands.npz", "--resolution", recipe["resolution"],
         "--samples", recipe["samples"], "--views", "front", "three-quarter", "side", "back", "top",
         "--subdivision", 1, "--oral-helpers", "--skin-emission", .4, "--hair-tint", .85, .95, 1.05,

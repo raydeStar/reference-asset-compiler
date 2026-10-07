@@ -61,6 +61,51 @@ output directory. A recorded budget failure can coexist with a completed
 `scripts/build_ennix_review.py` is the historical head-only experiment. It is not
 the current full-character entry point.
 
+## Face-paint refinement (recipe `ennix-open-review-20261009`)
+
+`scripts/refine_ennix_face_paint.py` runs right after `refine_ennix_surface.py`
+when the recipe has a `face_paint` block, and the head renders, `head.blend` and
+everything after it use `face-paint/head_basecolor.png`. The surface stage's
+`paint/head_basecolor.png` stays as the "before". The guidance pictures cap the
+face's detail; this pass changes colour and shading only.
+
+- **Regions** come from the front guidance's 68 DWPose points, mapped onto the
+  conformed head through the conform registration (each landmark is the
+  nearest texel the front picture sees). The jaw line runs through points 4-12;
+  its ends come from the template's ear group (the jaw angle under each lobe,
+  then up in front of the ear), because points 0-3 and 13-16 outline the cheeks.
+  Lines are corner-cut so bands along them have no kinks.
+- **Colours** are measured at landmark probes on the guidance and on the texture
+  alike: blush against plain lower cheek, stubble against plain skin, hair
+  against forehead, ears and mid-neck against plain cheek. Every measurement
+  lands in `face-paint/face-paint-receipt.json`.
+- **Blush:** low-pass a* above plain cheek is spread over 8 mm and soft-capped at
+  `blush_keep` (0.6) of the guidance's measured cheek redness, along the
+  guidance's own blush direction in L*a*b*, only for hues redder than skin.
+- **Stubble:** moustache, soul patch, chin, jaw, under-jaw and sideburns darken
+  to plain skin times the guidance's measured stubble tint where the paint is
+  lighter. Where the front picture painted squarely its own stubble is already
+  there and stays (`front_keep`); the paint's lips need not sit on the
+  picture's landmarks. Beyond the front-projected face the low-pass is replaced,
+  so old hard-edged bands go, and a seeded 3D hair grain (zero mean; `grain`
+  amount 0 turns it off) gives those areas the picture's stipple.
+- **Hairline:** the groom's own root rules (`hairline_above_eyes`,
+  `temple_behind_eyes`, `sideburn_roots` mirror `grow_hair_groom.py`) plus a ray
+  test against the hair shell find the scalp under the roots. It takes the
+  guidance's hair colour, fading out across a rounded hairline.
+- **Ears and neck:** one L*a*b* offset each. The neck is measured at mid-neck,
+  clear of the jaw's cast shadow, which the render lights in again.
+
+Review sheet: the same groom, geometry, lights and camera, rendered with each
+texture beside the guidance (front, painting for three-quarter, left):
+
+```powershell
+py -3.12 scripts/build_face_paint_review.py work/ennix-character-v1/<build> `
+  work/ennix-character-v1/<build>/face-paint-review `
+  --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe' `
+  --left-guidance <head-guidance>/ennix-head-left-v1.png
+```
+
 ## Repeatability evidence
 
 Two independent final builds reproduce the head NPZ, strand NPZ, body NPZ and
