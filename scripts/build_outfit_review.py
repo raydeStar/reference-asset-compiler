@@ -119,8 +119,8 @@ def sheet(rows, labels, columns, size, title, subtitle, path):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    p.add_argument("before", help="a rebuild_ennix.py output")
-    p.add_argument("after", help="a rebuild_ennix.py output")
+    p.add_argument("before", help="a rebuild_character.py output")
+    p.add_argument("after", help="a rebuild_character.py output")
     p.add_argument("out")
     p.add_argument("--blender", required=True)
     p.add_argument("--resolution", type=int, default=1024)

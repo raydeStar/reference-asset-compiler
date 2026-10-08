@@ -95,14 +95,14 @@ def main():
             args += ["--" + key.replace("_", "-"), *(value if isinstance(value, list) else [value])]
         return args
 
-    run("refine_ennix_proportions.py", [local / "head.npz", local / "head.json", local / "original-landmarks.json", out / "head.npz"])
-    run("refine_ennix_surface.py", ["--template", local / "template.npz", "--head", local / "head.npz",
+    run("transport_face_proportions.py", [local / "head.npz", local / "head.json", local / "original-landmarks.json", out / "head.npz"])
+    run("reproject_face_paint.py", ["--template", local / "template.npz", "--head", local / "head.npz",
         "--receipt", local / "head.json", "--texture", local / "head-basecolor.png",
         "--original-landmarks", local / "original-landmarks.json", "--out", out / "paint", "--restore-brows"])
     head_paint = out / "paint/head_basecolor.png"
     if "face_paint" in recipe:
         # Measured colour pass: blush, stubble, hairline root shadow, ear and neck tone.
-        run("refine_ennix_face_paint.py", ["--template", local / "template.npz", "--head", local / "head.npz",
+        run("refine_face_paint.py", ["--template", local / "template.npz", "--head", local / "head.npz",
             "--receipt", local / "head.json", "--texture", head_paint, "--landmarks", local / "front-landmarks.json",
             "--guidance", local / "head-front.png", "--painting", out / "paint/original-aligned.png",
             "--hair-shell", local / "hair.npz", "--out", out / "face-paint", *flags(recipe["face_paint"])])
@@ -115,7 +115,7 @@ def main():
         "--samples", recipe["samples"], "--views", "front", "three-quarter", "side", "back", "top",
         "--subdivision", 1, "--oral-helpers", "--skin-emission", .4, "--hair-tint", .85, .95, 1.05,
         "--hair-roughness", .45, "--save-blend", out / "head-before-anatomy.blend", "--device", a.device], True)
-    run("blender/finish_ennix_anatomy.py", [out / "head-before-anatomy.blend", out / "head.npz",
+    run("blender/fit_oral_anatomy.py", [out / "head-before-anatomy.blend", out / "head.npz",
         local / "makehuman", out / "head.blend", "--template", local / "template.npz"], True)
     if "body" in recipe:
         # Hands and garment each get their own count (recipe 20261010 onward).
@@ -125,18 +125,18 @@ def main():
                      "--measure-samples", body.get("measure_samples", 0)]
     else:
         body_args = ["--triangles", recipe["body_review_triangles"]]
-    run("blender/prepare_ennix_body.py", [local / "body-acquisition.blend", out / "body", *body_args], True)
-    run("paint_ennix_body.py", [out / "body/body.npz", local / "body-front.png", local / "body-back.png",
+    run("blender/prepare_body_acquisition.py", [local / "body-acquisition.blend", out / "body", *body_args], True)
+    run("paint_body_from_views.py", [out / "body/body.npz", local / "body-front.png", local / "body-back.png",
         out / "body/paint", "--side", local / "body-left.png"])
     # Game garment materials: mask, cleaned albedo and detail normals (the game imports outfit-paint/).
     run("refine_outfit_paint.py", [out / "body/body.npz", out / "body/paint/body_basecolor.png",
         out / "body/paint/coverage.png", out / "outfit-paint", "--params", ROOT / "profiles/outfit-paint/ennix.json"])
     assembly = out / "assembly/Ennix_Character_Review.blend"
-    run("blender/assemble_ennix_character.py", [out / "body/body-uv.blend", out / "body/paint/body_basecolor.png",
+    run("blender/assemble_character.py", [out / "body/body-uv.blend", out / "body/paint/body_basecolor.png",
         out / "head.blend", out / "assembly", "--samples", recipe["samples"],
         "--head-placement", local / "placement.json", "--clear-neck-overlap", "--device", a.device], True)
     proxy = out / "rig-input/Ennix_proxy.fbx"
-    run("blender/export_ennix_rig_proxy.py", [assembly, proxy], True)
+    run("blender/export_skinning_proxy.py", [assembly, proxy], True)
     landmarks = json.loads((local / "rig-landmarks.json").read_text())
     landmarks.update(payload_fbx=str(proxy), payload_fbx_sha256=sha(proxy),
         based_on_measured_landmarks_sha256=recipe["inputs"]["rig-landmarks.json"]["sha256"],
@@ -146,9 +146,9 @@ def main():
     (out / "proxy-rig").mkdir()
     run("blender/rig_from_landmarks.py", [proxy, lm, ROOT / "profiles/skeletons/ue5_manny.json",
         out / "proxy-rig/Ennix_proxy_rigged.fbx", out / "proxy-rig/rig-report.json"], True)
-    run("blender/bind_ennix_assembly.py", [assembly, out / "proxy-rig/Ennix_proxy_rigged.blend", out / "rigged"], True)
+    run("blender/bind_assembly_to_rig.py", [assembly, out / "proxy-rig/Ennix_proxy_rigged.blend", out / "rigged"], True)
     native = out / "rigged/Ennix_Rigged.blend"
-    run("blender/export_ennix_groom.py", [native, out / "export/Ennix_Groom.abc"], True)
+    run("blender/export_groom_alembic.py", [native, out / "export/Ennix_Groom.abc"], True)
     if a.manny_dir and "ue5" in recipe:
         # Manny-conformant game rig: measured joints, solid-voxel weights, Manny's bone axes.
         run("rig_ue5_character.py", [native, out / "ue5", "--manny-dir", Path(a.manny_dir).resolve(),
@@ -156,11 +156,11 @@ def main():
             "--arm-ratio", recipe["ue5"]["arm_ratio"], "--blender", a.blender])
         game = out / "ue5/fit/Ennix_UE5.blend"
         run("blender/export_ue5_character.py", [out / "export/Ennix_UE5.fbx"], True, blend=game)
-        run("blender/export_ennix_groom.py", [game, out / "export/Ennix_Groom_UE5.abc"], True)
-    run("blender/pose_ennix_review.py", [native, out / "pose", "--samples", recipe["samples"], "--device", a.device],
+        run("blender/export_groom_alembic.py", [game, out / "export/Ennix_Groom_UE5.abc"], True)
+    run("blender/pose_character_review.py", [native, out / "pose", "--samples", recipe["samples"], "--device", a.device],
         True)
-    run("blender/audit_ennix_repeatability.py", [native, out / "semantic-audit.json"], True)
-    run("validate_ennix_visuals.py", [local / "original.png", local / "body-front.png",
+    run("blender/audit_semantic_fingerprint.py", [native, out / "semantic-audit.json"], True)
+    run("validate_silhouette.py", [local / "original.png", local / "body-front.png",
         out / "assembly/front_preview.png", out / "visual-validation"])
     # A failed artistic/budget gate is retained review evidence, never a waiver.
     # The tier, when the recipe names one, sets the triangle ceiling in place of

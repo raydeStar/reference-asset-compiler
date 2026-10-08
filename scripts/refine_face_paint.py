@@ -1,6 +1,6 @@
 """Face-paint refinement after the surface rebake: blush, stubble, hairline, ears and neck.
 
-Works on the head texture refine_ennix_surface.py writes (template UV layout).
+Works on the head texture reproject_face_paint.py writes (template UV layout).
 Every change is a smooth colour adjustment over a region found on the
 conformed head, so the paint keeps its own detail: the guidance pictures cap
 the detail, this pass fixes colour and shading.
@@ -30,7 +30,7 @@ with every measurement, a UV mask of what changed (R stubble, G blush region,
 B root shadow / ear and neck) and a region overlay on the guidance.
 
 Usage:
-  python scripts/refine_ennix_face_paint.py --template T.npz --head head.npz \
+  python scripts/refine_face_paint.py --template T.npz --head head.npz \
       --receipt head.json --texture paint/head_basecolor.png \
       --landmarks front-landmarks.json --guidance head-front.png \
       --painting paint/original-aligned.png --hair-shell hair.npz --out face-paint
@@ -527,7 +527,7 @@ def _args(argv=None):
     for name in ("template", "head", "receipt", "texture", "landmarks", "guidance", "hair_shell", "out"):
         p.add_argument("--" + name.replace("_", "-"), required=True)
     p.add_argument("--painting", help="the original painting registered to the guidance frame "
-                   "(refine_ennix_surface.py's original-aligned.png): its blush is measured for the record")
+                   "(reproject_face_paint.py's original-aligned.png): its blush is measured for the record")
     g = p.add_argument_group("blush")
     g.add_argument("--blush-keep", type=float, default=0.6,
                    help="the cap, as a share of the guidance's measured cheek redness")

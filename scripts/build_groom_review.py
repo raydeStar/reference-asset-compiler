@@ -1,6 +1,6 @@
 """Before/after review of a character's groom, in the review look and in the game look.
 
-Two rebuild_ennix.py builds whose grooms differ (their strands.npz) are rendered
+Two rebuild_character.py builds whose grooms differ (their strands.npz) are rendered
 on the same head, paint, lights and camera (the after build's), in two looks:
 
 - The review look the rebuild itself renders (soft studio light, each strand's
@@ -63,7 +63,7 @@ def render(a, head_build, strands, out, look, views, resolution):
            out, "--strands", strands, "--resolution", resolution, "--samples", a.samples, "--views", *views,
            "--subdivision", 1, "--oral-helpers", "--skin-emission", .4, "--device", a.device]
     if look == "review":
-        # The rebuild's own head review (rebuild_ennix.py).
+        # The rebuild's own head review (rebuild_character.py).
         cmd += ["--hair-tint", .85, .95, 1.05, "--hair-roughness", .45]
     else:
         g = a.look
@@ -106,7 +106,7 @@ def gap_measures(beauty, ids):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    p.add_argument("before", help="the rebuild_ennix.py build with the old groom")
+    p.add_argument("before", help="the rebuild_character.py build with the old groom")
     p.add_argument("after", help="the build with the new groom; its head, paint and inputs are used for both")
     p.add_argument("out")
     p.add_argument("--blender", required=True)

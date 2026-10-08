@@ -53,7 +53,7 @@ bpy.ops.wm.save_as_mainfile(filepath={str(source)!r})
 
 
 def test_hands_and_garment_each_reach_their_own_count(acquisition, tmp_path):
-    blender('--python', ROOT / 'scripts/blender/prepare_ennix_body.py', '--', acquisition, tmp_path,
+    blender('--python', ROOT / 'scripts/blender/prepare_body_acquisition.py', '--', acquisition, tmp_path,
             '--triangles', 4000, '--hand-triangles', 2000, '--measure-samples', 500)
 
     receipt = json.loads((tmp_path / 'body-preparation.json').read_text())
@@ -74,7 +74,7 @@ def test_hands_and_garment_each_reach_their_own_count(acquisition, tmp_path):
 
 
 def test_a_single_count_is_still_one_uniform_collapse(acquisition, tmp_path):
-    blender('--python', ROOT / 'scripts/blender/prepare_ennix_body.py', '--', acquisition, tmp_path,
+    blender('--python', ROOT / 'scripts/blender/prepare_body_acquisition.py', '--', acquisition, tmp_path,
             '--triangles', 6000)
 
     receipt = json.loads((tmp_path / 'body-preparation.json').read_text())

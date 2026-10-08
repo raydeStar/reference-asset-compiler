@@ -1,6 +1,6 @@
 """Historical head-only experiment from frozen v18 inputs.
 
-For the selected full character, use rebuild_ennix.py instead.
+For the selected full character, use rebuild_character.py instead.
 
 No interactive edits or proprietary DCCs. Geometry acquisition is an explicit
 input, so a future open model can replace Hunyuan without replacing this build.

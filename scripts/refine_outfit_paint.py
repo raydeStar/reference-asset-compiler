@@ -1,6 +1,6 @@
 """Turn the painted outfit atlas into game garment materials.
 
-The multiview bake (paint_ennix_body.py) carries the painting's light and its
+The multiview bake (paint_body_from_views.py) carries the painting's light and its
 mottled print, and the unseen-texel fill leaves faceted blotches. In game the
 jacket read as blotchy rubber and the scarf as red camouflage. This stage
 writes what a game material needs to read leather as leather and cloth as cloth:

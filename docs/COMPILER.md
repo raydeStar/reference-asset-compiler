@@ -164,7 +164,7 @@ blender -b --factory-startup --python scripts/blender/gate_rig.py -- `
 ```
 
 A recipe declares it as `"character_tier": "hero"`; `compile_asset.ps1` folds it
-into the resolved profile as it folds a waiver, and `scripts/rebuild_ennix.py`
+into the resolved profile as it folds a waiver, and `scripts/rebuild_character.py`
 passes it on the command line.
 
 Spend a tier where the eye reads: the face, the hands, the silhouette and the

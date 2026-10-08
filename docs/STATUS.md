@@ -25,7 +25,7 @@ Manny-conformant skeleton (`scripts/rig_ue5_character.py`) with
 
 Head, groom strands, body and both head paints reproduce byte for byte across
 independent builds (rebuild-v5..v8); the face-paint stage
-(`scripts/refine_ennix_face_paint.py`) is deterministic and measured against
+(`scripts/refine_face_paint.py`) is deterministic and measured against
 the guidance: blush capped, stubble filled, scalp shaded under the groom's
 roots, ear and neck tone evened. Review sheet:
 `rebuild-v8/face-paint-review/face-paint-sheet.png`, before/after beside the

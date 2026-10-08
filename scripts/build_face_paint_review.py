@@ -121,7 +121,7 @@ def sheet(rows, labels, columns, title, subtitle, path):
 
 def main():
     p = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    p.add_argument("build", help="a rebuild_ennix.py output with face-paint/")
+    p.add_argument("build", help="a rebuild_character.py output with face-paint/")
     p.add_argument("out")
     p.add_argument("--blender", required=True)
     p.add_argument("--left-guidance", help="the left-profile head guidance picture "

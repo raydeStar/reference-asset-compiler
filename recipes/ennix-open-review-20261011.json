@@ -172,7 +172,7 @@
     "hands_beyond_abs_x_m": 0.8,
     "measure_samples": 40000
   },
-  "body_note": "scripts/blender/prepare_ennix_body.py collapses each region to its own count by quadric error while the other is held still. The acquisition's preserved hands are 890,490 of its 1,326,239 triangles and begin at |x| 0.80 m along the T-pose arms (the density jumps from about 130 to 6,800 vertices per centimetre slab there). The uniform 120k of 20261009 left 28,920 on the hands and 91,173 on the garment. With the head's 17,028 (head 8,748, teeth 7,120, tongue 448, scalp cap 432, eyes 280) the character lands near 70,500 before the neck overlap is cleared: inside the hero tier's 60,000-80,000.",
+  "body_note": "scripts/blender/prepare_body_acquisition.py collapses each region to its own count by quadric error while the other is held still. The acquisition's preserved hands are 890,490 of its 1,326,239 triangles and begin at |x| 0.80 m along the T-pose arms (the density jumps from about 130 to 6,800 vertices per centimetre slab there). The uniform 120k of 20261009 left 28,920 on the hands and 91,173 on the garment. With the head's 17,028 (head 8,748, teeth 7,120, tongue 448, scalp cap 432, eyes 280) the character lands near 70,500 before the neck overlap is cleared: inside the hero tier's 60,000-80,000.",
   "samples": 32,
   "resolution": 768,
   "production_ready": false,
@@ -255,5 +255,5 @@
     ],
     "neck_ramp": 0.015
   },
-  "face_paint_note": "scripts/refine_ennix_face_paint.py after refine_ennix_surface.py. Regions from the front guidance's 68 DWPose landmarks on the conformed head; colours measured at landmark probes. hairline_above_eyes/temple_behind_eyes/sideburn_roots mirror grow_hair_groom.py's root rules. grain is a seeded procedural hair stipple (amount 0 turns it off)."
+  "face_paint_note": "scripts/refine_face_paint.py after reproject_face_paint.py. Regions from the front guidance's 68 DWPose landmarks on the conformed head; colours measured at landmark probes. hairline_above_eyes/temple_behind_eyes/sideburn_roots mirror grow_hair_groom.py's root rules. grain is a seeded procedural hair stipple (amount 0 turns it off)."
 }

@@ -32,7 +32,7 @@ Verified tool versions: Blender **5.2.2 LTS d13f752e3b9c**, Python **3.12.7**,
 NumPy **2.1.3**, SciPy **1.15.1**, Pillow **10.4.0**. The render workstation used
 an RTX 4090 and OptiX. The Blender scripts use factory startup, not installed
 commercial add-ons. GPU rendering is configured explicitly in the scripts;
-`rebuild_ennix.py --device CPU` renders every review image on the CPU instead,
+`rebuild_character.py --device CPU` renders every review image on the CPU instead,
 which is slower but leaves the GPU free. `rebuild-v10` was built that way in
 390 s (v9 on the GPU: 339 s).
 
@@ -47,7 +47,7 @@ a claim that these binary inputs can be reconstructed from nothing.
 From the repository root, choose a **new** output directory:
 
 ```powershell
-py -3.12 scripts/rebuild_ennix.py `
+py -3.12 scripts/rebuild_character.py `
   --inputs work/ennix-character-v1/rebuild-inputs `
   --recipe recipes/ennix-open-review-20261007.json `
   --out work/ennix-character-v1/my-fresh-rebuild `
@@ -67,7 +67,7 @@ the current full-character entry point.
 
 ## Face-paint refinement (recipe `ennix-open-review-20261009`)
 
-`scripts/refine_ennix_face_paint.py` runs right after `refine_ennix_surface.py`
+`scripts/refine_face_paint.py` runs right after `reproject_face_paint.py`
 when the recipe has a `face_paint` block, and the head renders, `head.blend` and
 everything after it use `face-paint/head_basecolor.png`. The surface stage's
 `paint/head_basecolor.png` stays as the "before". The guidance pictures cap the
@@ -127,7 +127,7 @@ hands 6,000, hands beyond |x| 0.80 m along the T-pose arms. Everything else
   its 1,326,239 triangles; past |x| 0.80 m the density jumps from about 130 to
   6,800 vertices per centimetre slab. The uniform 120k left 28,920 on the hands
   and 91,173 on the garment.
-- **How it is cut.** `prepare_ennix_body.py --hand-triangles` collapses the
+- **How it is cut.** `prepare_body_acquisition.py --hand-triangles` collapses the
   hands to their count while the garment is held still, then the garment while
   the hands are held still, both by quadric error alone. The receipt
   (`body/body-preparation.json`, `reduction`) records the counts and, with
@@ -139,7 +139,7 @@ hands 6,000, hands beyond |x| 0.80 m along the T-pose arms. Everything else
   tongue 448, scalp cap 432, eyes 280), so the character should land near
   70,500 before the neck overlap is cleared. Body paint coverage is unchanged
   (70.5% against 70.3%).
-- **Gates.** `rebuild_ennix.py` passes the recipe's tier to `gate_rig.py` and now
+- **Gates.** `rebuild_character.py` passes the recipe's tier to `gate_rig.py` and now
   gates the UE5 game export (`export/gate-rig-ue5.json`) as well as
   `rigged/Ennix_Body_Face.fbx`.
 - **Built: `work/ennix-character-v1/rebuild-v9`** (the runner's default recipe
@@ -242,7 +242,7 @@ the game. `--reuse-renders` redraws the sheets only.
 In game the painted outfit read as blotchy rubber (the jacket) and red
 camouflage (the scarf). The multiview bake carries the painting's light and
 print, and the unseen-texel fill leaves faceted blotches.
-`scripts/refine_outfit_paint.py` runs right after `paint_ennix_body.py`
+`scripts/refine_outfit_paint.py` runs right after `paint_body_from_views.py`
 and writes `<build>/outfit-paint/`:
 
 - `garment_mask.png`: R is leather, G cloth, B red fabric; skin is the rest.
@@ -289,8 +289,8 @@ plugin needs an editor restart; no C++ change was required. In editor Python,
 add this repository's `scripts/ue5` directory to `sys.path`, then call:
 
 ```python
-import import_ennix_review
-import_ennix_review.main(
+import import_character_review
+import_character_review.main(
     r"C:\path\to\rebuild\rigged\Ennix_Body_Face.fbx",
     r"C:\path\to\rebuild\export\Ennix_Groom.abc",
     "/Game/EnnixReview/MyFreshReview",
@@ -301,7 +301,7 @@ import_ennix_review.main(
 Use a fresh destination. The checked local import is
 `/Game/EnnixReview/20261007/V5/BP_Ennix_Review`. It combines the skeletal mesh,
 groom and binding; it does not replace the player or edit the game map.
-`review_ennix_import.setup(...)`, `use_blueprint(...)`, then `capture(...)` on a
+`review_character_import.setup(...)`, `use_blueprint(...)`, then `capture(...)` on a
 later editor tick make the temporary review stage. Call `cleanup()` afterward.
 The helper explicitly enables animation updates on the **spawned editor
 instance** so the bound hair renders. This preview switch is transient.

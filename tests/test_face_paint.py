@@ -17,7 +17,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "src"))
 
-from refine_ennix_face_paint import (  # noqa: E402
+from refine_face_paint import (  # noqa: E402
     cheek_redness,
     is_skin,
     lab,
