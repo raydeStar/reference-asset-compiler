@@ -167,13 +167,21 @@ def main():
     p.add_argument("--hand-triangles", type=int, help="Give the hands their own count")
     p.add_argument("--hands-beyond-abs-x", type=float, default=0.80,
                    help="Metres from the midline along the T-pose arms where the hands begin")
+    p.add_argument("--body-object",
+                   help="the outfit's object in the acquisition blend (default: its only mesh)")
     p.add_argument("--measure-samples", type=int, default=0,
                    help="Source vertices per region to measure the reduction against (0: skip)")
     a = p.parse_args(sys.argv[sys.argv.index("--") + 1:])
     out = Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.open_mainfile(filepath=str(Path(a.source).resolve()))
-    body = bpy.data.objects["Ennix_Garment_And_Wrists_Preserved"]
+    if a.body_object:
+        body = bpy.data.objects[a.body_object]
+    else:
+        meshes = [ob for ob in bpy.data.objects if ob.type == "MESH"]
+        if len(meshes) != 1:
+            raise SystemExit(f"{len(meshes)} meshes in the acquisition; name the outfit with --body-object.")
+        body = meshes[0]
     for ob in list(bpy.data.objects):
         if ob != body:
             bpy.data.objects.remove(ob, do_unlink=True)

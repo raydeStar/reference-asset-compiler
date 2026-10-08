@@ -1,4 +1,4 @@
-"""Optional real-Blender check: the Ennix body stage gives hands and garment their own counts.
+"""Optional real-Blender check: the body stage gives hands and garment their own counts.
 
 A uniform collapse spends where the scan was dense. Ennix's preserved hands are
 two thirds of the acquisition, so a uniform 120k left about 29k on the hands and
@@ -44,7 +44,7 @@ for r in range(len(xs) - 1):
         faces += [(a, b, b + around), (a, b + around, a + around)]
 mesh = bpy.data.meshes.new('body')
 mesh.from_pydata(verts, [], faces)
-ob = bpy.data.objects.new('Ennix_Garment_And_Wrists_Preserved', mesh)
+ob = bpy.data.objects.new('Acquired_Outfit', mesh)
 bpy.context.scene.collection.objects.link(ob)
 bpy.ops.wm.save_as_mainfile(filepath={str(source)!r})
 ''')
@@ -54,7 +54,8 @@ bpy.ops.wm.save_as_mainfile(filepath={str(source)!r})
 
 def test_hands_and_garment_each_reach_their_own_count(acquisition, tmp_path):
     blender('--python', ROOT / 'scripts/blender/prepare_body_acquisition.py', '--', acquisition, tmp_path,
-            '--triangles', 4000, '--hand-triangles', 2000, '--measure-samples', 500)
+            '--triangles', 4000, '--hand-triangles', 2000, '--measure-samples', 500,
+            '--body-object', 'Acquired_Outfit')
 
     receipt = json.loads((tmp_path / 'body-preparation.json').read_text())
     reduction = receipt['reduction']
@@ -74,6 +75,7 @@ def test_hands_and_garment_each_reach_their_own_count(acquisition, tmp_path):
 
 
 def test_a_single_count_is_still_one_uniform_collapse(acquisition, tmp_path):
+    # No --body-object: the acquisition's only mesh is the outfit.
     blender('--python', ROOT / 'scripts/blender/prepare_body_acquisition.py', '--', acquisition, tmp_path,
             '--triangles', 6000)
 

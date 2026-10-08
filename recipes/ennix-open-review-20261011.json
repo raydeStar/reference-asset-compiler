@@ -1,5 +1,6 @@
 {
   "schema": "ennix-open-rebuild.v1",
+  "character": "profiles/characters/ennix.json",
   "inputs": {
     "template.npz": {
       "sha256": "d559a1902097b11ed5cddcf9d2f2e6a5ea949531f6bf84f6ca6eea0242934c8a",

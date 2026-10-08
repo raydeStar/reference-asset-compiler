@@ -1,4 +1,4 @@
-"""Retain a source overlay and honest silhouette gate for an Ennix review."""
+"""Retain a source overlay and honest silhouette gate for a character review."""
 import argparse
 import hashlib
 import json

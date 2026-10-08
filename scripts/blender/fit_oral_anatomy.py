@@ -2,6 +2,10 @@
 
 MHCLO barycentric correspondence is applied to the already conformed hm08
 surface and every expression. The native groom and facial identity are retained.
+
+--name prefixes the new materials. Where the mouth interior and the neck are
+(--mouth-box, --neck) is the character's: rebuild_character.py passes them from
+profiles/characters/<name>.json. Metres, conformed-head space.
 """
 import argparse
 import hashlib
@@ -58,11 +62,11 @@ def fitted_asset(path, head):
     return positions, faces, np.array(face_uv), indices, weights, metadata
 
 
-def extend_neck(ob):
+def extend_neck(ob, below_z, end_z):
     bm = bmesh.new()
     bm.from_mesh(ob.data)
     bm.edges.index_update()
-    edges = [e for e in bm.edges if e.is_boundary and all(v.co.z < 1.64 for v in e.verts)]
+    edges = [e for e in bm.edges if e.is_boundary and all(v.co.z < below_z for v in e.verts)]
     # Only the lowest connected boundary is the neck. Mouth/eye boundaries
     # must never acquire a collar of their own, however fashionable that seems.
     todo, components = set(edges), []
@@ -90,7 +94,7 @@ def extend_neck(ob):
     result = bmesh.ops.extrude_edge_only(bm, edges=ring)
     created = [x for x in result["geom"] if isinstance(x, bmesh.types.BMVert) and x not in old_verts]
     for v in created:
-        end = Vector((v.co.x * 1.05, v.co.y, 1.43))
+        end = Vector((v.co.x * 1.05, v.co.y, end_z))
         v.co = end
         for layer in shapes:
             v[layer] = end
@@ -109,6 +113,11 @@ def main():
     p.add_argument("assets")
     p.add_argument("out")
     p.add_argument("--template", required=True, help="original template exposure identifies occluded mouth surfaces")
+    p.add_argument("--name", default="Character", help="prefix for the new materials")
+    p.add_argument("--mouth-box", type=float, nargs=4, required=True, metavar=("ABS_X", "MIN_Y", "MIN_Z", "MAX_Z"),
+                   help="where occluded head faces become the mouth interior")
+    p.add_argument("--neck", type=float, nargs=2, required=True, metavar=("BOUNDARY_BELOW_Z", "END_Z"),
+                   help="the open neck boundary lies below BOUNDARY_BELOW_Z; extend it down to END_Z")
     a = p.parse_args(sys.argv[sys.argv.index("--") + 1:])
     out = Path(a.out).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
@@ -121,19 +130,20 @@ def main():
         tree.insert(Vector(co), i)
     tree.balance()
     ids = [tree.find(v.co)[1] for v in skin.data.vertices]
-    cavity = bpy.data.materials.new("Ennix_Mouth_Interior")
+    cavity = bpy.data.materials.new(a.name + "_Mouth_Interior")
     cavity.use_nodes = True
     cavity.node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value = (0.025, 0.004, 0.005, 1)
     cavity.node_tree.nodes["Principled BSDF"].inputs["Roughness"].default_value = 0.75
     skin.data.materials.append(cavity)
     inside_faces = 0
+    mouth_x, mouth_y, mouth_z0, mouth_z1 = a.mouth_box
     for poly in skin.data.polygons:
         centre = poly.center
-        if abs(centre.x) < 0.043 and centre.y > -0.135 and 1.601 < centre.z < 1.648:
+        if abs(centre.x) < mouth_x and centre.y > mouth_y and mouth_z0 < centre.z < mouth_z1:
             if np.mean([exposure[ids[i]] for i in poly.vertices]) < 0.28:
                 poly.material_index = len(skin.data.materials) - 1
                 inside_faces += 1
-    extension = extend_neck(bpy.data.objects["head"])
+    extension = extend_neck(bpy.data.objects["head"], *a.neck)
     for name in ("helper-upper-teeth", "helper-lower-teeth", "helper-tongue"):
         ob = bpy.data.objects.get(name)
         if ob:
@@ -157,7 +167,7 @@ def main():
             if key.startswith("ex__"):
                 sk = ob.shape_key_add(name=key[4:])
                 sk.data.foreach_set("co", (verts + np.einsum("nk,nkj->nj", weights, delta[ids])).astype(np.float32).ravel())
-        mat = bpy.data.materials.new("Ennix_" + name)
+        mat = bpy.data.materials.new(a.name + "_" + name)
         mat.use_nodes = True
         bsdf = mat.node_tree.nodes["Principled BSDF"]
         image = mat.node_tree.nodes.new("ShaderNodeTexImage")
@@ -174,7 +184,7 @@ def main():
         "neck_extension_vertices": extension, "mouth_interior_faces": inside_faces, "oral_assets": receipts,
         "license_source": "https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html",
         "asset_license": "CC0", "review_pending": True}, indent=2))
-    print("The fitting cages are retired, sir; Ennix has actual teeth now.")
+    print(f"The fitting cages are retired, sir; {a.name} has actual teeth now.")
 
 
 if __name__ == "__main__":

@@ -1,4 +1,8 @@
-"""Export native strands to Alembic and reimport them to verify the payload."""
+"""Export native strands to Alembic and reimport them to verify the payload.
+
+The groom is the curves object named <name>_groom (--name: the prefix
+assemble_character.py gave the objects).
+"""
 import argparse
 import hashlib
 import json
@@ -12,11 +16,12 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("source")
     p.add_argument("out")
+    p.add_argument("--name", default="Character", help="the object prefix assemble_character.py used")
     a = p.parse_args(sys.argv[sys.argv.index("--") + 1:])
     source, out = Path(a.source).resolve(), Path(a.out).resolve()
     out.parent.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.open_mainfile(filepath=str(source))
-    groom = bpy.data.objects["Ennix_groom"]
+    groom = bpy.data.objects[a.name + "_groom"]
     before = {"curves": len(groom.data.curves), "points": len(groom.data.points)}
     bpy.ops.object.select_all(action="DESELECT")
     groom.select_set(True)

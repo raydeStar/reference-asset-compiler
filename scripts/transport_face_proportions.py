@@ -2,6 +2,11 @@
 
 Pure NumPy, deterministic, with every expression transported through the same
 smooth deformation. Original UVs/topology and the crown are preserved.
+
+Per-character (Ennix-tuned): the deformation's zones are heights and depths on
+the first character's conformed head (lower face above z 1.50 m, the mouth
+corner at 1.625 m). See docs/CHARACTER_REBUILD.md, "Still tuned to the first
+character".
 """
 from __future__ import annotations
 
@@ -42,6 +47,7 @@ def main():
     eye_z = float(np.mean([v[g, 2].mean() for g in eyes]))
     # Smooth only the lower facial height. The skull, scalp and ears keep
     # their shape; the neck follows so a shorter chin cannot leave a seam.
+    # Per-character (Ennix-tuned): the zone heights and widths below.
     def deform(pos):
         out = pos.copy()
         below = np.maximum(eye_z - pos[:, 2], 0)

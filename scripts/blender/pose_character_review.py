@@ -1,4 +1,9 @@
-"""Review the actual rig, groom attachment and facial controls in posed renders."""
+"""Review the actual rig, groom attachment and facial controls in posed renders.
+
+--name prefixes the held clip and its blend. The three view centres are the
+character's (rebuild_character.py passes them from profiles/characters/<name>.json):
+the whole figure, the head for the turn, and the face for the expressions.
+"""
 import argparse
 import hashlib
 import json
@@ -26,6 +31,13 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("source")
     p.add_argument("out")
+    p.add_argument("--name", default="Character", help="prefix for the held clip and its blend")
+    p.add_argument("--held-centre", type=float, nargs=3, required=True, metavar=("X", "Y", "Z"),
+                   help="metres: what the full-figure views look at")
+    p.add_argument("--head-centre", type=float, nargs=3, required=True, metavar=("X", "Y", "Z"),
+                   help="metres: what the head-turn view looks at")
+    p.add_argument("--face-centre", type=float, nargs=3, required=True, metavar=("X", "Y", "Z"),
+                   help="metres: what the expression close-ups look at")
     p.add_argument("--samples", type=int, default=32)
     p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
                    help="Cycles device for the review renders (CPU when the GPU is reserved)")
@@ -60,7 +72,8 @@ def main():
     scene.frame_start, scene.frame_end = 0, 48
     scene.render.fps = 24
     rig.animation_data_create()
-    rig.animation_data.action = bpy.data.actions.new("Ennix_Held_Inspection")
+    clip = a.name + "_Held_Inspection"
+    rig.animation_data.action = bpy.data.actions.new(clip)
     for bone in rig.pose.bones:
         for frame in (0, 48):
             bone.keyframe_insert(data_path="rotation_quaternion", frame=frame, group=bone.name)
@@ -75,14 +88,14 @@ def main():
         bpy.ops.render.render(write_still=True)
 
     for name, angle in (("front", 0), ("three-quarter", 35), ("side", 90), ("back", 180)):
-        render("held-" + name, angle, (0, 0, 0.90), 2.05)
+        render("held-" + name, angle, a.held_centre, 2.05)
     scene.frame_set(0)
-    bpy.ops.wm.save_as_mainfile(filepath=str(out / "Ennix_Held_Inspection.blend"))
+    bpy.ops.wm.save_as_mainfile(filepath=str(out / (clip + ".blend")))
     # Turn the head separately: hair, eyeballs and teeth must travel with it.
     rig.animation_data_clear()
     rig.pose.bones["neck_01"].rotation_quaternion = Quaternion(Vector((0, 1, 0)), math.radians(30))
     bpy.context.view_layer.update()
-    render("head-turn", 0, (0, 0, 1.66), 0.45)
+    render("head-turn", 0, a.head_centre, 0.45)
     rig.pose.bones["neck_01"].rotation_quaternion = Quaternion()
     expressions = {"smile": {"mouth-corner-puller": 0.65, "mouth-open": 0.12},
                    "open-mouth": {"mouth-open": 0.70},
@@ -93,17 +106,17 @@ def main():
             for key in ob.data.shape_keys.key_blocks:
                 key.value = mix.get(key.name, 0)
         bpy.context.view_layer.update()
-        render("face-" + name, 0, (0, -0.02, 1.67), 0.37)
+        render("face-" + name, 0, a.face_centre, 0.37)
     for ob in facial_objects:
         for key in ob.data.shape_keys.key_blocks:
             key.value = 0
     report = {"source_sha256": hashlib.sha256(source.read_bytes()).hexdigest(),
-              "clip": "Ennix_Held_Inspection", "held_pose_only": True,
+              "clip": clip, "held_pose_only": True,
               "facial_controls": {ob.name: len(ob.data.shape_keys.key_blocks) - 1 for ob in facial_objects},
               "expressions_reviewed": expressions, "production_ready": False,
               "note": "Native posed evidence; exported animation and artistic acceptance are separate checks."}
     (out / "pose-review.json").write_text(json.dumps(report, indent=2))
-    print("Ennix has lowered his arms, sir. The scarecrow has left the fitting room.")
+    print(f"{a.name} has lowered the arms, sir. The scarecrow has left the fitting room.")
 
 
 if __name__ == "__main__":

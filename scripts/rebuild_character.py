@@ -1,7 +1,11 @@
-"""Offline, source-checked Ennix review build; every output stays a candidate.
+"""Offline, source-checked character review build; every output stays a candidate.
 
-The frozen acquisition is an explicit input, not an implicit model service.
-Run with Python 3.12 and Blender 5.2.2; see docs/ENNIX_REBUILD.md.
+The frozen acquisition is an explicit input, not an implicit model service. A
+build needs three things: --inputs (the frozen bundle, hash-checked against the
+recipe), the recipe (counts, groom, face paint, tier) and the character profile
+(profiles/characters/<name>.json: names, input object names and the
+character's measurements). The recipe names its profile; --character overrides.
+Run with Python 3.12 and Blender 5.2.2; see docs/CHARACTER_REBUILD.md.
 """
 from __future__ import annotations
 
@@ -27,7 +31,8 @@ def main():
     p.add_argument("--inputs", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--blender", required=True)
-    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261011.json"))
+    p.add_argument("--recipe", required=True, help="e.g. recipes/ennix-open-review-20261011.json")
+    p.add_argument("--character", help="character profile, e.g. profiles/characters/ennix.json (default: the one the recipe names)")
     p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
                    help="Cycles device for the review renders; CPU leaves the GPU free (slower)")
     p.add_argument("--manny-dir", help="Manny reference dumps (scripts/ue5/dump_manny_reference.py); enables the UE5 rig stage")
@@ -35,6 +40,12 @@ def main():
     inputs, out = Path(a.inputs).resolve(), Path(a.out).resolve()
     recipe_path = Path(a.recipe).resolve()
     recipe = json.loads(recipe_path.read_text())
+    if not (a.character or recipe.get("character")):
+        p.error("Name a character profile with --character (profiles/characters/<name>.json).")
+    character_path = Path(a.character).resolve() if a.character else ROOT / recipe["character"]
+    character = json.loads(character_path.read_text())
+    prefix = character["asset_prefix"]
+    outfit_params = ROOT / character["outfit_paint_params"]
     if out.exists():
         p.error("Choose a fresh output directory; old fittings are evidence, sir.")
     for name, info in recipe["inputs"].items():
@@ -58,7 +69,9 @@ def main():
         else:
             data[key] = str(local / target)
         path.write_text(json.dumps(data, indent=2), encoding="utf-8")
-    receipt = {"recipe_sha256": sha(recipe_path), "python": sys.version,
+    receipt = {"recipe_sha256": sha(recipe_path), "character": character["name"],
+               "character_profile_sha256": sha(character_path), "outfit_paint_params_sha256": sha(outfit_params),
+               "python": sys.version,
                "blender": subprocess.check_output([a.blender, "--version"], text=True).strip(),
                "input_hashes": {k: v["sha256"] for k, v in recipe["inputs"].items()},
                "commands": [], "production_ready": False, "completed": False}
@@ -79,7 +92,7 @@ def main():
         item = {"script": script, "script_sha256": sha(source), "argv": cmd}
         receipt["commands"].append(item)
         log = logs / f"{len(receipt['commands']):02d}-{source.stem}.log"
-        print(f"Ennix: {script} — the recipe has no secret ingredients, sir.", flush=True)
+        print(f"{character['name']}: {script} — the recipe has no secret ingredients, sir.", flush=True)
         save()
         started = time.monotonic()
         with log.open("w", encoding="utf-8") as stream:
@@ -115,8 +128,10 @@ def main():
         "--samples", recipe["samples"], "--views", "front", "three-quarter", "side", "back", "top",
         "--subdivision", 1, "--oral-helpers", "--skin-emission", .4, "--hair-tint", .85, .95, 1.05,
         "--hair-roughness", .45, "--save-blend", out / "head-before-anatomy.blend", "--device", a.device], True)
+    oral = character["oral_anatomy"]
     run("blender/fit_oral_anatomy.py", [out / "head-before-anatomy.blend", out / "head.npz",
-        local / "makehuman", out / "head.blend", "--template", local / "template.npz"], True)
+        local / "makehuman", out / "head.blend", "--template", local / "template.npz", "--name", prefix,
+        "--mouth-box", *oral["mouth_box_m"], "--neck", *oral["neck_m"]], True)
     if "body" in recipe:
         # Hands and garment each get their own count (recipe 20261010 onward).
         body = recipe["body"]
@@ -125,18 +140,27 @@ def main():
                      "--measure-samples", body.get("measure_samples", 0)]
     else:
         body_args = ["--triangles", recipe["body_review_triangles"]]
-    run("blender/prepare_body_acquisition.py", [local / "body-acquisition.blend", out / "body", *body_args], True)
+    run("blender/prepare_body_acquisition.py", [local / "body-acquisition.blend", out / "body", *body_args,
+        "--body-object", character["inputs"]["body_object"]], True)
+    camera, body_paint = character["source_camera"], character["body_paint"]
     run("paint_body_from_views.py", [out / "body/body.npz", local / "body-front.png", local / "body-back.png",
-        out / "body/paint", "--side", local / "body-left.png"])
+        out / "body/paint", "--side", local / "body-left.png", "--px-per-m", camera["px_per_m"],
+        "--front-origin", *camera["front_origin_px"], "--side-origin", *camera["side_origin_px"],
+        "--side-band", *body_paint["side_band_abs_x_m"], "--unmirrored-red", *body_paint["unmirrored_red"]])
     # Game garment materials: mask, cleaned albedo and detail normals (the game imports outfit-paint/).
     run("refine_outfit_paint.py", [out / "body/body.npz", out / "body/paint/body_basecolor.png",
-        out / "body/paint/coverage.png", out / "outfit-paint", "--params", ROOT / "profiles/outfit-paint/ennix.json"])
-    assembly = out / "assembly/Ennix_Character_Review.blend"
+        out / "body/paint/coverage.png", out / "outfit-paint", "--params", outfit_params])
+    assembly = out / f"assembly/{prefix}_Character_Review.blend"
+    neck = character["neck_overlap"]
     run("blender/assemble_character.py", [out / "body/body-uv.blend", out / "body/paint/body_basecolor.png",
-        out / "head.blend", out / "assembly", "--samples", recipe["samples"],
-        "--head-placement", local / "placement.json", "--clear-neck-overlap", "--device", a.device], True)
-    proxy = out / "rig-input/Ennix_proxy.fbx"
-    run("blender/export_skinning_proxy.py", [assembly, proxy], True)
+        out / "head.blend", out / "assembly", "--samples", recipe["samples"], "--name", prefix,
+        "--body-lift", character["body_lift_m"],
+        "--source-camera", camera["px_per_m"], *camera["image_px"], *camera["front_origin_px"],
+        "--head-placement", local / "placement.json",
+        "--clear-neck-overlap", *neck["ellipse_m"], neck["above_z_m"], neck["rim_above_z_m"], neck["rim_abs_x_m"],
+        "--device", a.device], True)
+    proxy = out / f"rig-input/{prefix}_proxy.fbx"
+    run("blender/export_skinning_proxy.py", [assembly, proxy, "--name", prefix], True)
     landmarks = json.loads((local / "rig-landmarks.json").read_text())
     landmarks.update(payload_fbx=str(proxy), payload_fbx_sha256=sha(proxy),
         based_on_measured_landmarks_sha256=recipe["inputs"]["rig-landmarks.json"]["sha256"],
@@ -145,20 +169,24 @@ def main():
     lm.write_text(json.dumps(landmarks, indent=2))
     (out / "proxy-rig").mkdir()
     run("blender/rig_from_landmarks.py", [proxy, lm, ROOT / "profiles/skeletons/ue5_manny.json",
-        out / "proxy-rig/Ennix_proxy_rigged.fbx", out / "proxy-rig/rig-report.json"], True)
-    run("blender/bind_assembly_to_rig.py", [assembly, out / "proxy-rig/Ennix_proxy_rigged.blend", out / "rigged"], True)
-    native = out / "rigged/Ennix_Rigged.blend"
-    run("blender/export_groom_alembic.py", [native, out / "export/Ennix_Groom.abc"], True)
+        out / f"proxy-rig/{prefix}_proxy_rigged.fbx", out / "proxy-rig/rig-report.json"], True)
+    run("blender/bind_assembly_to_rig.py", [assembly, out / f"proxy-rig/{prefix}_proxy_rigged.blend", out / "rigged",
+        "--name", prefix, "--neck-blend", *character["neck_weight_blend_m"],
+        "--collar-repair", neck["rim_above_z_m"], neck["rim_abs_x_m"]], True)
+    native = out / f"rigged/{prefix}_Rigged.blend"
+    run("blender/export_groom_alembic.py", [native, out / f"export/{prefix}_Groom.abc", "--name", prefix], True)
     if a.manny_dir and "ue5" in recipe:
         # Manny-conformant game rig: measured joints, solid-voxel weights, Manny's bone axes.
         run("rig_ue5_character.py", [native, out / "ue5", "--manny-dir", Path(a.manny_dir).resolve(),
-            "--template", local / "template.npz", "--head-npz", out / "head.npz", "--name", "Ennix",
+            "--template", local / "template.npz", "--head-npz", out / "head.npz", "--name", prefix,
             "--arm-ratio", recipe["ue5"]["arm_ratio"], "--blender", a.blender])
-        game = out / "ue5/fit/Ennix_UE5.blend"
-        run("blender/export_ue5_character.py", [out / "export/Ennix_UE5.fbx"], True, blend=game)
-        run("blender/export_groom_alembic.py", [game, out / "export/Ennix_Groom_UE5.abc"], True)
-    run("blender/pose_character_review.py", [native, out / "pose", "--samples", recipe["samples"], "--device", a.device],
-        True)
+        game = out / f"ue5/fit/{prefix}_UE5.blend"
+        run("blender/export_ue5_character.py", [out / f"export/{prefix}_UE5.fbx"], True, blend=game)
+        run("blender/export_groom_alembic.py", [game, out / f"export/{prefix}_Groom_UE5.abc", "--name", prefix], True)
+    views = character["review_views"]
+    run("blender/pose_character_review.py", [native, out / "pose", "--samples", recipe["samples"], "--device", a.device,
+        "--name", prefix, "--held-centre", *views["held_centre_m"], "--head-centre", *views["head_centre_m"],
+        "--face-centre", *views["face_centre_m"]], True)
     run("blender/audit_semantic_fingerprint.py", [native, out / "semantic-audit.json"], True)
     run("validate_silhouette.py", [local / "original.png", local / "body-front.png",
         out / "assembly/front_preview.png", out / "visual-validation"])
@@ -166,15 +194,15 @@ def main():
     # The tier, when the recipe names one, sets the triangle ceiling in place of
     # the skeleton profile's flat number (profiles/triangle-budgets.json).
     tier = ["--tier", recipe["character_tier"]] if recipe.get("character_tier") else []
-    gates = [(out / "rigged/Ennix_Body_Face.fbx", out / "export/gate-rig.json")]
-    if (out / "export/Ennix_UE5.fbx").is_file():
-        gates.append((out / "export/Ennix_UE5.fbx", out / "export/gate-rig-ue5.json"))
+    gates = [(out / f"rigged/{prefix}_Body_Face.fbx", out / "export/gate-rig.json")]
+    if (out / f"export/{prefix}_UE5.fbx").is_file():
+        gates.append((out / f"export/{prefix}_UE5.fbx", out / "export/gate-rig-ue5.json"))
     for fbx, report in gates:
         run("blender/gate_rig.py", [fbx, ROOT / "profiles/skeletons/ue5_manny.json", report, *tier],
             True, allowed_codes=(0, 1))
         if not report.is_file():
             raise RuntimeError("Rig gate crashed before producing its receipt")
-    run("blender/deform_test.py", [out / "rigged/Ennix_Body_Face.fbx", out / "export/deformation",
+    run("blender/deform_test.py", [out / f"rigged/{prefix}_Body_Face.fbx", out / "export/deformation",
         out / "export/deformation.json", 900, "ue5_manny"], True)
     receipt["completed"] = True
     receipt["outputs"] = {str(f.relative_to(out)): sha(f) for f in out.rglob("*")

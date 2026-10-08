@@ -2,6 +2,10 @@
 
 The original illustration is registered to the existing face by DWPose points.
 Only skin is rebaked; the acquired geometry, UVs and expressions stay intact.
+
+Per-character (Ennix-tuned): the face, mouth, neck and forehead zones are
+heights and widths on the first character's conformed head (z 1.525-1.746 m).
+See docs/CHARACTER_REBUILD.md, "Still tuned to the first character".
 """
 
 from __future__ import annotations
@@ -67,6 +71,7 @@ def main():
     x, y, height = pos.T
     # The original is low resolution. Keep its expression/colour on the face;
     # inferred side views still describe skin around the ears and back of skull.
+    # Per-character (Ennix-tuned): every zone below is in his head's metres.
     alpha = np.clip((0.087 - np.abs(x + 0.002)) / 0.022, 0, 1)
     alpha *= np.clip((-0.058 - y) / 0.024, 0, 1)
     alpha *= np.clip((height - 1.577) / 0.014, 0, 1)
