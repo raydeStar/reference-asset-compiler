@@ -22,6 +22,18 @@ The former top-level commands now live here:
 - `run_smooth_review.ps1`
 - `split_three_view_sheet.py`
 
+Three Ennix one-offs moved here on 2026-10-08. They are historical, not part
+of the character pipeline (`scripts/rebuild_character.py`, see
+[`docs/CHARACTER_REBUILD.md`](../../docs/CHARACTER_REBUILD.md)), and are kept so
+the early Ennix receipts stay explainable:
+
+- `build_ennix_review.py`: the first head-only Ennix build, before the full
+  character runner.
+- `package_ennix_review.py`: zipped a 2026-10-07 Ennix delivery for review.
+- `refine_ennix_landmarks.py`: measured Ennix's open hands and centreline for
+  his rig landmarks once; the rebuild takes measured landmarks as a frozen
+  input (`rig-landmarks.json`).
+
 Run them using `scripts/experiments/<name>` from the repository root. Historical
 handoff commands retain their original paths; use this directory when replaying
 one. Interpreter discovery and other shared helpers still live in `scripts/`.

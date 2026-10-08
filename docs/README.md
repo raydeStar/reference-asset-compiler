@@ -21,6 +21,8 @@ escalations are retained verbatim so nobody repeats them. Start with
 - [UE5_VALIDATION.md](UE5_VALIDATION.md) — the UE import, skeleton and runtime validation contract.
 - [SCENE_TOOLS.md](SCENE_TOOLS.md) — atmosphere recipes, protected UE derivatives, portable review pages.
 - [CHARACTER_HEAD_AND_NECK.md](CHARACTER_HEAD_AND_NECK.md) — source-locked head fit and repeatable neck transition.
+- [CHARACTER_REBUILD.md](CHARACTER_REBUILD.md) — rebuild a rigged, groomed, painted character from frozen inputs, a recipe and a character profile; what is still tuned to the first character.
+- [ENNIX_REBUILD.md](ENNIX_REBUILD.md) — Ennix's case study: each recipe's change, the reviews and the remaining gates.
 - [CHARACTER_ANIMATION.md](CHARACTER_ANIMATION.md) — pose-first authoring, relaxed-idle checks, exported-clip review and rejection handling.
 - [REGIONAL_CHARACTER_TEXTURES.md](REGIONAL_CHARACTER_TEXTURES.md) — rig-preserving regional UVs, independent head/clothing paint and seam-normal repair.
 - [CHARACTER_SHOWCASE.md](CHARACTER_SHOWCASE.md) — how the README captures and GIF are reproduced with provenance.

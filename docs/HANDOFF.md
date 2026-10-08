@@ -4384,3 +4384,35 @@ strands (docs: ENNIX_REBUILD.md, "Groom fill"; lessons in DECISIONS).
 - Still open: the review look is softer than v9's ropey curls, and the
   painting sits between them. The lifted lock at the part remains. A dark pit
   shows where the hair parts at the crown.
+
+## 2026-10-08 — Generic character rebuild: stage names, character profile (Claude)
+
+For open-sourcing: tooling named for what it does, the character in data
+(docs: CHARACTER_REBUILD.md, the method; ENNIX_REBUILD.md stays Ennix's case
+study).
+
+- Renamed with `git mv`: `rebuild_ennix.py` is `rebuild_character.py`, and
+  every `*ennix*` stage has a job name (table at the end of
+  CHARACTER_REBUILD.md). `build_ennix_review.py`, `package_ennix_review.py` and
+  `refine_ennix_landmarks.py` moved to `scripts/experiments/`. Older recipes and
+  this log keep the old names.
+- `profiles/characters/ennix.json`: name, asset prefix (every object, material
+  and output file), the acquisition's outfit object, the painting's camera
+  (538.89 px/m, origins (765.5, 500) and (734, 500) on 1536 x 1024), the body
+  lift 0.899942875, the side band 0.33/0.45, the one-sided sash, mouth box and
+  neck extension, the collar-overlap ellipse, the neck weight blend and the
+  review view centres. Recipe `20261011` names it (`"character"`);
+  `--character` overrides, and older recipes need it. `--recipe` is required.
+- Still Ennix-tuned, marked in code and listed in CHARACTER_REBUILD.md: the
+  face zones of `transport_face_proportions.py` and `reproject_face_paint.py`,
+  the outfit close-up cameras and the posed review frame widths.
+- `rig_ue5_character.py`: the ComfyUI install is `--comfyui` / `RAC_COMFYUI`;
+  this workstation's path is only the fallback when that is unset.
+- Correction to the groom-fill entry: `--device CPU` takes the Cycles renders
+  off the GPU, but `rig_ue5_character.py` (ortho views for DWPose, Manny pose
+  renders) and `deform_test.py` still render with EEVEE, which needs a GPU.
+- Verified against `rebuild-v10` on the CPU (ENNIX_REBUILD.md, "Repeatability
+  evidence"; `work/ennix-character-v1/rebuild-v10-verify-evidence/`): NPZs and
+  paints byte-identical, semantic audit equal except the proxy rig's heat
+  weights (as v9/v10), UE5 joint plan byte-identical and game blend semantic
+  match on v10's keypoints. `deform_test.py` was not run (GPU reserved).

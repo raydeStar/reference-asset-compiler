@@ -1,5 +1,10 @@
 # Ennix: open-tool review build, 2026-10-07
 
+Ennix's case study. The method, the stages and the character profile are in
+[CHARACTER_REBUILD.md](CHARACTER_REBUILD.md); Ennix's names and measurements
+are `profiles/characters/ennix.json`. Stage names here are the current ones
+(renamed 2026-10-08; the table at the end of CHARACTER_REBUILD.md maps the old).
+
 This is an editable review candidate, not a production character. The original
 illustration remains the artistic authority. Existing Hunyuan acquisition is
 explicitly permitted by Mark; all new asset processing in this pass uses open
@@ -49,10 +54,15 @@ From the repository root, choose a **new** output directory:
 ```powershell
 py -3.12 scripts/rebuild_character.py `
   --inputs work/ennix-character-v1/rebuild-inputs `
-  --recipe recipes/ennix-open-review-20261007.json `
+  --recipe recipes/ennix-open-review-20261011.json `
   --out work/ennix-character-v1/my-fresh-rebuild `
-  --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe'
+  --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe' `
+  --device CPU --manny-dir work/ennix-character-v1/rig-ue5
 ```
+
+That is how `rebuild-v10` was built. Recipe `20261011` names Ennix's character
+profile; the older recipes (`20261007`-`20261010`) need
+`--character profiles/characters/ennix.json` as well.
 
 The runner checks every input hash before starting. It rewrites only disposable
 path pointers, reduces the acquired outfit **before** painting, registers and
@@ -62,7 +72,7 @@ script hashes, arguments and output hashes are saved. It refuses an existing
 output directory. A recorded budget failure can coexist with a completed
 **review** build; it never makes `production_ready` true.
 
-`scripts/build_ennix_review.py` is the historical head-only experiment. It is not
+`scripts/experiments/build_ennix_review.py` is the historical head-only experiment. It is not
 the current full-character entry point.
 
 ## Face-paint refinement (recipe `ennix-open-review-20261009`)
@@ -105,7 +115,7 @@ texture beside the guidance (front, painting for three-quarter, left):
 
 ```powershell
 py -3.12 scripts/build_face_paint_review.py work/ennix-character-v1/<build> `
-  work/ennix-character-v1/<build>/face-paint-review `
+  work/ennix-character-v1/<build>/face-paint-review --name Ennix `
   --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe'
 ```
 
@@ -166,7 +176,7 @@ hands 6,000, hands beyond |x| 0.80 m along the T-pose arms. Everything else
 
 ```powershell
 py -3.12 scripts/build_outfit_review.py work/ennix-character-v1/rebuild-v8 `
-  work/ennix-character-v1/<new build> work/ennix-character-v1/<new build>/outfit-review `
+  work/ennix-character-v1/<new build> work/ennix-character-v1/<new build>/outfit-review --name Ennix `
   --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe'
 ```
 
@@ -282,6 +292,33 @@ equivalent polygons or rotate their first loop; the audit normalizes only those
 representations. Raw Blend/FBX containers and rendered pixels are not claimed
 byte-identical. Both the raw comparison and canonical comparison are retained.
 
+**Generic tooling, 2026-10-08.** After the stages were renamed and Ennix's
+names and measurements moved into `profiles/characters/ennix.json`, recipe
+`20261011` was rebuilt on the CPU into a fresh directory and compared with
+`rebuild-v10` (evidence: `work/ennix-character-v1/rebuild-v10-verify-evidence/`,
+`comparison.txt`; the 1.8 GB of verify builds were deleted after comparing).
+
+- Byte-identical: `head.npz`, `strands.npz`, `body/body.npz`,
+  `body/body-uv.blend`, both head paints, `face-paint/`, the body paint and
+  coverage, the outfit-paint mask and both detail normals.
+- `semantic-audit.json`: every mesh, morph, rest bone and the groom match.
+  The outfit's `weights` fingerprint differs, as it did between v9 and v10:
+  the proxy rig's heat weights move in the sixth decimal (at most 2e-6 in
+  the build measured; v9 against v10, 5e-6).
+- Every stage receipt matches once the build path is normalised, apart from
+  hashes of containers and of the path-rewritten input pointers. Silhouette
+  IoU, bounding boxes and the rig gate (70,745 triangles) are identical.
+  The renders measured differ by at most 3 levels, on a few pixels.
+- `outfit-paint/body_basecolor.png` differs from v10's in 6 pixels by one
+  level: v10's was made outside the runner with Python 3.11 (NumPy 2.3.5,
+  SciPy 1.17); the runner's Python 3.12 gives the new bytes every time.
+- The UE5 rig needs the GPU for its EEVEE ortho renders, so v10's renders and
+  keypoints were reused (the renamed code's own ortho front render, from an
+  earlier run, is pixel-identical to v10's). The joint plan is
+  byte-identical, `gate-rig-ue5.json` identical, and `ue5/fit/Ennix_UE5.blend`'s
+  semantic audit matches in full, weights included. `deform_test.py` (EEVEE)
+  was not run.
+
 ## Unreal review
 
 Enable the existing `HairStrands` and `AlembicHairImporter` plugins. The importer
@@ -295,6 +332,7 @@ import_character_review.main(
     r"C:\path\to\rebuild\export\Ennix_Groom.abc",
     "/Game/EnnixReview/MyFreshReview",
     r"C:\path\to\rebuild\export\unreal-import.json",
+    name="Ennix", eye_texture="ennix-head-front-v1",
 )
 ```
 
@@ -303,6 +341,8 @@ Use a fresh destination. The checked local import is
 groom and binding; it does not replace the player or edit the game map.
 `review_character_import.setup(...)`, `use_blueprint(...)`, then `capture(...)` on a
 later editor tick make the temporary review stage. Call `cleanup()` afterward.
+`capture()` renders through The Aether Wars' own editor plugin
+(`aether_mcp_tools`), so it works only in that project.
 The helper explicitly enables animation updates on the **spawned editor
 instance** so the bound hair renders. This preview switch is transient.
 
