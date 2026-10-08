@@ -56,6 +56,10 @@ DEFAULTS = {
     # Albedo clean-up per garment: low-pass radius (m on the surface, via the UV scale),
     # the share of painted detail kept, and how far the baked light is compressed (1 = none).
     "lowpass_m": 0.06,
+    # Detail is split by scale: features under fine_m (buckles, buttons, seams, stitching) are mostly kept;
+    # the mid band between fine_m and the low-pass (the blotches and the print) mostly goes.
+    "fine_m": 0.006,
+    "fine_keep": 0.65,
     "detail_keep": {"leather": 0.3, "cloth": 0.3, "fabric": 0.25},
     "light_gamma": {"leather": 0.4, "cloth": 0.5, "fabric": 0.55},
     "unseen_weight": 0.15,
@@ -235,6 +239,9 @@ def main():
     clean = tex.copy()
     record_cls = {}
     cov_soft = np.clip(ndimage.gaussian_filter(cov, 2.0), 0, 1)
+    fine_sigma = p["fine_m"] / metres_per_uv * size
+    smooth = np.stack([ndimage.gaussian_filter(tex[..., k], fine_sigma) for k in range(3)], -1)
+    fine = (tex - smooth) * (p["fine_keep"] * cov_soft)[..., None]
     for c in (LEATHER, CLOTH, FABRIC):
         name = NAMES[c]
         inside = onehot[..., c]
@@ -253,7 +260,7 @@ def main():
         y_new = y_med * (np.maximum(y, 1e-4) / y_med) ** gamma
         y_new *= y[sel].mean() / y_new[sel].mean()  # the garment's mean stays the painting's
         low_adj = low * (y_new / np.maximum(y, 1e-4))[..., None]
-        detail = (tex - low) * (p["detail_keep"][name] * cov_soft)[..., None]
+        detail = (smooth - low) * (p["detail_keep"][name] * cov_soft)[..., None] + fine
         garment = np.clip(low_adj + detail, 0, 1)
         clean = clean * (1 - soft[..., c:c + 1]) + garment * soft[..., c:c + 1]
         record_cls[name] = {"triangles": int((cls == c).sum()), "area_m2": round(float(areas[cls == c].sum()), 4),
