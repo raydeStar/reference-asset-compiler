@@ -11,8 +11,8 @@ character then gets them through its IK retargeter.
 Clips are in place (no root motion): the game moves the capsule. Distances match TheAetherWars'
 UClimbingComponent: on a wall the capsule centre sits 62 cm off the wall (radius 42 + IdealWallOffset 20);
 hanging, the lip is 207 cm above the feet and 82 cm out. Pass --wall/--lip-y/--lip-z for other setups.
-Climb cycles cover 90 cm per second up/down and 70 cm per second sideways at play rate 1, so the game
-sets play rate = climb speed / that.
+Each cycle clip records the speed it covers at play rate 1 (cycle_speed_cm_s: 130 up/down, 100 sideways,
+50 on a ledge), and the game sets play rate = climb speed / that.
 """
 from __future__ import annotations
 
@@ -27,9 +27,9 @@ import manny_poser as mp
 from manny_poser import UP, Pose, euler, lerp, smooth, unit
 
 FPS = 30
-CLIMB_STRIDE = 45.0      # cm a planted hold travels per half cycle (90 cm per 1 s cycle)
-SIDE_STRIDE = 35.0       # sideways: 70 cm per 1 s cycle
-HANG_STRIDE = 25.0       # ledge shimmy: 50 cm per 1 s cycle
+CLIMB_STRIDE = 52.0      # cm a planted hold travels per half cycle (130 cm/s over the 0.8 s cycle)
+SIDE_STRIDE = 40.0       # sideways: 100 cm/s over the 0.8 s cycle
+HANG_STRIDE = 25.0       # ledge shimmy: 50 cm/s over the 1 s cycle
 SIDES = {"l": 1.0, "r": -1.0}
 
 
@@ -103,8 +103,8 @@ class Clips:
         return lerp(hi, lo, u), 0.0, 1.0
 
     def climb_up(self, ph):
-        lo_h, hi_h = 152.0, 152.0 + CLIMB_STRIDE
-        lo_f, hi_f = 6.0, 6.0 + CLIMB_STRIDE
+        lo_h, hi_h = 148.0, 148.0 + CLIMB_STRIDE
+        lo_f, hi_f = 4.0, 4.0 + CLIMB_STRIDE
         hl, ol, gl = self._cycle_limb(ph % 1.0, lo_h, hi_h, 11.0)
         hr, orr, gr = self._cycle_limb((ph + 0.5) % 1.0, lo_h, hi_h, 11.0)
         fr, ofr, _ = self._cycle_limb(ph % 1.0, lo_f, hi_f, 12.0)          # diagonal: right foot with left hand
@@ -257,10 +257,10 @@ class Clips:
 CLIPS = {
     # name: (seconds, loop, builder(clips, phase_or_time))
     "AW_Climb_Idle": (2.0, True, lambda c, x: c.climb_idle(x)),
-    "AW_Climb_Up": (1.0, True, lambda c, x: c.climb_up(x)),
-    "AW_Climb_Down": (1.0, True, lambda c, x: c.climb_up((1.0 - x) % 1.0)),
-    "AW_Climb_Left": (1.0, True, lambda c, x: c.climb_side(x, True)),
-    "AW_Climb_Right": (1.0, True, lambda c, x: c.climb_side(x, False)),
+    "AW_Climb_Up": (0.8, True, lambda c, x: c.climb_up(x)),
+    "AW_Climb_Down": (0.8, True, lambda c, x: c.climb_up((1.0 - x) % 1.0)),
+    "AW_Climb_Left": (0.8, True, lambda c, x: c.climb_side(x, True)),
+    "AW_Climb_Right": (0.8, True, lambda c, x: c.climb_side(x, False)),
     "AW_Climb_Leap": (0.55, False, lambda c, x: c.climb_leap(x)),
     "AW_Hang_Idle": (2.4, True, lambda c, x: c.hang_idle(x)),
     "AW_Hang_Left": (1.0, True, lambda c, x: c.hang_side(x, True)),
@@ -268,6 +268,12 @@ CLIPS = {
     "AW_Mantle": (0.5, False, lambda c, x: c.mantle(x)),
     "AW_Glide": (2.4, True, lambda c, x: c.glide(x)),
 }
+
+
+# How far a planted hold travels per half cycle, per cycle clip: the game matches play rate to
+# climb speed / (2 * stride / cycle seconds), written into the JSON as cycle_speed_cm_s.
+CYCLE_STRIDE = {"AW_Climb_Up": CLIMB_STRIDE, "AW_Climb_Down": CLIMB_STRIDE, "AW_Climb_Left": SIDE_STRIDE,
+                "AW_Climb_Right": SIDE_STRIDE, "AW_Hang_Left": HANG_STRIDE, "AW_Hang_Right": HANG_STRIDE}
 
 
 def build(c: Clips, names=None):
@@ -283,7 +289,9 @@ def build(c: Clips, names=None):
                 x = x % 1.0 if f < n else 0.0     # the last key repeats the first: a seamless loop
             r = fn(c, x)
             frames.append(r if isinstance(r, dict) else r.frame_dict())
-        out[name] = {"fps": FPS, "loop": loop, "seconds": secs, "frames": frames}
+        stride = CYCLE_STRIDE.get(name)
+        out[name] = {"fps": FPS, "loop": loop, "seconds": secs, "frames": frames,
+                     "cycle_speed_cm_s": round(2 * stride / secs, 3) if stride else None}
     return out
 
 
