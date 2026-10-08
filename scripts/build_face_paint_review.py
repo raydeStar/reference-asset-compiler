@@ -1,4 +1,4 @@
-"""Before/after review sheet for the Ennix face-paint stage, beside the guidance.
+"""Before/after review sheet for the face-paint stage, beside the guidance.
 
 Renders the groomed head twice with identical settings -- once with the surface
 stage's paint (before), once with the face-paint stage's (after) -- from the
@@ -11,7 +11,7 @@ Every head shown wears its groom: no bald or grey clay beside the painting.
 
 Usage:
   python scripts/build_face_paint_review.py <rebuild_dir> <out_dir> --blender <exe> \
-      [--left-guidance head-left.png] [--resolution 1024] [--samples 64]
+      [--name <character>] [--left-guidance head-left.png] [--resolution 1024] [--samples 64]
 """
 
 from __future__ import annotations
@@ -126,6 +126,7 @@ def main():
     p.add_argument("--blender", required=True)
     p.add_argument("--left-guidance", help="the left-profile head guidance picture "
                    "(default: the build's frozen inputs/head-left.png)")
+    p.add_argument("--name", default="Character", help="the character's name, for the sheet titles")
     p.add_argument("--resolution", type=int, default=1024)
     p.add_argument("--samples", type=int, default=64)
     a = p.parse_args()
@@ -146,7 +147,7 @@ def main():
     labels = ["Reference\nfront & left: head guidance\n3/4: the painting\n(no 3/4 guidance exists)",
               "Before\nsurface stage paint\n(paint/)", "After\nface-paint stage\n(face-paint/)"]
     recipe = json.loads((build / "build-receipt.json").read_text()).get("recipe_sha256", "")
-    sheet(rows, labels, ["front", "three-quarter", "side"], "Ennix face paint: before / after",
+    sheet(rows, labels, ["front", "three-quarter", "side"], f"{a.name} face paint: before / after",
           f"{build.name} | same groom, geometry, lights and camera; only the head texture differs | recipe sha {recipe[:12]}",
           out / "face-paint-sheet.png")
     detail_rows, detail_labels = [], []
@@ -155,7 +156,7 @@ def main():
             detail_rows.append([close_up(out / tag / f"neutral-{view}.png", frac, f"{i + k + 1}. {what}")
                                 for k, (view, frac, what) in enumerate(DETAILS[i:i + 3])])
             detail_labels.append(f"{tag.capitalize()}\n{'surface stage' if tag == 'before' else 'face-paint stage'}")
-    sheet(detail_rows, detail_labels, ["", "", ""], "Ennix face paint: close-ups",
+    sheet(detail_rows, detail_labels, ["", "", ""], f"{a.name} face paint: close-ups",
           "each pair of rows: before above, after below; the same renders as the main sheet",
           out / "face-paint-details.png")
     # Where each change applies, drawn on the front guidance by the stage itself.

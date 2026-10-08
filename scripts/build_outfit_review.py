@@ -1,4 +1,4 @@
-"""Before/after review sheets for a change to Ennix's outfit, painted and groomed.
+"""Before/after review sheets for a change to a character's outfit, painted and groomed.
 
 Renders the same painted close-ups (``scripts/blender/render_outfit_review.py``)
 from two rebuilds' assemblies and lays them out side by side, with a difference
@@ -11,7 +11,11 @@ the reference.
 
 Usage:
   python scripts/build_outfit_review.py <before_build> <after_build> <out_dir> --blender <exe> \
-      [--resolution 1024] [--samples 64] [--device GPU]
+      [--name <asset prefix>] [--resolution 1024] [--samples 64] [--device GPU]
+
+--name is the character profile's asset_prefix (the assembly is
+assembly/<name>_Character_Review.blend). The close-up cameras in
+render_outfit_review.py are framed on the first character's outfit.
 """
 
 from __future__ import annotations
@@ -49,7 +53,7 @@ def font(size):
 def render(a, build, out, wire):
     cmd = [a.blender, "-b", "--factory-startup", "--python-exit-code", "1", "--python",
            ROOT / "scripts/blender/render_outfit_review.py", "--",
-           build / "assembly/Ennix_Character_Review.blend", out, "--resolution", a.resolution,
+           build / f"assembly/{a.name}_Character_Review.blend", out, "--name", a.name, "--resolution", a.resolution,
            "--samples", a.samples, "--device", a.device, "--views", *(WIRE if wire else CLOSE_UPS)]
     cmd = [str(c) for c in cmd + (["--wire"] if wire else [])]
     out.mkdir(parents=True, exist_ok=True)
@@ -58,13 +62,16 @@ def render(a, build, out, wire):
     return cmd
 
 
-def counts(build):
+def counts(build, name):
     """Triangles by region, measured the same way for any build."""
     gate = json.loads((build / "export/gate-rig.json").read_text())
     body = np.load(build / "body/body.npz")
     centres = body["verts"][body["tris"]].mean(axis=1)
-    hands = int((np.abs(centres[:, 0]) > 0.80).sum())
-    outfit = next(m["tris"] for m in gate["meshes"] if m["name"] == "Ennix_Outfit_And_Hands")
+    # Where the hands begin is the body stage's own record (prepare_body_acquisition.py).
+    preparation = json.loads((build / "body/body-preparation.json").read_text())
+    beyond = preparation.get("reduction", {}).get("hands_beyond_abs_x_m", 0.80)
+    hands = int((np.abs(centres[:, 0]) > beyond).sum())
+    outfit = next(m["tris"] for m in gate["meshes"] if m["name"] == f"{name}_Outfit_And_Hands")
     return {"total": gate["total_tris"], "outfit_and_hands": outfit, "head_parts": gate["total_tris"] - outfit,
             "hands": hands, "garment": len(body["tris"]) - hands, "gate_ok": gate["ok"],
             "tri_budget": gate.get("tri_budget")}
@@ -123,6 +130,7 @@ def main():
     p.add_argument("after", help="a rebuild_character.py output")
     p.add_argument("out")
     p.add_argument("--blender", required=True)
+    p.add_argument("--name", default="Character", help="the character profile's asset_prefix")
     p.add_argument("--resolution", type=int, default=1024)
     p.add_argument("--samples", type=int, default=64)
     p.add_argument("--device", choices=("GPU", "CPU"), default="GPU")
@@ -133,7 +141,7 @@ def main():
     commands = {}
     for tag, build in (("before", before), ("after", after)):
         commands[tag] = [render(a, build, out / tag, False), render(a, build, out / tag, True)]
-    c_before, c_after = counts(before), counts(after)
+    c_before, c_after = counts(before, a.name), counts(after, a.name)
     subtitle = ("same cameras, lights, exposure and groom; painted outfit, head and hair | "
                 "difference = |after - before| x{0}".format(DIFFERENCE_GAIN))
 
@@ -144,7 +152,7 @@ def main():
             [cell(after / "assembly" / f"{view}.png", WIDE) for view, _, _ in FULL]]
     sheet(rows, ["Reference\nretained guidance\nand the painting", "Before\n" + label(before, c_before),
                  "After\n" + label(after, c_after)],
-          [view for view, _, _ in FULL], WIDE, "Ennix outfit: before / after",
+          [view for view, _, _ in FULL], WIDE, f"{a.name} outfit: before / after",
           f"{before.name} -> {after.name} | " + subtitle, out / "outfit-sheet.png")
 
     # Close-ups: before, after, and where they differ.
@@ -157,13 +165,13 @@ def main():
         labels.append("{0}\nmean difference {1}/255\n{2:.1%} of pixels over 16".format(
             view, measured[view]["mean_abs_8bit"], measured[view]["share_over_16"]))
     sheet(rows, labels, [f"before: {c_before['total']:,}", f"after: {c_after['total']:,}", "difference x4"],
-          (CELL, CELL), "Ennix outfit: close-ups", subtitle, out / "outfit-details.png")
+          (CELL, CELL), f"{a.name} outfit: close-ups", subtitle, out / "outfit-details.png")
 
     # Where the triangles went, drawn over the paint.
     rows = [[cell(out / tag / f"{view}-wire.png", (CELL, CELL)) for view in WIRE]
             for tag in ("before", "after")]
     sheet(rows, ["Before\n" + label(before, c_before), "After\n" + label(after, c_after)], list(WIRE),
-          (CELL, CELL), "Ennix outfit: triangle edges over the paint",
+          (CELL, CELL), f"{a.name} outfit: triangle edges over the paint",
           "one-pixel edges of the outfit-and-hands mesh only; head and groom drawn normally",
           out / "outfit-wire.png")
 

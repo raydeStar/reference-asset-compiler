@@ -6,7 +6,7 @@ pelvis translation scales by pelvis height, and every other bone keeps this
 character's own bone lengths. Arms that reach the knees, a twisted wrist or a
 collapsing shoulder show up here before anything reaches Unreal.
 
-blender -b Ennix_UE5.blend --python pose_ue5_anim_test.py -- \
+blender -b <name>_UE5.blend --python pose_ue5_anim_test.py -- \
     <manny_refpose.json> <manny_anim_poses.json> <out_dir> [--res 640]
 """
 import json

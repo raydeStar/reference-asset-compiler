@@ -1,6 +1,6 @@
-"""Painted close-ups of Ennix's outfit from an assembly, for before/after reviews.
+"""Painted close-ups of a character's outfit from an assembly, for before/after reviews.
 
-Opens a rebuild's ``assembly/Ennix_Character_Review.blend`` -- painted outfit,
+Opens a rebuild's ``assembly/<name>_Character_Review.blend`` -- painted outfit,
 painted head, groom, the assembly's own lights and exposure -- and renders fixed
 perspective close-ups of the jacket, scarf, sash, sleeves, hands, trousers and
 boots. Two builds rendered with this script differ only in what they were built
@@ -9,7 +9,10 @@ can see where the triangles went without a grey clay pass.
 
 Usage:
   blender -b --factory-startup --python scripts/blender/render_outfit_review.py -- \
-      <assembly.blend> <out_dir> [--resolution 1024] [--samples 64] [--wire] [--device GPU|CPU]
+      <assembly.blend> <out_dir> [--name <asset prefix>] [--resolution 1024] [--samples 64] [--wire] [--device GPU|CPU]
+
+The close-up cameras (VIEWS) are per-character (Ennix-tuned): framed on the
+first character's jacket, sash, rolled sleeve and boots at his height.
 """
 import argparse
 import json
@@ -19,8 +22,8 @@ from pathlib import Path
 import bpy
 from mathutils import Vector
 
-OUTFIT = "Ennix_Outfit_And_Hands"
-# name: (camera location, target, frame width in metres, what to look at)
+# name: (camera location, target, frame width in metres, what to look at).
+# Per-character (Ennix-tuned): another character needs its own framing.
 VIEWS = {
     "jacket-front": ((-0.18, -1.08, 1.36), (0.0, 0.0, 1.30), 0.78, "jacket, lapels, scarf and vest"),
     "jacket-back": ((0.12, 1.08, 1.36), (0.0, 0.0, 1.30), 0.78, "jacket back, seams and collar"),
@@ -69,6 +72,7 @@ def main():
     p = argparse.ArgumentParser()
     p.add_argument("assembly")
     p.add_argument("out")
+    p.add_argument("--name", default="Character", help="the object prefix assemble_character.py used")
     p.add_argument("--resolution", type=int, default=1024)
     p.add_argument("--samples", type=int, default=64)
     p.add_argument("--views", nargs="+", default=list(VIEWS), choices=list(VIEWS))
@@ -80,7 +84,7 @@ def main():
     bpy.ops.wm.open_mainfile(filepath=str(Path(a.assembly).resolve()))
     scene = bpy.context.scene
     configure(scene, a)
-    outfit = bpy.data.objects[OUTFIT]
+    outfit = bpy.data.objects[a.name + "_Outfit_And_Hands"]
     outfit.data.calc_loop_triangles()
     if a.wire:
         draw_wire(outfit)

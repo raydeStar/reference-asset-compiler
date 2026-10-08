@@ -1,7 +1,11 @@
-"""Import a versioned Ennix review without replacing the playable character.
+"""Import a versioned character review without replacing the playable character.
 
-Call main(fbx_path, groom_path, fresh_content_folder, receipt_path) from the
-editor's Python bridge. This is an import check, never a production promotion.
+Call main(fbx_path, groom_path, fresh_content_folder, receipt_path, name=<asset
+prefix>) from the editor's Python bridge. ``name`` is the character profile's
+asset_prefix: it finds the build's materials (<name>_Source_Outfit, <name>_teeth,
+...) and names the assets (SK_<name>_Review, G_<name>_Review, BP_<name>_Review).
+``eye_texture`` is the imported texture the eyes' material samples. This is an
+import check, never a production promotion.
 """
 import hashlib
 import json
@@ -10,11 +14,11 @@ from pathlib import Path
 import unreal
 
 
-def import_groom(groom, destination):
+def import_groom(groom, destination, name):
     hair = unreal.AssetImportTask()
     hair.filename = str(Path(groom).resolve())
     hair.destination_path = destination
-    hair.destination_name = "G_Ennix_Review"
+    hair.destination_name = f"G_{name}_Review"
     hair.automated = True
     hair.replace_existing = False
     hair.save = True
@@ -32,7 +36,7 @@ def import_groom(groom, destination):
     if len(grooms) != 1:
         raise RuntimeError("No GroomAsset was imported")
     mat = unreal.AssetToolsHelpers.get_asset_tools().create_asset(
-        "MI_Ennix_Hair", destination, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
+        f"MI_{name}_Hair", destination, unreal.MaterialInstanceConstant, unreal.MaterialInstanceConstantFactoryNew())
     unreal.MaterialEditingLibrary.set_material_instance_parent(mat, unreal.load_asset('/HairStrands/Materials/HairDefaultMaterial'))
     unreal.MaterialEditingLibrary.set_material_instance_vector_parameter_value(mat, 'Color', unreal.LinearColor(.09, .033, .013, 1))
     unreal.MaterialEditingLibrary.set_material_instance_scalar_parameter_value(mat, 'Roughness', .48)
@@ -45,12 +49,12 @@ def import_groom(groom, destination):
     return grooms[0]
 
 
-def configure_body_materials(mesh, destination):
+def configure_body_materials(mesh, destination, prefix, eye_texture):
     """Explicit base-colour shaders avoid FBX Phong/emission conversion surprises."""
     editor = unreal.MaterialEditingLibrary
-    textures = {'Ennix_Source_Outfit': ('body_basecolor', .78), 'skin': ('head_basecolor', .65),
-                'eyes': ('ennix-head-front-v1', .22), 'Ennix_teeth': ('teeth', .38),
-                'Ennix_tongue': ('tongue01_diffuse', .55)}
+    textures = {prefix + '_Source_Outfit': ('body_basecolor', .78), 'skin': ('head_basecolor', .65),
+                'eyes': (eye_texture, .22), prefix + '_teeth': ('teeth', .38),
+                prefix + '_tongue': ('tongue01_diffuse', .55)}
     slots = list(mesh.materials)
     for slot in slots:
         name = str(slot.material_slot_name)
@@ -77,7 +81,7 @@ def configure_body_materials(mesh, destination):
             editor.connect_material_property(node, 'RGB', unreal.MaterialProperty.MP_BASE_COLOR)
         else:
             node = editor.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, -400, 0)
-            colour = (.006, .0015, .001) if name == 'Ennix_Mouth_Interior' else (.055, .020, .008)
+            colour = (.006, .0015, .001) if name == prefix + '_Mouth_Interior' else (.055, .020, .008)
             node.constant = unreal.LinearColor(*colour, 1)
             editor.connect_material_property(node, '', unreal.MaterialProperty.MP_BASE_COLOR)
         rough = editor.create_material_expression(mat, unreal.MaterialExpressionConstant, -400, 160)
@@ -90,15 +94,15 @@ def configure_body_materials(mesh, destination):
     unreal.EditorAssetLibrary.save_loaded_asset(mesh)
 
 
-def assemble_blueprint(mesh, groom, destination):
+def assemble_blueprint(mesh, groom, destination, name):
     binding = unreal.GroomLibrary.create_new_groom_binding_asset_with_path(
-        destination + '/GB_Ennix_Review', groom, mesh, 100, None, 0)
+        destination + f'/GB_{name}_Review', groom, mesh, 100, None, 0)
     if not binding:
         raise RuntimeError('Groom binding creation failed')
     unreal.EditorAssetLibrary.save_loaded_asset(binding)
     factory = unreal.BlueprintFactory()
     factory.set_editor_property('parent_class', unreal.Actor)
-    bp = unreal.AssetToolsHelpers.get_asset_tools().create_asset('BP_Ennix_Review', destination, unreal.Blueprint, factory)
+    bp = unreal.AssetToolsHelpers.get_asset_tools().create_asset(f'BP_{name}_Review', destination, unreal.Blueprint, factory)
     subsystem = unreal.get_engine_subsystem(unreal.SubobjectDataSubsystem)
     library = unreal.SubobjectDataBlueprintFunctionLibrary
     root = subsystem.k2_gather_subobject_data_for_blueprint(bp)[0]
@@ -129,7 +133,7 @@ def assemble_blueprint(mesh, groom, destination):
     return bp, binding
 
 
-def main(fbx, groom, destination, receipt):
+def main(fbx, groom, destination, receipt, name="Character", eye_texture="head-front"):
     if unreal.get_editor_subsystem(unreal.LevelEditorSubsystem).is_in_play_in_editor():
         raise RuntimeError("Stop PIE before importing the review")
     if unreal.EditorAssetLibrary.does_directory_exist(destination):
@@ -152,7 +156,7 @@ def main(fbx, groom, destination, receipt):
     task = unreal.AssetImportTask()
     task.filename = str(Path(fbx).resolve())
     task.destination_path = destination
-    task.destination_name = "SK_Ennix_Review"
+    task.destination_name = f"SK_{name}_Review"
     task.automated = True
     task.replace_existing = False
     task.save = True
@@ -163,9 +167,9 @@ def main(fbx, groom, destination, receipt):
     if len(meshes) != 1:
         raise RuntimeError(f"Expected one assembled skeletal mesh, got {len(meshes)}")
     mesh = meshes[0]
-    configure_body_materials(mesh, destination)
-    groom_asset = import_groom(groom, destination)
-    blueprint, binding = assemble_blueprint(mesh, groom_asset, destination)
+    configure_body_materials(mesh, destination, name, eye_texture)
+    groom_asset = import_groom(groom, destination, name)
+    blueprint, binding = assemble_blueprint(mesh, groom_asset, destination, name)
     result = {
         "inputs": {name: {"path": str(Path(path).resolve()), "sha256": hashlib.sha256(Path(path).read_bytes()).hexdigest()}
                    for name, path in (("fbx", fbx), ("groom", groom))},

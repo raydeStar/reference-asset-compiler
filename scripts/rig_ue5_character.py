@@ -12,8 +12,16 @@ Stages (each writes into <out_dir>, which must not exist):
   5. fit/poses/  real Manny animation frames on the result  (blender/pose_ue5_anim_test.py)
 
 The Manny dumps come from scripts/ue5/dump_manny_reference.py (Epic content,
-kept out of Git). Tools are found through rac_env (Blender, DWPose weights and
-a torch Python); override with --blender / --torch-python / --dwpose.
+kept out of Git). The keypoint stage needs a Python with torch and the DWPose
+TorchScript weights, both normally from a ComfyUI portable install with
+comfyui_controlnet_aux:
+
+  --comfyui DIR / RAC_COMFYUI   the install (python_embeded/ and ComfyUI/ inside)
+  --torch-python / RAC_TORCH_PYTHON, --dwpose / RAC_DWPOSE   override each piece
+  --blender / RAC_BLENDER
+
+With RAC_COMFYUI unset the install defaults to the original workstation's
+path (LOCAL_COMFYUI below), which exists nowhere else: set it on yours.
 """
 from __future__ import annotations
 
@@ -27,7 +35,9 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 SCRIPTS = ROOT / "scripts"
 DEFAULT_BLENDER = r"C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe"
-DEFAULT_COMFY = Path(r"C:\Users\Ayric\Source\Repos\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable")
+# The original workstation's install, used only when RAC_COMFYUI is unset.
+LOCAL_COMFYUI = r"C:\Users\Ayric\Source\Repos\ComfyUI_windows_portable_nvidia\ComfyUI_windows_portable"
+DWPOSE_WEIGHTS = "ComfyUI/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt"
 
 
 def run(cmd, log):
@@ -47,10 +57,16 @@ def main():
     p.add_argument("--arm-ratio", default="0.42")
     p.add_argument("--name", default="Character")
     p.add_argument("--blender", default=os.environ.get("RAC_BLENDER", DEFAULT_BLENDER))
-    p.add_argument("--torch-python", default=os.environ.get("RAC_TORCH_PYTHON", str(DEFAULT_COMFY / "python_embeded" / "python.exe")))
-    p.add_argument("--dwpose", default=os.environ.get("RAC_DWPOSE", str(
-        DEFAULT_COMFY / "ComfyUI/custom_nodes/comfyui_controlnet_aux/ckpts/hr16/DWPose-TorchScript-BatchSize5/dw-ll_ucoco_384_bs5.torchscript.pt")))
+    p.add_argument("--comfyui", default=os.environ.get("RAC_COMFYUI", LOCAL_COMFYUI),
+                   help="ComfyUI portable install with comfyui_controlnet_aux (env RAC_COMFYUI)")
+    p.add_argument("--torch-python", default=os.environ.get("RAC_TORCH_PYTHON"),
+                   help="Python with torch (env RAC_TORCH_PYTHON; default: the install's python_embeded)")
+    p.add_argument("--dwpose", default=os.environ.get("RAC_DWPOSE"),
+                   help="DWPose TorchScript weights (env RAC_DWPOSE; default: the install's controlnet_aux checkpoint)")
     a = p.parse_args()
+    comfyui = Path(a.comfyui)
+    a.torch_python = a.torch_python or str(comfyui / "python_embeded" / "python.exe")
+    a.dwpose = a.dwpose or str(comfyui / DWPOSE_WEIGHTS)
     out = Path(a.out).resolve()
     if out.exists():
         raise SystemExit("Choose a new output directory; earlier rigs are evidence.")

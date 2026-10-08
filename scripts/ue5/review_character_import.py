@@ -2,6 +2,12 @@
 
 Call setup(mesh_path, groom_path), then capture(path) on a later editor tick.
 Call cleanup() after reviewing. References keep the transient stage alive.
+
+Dependency: capture() renders through The Aether Wars' editor tooling
+(``aether_mcp_tools.toolsets.dungeon._export_camera_render_target``, from that
+game's private AetherMcpTools plugin), which is not part of this repository.
+setup(), use_blueprint() and cleanup() need only Unreal's own Python API; in
+another project, capture the review camera with your own render-target export.
 """
 import json
 from pathlib import Path
@@ -53,7 +59,11 @@ def setup(mesh_path, groom_path):
 
 
 def capture(path):
-    import aether_mcp_tools.toolsets.dungeon as dg
+    try:
+        import aether_mcp_tools.toolsets.dungeon as dg
+    except ImportError as error:
+        raise RuntimeError("capture() needs The Aether Wars' AetherMcpTools editor plugin "
+                           "(aether_mcp_tools); see this module's docstring") from error
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     result = dg._export_camera_render_target(CAMERA, 1024, 1024, str(path))

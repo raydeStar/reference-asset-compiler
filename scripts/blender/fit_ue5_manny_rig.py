@@ -29,8 +29,8 @@ What it does, in order:
      arms and fingers, Manny's own frame for the head and toes). Bone axes then
      match Manny, so retargeting is a pure copy of rotations.
 
-Outputs: <out>/Ennix_UE5_Skin.blend (skinning armature, for deformation tests),
-<out>/Ennix_UE5.blend (export armature named ``root``), fit-report.json.
+Outputs: <out>/<name>_UE5_Skin.blend (skinning armature, for deformation tests),
+<out>/<name>_UE5.blend (export armature named ``root``), fit-report.json.
 """
 from __future__ import annotations
 
@@ -537,7 +537,7 @@ def main():
     p.add_argument("--manny", required=True)
     p.add_argument("--template")
     p.add_argument("--head-npz")
-    p.add_argument("--name", default="Ennix")
+    p.add_argument("--name", default="Character", help="prefix for the output blends")
     p.add_argument("--out", required=True)
     p.add_argument("--voxel", type=float, default=0.01)
     p.add_argument("--cap", type=int, default=4)
