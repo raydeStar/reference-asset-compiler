@@ -4341,6 +4341,15 @@ tiers"; lessons in DECISIONS.
 - New review: `scripts/build_outfit_review.py` (+ `blender/render_outfit_review.py`),
   painted and groomed before/after close-ups with a difference column and a
   wire-over-paint sheet.
-- **Open:** the full 20261010 rebuild and its outfit review were not run: Mark
-  needed the GPU. `rebuild_ennix.py` still defaults to `20261009` until that
-  build passes the hero-tier gate; switch the default then.
+- 2026-10-08, 05:41 MDT, in Mark's GPU window: built `rebuild-v9` with recipe
+  20261010, which is now `rebuild_ennix.py`'s default.
+  - 70,748 triangles. Both strict gates pass at the hero tier: the proxy FBX and
+    the UE5 export, no warnings.
+  - The deformation checks pass, and the joint plan is within 2 mm of v8's.
+  - Front silhouette IoU against the painting: 0.7974 (v8: 0.7975).
+  - Outfit review `rebuild-v9/outfit-review/`: renders differ by 0.13-0.37 of
+    255 on average, with at most 0.17% of pixels over 16. There is no visible
+    loss on the coat.
+  - The UE5 export went to the Skyreach/Ennix animation session for import
+    and retarget. The skin weights are new because the mesh is, so check the
+    fingers after the retarget.

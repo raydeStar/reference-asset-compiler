@@ -15,8 +15,8 @@ truthfully reports 0 of 7 assets ready.
 
 ## Ennix character: reproducible review, not production-ready
 
-Selected build: `work/ennix-character-v1/rebuild-v8/`, recipe
-`ennix-open-review-20261009`, built with `--manny-dir work/ennix-character-v1/rig-ue5`.
+Selected build: `work/ennix-character-v1/rebuild-v9/`, recipe
+`ennix-open-review-20261010` (hero tier), built with `--manny-dir work/ennix-character-v1/rig-ue5`.
 [Rebuild and review guide](ENNIX_REBUILD.md) gives the exact command, the frozen
 26-file input bundle (85.47 MiB, outside Git), licenses, paths and limitations.
 Editable file `rigged/Ennix_Rigged.blend`; game export `export/Ennix_UE5.fbx` on a
@@ -31,19 +31,19 @@ roots, ear and neck tone evened. Review sheet:
 `rebuild-v8/face-paint-review/face-paint-sheet.png`, before/after beside the
 guidance at front, three-quarter and side. Containers (FBX/blend) and rendered
 pixels are not claimed byte-identical; canonical audits compare their content.
-Strict rig contract has one failure: 136,587 triangles against the 20k ceiling.
-No waiver. Characters are now budgeted by tier (docs/COMPILER.md, "Character
-tiers"): recipe `ennix-open-review-20261010` gates Ennix as a hero (at most
-80,000) with a 48k garment and 6k hands, measured on the CPU at about 70,500
-triangles. Its full rebuild and the outfit before/after review wait for the GPU
-(ENNIX_REBUILD.md, "Hero-tier budget").
+The strict rig contract passes with no waiver. Characters are budgeted by tier
+(docs/COMPILER.md, "Character tiers"), and Ennix is gated as a hero: 70,748
+triangles against 80,000, on both `rigged/Ennix_Body_Face.fbx` and the UE5
+export. The garment is 48k and the hands 6k (v8: 91k and 29k). The painted
+before/after review shows no visible loss on the coat:
+`rebuild-v9/outfit-review/` (ENNIX_REBUILD.md, "Hero-tier budget").
 
 The playable game character lives in the Aether Wars UE project (rigid groom,
 exact Manny retarget); the older editor review is
 `/Game/EnnixReview/20261007/V5/BP_Ennix_Review`. Existing Hunyuan acquisition is
 allowed by Mark; all new processing uses open tools, with no new inference or
 generated images. Still open: face detail is capped by the guidance pictures'
-resolution, human likeness/texture approval, a production triangle budget,
+resolution, human likeness/texture approval,
 expression polish and UE facial playback, and cooked-runtime acceptance.
 
 ## Aether Wars realistic commission (creation complete; awaiting Mark review)

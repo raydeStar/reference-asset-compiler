@@ -139,9 +139,27 @@ hands 6,000, hands beyond |x| 0.80 m along the T-pose arms. Everything else
 - **Gates.** `rebuild_ennix.py` passes the recipe's tier to `gate_rig.py` and now
   gates the UE5 game export (`export/gate-rig-ue5.json`) as well as
   `rigged/Ennix_Body_Face.fbx`.
-- **Not yet built end to end.** The full rebuild renders on the GPU and is
-  waiting for it, so `rebuild_ennix.py` still defaults to `20261009`; pass
-  `--recipe recipes/ennix-open-review-20261010.json`. Then compare the outfit:
+- **Built: `work/ennix-character-v1/rebuild-v9`** (the runner's default recipe
+  since then), with `--manny-dir work/ennix-character-v1/rig-ue5`, 339 s. It has
+  **70,748 triangles**: outfit and hands 53,720 (garment 48,238, hands 5,761),
+  plus the unchanged 17,028 head parts.
+  - Both strict gates pass at the hero tier with no failures or warnings:
+    `export/gate-rig.json` (`rigged/Ennix_Body_Face.fbx`) and
+    `export/gate-rig-ue5.json` (`export/Ennix_UE5.fbx`).
+  - All five deformation checks pass.
+  - The UE5 joint plan matches v8's to within 2 mm.
+  - Front silhouette IoU against the painting is 0.7974 (v8: 0.7975).
+- **Outfit review** (`rebuild-v9/outfit-review/`): the same painted, groomed
+  close-ups from v8 and v9 differ by 0.13-0.37 of 255 on average, and at most
+  0.17% of pixels by more than 16. The largest differences are single pixels
+  on the sash's torn tip and a lapel edge. At full resolution the collar,
+  shoulder folds and torn sash edges hold their shape.
+  - `outfit-wire.png` shows where the triangles went: fewer on flat panels,
+    dense along seams, hems and the sash.
+  - The sheets are `outfit-sheet.png` (full figure beside the body guidance),
+    `outfit-details.png` (close-ups with a difference column) and
+    `outfit-wire.png`.
+  - To compare two builds:
 
 ```powershell
 py -3.12 scripts/build_outfit_review.py work/ennix-character-v1/rebuild-v8 `
@@ -202,9 +220,10 @@ of relying on FBX's Phong/emission conversion. Hair simulation remains off.
   **3.61 px**, within the **12 px** limit. Jacket/arms/legs still differ from the
   illustration. Hair has less loose wispy volume; face and painterly clothing
   still need artistic approval.
-- **136,587 triangles** exceed the strict **20,000** profile ceiling. The separate
-  120k outfit review budget is not a waiver. Every other strict skeleton/weight/UV
-  check passes; all five exported deformation checks pass without warnings.
+- Triangles: **70,748**, within the hero tier's **80,000** (recipe `20261010`,
+  `rebuild-v9`). Both strict rig gates and all five exported deformation checks
+  pass without warnings. Earlier builds (136,587 against the flat 20,000) are
+  superseded.
 - Blinks and mouth extremes need facial polish. The original is a painted
   reference, and hidden surfaces use inferred witnesses; they are not recovered
   ground truth. The eyes remain simple meshes without a production cornea setup.
