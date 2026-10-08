@@ -237,6 +237,40 @@ colour. `unreal-aether-wars.json` mirrors TheAetherWars `Tools/EnnixPlayer.py`
 (`make_groom`, and the hair material in `make_materials`), so change it with
 the game. `--reuse-renders` redraws the sheets only.
 
+## Outfit paint for game garment materials
+
+In game the painted outfit read as blotchy rubber (the jacket) and red
+camouflage (the scarf). The multiview bake carries the painting's light and
+print, and the unseen-texel fill leaves faceted blotches.
+`scripts/refine_ennix_outfit_paint.py` runs right after `paint_ennix_body.py`
+and writes `<build>/outfit-paint/`:
+
+- `garment_mask.png`: R is leather, G cloth, B red fabric; skin is the rest.
+  Each triangle is classified by its painted Lab colour, gated to where the
+  garment can be: skin only on the forearms, hands and neck; cloth only on
+  the torso front. A neighbour vote follows.
+- `body_basecolor.png`: per garment, a 6 cm low-pass weighted to the painted
+  coverage. The baked light is compressed toward the median, and the
+  garment's mean stays the painting's. Detail under 6 mm (buckles, buttons,
+  seams) is kept at 0.65, and the blotch band at 0.25-0.3. Unseen texels are
+  pulled to the garment's colour. Skin texels are copied unchanged, so the
+  hands and neck still match the face.
+- `leather_normal.png` and `weave_normal.png`: tileable detail normals made
+  with numpy (Worley pebble grain, plain weave), with no third-party maps.
+- `outfit-paint.json`: the parameters, the classes, and the measured UV scale.
+  The game tiles the detail from it: a 12 cm leather tile and a 6 cm weave
+  tile.
+
+TheAetherWars' `Tools/EnnixPlayer.py` imports the folder with
+`import_textures(build)`, and `make_materials` builds the garment material:
+roughness and specular per garment, and the face's contrast curve on skin
+only. To run the stage on an existing build:
+
+```powershell
+python scripts/refine_ennix_outfit_paint.py <build>/body/body.npz <build>/body/paint/body_basecolor.png `
+  <build>/body/paint/coverage.png <build>/outfit-paint [--params overrides.json]
+```
+
 ## Repeatability evidence
 
 Two independent final builds reproduce the head NPZ, strand NPZ, body NPZ and
