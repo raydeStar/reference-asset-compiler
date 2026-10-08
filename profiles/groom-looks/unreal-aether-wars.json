@@ -1,0 +1,11 @@
+{
+  "schema": "groom-look.v1",
+  "description": "How The Aether Wars (Unreal Engine 5.8) draws a strand groom: the groom asset's strand width with its root and tip scale, and the hair material's root-to-tip base colour (linear). build_groom_review.py renders a groom this way so gaps between locks read as they do in game.",
+  "source": "TheAetherWars Tools/EnnixPlayer.py: make_groom (hair_width, hair_root_scale, hair_tip_scale) and make_materials (hair RootColor, TipColor)",
+  "strand_width_cm": 0.022,
+  "root_scale": 1.25,
+  "tip_scale": 0.35,
+  "root_colour": [0.07, 0.016, 0.004],
+  "tip_colour": [0.34, 0.085, 0.018],
+  "roughness": 0.55
+}

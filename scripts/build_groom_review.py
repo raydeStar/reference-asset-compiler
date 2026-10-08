@@ -1,4 +1,4 @@
-"""Before/after review of an Ennix groom, in the review look and in the game look.
+"""Before/after review of a character's groom, in the review look and in the game look.
 
 Two rebuild_ennix.py builds whose grooms differ (their strands.npz) are rendered
 on the same head, paint, lights and camera (the after build's), in two looks:
@@ -7,8 +7,9 @@ on the same head, paint, lights and camera (the after build's), in two looks:
   own radius and painted colour), under the references at each angle: the
   front guidance, the painting (no three-quarter guidance exists) and the left
   guidance.
-- The game look: strands as the game draws them (Unreal's hair width with its
-  root and tip scale, and the hair material's root-to-tip colour) under one
+- The game look: strands as the game draws them (a groom-look profile in
+  profiles/groom-looks/: the engine's strand width with its root and tip scale,
+  and the hair material's root-to-tip colour) under one
   hard sun with no light through the hair, so a gap between locks reads dark
   as it does in game. Cycles' hair BSDF lights the inside of the hair and hides
   those gaps; this look shows them. Close-ups at the in-game framing carry two
@@ -24,6 +25,7 @@ Every head shown wears its groom: no bald or grey clay beside the painting.
 
 Usage:
   python scripts/build_groom_review.py <before_build> <after_build> <out_dir> --blender <exe> \
+      --game-look profiles/groom-looks/<game>.json [--name <character>] \
       [--device CPU] [--resolution 768] [--samples 32] [--reuse-renders]
 """
 
@@ -50,11 +52,6 @@ GAME_VIEWS = ("front", "three-quarter", "top")
 GAME_CLOSE = (("front", (0.18, 0.04, 0.82, 0.50), "crown and hairline"),
               ("three-quarter", (0.18, 0.04, 0.82, 0.50), "crown and temple"),
               ("top", (0.14, 0.08, 0.86, 0.80), "from above"))
-# What the game draws (TheAetherWars Tools/EnnixPlayer.py: make_groom's strand width and
-# M_Ennix_Hair's RootColor/TipColor, linear).
-GAME_WIDTH = (0.022, 1.25, 0.35)
-GAME_ROOT = (0.07, 0.016, 0.004)
-GAME_TIP = (0.34, 0.085, 0.018)
 
 
 def render(a, head_build, strands, out, look, views, resolution):
@@ -69,8 +66,10 @@ def render(a, head_build, strands, out, look, views, resolution):
         # The rebuild's own head review (rebuild_ennix.py).
         cmd += ["--hair-tint", .85, .95, 1.05, "--hair-roughness", .45]
     else:
-        cmd += ["--hair-roughness", .55, "--strand-width", *a.game_width,
-                "--strand-gradient", *a.game_root, *a.game_tip, "--cap-colour", *a.game_root,
+        g = a.look
+        cmd += ["--hair-roughness", g["roughness"], "--strand-width", g["strand_width_cm"], g["root_scale"],
+                g["tip_scale"], "--strand-gradient", *g["root_colour"], *g["tip_colour"],
+                "--cap-colour", *g["root_colour"],
                 "--light", "sun", "--hair-shader", "diffuse", "--id-pass", "--tag", "game"]
     cmd = [str(c) for c in cmd]
     tag = "game" if look == "game" else "neutral"
@@ -115,12 +114,13 @@ def main():
     p.add_argument("--resolution", type=int, default=768)
     p.add_argument("--game-resolution", type=int, default=1024)
     p.add_argument("--samples", type=int, default=32)
-    p.add_argument("--game-width", type=float, nargs=3, default=GAME_WIDTH, metavar=("CM", "ROOT", "TIP"))
-    p.add_argument("--game-root", type=float, nargs=3, default=GAME_ROOT)
-    p.add_argument("--game-tip", type=float, nargs=3, default=GAME_TIP)
+    p.add_argument("--game-look", required=True,
+                   help="groom-look profile: how the game draws strands (profiles/groom-looks/)")
+    p.add_argument("--name", default="Character", help="the character's name, for the sheet titles")
     p.add_argument("--reuse-renders", action="store_true",
                    help="keep renders already in out_dir (redraw the sheets and measures only)")
     a = p.parse_args()
+    a.look = json.loads(Path(a.game_look).read_text(encoding="utf-8"))
     before, after, out = Path(a.before).resolve(), Path(a.after).resolve(), Path(a.out).resolve()
     grooms = {"before": before / "strands.npz", "after": after / "strands.npz"}
     commands, measures = {}, {}
@@ -136,7 +136,7 @@ def main():
     counts = {tag: int(len(np.load(s)["counts"])) for tag, s in grooms.items()}
     labels = ["Reference\nfront & left: head guidance\n3/4: the painting\n(no 3/4 guidance exists)",
               f"Before\n{before.name}\n{counts['before']:,} strands", f"After\n{after.name}\n{counts['after']:,} strands"]
-    sheet(rows, labels, list(VIEWS), "Ennix groom: before / after",
+    sheet(rows, labels, list(VIEWS), f"{a.name} groom: before / after",
           f"review look | same head, paint, lights and camera ({after.name}); only the groom differs",
           out / "groom-sheet.png")
 
@@ -149,11 +149,11 @@ def main():
         game_rows.append([close_up(out / tag / "game" / f"game-{view}.png", frac, f"{what}: {numbers(tag, view)}")
                           for view, frac, what in GAME_CLOSE])
         game_labels.append(f"{tag.capitalize()}\n{counts[tag]:,} strands\ngame width, hair\nmaterial colours")
-    sheet(game_rows, game_labels, [view for view, _, _ in GAME_CLOSE], "Ennix groom in the game look",
+    sheet(game_rows, game_labels, [view for view, _, _ in GAME_CLOSE], f"{a.name} groom in the game look",
           "strands at the game's width and root-to-tip colour, one hard sun, no light through the hair: "
           "gaps between locks read dark as in game", out / "groom-game-look.png")
     record = {"before": str(before), "after": str(after), "strands_sha256": {t: sha(s) for t, s in grooms.items()},
-              "strands": counts, "game_look": {"width": a.game_width, "root": a.game_root, "tip": a.game_tip},
+              "strands": counts, "game_look": {"profile": str(Path(a.game_look).resolve()), **a.look},
               "measures": measures, "commands": commands, "sheets": ["groom-sheet.png", "groom-game-look.png"]}
     (out / "review.json").write_text(json.dumps(record, indent=2), encoding="utf-8")
     print(json.dumps({"sheet": str(out / "groom-sheet.png"), "game_look": str(out / "groom-game-look.png"),

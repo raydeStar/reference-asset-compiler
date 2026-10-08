@@ -4367,6 +4367,12 @@ strands (docs: ENNIX_REBUILD.md, "Groom fill"; lessons in DECISIONS).
 - `render_painted_head.py`: a game look (`--strand-width --strand-gradient
   --light sun --hair-shader diffuse --id-pass`). `build_groom_review.py` renders
   two builds' grooms in both looks and measures crevices and a ragged crown.
+  The game's strand width and hair colours come from a groom-look profile
+  (`profiles/groom-looks/unreal-aether-wars.json`); the character's name is an
+  argument.
+- Tried after v10 and dropped: broader, flatter waves (wave 0.45-0.6, curl
+  0.7-0.9). The locks run straight out from the head as spikes instead of
+  curving down as the painting's do.
 - `rebuild_ennix.py --device CPU` (also `assemble_ennix_character.py`,
   `pose_ennix_review.py`): no GPU needed to rebuild.
 - Recipe `ennix-open-review-20261011` (now the default): 110,550 strands.

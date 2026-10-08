@@ -227,12 +227,15 @@ only the groom. Inputs, head, face paint, body, rig and tier are those of
 ```powershell
 py -3.12 scripts/build_groom_review.py work/ennix-character-v1/rebuild-v9 `
   work/ennix-character-v1/<new build> work/ennix-character-v1/<new build>/groom-review `
-  --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe' --device CPU
+  --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe' --device CPU `
+  --game-look profiles/groom-looks/unreal-aether-wars.json --name Ennix
 ```
 
-`--game-width`, `--game-root` and `--game-tip` default to the game's values
-(TheAetherWars `Tools/EnnixPlayer.py`: `make_groom` and `M_Ennix_Hair`). Change
-them with the game. `--reuse-renders` redraws the sheets only.
+A groom-look profile (`profiles/groom-looks/`) says how a game draws strands:
+its strand width with root and tip scale, and its hair material's root-to-tip
+colour. `unreal-aether-wars.json` mirrors TheAetherWars `Tools/EnnixPlayer.py`
+(`make_groom`, and the hair material in `make_materials`), so change it with
+the game. `--reuse-renders` redraws the sheets only.
 
 ## Repeatability evidence
 
