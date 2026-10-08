@@ -63,6 +63,9 @@ DEFAULTS = {
     "detail_keep": {"leather": 0.3, "cloth": 0.3, "fabric": 0.25},
     "light_gamma": {"leather": 0.4, "cloth": 0.5, "fabric": 0.55},
     "unseen_weight": 0.15,
+    # Where no view saw the garment, the 3D fill can carry a neighbour's colour (skin beside a sleeve):
+    # pull those texels toward the garment's painted median colour.
+    "unseen_to_median": 0.7,
     "mask_size": 1024,
     "normal_size": 512,
     # Detail tiles: physical size of one tile and its feature count.
@@ -260,6 +263,10 @@ def main():
         y_new = y_med * (np.maximum(y, 1e-4) / y_med) ** gamma
         y_new *= y[sel].mean() / y_new[sel].mean()  # the garment's mean stays the painting's
         low_adj = low * (y_new / np.maximum(y, 1e-4))[..., None]
+        seen = sel & (cov > 0.5)
+        median = np.median(low_adj[seen if seen.any() else sel], 0)
+        unseen = (p["unseen_to_median"] * (1 - cov_soft))[..., None]
+        low_adj = low_adj * (1 - unseen) + median * unseen
         detail = (smooth - low) * (p["detail_keep"][name] * cov_soft)[..., None] + fine
         garment = np.clip(low_adj + detail, 0, 1)
         clean = clean * (1 - soft[..., c:c + 1]) + garment * soft[..., c:c + 1]
