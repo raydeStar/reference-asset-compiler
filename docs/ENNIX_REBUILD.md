@@ -31,7 +31,10 @@ and `rebuild-proof-v1/v2` are retained experiments, not the selected delivery.
 Verified tool versions: Blender **5.2.2 LTS d13f752e3b9c**, Python **3.12.7**,
 NumPy **2.1.3**, SciPy **1.15.1**, Pillow **10.4.0**. The render workstation used
 an RTX 4090 and OptiX. The Blender scripts use factory startup, not installed
-commercial add-ons. GPU rendering is configured explicitly in the scripts.
+commercial add-ons. GPU rendering is configured explicitly in the scripts;
+`rebuild_ennix.py --device CPU` renders every review image on the CPU instead,
+which is slower but leaves the GPU free. `rebuild-v10` was built that way in
+390 s (v9 on the GPU: 339 s).
 
 The frozen input bundle is `work/ennix-character-v1/rebuild-inputs/`: 26 files
 (85.47 MiB) for recipe `20261009`, which added the left head guidance
@@ -172,6 +175,65 @@ belt, sleeve and hand, trousers and boots, the back three-quarter outline) from
 both assemblies with a difference column, the full figure beside the body
 guidance, and the outfit's triangle edges over its paint.
 
+## Groom fill (recipe `ennix-open-review-20261011`)
+
+In game the hair read as flat bright clumps over near-black gaps, and the crown
+edge broke into see-through tips. The groom's render settings made no
+difference, so the fix is in `grow_hair_groom.py`. Recipe `20261011` changes
+only the groom. Inputs, head, face paint, body, rig and tier are those of
+`20261010`, and every 20261010 guide and lock is kept.
+
+- **Why the gaps.** Each lock was a flat ribbon at its own random depth in the
+  envelope. Its children were near-copies of the nearest guide (inverse-square
+  weights over 3 guides), clumped to a point from mid-length. Seen from
+  outside, a deep lock between two outer ones is a crevice.
+- **Fill options.** Each defaults to the old behaviour, and recipe 20261010
+  still gives `rebuild-v9/strands.npz` byte for byte.
+  - `--extra-children 60`: more strands per guide (77,550 to 110,550), rooted
+    from an independent seed. Raising `--children` instead moves every lock.
+  - `--blend-guides 6 --blend-sigma 0.01`: Gaussian blending over the
+    neighbouring guides, so the hair between two locks belongs to both.
+  - `--clump 0.75 --clump-power 3`: locks stay broad and gather near the tip.
+  - `--lock-thickness 0.0035`: depth through the layer, a full lock rather
+    than a ribbon.
+  - `--depth-smoothing` is there too. It measured no better and is not used.
+  - `strand_radius` 0.16 mm keeps the review render's coverage at the new
+    count. The game sets its own strand width.
+- **The game look.** Cycles' hair BSDF lights the inside of the hair, so the
+  review render hides these gaps.
+  - `render_painted_head.py` can draw strands as the game does: `--strand-width`
+    (Unreal's width, root and tip scale), `--strand-gradient` (the hair
+    material's root-to-tip colour), `--light sun`, `--hair-shader diffuse` (no
+    light through the hair) and `--id-pass`.
+  - That look reproduces the in-game failure on the v9 groom.
+- **Built: `work/ennix-character-v1/rebuild-v10`**, on the CPU
+  (`--device CPU`) in 390 s, with `--manny-dir work/ennix-character-v1/rig-ue5`.
+  - 70,745 triangles: the scalp cap lost 3 at its thin edge. Both strict gates
+    pass at the hero tier with no warnings, and the deformation checks pass.
+  - Head, body and every paint texture are byte-identical to v9.
+  - `export/Ennix_Groom_UE5.abc` round-trips 110,550 curves and 4,190,591
+    points.
+- **Review** (`rebuild-v10/groom-review/`):
+  - `groom-sheet.png`: the review look beside the references.
+  - `groom-game-look.png`: close-ups in the game look, with two measures.
+    `crevice` is the share of hair darker than half its surroundings.
+    `outline_ragged` is how far the dense mass's crown outline departs from a
+    smooth one.
+  - v9 to v10: crevice 5.3/6.2/5.3% to 3.3/4.2/4.6% (front, three-quarter,
+    top); ragged outline 1.6/2.1/2.4% to 1.3/1.6/1.7%.
+  - In the review look v10 is fuller and smoother, and a little softer than
+    v9's ropey curls.
+
+```powershell
+py -3.12 scripts/build_groom_review.py work/ennix-character-v1/rebuild-v9 `
+  work/ennix-character-v1/<new build> work/ennix-character-v1/<new build>/groom-review `
+  --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe' --device CPU
+```
+
+`--game-width`, `--game-root` and `--game-tip` default to the game's values
+(TheAetherWars `Tools/EnnixPlayer.py`: `make_groom` and `M_Ennix_Hair`). Change
+them with the game. `--reuse-renders` redraws the sheets only.
+
 ## Repeatability evidence
 
 Two independent final builds reproduce the head NPZ, strand NPZ, body NPZ and
@@ -220,8 +282,8 @@ of relying on FBX's Phong/emission conversion. Hair simulation remains off.
   **3.61 px**, within the **12 px** limit. Jacket/arms/legs still differ from the
   illustration. Hair has less loose wispy volume; face and painterly clothing
   still need artistic approval.
-- Triangles: **70,748**, within the hero tier's **80,000** (recipe `20261010`,
-  `rebuild-v9`). Both strict rig gates and all five exported deformation checks
+- Triangles: **70,745**, within the hero tier's **80,000** (recipe `20261011`,
+  `rebuild-v10`; v9 had 70,748). Both strict rig gates and all five exported deformation checks
   pass without warnings. Earlier builds (136,587 against the flat 20,000) are
   superseded.
 - Blinks and mouth extremes need facial polish. The original is a painted

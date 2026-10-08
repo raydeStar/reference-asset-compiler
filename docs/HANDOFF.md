@@ -4353,3 +4353,28 @@ tiers"; lessons in DECISIONS.
   - The UE5 export went to the Skyreach/Ennix animation session for import
     and retarget. The skin weights are new because the mesh is, so check the
     fingers after the retarget.
+
+## 2026-10-08 — Ennix groom fill: recipe 20261011, rebuild-v10 (Claude)
+
+In game the hair read as flat bright clumps over near-black gaps, with a jagged
+crown edge. Groom render settings made no difference, so the fix is in the
+strands (docs: ENNIX_REBUILD.md, "Groom fill"; lessons in DECISIONS).
+
+- `grow_hair_groom.py`: `--extra-children` (more strands from an independent
+  seed; every lock stays put), `--blend-guides/--blend-sigma` (Gaussian child
+  blend), `--clump-power`, `--lock-thickness`, `--depth-smoothing` (unused).
+  Defaults keep the old output byte for byte.
+- `render_painted_head.py`: a game look (`--strand-width --strand-gradient
+  --light sun --hair-shader diffuse --id-pass`). `build_groom_review.py` renders
+  two builds' grooms in both looks and measures crevices and a ragged crown.
+- `rebuild_ennix.py --device CPU` (also `assemble_ennix_character.py`,
+  `pose_ennix_review.py`): no GPU needed to rebuild.
+- Recipe `ennix-open-review-20261011` (now the default): 110,550 strands.
+  `rebuild-v10`, CPU, 390 s: 70,745 triangles, both hero-tier gates and the
+  deformation checks pass, and head, body and paints are byte-identical to v9.
+  Review: `rebuild-v10/groom-review/`.
+- The game (TheAetherWars) took `export/Ennix_Groom_UE5.abc` headless (groom
+  step only).
+- Still open: the review look is softer than v9's ropey curls, and the
+  painting sits between them. The lifted lock at the part remains. A dark pit
+  shows where the hair parts at the crown.

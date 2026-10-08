@@ -18,6 +18,8 @@ def main():
     p.add_argument("head")
     p.add_argument("out")
     p.add_argument("--samples", type=int, default=48)
+    p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
+                   help="Cycles device for the review renders (CPU when the GPU is reserved)")
     p.add_argument("--head-placement", help="source-landmark fit containing scale and location")
     p.add_argument("--clear-neck-overlap", action="store_true", help="remove the acquired duplicate skin patch inside the scarf opening")
     a = p.parse_args(sys.argv[sys.argv.index("--") + 1:])
@@ -88,12 +90,13 @@ def main():
     scene.render.engine = "CYCLES"
     scene.cycles.samples = a.samples
     scene.cycles.use_denoising = True
-    prefs = bpy.context.preferences.addons["cycles"].preferences
-    prefs.compute_device_type = "OPTIX"
-    prefs.get_devices()
-    for d in prefs.devices:
-        d.use = d.type != "CPU"
-    scene.cycles.device = "GPU"
+    if a.device == "GPU":
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        prefs.compute_device_type = "OPTIX"
+        prefs.get_devices()
+        for d in prefs.devices:
+            d.use = d.type != "CPU"
+        scene.cycles.device = "GPU"
     scene.render.resolution_x, scene.render.resolution_y = 1536, 1024
     scene.render.resolution_percentage = 100
     scene.view_settings.view_transform = "Standard"

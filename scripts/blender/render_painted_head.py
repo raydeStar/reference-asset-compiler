@@ -53,6 +53,22 @@ def _args():
     p.add_argument("--skin-emission", type=float, default=0.55)
     p.add_argument("--hair-tint", type=float, nargs=3, default=(1, 1, 1))
     p.add_argument("--hair-roughness", type=float, default=0.35)
+    # The game look: strands as a game engine draws them, so gaps between locks show here as
+    # they do in game (the NPZ's own radius and baked colours are more forgiving).
+    p.add_argument("--strand-width", type=float, nargs=3, metavar=("CM", "ROOT", "TIP"),
+                   help="draw strands this wide (cm) scaled from ROOT to TIP along each strand "
+                        "(Unreal's hair_width, hair_root_scale, hair_tip_scale) instead of the NPZ radius")
+    p.add_argument("--strand-gradient", type=float, nargs=6, metavar=("R0", "G0", "B0", "R1", "G1", "B1"),
+                   help="linear root and tip colours blended along each strand (u^0.8, each strand "
+                        "x0.7-1.3) as a game hair material does, instead of the NPZ colours")
+    p.add_argument("--cap-colour", type=float, nargs=3, help="linear scalp cap colour (default: the NPZ's)")
+    p.add_argument("--light", choices=("studio", "sun"), default="studio",
+                   help="studio: soft area lights; sun: one hard low sun and a dim sky, as in game")
+    p.add_argument("--hair-shader", choices=("principled", "diffuse"), default="principled",
+                   help="diffuse: no light through the hair, so locks shade each other as game hair's "
+                        "deep shadows do (Cycles' hair BSDF lights the inside of the hair)")
+    p.add_argument("--id-pass", action="store_true",
+                   help="also write <tag>-<view>-id.png: strands red, scalp cap green, skin blue")
     return p.parse_args(argv)
 
 
@@ -205,17 +221,31 @@ def main():
         cm = bpy.data.materials.new("scalp-cap")
         cm.use_nodes = True
         cb = cm.node_tree.nodes["Principled BSDF"]
-        cb.inputs["Base Color"].default_value = (*sz["cap_colour"].tolist(), 1.0)
+        cap_colour = a.cap_colour if a.cap_colour else sz["cap_colour"].tolist()
+        cb.inputs["Base Color"].default_value = (*cap_colour, 1.0)
         cb.inputs["Roughness"].default_value = 0.9
         cap.data.materials.append(cm)
         hv = sz["points"]
+        counts = sz["counts"]
         curves = bpy.data.hair_curves.new("groom")
-        curves.add_curves(sz["counts"].tolist())
+        curves.add_curves(counts.tolist())
         curves.attributes["position"].data.foreach_set("vector", sz["points"].astype(np.float32).ravel())
+        # Each point's place along its strand, 0 at the root and 1 at the tip.
+        first = np.repeat(np.r_[0, np.cumsum(counts)[:-1]], counts)
+        along = (np.arange(int(counts.sum())) - first) / np.repeat(np.maximum(counts - 1, 1), counts)
+        radius = sz["radius"].astype(np.float32)
+        if a.strand_width:
+            cm_, root, tip = a.strand_width
+            radius = (0.5 * cm_ / 100.0 * (root + (tip - root) * along)).astype(np.float32)
         rad = curves.attributes.get("radius") or curves.attributes.new("radius", "FLOAT", "POINT")
-        rad.data.foreach_set("value", sz["radius"].astype(np.float32))
+        rad.data.foreach_set("value", radius)
         col = curves.attributes.new("strand_colour", "FLOAT_COLOR", "POINT")
-        rgba = np.c_[sz["colours"] * np.array(a.hair_tint), np.ones(len(sz["colours"]))].astype(np.float32)
+        colours = sz["colours"] * np.array(a.hair_tint)
+        if a.strand_gradient:
+            g = np.array(a.strand_gradient).reshape(2, 3)
+            seed = np.random.default_rng(0).uniform(0.7, 1.3, len(counts))
+            colours = (g[0] + (g[1] - g[0]) * (along ** 0.8)[:, None]) * np.repeat(seed, counts)[:, None]
+        rgba = np.c_[colours, np.ones(len(colours))].astype(np.float32)
         col.data.foreach_set("color", rgba.ravel())
         groom = bpy.data.objects.new("groom", curves)
         bpy.context.scene.collection.objects.link(groom)
@@ -225,10 +255,14 @@ def main():
         for node in list(nt.nodes):
             if node.type != "OUTPUT_MATERIAL":
                 nt.nodes.remove(node)
-        bsdf = nt.nodes.new("ShaderNodeBsdfHairPrincipled")
-        bsdf.parametrization = "COLOR"
-        bsdf.inputs["Roughness"].default_value = a.hair_roughness
-        bsdf.inputs["Radial Roughness"].default_value = 0.4
+        if a.hair_shader == "diffuse":
+            # No light scattered through the hair: what lies under other hair is in its shadow.
+            bsdf = nt.nodes.new("ShaderNodeBsdfDiffuse")
+        else:
+            bsdf = nt.nodes.new("ShaderNodeBsdfHairPrincipled")
+            bsdf.parametrization = "COLOR"
+            bsdf.inputs["Roughness"].default_value = a.hair_roughness
+            bsdf.inputs["Radial Roughness"].default_value = 0.4
         attr = nt.nodes.new("ShaderNodeAttribute")
         attr.attribute_name = "strand_colour"
         attr.attribute_type = "GEOMETRY"
@@ -266,9 +300,9 @@ def main():
     centre = Vector(((all_v.min(0) + all_v.max(0)) / 2).tolist())
     height = float(all_v[:, 2].max() - all_v[:, 2].min())
     # Soft and modest: the paint already carries its own light.
-    for name, loc, energy, size in (("key", (-0.6, -1.0, 0.6), 16.0, 1.2),
-                                    ("fill", (0.8, -0.8, 0.1), 7.0, 1.5),
-                                    ("rim", (0.3, 1.0, 0.5), 10.0, 0.8)):
+    rig = (("key", (-0.6, -1.0, 0.6), 16.0, 1.2), ("fill", (0.8, -0.8, 0.1), 7.0, 1.5),
+           ("rim", (0.3, 1.0, 0.5), 10.0, 0.8)) if a.light == "studio" else ()
+    for name, loc, energy, size in rig:
         light = bpy.data.lights.new(name, "AREA")
         light.energy = energy
         light.size = size
@@ -277,22 +311,70 @@ def main():
         lo.location = centre + Vector(loc)
         lo.rotation_euler = (centre - lo.location).to_track_quat("-Z", "Y").to_euler()
         scene.collection.objects.link(lo)
+    if a.light == "sun":
+        # A game's daylight: one hard sun high on the front-left and a dim sky, so hair under
+        # other hair is in real shadow and a gap between locks reads dark, as it does in game.
+        sun = bpy.data.lights.new("sun", "SUN")
+        sun.energy = 3.0
+        sun.angle = math.radians(1.0)
+        sun.color = (1.0, 0.9, 0.78)
+        so = bpy.data.objects.new("sun", sun)
+        so.rotation_euler = Vector((0.5, 1.0, -1.0)).to_track_quat("-Z", "Y").to_euler()
+        scene.collection.objects.link(so)
+        world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.2
     cam = bpy.data.objects.new("cam", bpy.data.cameras.new("cam"))
     cam.data.lens = 85
     scene.collection.objects.link(cam)
     scene.camera = cam
     dist = height * 85 / 36 * 1.25
-    for view in a.views:
+
+    def aim(view):
         ang = math.radians(VIEWS[view])
         el = math.radians(ELEVATION.get(view, 0.0))
         d = Vector((math.sin(ang) * math.cos(el), -math.cos(ang) * math.cos(el), math.sin(el)))
         cam.location = centre + d * dist
         cam.rotation_euler = (-d).to_track_quat("-Z", "Y").to_euler()
+
+    for view in a.views:
+        aim(view)
         scene.render.filepath = str(out / "{}-{}.png".format(a.tag, view))
         bpy.ops.render.render(write_still=True)
     if a.save_blend:
         bpy.ops.file.pack_all()
         bpy.ops.wm.save_as_mainfile(filepath=str(Path(a.save_blend).resolve()))
+    if a.id_pass:
+        # Flat emission per surface, no light: a pixel's red, green and blue are the shares of
+        # it covered by strands, scalp cap and skin (black: background).
+        ids = {"groom": (1, 0, 0), "scalp-cap": (0, 1, 0)}
+        flat = {}
+        for ob in scene.objects:
+            if ob.type not in ("MESH", "CURVES"):
+                continue
+            colour = ids.get(ob.name, (0, 0, 1))
+            if colour not in flat:
+                m = bpy.data.materials.new("id-{}{}{}".format(*colour))
+                m.use_nodes = True
+                nt = m.node_tree
+                for node in list(nt.nodes):
+                    if node.type != "OUTPUT_MATERIAL":
+                        nt.nodes.remove(node)
+                em = nt.nodes.new("ShaderNodeEmission")
+                em.inputs["Color"].default_value = (*colour, 1)
+                nt.links.new(em.outputs[0], next(n for n in nt.nodes if n.type == "OUTPUT_MATERIAL").inputs[0])
+                flat[colour] = m
+            ob.data.materials.clear()
+            ob.data.materials.append(flat[colour])
+        for lo in [o for o in scene.objects if o.type == "LIGHT"]:
+            bpy.data.objects.remove(lo, do_unlink=True)
+        world.node_tree.nodes["Background"].inputs["Strength"].default_value = 0.0
+        scene.view_settings.exposure = 0.0
+        scene.cycles.use_denoising = False
+        scene.cycles.samples = 16
+        scene.cycles.max_bounces = 0
+        for view in a.views:
+            aim(view)
+            scene.render.filepath = str(out / "{}-{}-id.png".format(a.tag, view))
+            bpy.ops.render.render(write_still=True)
     print("rendered", a.tag, a.views, "->", out)
 
 

@@ -105,6 +105,23 @@ def _args():
     p.add_argument("--strand-radius", type=float, default=0.00034)
     p.add_argument("--coherent-waves", action="store_true", help="neighbouring roots share a curl field instead of unrelated phases")
     p.add_argument("--nape-drop", type=float, default=0.0, help="maximum descent below the ear lobes; zero keeps full guide lengths")
+    # Fill: by default a lock is a flat ribbon at its own random depth, so from outside a deep
+    # lock between two outer ones reads as a dark crevice and the locks as separate flat clumps.
+    p.add_argument("--depth-smoothing", type=float, default=0.0,
+                   help="metres: neighbouring locks share their depth in the envelope within this reach, "
+                        "so the outer layer is not pitted by deep locks between outer ones (0: each its own)")
+    p.add_argument("--blend-guides", type=int, default=3, help="guides whose shapes a child blends")
+    p.add_argument("--blend-sigma", type=float, default=0.0,
+                   help="metres: Gaussian reach of a child's blend over its guides, so the hair between "
+                        "two locks is the hair of both (0: inverse-square weights, near-copies of the nearest)")
+    p.add_argument("--clump-power", type=float, default=2.0,
+                   help="how late along a lock its strands gather (higher: broad until near the tip)")
+    p.add_argument("--extra-children", type=int, default=0,
+                   help="more children per guide, rooted from an independent seed: denser hair "
+                        "between the same locks (raising --children reshuffles every lock)")
+    p.add_argument("--lock-thickness", type=float, default=0.0012,
+                   help="metres: spread of a lock's strands through its layer (a full, round lock "
+                        "rather than a flat ribbon)")
     return p.parse_args(argv)
 
 
@@ -216,35 +233,39 @@ def main():
         return loc, n, float(np.dot(p - loc, n)), min(a.volume * float(w @ outer[tri]), a.envelope_max)
 
     # ------------------------------------------------------------------ roots on the scalp
-    n_cand = (a.guides * (a.children + 1)) * 4
-    pick = rng.choice(len(st), n_cand, p=area / area.sum())
-    r1, r2 = rng.random(n_cand), rng.random(n_cand)
-    s1 = np.sqrt(r1)
-    bary = np.stack([1 - s1, s1 * (1 - r2), s1 * r2], 1)
-    pts = np.einsum("nk,nkj->nj", bary, sv[st[pick]])
-    nrm = tn[pick]
-    covered = np.zeros(n_cand, bool)
-    for i in range(n_cand):
-        hit = shell_bvh.ray_cast(Vector(pts[i] + nrm[i] * 0.001), Vector(nrm[i]), 0.12)
-        covered[i] = hit[0] is not None
-    # The face: front-facing skin, and anything in front of the temples, below the hairline.
     eye_y0 = float(eyes[:, 1].mean())
-    face = ((nrm[:, 1] < -0.35) | (pts[:, 1] < eye_y0 + TEMPLE_BEHIND_EYES)) & (pts[:, 2] < hairline_z)
     ear_tree = KDTree(len(ears))
     for i, ep in enumerate(ears):
         ear_tree.insert(Vector(ep), i)
     ear_tree.balance()
-    near_ear = np.array([ear_tree.find(Vector(p))[2] < 0.012 for p in pts])
     eye_z = float(eyes[:, 2].mean())
-    # No roots in front of the ears below the brows: hair grown there lies flat and dense on
-    # the skin and reads as a painted sticker, not a sideburn. The temple hair above covers
-    # that edge.
-    sideburn_root = (pts[:, 1] < float(ears[:, 1].min()) + 0.004) & (pts[:, 2] < eye_z + SIDEBURN_ROOTS)
-    scalp = covered & ~face & ~near_ear & ~sideburn_root & (pts[:, 2] > ear_bottom - 0.004)
-    eye_y = float(eyes[:, 1].mean())
-    roots, root_n = pts[scalp], nrm[scalp]
-    rng.shuffle(order := np.arange(len(roots)))
-    roots, root_n = roots[order], root_n[order]
+
+    def scalp_roots(gen, n_cand):
+        """Root candidates spread by area over the skin, kept where hair covers the scalp."""
+        pick = gen.choice(len(st), n_cand, p=area / area.sum())
+        r1, r2 = gen.random(n_cand), gen.random(n_cand)
+        s1 = np.sqrt(r1)
+        bary = np.stack([1 - s1, s1 * (1 - r2), s1 * r2], 1)
+        pts = np.einsum("nk,nkj->nj", bary, sv[st[pick]])
+        nrm = tn[pick]
+        covered = np.zeros(n_cand, bool)
+        for i in range(n_cand):
+            hit = shell_bvh.ray_cast(Vector(pts[i] + nrm[i] * 0.001), Vector(nrm[i]), 0.12)
+            covered[i] = hit[0] is not None
+        # The face: front-facing skin, and anything in front of the temples, below the hairline.
+        face = ((nrm[:, 1] < -0.35) | (pts[:, 1] < eye_y0 + TEMPLE_BEHIND_EYES)) & (pts[:, 2] < hairline_z)
+        near_ear = np.array([ear_tree.find(Vector(p))[2] < 0.012 for p in pts])
+        # No roots in front of the ears below the brows: hair grown there lies flat and dense on
+        # the skin and reads as a painted sticker, not a sideburn. The temple hair above covers
+        # that edge.
+        sideburn_root = (pts[:, 1] < float(ears[:, 1].min()) + 0.004) & (pts[:, 2] < eye_z + SIDEBURN_ROOTS)
+        scalp = covered & ~face & ~near_ear & ~sideburn_root & (pts[:, 2] > ear_bottom - 0.004)
+        roots, root_n = pts[scalp], nrm[scalp]
+        gen.shuffle(order := np.arange(len(roots)))
+        return roots[order], root_n[order]
+
+    roots, root_n = scalp_roots(rng, (a.guides * (a.children + 1)) * 4)
+    eye_y = eye_y0
     n_g = min(a.guides, len(roots) // (a.children + 1))
     g_roots, g_n = roots[:n_g], root_n[:n_g]
     c_roots = roots[n_g:n_g * (a.children + 1)]
@@ -281,6 +302,20 @@ def main():
     climb = np.where(g_roots[:, 1] < front_y + 0.03, CLIMB_FRONT, CLIMB)
     # Depth in the envelope: most locks lie toward the outside, the rest fill underneath.
     depth = 0.35 + 0.62 * np.sqrt(rng.random(n_g))
+    g_tree = KDTree(n_g)
+    for i, r in enumerate(g_roots):
+        g_tree.insert(Vector(r), i)
+    g_tree.balance()
+    if a.depth_smoothing:
+        # Neighbouring locks lie at like depths: the outer layer is continuous, and the depth
+        # still varies over the head (a gentle swell and dip, not a pit between two locks).
+        smooth = np.empty(n_g)
+        for g in range(n_g):
+            near = g_tree.find_range(Vector(g_roots[g]), 2.0 * a.depth_smoothing)
+            idx = np.array([n_[1] for n_ in near])
+            w = np.exp(-0.5 * (np.array([n_[2] for n_ in near]) / a.depth_smoothing) ** 2)
+            smooth[g] = w @ depth[idx] / w.sum()
+        depth = smooth
     # Fringe locks lie low and fall forward; they do not stand up off the hairline.
     depth[fringe] = rng.uniform(0.3, 0.6, int(fringe.sum()))
     climb[fringe] = CLIMB
@@ -404,55 +439,69 @@ def main():
             G[g, :, j] = np.interp(uk, s, gp[:, j])
             N[g, :, j] = np.interp(uk, s, nor_i[:, j])
         TT[g] = np.interp(uk, s, t_i)
-    g_tree = KDTree(n_g)
-    for i, r in enumerate(g_roots):
-        g_tree.insert(Vector(r), i)
-    g_tree.balance()
     lock_clump = np.clip(rng.uniform(0.9, 1.08, n_g) * a.clump, 0.0, 0.97)
     side_of_part = np.sign(np.round(sweep, 2))
+
+    def grow_children(c_roots, gen):
+        """Each child from its own root: the blend of its guides' shapes, clumped to its own."""
+        owner = np.zeros(len(c_roots), np.int64)
+        stray = gen.random(len(c_roots)) < a.strays
+        grown, grown_t = [], []
+        for c, r in enumerate(c_roots):
+            near = g_tree.find_n(Vector(r), a.blend_guides)
+            idx = np.array([n_[1] for n_ in near])
+            dist = np.array([n_[2] for n_ in near])
+            g0 = idx[0]
+            owner[c] = g0
+            # Blend only guides of the same kind (fringe or not, same side of the part) whose
+            # locks go the same way; across a parting the hair divides, it does not average.
+            ok = (fringe[idx] == fringe[g0]) & (side_of_part[idx] == side_of_part[g0]) \
+                & (np.linalg.norm(G[idx, -1] - G[g0, -1], axis=1) < 3.0 * dist + 0.03)
+            idx, dist = idx[ok], dist[ok]
+            w = np.exp(-0.5 * (dist / a.blend_sigma) ** 2) if a.blend_sigma else 1.0 / (dist + 0.002) ** 2
+            w /= w.sum()
+            shape = np.einsum("j,jkd->kd", w, G[idx] - G[idx, :1])
+            path = r[None, :] + shape
+            own = G[g0] + (r - g_roots[g0])[None, :] * 0.1
+            # The lock stays wide along its length and comes to a point at the tip.
+            clump = 0.0 if stray[c] else lock_clump[g0]
+            path = path + (clump * uk ** a.clump_power)[:, None] * (own - path)
+            nrm_c = np.einsum("j,jkd->kd", w, N[idx])
+            lift = gen.normal(0.0, a.lock_thickness) * np.minimum(1.0, uk / 0.15)
+            path = path + nrm_c * lift[:, None]
+            if stray[c]:
+                sd = np.cross(nrm_c, np.gradient(path, axis=0))
+                sd /= np.linalg.norm(sd, axis=1, keepdims=True) + 1e-12
+                path = path + 0.006 * uk[:, None] * (sd * np.sin(2 * np.pi * (uk * gen.uniform(0.8, 1.6)
+                                                                              + gen.random()))[:, None]
+                                                      + nrm_c * np.cos(2 * np.pi * (uk * gen.uniform(0.8, 1.6)
+                                                                                    + gen.random()))[:, None])
+            jitter = 0.0012 * uk[:, None] * np.sin(2 * np.pi * (uk[:, None] * gen.uniform(1.0, 2.5)
+                                                                 + gen.random(3)[None, :]))
+            path = path + jitter
+            length = float(w @ L[idx]) * gen.uniform(0.85, 1.0)
+            frac = length / max(float(w @ L[idx]), 1e-9)
+            m = max(3, int(round(length / STEP)) + 1)
+            um = np.linspace(0.0, frac, m)
+            pts_c = np.stack([np.interp(um, uk, path[:, j]) for j in range(3)], 1)
+            grown.append(pts_c)
+            grown_t.append(np.interp(um, uk, w @ TT[idx]))
+        return grown, grown_t, owner
+
     strands = [*guides]
     strand_t = [f[2] for f in g_frames]
-    owner = np.zeros(len(c_roots), np.int64)
-    stray = rng.random(len(c_roots)) < a.strays
-    for c, r in enumerate(c_roots):
-        near = g_tree.find_n(Vector(r), 3)
-        idx = np.array([n_[1] for n_ in near])
-        dist = np.array([n_[2] for n_ in near])
-        g0 = idx[0]
-        owner[c] = g0
-        # Blend only guides of the same kind (fringe or not, same side of the part) whose
-        # locks go the same way; across a parting the hair divides, it does not average.
-        ok = (fringe[idx] == fringe[g0]) & (side_of_part[idx] == side_of_part[g0]) \
-            & (np.linalg.norm(G[idx, -1] - G[g0, -1], axis=1) < 3.0 * dist + 0.03)
-        idx, dist = idx[ok], dist[ok]
-        w = 1.0 / (dist + 0.002) ** 2
-        w /= w.sum()
-        shape = np.einsum("j,jkd->kd", w, G[idx] - G[idx, :1])
-        path = r[None, :] + shape
-        own = G[g0] + (r - g_roots[g0])[None, :] * 0.1
-        # The lock stays wide along its length and comes to a point at the tip.
-        clump = 0.0 if stray[c] else lock_clump[g0]
-        path = path + (clump * uk ** 2)[:, None] * (own - path)
-        nrm_c = np.einsum("j,jkd->kd", w, N[idx])
-        lift = rng.normal(0.0, 0.0012) * np.minimum(1.0, uk / 0.15)
-        path = path + nrm_c * lift[:, None]
-        if stray[c]:
-            sd = np.cross(nrm_c, np.gradient(path, axis=0))
-            sd /= np.linalg.norm(sd, axis=1, keepdims=True) + 1e-12
-            path = path + 0.006 * uk[:, None] * (sd * np.sin(2 * np.pi * (uk * rng.uniform(0.8, 1.6)
-                                                                          + rng.random()))[:, None]
-                                                  + nrm_c * np.cos(2 * np.pi * (uk * rng.uniform(0.8, 1.6)
-                                                                                + rng.random()))[:, None])
-        jitter = 0.0012 * uk[:, None] * np.sin(2 * np.pi * (uk[:, None] * rng.uniform(1.0, 2.5)
-                                                             + rng.random(3)[None, :]))
-        path = path + jitter
-        length = float(w @ L[idx]) * rng.uniform(0.85, 1.0)
-        frac = length / max(float(w @ L[idx]), 1e-9)
-        m = max(3, int(round(length / STEP)) + 1)
-        um = np.linspace(0.0, frac, m)
-        pts_c = np.stack([np.interp(um, uk, path[:, j]) for j in range(3)], 1)
-        strands.append(pts_c)
-        strand_t.append(np.interp(um, uk, w @ TT[idx]))
+    grown, grown_t, owner = grow_children(c_roots, rng)
+    strands += grown
+    strand_t += grown_t
+    if a.extra_children:
+        # More hair between the same locks. An independent seed roots it, so the density can
+        # rise without moving a single lock: every draw above is as it was.
+        gen = np.random.default_rng([a.seed, 1])
+        extra = scalp_roots(gen, n_g * a.extra_children * 4)[0][:n_g * a.extra_children]
+        grown, grown_t, extra_owner = grow_children(extra, gen)
+        strands += grown
+        strand_t += grown_t
+        owner = np.r_[owner, extra_owner]
 
     # ------------------------------------------------------------------ colour and radius
     # Colours stay inside the hair's own palette: a strand whose sample lands on a stray
@@ -535,7 +584,7 @@ def main():
                         cap_verts=cap_verts.astype(np.float32), cap_tris=cap_tris,
                         cap_colour=cap_colour.astype(np.float32))
     lengths = [len(gp) * STEP for gp in guides]
-    print(json.dumps({"roots_scalp": int(scalp.sum()), "guides": n_g, "strands": int(len(strands)),
+    print(json.dumps({"roots_scalp": len(roots), "guides": n_g, "strands": int(len(strands)),
                       "points": int(len(points)), "hairline_z": hairline_z,
                       "cap_triangles": int(len(cap_tris)), "cap_thin_dropped": int((inner & ~dense).sum()),
                       "envelope_m": {"median": float(np.median(outer[outer > 0])),

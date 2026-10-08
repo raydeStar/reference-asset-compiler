@@ -27,18 +27,21 @@ def main():
     p.add_argument("source")
     p.add_argument("out")
     p.add_argument("--samples", type=int, default=32)
+    p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
+                   help="Cycles device for the review renders (CPU when the GPU is reserved)")
     a = p.parse_args(sys.argv[sys.argv.index("--") + 1:])
     source, out = Path(a.source).resolve(), Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.open_mainfile(filepath=str(source))
     scene = bpy.context.scene
     rig = next(ob for ob in scene.objects if ob.type == "ARMATURE")
-    prefs = bpy.context.preferences.addons["cycles"].preferences
-    prefs.compute_device_type = "OPTIX"
-    prefs.get_devices()
-    for d in prefs.devices:
-        d.use = d.type != "CPU"
-    scene.cycles.device = "GPU"
+    if a.device == "GPU":
+        prefs = bpy.context.preferences.addons["cycles"].preferences
+        prefs.compute_device_type = "OPTIX"
+        prefs.get_devices()
+        for d in prefs.devices:
+            d.use = d.type != "CPU"
+        scene.cycles.device = "GPU"
     scene.cycles.samples = a.samples
     scene.render.resolution_x = scene.render.resolution_y = 1024
     scene.camera.data.type = "ORTHO"

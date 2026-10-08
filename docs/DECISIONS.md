@@ -1152,3 +1152,41 @@ the solid. Treat any envelope fallback as a failure.
   export carries Manny's `interaction` and `center_of_mass` bones, which the
   `ue5_manny` profile did not list. They are optional now, and the rebuild gates
   both files.
+
+## 2026-10-08 — a groom's gaps are fill, and are judged in the game's look
+
+- In game Ennix's hair read as flat bright clumps over near-black gaps, with a
+  crown edge of see-through tips. Groom render settings (stable rasterization,
+  lighter self-shadow) changed nothing in a same-session A/B. The cause was the
+  strands: each lock was a flat ribbon at its own random depth in the envelope,
+  and its children were near-copies of their nearest guide (inverse-square
+  weights over 3 guides) pulled to a point from mid-length (`clump * u^2`).
+  From outside, a deep lock between two outer ones is a crevice.
+- The review render hid it. Cycles' hair BSDF scatters light through the hair,
+  so the inside of the groom is lit and the gaps read brown. The game's deep
+  shadows and dark root colour make the same gaps nearly black. A **game look**
+  (`render_painted_head.py --strand-width --strand-gradient --light sun
+  --hair-shader diffuse`): the game's strand width and root-to-tip colour, one
+  hard sun, no light through the hair. It reproduces the in-game failure, and
+  `build_groom_review.py` measures it: crevice share (hair darker than half its
+  surroundings) and how ragged the dense mass's crown outline is.
+- Measure the outline on the dense mass. A first measure counted background
+  held inside the closed silhouette, and it rated v10 worse than v9: closing
+  bridges every fine flyaway, so a soft edge scored as see-through and clumped
+  spikes scored as clean. Blurring at strand scale before thresholding drops
+  lone flyaways and keeps spiky lock tips.
+- More strands alone are not the fix, and raising `--children` is the wrong way
+  to add them: it changes the root draw count, so every lock moves (a tall tuft
+  appeared on the crown). `--extra-children` roots more strands from an
+  independent seed; every guide and lock stays where it was.
+- What filled the gaps: each child blends 6 guides with Gaussian weights
+  (`--blend-sigma` 1 cm), so the hair between two locks belongs to both. Locks
+  gather late (`--clump-power 3`) and have depth through their layer
+  (`--lock-thickness` 3.5 mm). Smoothing lock depths across neighbours
+  (`--depth-smoothing`) measured no better and is not used.
+- Too much fill reads as fur in the review look (Cycles' denoiser blurs fine,
+  unclumped strands). Clump 0.75 (gathered late) keeps lock definition while
+  the gaps stay filled. The review radius is scaled down with the strand count;
+  the game sets its own width.
+- Every new option defaults to the old behaviour. Recipe `20261010`'s groom
+  still reproduces `rebuild-v9/strands.npz` byte for byte.

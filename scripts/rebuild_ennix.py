@@ -27,7 +27,9 @@ def main():
     p.add_argument("--inputs", required=True)
     p.add_argument("--out", required=True)
     p.add_argument("--blender", required=True)
-    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261010.json"))
+    p.add_argument("--recipe", default=str(ROOT / "recipes/ennix-open-review-20261011.json"))
+    p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
+                   help="Cycles device for the review renders; CPU leaves the GPU free (slower)")
     p.add_argument("--manny-dir", help="Manny reference dumps (scripts/ue5/dump_manny_reference.py); enables the UE5 rig stage")
     a = p.parse_args()
     inputs, out = Path(a.inputs).resolve(), Path(a.out).resolve()
@@ -112,7 +114,7 @@ def main():
         out / "head-review", "--strands", out / "strands.npz", "--resolution", recipe["resolution"],
         "--samples", recipe["samples"], "--views", "front", "three-quarter", "side", "back", "top",
         "--subdivision", 1, "--oral-helpers", "--skin-emission", .4, "--hair-tint", .85, .95, 1.05,
-        "--hair-roughness", .45, "--save-blend", out / "head-before-anatomy.blend"], True)
+        "--hair-roughness", .45, "--save-blend", out / "head-before-anatomy.blend", "--device", a.device], True)
     run("blender/finish_ennix_anatomy.py", [out / "head-before-anatomy.blend", out / "head.npz",
         local / "makehuman", out / "head.blend", "--template", local / "template.npz"], True)
     if "body" in recipe:
@@ -126,10 +128,13 @@ def main():
     run("blender/prepare_ennix_body.py", [local / "body-acquisition.blend", out / "body", *body_args], True)
     run("paint_ennix_body.py", [out / "body/body.npz", local / "body-front.png", local / "body-back.png",
         out / "body/paint", "--side", local / "body-left.png"])
+    # Game garment materials: mask, cleaned albedo and detail normals (the game imports outfit-paint/).
+    run("refine_ennix_outfit_paint.py", [out / "body/body.npz", out / "body/paint/body_basecolor.png",
+        out / "body/paint/coverage.png", out / "outfit-paint"])
     assembly = out / "assembly/Ennix_Character_Review.blend"
     run("blender/assemble_ennix_character.py", [out / "body/body-uv.blend", out / "body/paint/body_basecolor.png",
         out / "head.blend", out / "assembly", "--samples", recipe["samples"],
-        "--head-placement", local / "placement.json", "--clear-neck-overlap"], True)
+        "--head-placement", local / "placement.json", "--clear-neck-overlap", "--device", a.device], True)
     proxy = out / "rig-input/Ennix_proxy.fbx"
     run("blender/export_ennix_rig_proxy.py", [assembly, proxy], True)
     landmarks = json.loads((local / "rig-landmarks.json").read_text())
@@ -152,7 +157,8 @@ def main():
         game = out / "ue5/fit/Ennix_UE5.blend"
         run("blender/export_ue5_character.py", [out / "export/Ennix_UE5.fbx"], True, blend=game)
         run("blender/export_ennix_groom.py", [game, out / "export/Ennix_Groom_UE5.abc"], True)
-    run("blender/pose_ennix_review.py", [native, out / "pose", "--samples", recipe["samples"]], True)
+    run("blender/pose_ennix_review.py", [native, out / "pose", "--samples", recipe["samples"], "--device", a.device],
+        True)
     run("blender/audit_ennix_repeatability.py", [native, out / "semantic-audit.json"], True)
     run("validate_ennix_visuals.py", [local / "original.png", local / "body-front.png",
         out / "assembly/front_preview.png", out / "visual-validation"])
