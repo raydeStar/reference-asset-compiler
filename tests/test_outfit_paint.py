@@ -16,7 +16,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "src"))
 
-from refine_ennix_outfit_paint import (  # noqa: E402
+from refine_outfit_paint import (  # noqa: E402
     CLOTH,
     DEFAULTS,
     FABRIC,
@@ -35,6 +35,12 @@ def rgb(*c):
     return np.array([c], float) / 255.0
 
 
+# A character's garment gates, as a profile gives them (profiles/outfit-paint/).
+GATED = dict(DEFAULTS, cloth_box_m={"abs_x": 0.17, "z": [0.17, 0.62], "max_y": 0.02}, cloth_max_L=27.0,
+             skin_region_m={"min_abs_x": 0.58, "neck_abs_x": 0.09, "neck_min_z": 0.58}, skin_region_min_L=34.0,
+             hands_beyond_abs_x_m=0.8)
+
+
 class LabTests(unittest.TestCase):
     def test_white_and_black(self):
         np.testing.assert_allclose(srgb_to_lab(np.array([[1.0, 1.0, 1.0]]))[0], [100, 0, 0], atol=0.05)
@@ -42,8 +48,8 @@ class LabTests(unittest.TestCase):
 
 
 class ClassifyTests(unittest.TestCase):
-    def cls(self, colour, centroid):
-        return int(classify(srgb_to_lab(colour), np.array([centroid], float), DEFAULTS)[0])
+    def cls(self, colour, centroid, params=GATED):
+        return int(classify(srgb_to_lab(colour), np.array([centroid], float), params)[0])
 
     def test_garments(self):
         forearm, chest, thigh = (0.7, -0.1, 0.4), (0.0, -0.15, 0.35), (0.12, -0.1, -0.3)
@@ -60,6 +66,11 @@ class ClassifyTests(unittest.TestCase):
 
     def test_hands_are_skin(self):
         self.assertEqual(self.cls(rgb(60, 40, 30), (0.9, 0.0, 0.4)), SKIN)
+
+    def test_ungated_defaults_use_colour_alone(self):
+        self.assertEqual(self.cls(rgb(190, 125, 90), (0.12, -0.1, -0.3), DEFAULTS), SKIN)
+        self.assertEqual(self.cls(rgb(52, 46, 44), (0.12, -0.1, -0.3), DEFAULTS), CLOTH)
+        self.assertEqual(self.cls(rgb(60, 40, 30), (0.9, 0.0, 0.4), DEFAULTS), LEATHER)
 
 
 class VoteTests(unittest.TestCase):

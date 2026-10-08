@@ -18,7 +18,7 @@ writes what a game material needs to read leather as leather and cloth as cloth:
 5. the UV scale, so the game material tiles the detail at a real size.
 
 Usage:
-  python scripts/refine_ennix_outfit_paint.py <body.npz> <body_basecolor.png> <coverage.png> <out_dir>
+  python scripts/refine_outfit_paint.py <body.npz> <body_basecolor.png> <coverage.png> <out_dir>       [--params profiles/outfit-paint/<character>.json]
 """
 
 from __future__ import annotations
@@ -45,13 +45,15 @@ DEFAULTS = {
     "skin_min_L": 44.0, "skin_min_chroma": 14.0, "skin_hue": [40.0, 80.0],
     "fabric_min_a": 18.0, "fabric_max_hue": 42.0, "fabric_min_chroma": 22.0,
     "cloth_max_chroma": 9.0,
-    # Cloth (shirt and vest) only on the front of the torso: elsewhere a dark, grey patch is worn leather.
-    "cloth_box_m": {"abs_x": 0.17, "z": [0.17, 0.62], "max_y": 0.02},
-    "cloth_max_L": 27.0,  # the vest is darker than the jacket panels beside it
-    # Bare skin in the outfit mesh: the forearms (rolled sleeves), hands and neck only.
-    "skin_region_m": {"min_abs_x": 0.58, "neck_abs_x": 0.09, "neck_min_z": 0.58},
-    "skin_region_min_L": 34.0,  # shadowed forearm undersides are darker than lit skin
-    "hands_beyond_abs_x_m": 0.8,
+    # Where each garment can be is the character's (a profile, see profiles/outfit-paint/); unset, no gate:
+    # cloth_box_m {abs_x, z: [lo, hi], max_y}: cloth only inside this box (e.g. a vest on the torso front);
+    # cloth_max_L: inside the box, anything darker than this is cloth too;
+    # skin_region_m {min_abs_x, neck_abs_x, neck_min_z}: bare skin only on the arms beyond min_abs_x and the neck;
+    # skin_region_min_L: inside that region, darker (shadowed) skin still counts;
+    # hands_beyond_abs_x_m: triangles beyond this |x| are skin, whatever their paint.
+    "cloth_box_m": None, "cloth_max_L": None,
+    "skin_region_m": None, "skin_region_min_L": None,
+    "hands_beyond_abs_x_m": None,
     "vote_iterations": 8,
     # Albedo clean-up per garment: low-pass radius (m on the surface, via the UV scale),
     # the share of painted detail kept, and how far the baked light is compressed (1 = none).
@@ -88,21 +90,31 @@ def classify(lab, centroids, p):
     chroma = np.hypot(a, b)
     hue = np.degrees(np.arctan2(b, a))
     cls = np.full(len(lab), LEATHER)
-    box = p["cloth_box_m"]
-    torso = ((np.abs(centroids[:, 0]) < box["abs_x"]) & (centroids[:, 2] > box["z"][0]) & (centroids[:, 2] < box["z"][1])
-             & (centroids[:, 1] < box["max_y"]))
-    cls[((chroma < p["cloth_max_chroma"]) | (L < p["cloth_max_L"])) & torso] = CLOTH
+    x = np.abs(centroids[:, 0])
+    box = p.get("cloth_box_m")
+    inside = np.ones(len(lab), bool) if box is None else (
+        (x < box["abs_x"]) & (centroids[:, 2] > box["z"][0]) & (centroids[:, 2] < box["z"][1]) & (centroids[:, 1] < box["max_y"]))
+    dark = chroma < p["cloth_max_chroma"]
+    if p.get("cloth_max_L") is not None:
+        dark |= L < p["cloth_max_L"]
+    cls[dark & inside] = CLOTH
     fabric = (a > p["fabric_min_a"]) & (hue < p["fabric_max_hue"]) & (chroma > p["fabric_min_chroma"])
     cls[fabric] = FABRIC
     skin = (L > p["skin_min_L"]) & (chroma > p["skin_min_chroma"]) & (hue > p["skin_hue"][0]) & (hue < p["skin_hue"][1])
-    region = p["skin_region_m"]
-    in_region = (np.abs(centroids[:, 0]) > region["min_abs_x"]) | (
-        (np.abs(centroids[:, 0]) < region["neck_abs_x"]) & (centroids[:, 2] > region["neck_min_z"]))
-    skin |= in_region & (L > p["skin_region_min_L"]) & (chroma > p["skin_min_chroma"]) & (hue > p["skin_hue"][0]) & (hue < p["skin_hue"][1])
+    region = p.get("skin_region_m")
+    in_region = np.ones(len(lab), bool) if region is None else (
+        (x > region["min_abs_x"]) | ((x < region["neck_abs_x"]) & (centroids[:, 2] > region["neck_min_z"])))
+    if p.get("skin_region_min_L") is not None:
+        skin |= in_region & (L > p["skin_region_min_L"]) & (chroma > p["skin_min_chroma"]) & (hue > p["skin_hue"][0]) & (hue < p["skin_hue"][1])
     skin &= in_region
     cls[skin & ~fabric] = SKIN
-    cls[np.abs(centroids[:, 0]) > p["hands_beyond_abs_x_m"]] = SKIN
+    cls[hands(centroids, p)] = SKIN
     return cls
+
+
+def hands(centroids, p):
+    beyond = p.get("hands_beyond_abs_x_m")
+    return np.zeros(len(centroids), bool) if beyond is None else np.abs(centroids[:, 0]) > beyond
 
 
 def vote(cls, tris, areas, iterations, locked):
@@ -195,7 +207,7 @@ def main():
     a = ap.parse_args()
     p = dict(DEFAULTS)
     if a.params:
-        p.update(json.loads(Path(a.params).read_text()))
+        p.update({k: v for k, v in json.loads(Path(a.params).read_text()).items() if not k.startswith("_")})
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
     rng = np.random.default_rng(p["seed"])
@@ -223,7 +235,7 @@ def main():
     mean_lab = np.stack([np.bincount(ids, lab[valid][:, c], len(tris)) for c in range(3)], 1) / np.maximum(counts, 1)[:, None]
     centroids = verts[tris].mean(1)
     cls = classify(mean_lab, centroids, p)
-    locked = (np.abs(centroids[:, 0]) > p["hands_beyond_abs_x_m"]) | (counts == 0)
+    locked = hands(centroids, p) | (counts == 0)
     cls = vote(cls, tris, areas, p["vote_iterations"], locked)
 
     # Per-texel class; gutters take the nearest covered texel's class.
@@ -293,7 +305,7 @@ def main():
     Image.fromarray(height_to_normal(wh, 2.5)).save(out / "weave_normal.png")
 
     record = {
-        "stage": "refine_ennix_outfit_paint",
+        "stage": "refine_outfit_paint",
         "inputs": {k: {"path": str(Path(v).resolve()), "sha256": hashlib.sha256(Path(v).read_bytes()).hexdigest()}
                    for k, v in (("mesh", a.mesh), ("basecolor", a.basecolor), ("coverage", a.coverage))},
         "metres_per_uv": round(metres_per_uv, 5),

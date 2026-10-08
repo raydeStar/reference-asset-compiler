@@ -1,0 +1,19 @@
+{
+  "_comment": "Where Ennix's garments can be (metres, character space: x across, y front-negative, z up). The vest sits on the torso front between the jacket's lapels; the sleeves are rolled, so the forearms beyond |x| 0.58 m and the neck are bare; the hands lie beyond |x| 0.8 m.",
+  "cloth_box_m": {
+    "abs_x": 0.17,
+    "z": [
+      0.17,
+      0.62
+    ],
+    "max_y": 0.02
+  },
+  "cloth_max_L": 27.0,
+  "skin_region_m": {
+    "min_abs_x": 0.58,
+    "neck_abs_x": 0.09,
+    "neck_min_z": 0.58
+  },
+  "skin_region_min_L": 34.0,
+  "hands_beyond_abs_x_m": 0.8
+}

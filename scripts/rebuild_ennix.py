@@ -129,8 +129,8 @@ def main():
     run("paint_ennix_body.py", [out / "body/body.npz", local / "body-front.png", local / "body-back.png",
         out / "body/paint", "--side", local / "body-left.png"])
     # Game garment materials: mask, cleaned albedo and detail normals (the game imports outfit-paint/).
-    run("refine_ennix_outfit_paint.py", [out / "body/body.npz", out / "body/paint/body_basecolor.png",
-        out / "body/paint/coverage.png", out / "outfit-paint"])
+    run("refine_outfit_paint.py", [out / "body/body.npz", out / "body/paint/body_basecolor.png",
+        out / "body/paint/coverage.png", out / "outfit-paint", "--params", ROOT / "profiles/outfit-paint/ennix.json"])
     assembly = out / "assembly/Ennix_Character_Review.blend"
     run("blender/assemble_ennix_character.py", [out / "body/body-uv.blend", out / "body/paint/body_basecolor.png",
         out / "head.blend", out / "assembly", "--samples", recipe["samples"],
