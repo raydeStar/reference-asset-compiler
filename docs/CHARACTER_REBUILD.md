@@ -91,6 +91,7 @@ runs on its own.
 | `blender/export_groom_alembic.py` | groom to Alembic, with a round-trip count check | `asset_prefix` |
 | `rig_ue5_character.py` (with `--manny-dir`) | Manny-conformant game rig | `asset_prefix` |
 | `blender/export_ue5_character.py`, `export_groom_alembic.py` | game FBX and groom | `asset_prefix` |
+| `blender/add_coat_chains.py` (profile has `coat`) | coat-tail bone chains for the game's cloth physics; the plain export becomes `P_UE5.nocoat.fbx` (below) | `coat` |
 | `blender/pose_character_review.py` | held pose, head turn, expressions | `asset_prefix`, `review_views` |
 | `blender/audit_semantic_fingerprint.py` | the semantic fingerprint (below) | |
 | `validate_silhouette.py` | front silhouette against the painting | |
@@ -120,6 +121,72 @@ pixels are the source pictures'.
 | `neck_overlap` | the acquired collar's duplicate neck patch: `ellipse_m` radii and `above_z_m` to cut, the cut rim (`rim_above_z_m`, `rim_abs_x_m`) to smooth, where the binding also lets the body differ from the proxy |
 | `neck_weight_blend_m` | head weight rises from 0 at the first height to 1 over the second |
 | `review_views` | what the posed review renders look at |
+| `coat` | optional: a long coat's bone chains (below); absent, no coat bones |
+
+### A long coat (`coat`)
+
+A knee-length coat cannot follow the thighs; the game simulates it on bones of
+its own (The Aether Wars' `Tools/CoatPhysics.py` builds an AnimDynamics
+post-process AnimBP from them). With a `coat` block, after the UE5 export the
+runner runs `blender/add_coat_chains.py` on `ue5/fit/P_UE5.blend`:
+
+```json
+"coat": {
+  "chains": {"front_l": 25, "front_r": -25, "back_l": 150, "back_r": -150},
+  "bones_per_chain": 3,
+  "top_below_pelvis_m": 0.04,
+  "hem_above_knee_m": 0.0,
+  "leg_clearance_m": 0.12,
+  "open_front": false
+}
+```
+
+Every key is optional; these are the defaults (`"coat": {}` is this block).
+`chains` maps `<group>_<l|r>` to degrees round the body from straight ahead
+toward the character's left (`side_l: 90` adds a hip chain). The roots sit
+`top_below_pelvis_m` under the pelvis joint (just under the belt), the hem at
+the knee plus `hem_above_knee_m` (or at `hem_z_m`, absolute; not both).
+`leg_clearance_m`: outfit vertices further than this from every
+thigh/calf/foot axis are coat; nearer ones (trousers, boots) keep their
+weights. `open_front: true` keeps each front panel on its own side's chain.
+`top_blend_m` (default one segment) is how far below the roots the coat hands
+over from the pelvis/thigh weights to the chains. `scripts/coat_profile.py`
+documents and checks the block; a bad one stops the build before it starts.
+
+What the stage does: for each chain it casts a ray out from the body's axis at
+the roots' height and at the hem to find the outfit's outermost lower-body
+surface, and hangs `coat_<group>_01_<side>` .. `_<NN>_<side>` (parent
+`pelvis`, then each other) plus a non-deforming `coat_<group>_end_<side>` leaf
+at the hem between those points. Bone X runs down the chain (in UE the child
+sits on +X), Z is the coat's outward normal. It skins the coat vertices to the
+chains: blended from their own weights over the top band, between neighbouring
+bones along a chain and neighbouring chains by angle (smoothstep), at most four
+influences, normalized. Other vertices and meshes keep their weights exactly.
+It exports with `export_ue5_character.py` itself, so the FBX settings are the
+plain export's.
+
+Outputs: `export/P_UE5.fbx` (coated), `export/P_UE5.nocoat.fbx` (the plain
+export), `export/P_UE5.coat.json` (chains, bone positions, coat vertex count,
+largest weight per chain and bone; whether each hem ray found the garment) and
+`export/skeleton-ue5-coat.json`, the skeleton contract plus the chains, which
+the UE5 rig gate checks the coated FBX against. The build receipt's `coat`
+summarises them.
+
+Limits: the chains are straight lines from root to hem, not bent to the
+coat's shape between; a hem ray that misses, or finds only a trouser leg (a
+garment shorter than the hem height), hangs the chain straight down and says
+so (`hem_found: false`). An
+open coat needs `open_front: true` and front chains that land on the panels
+(angles wider than the opening). Anything else hanging below the belt that
+stands off the legs is skinned to the chains too (Ennix's sash, in a forced
+dry run). Physics feel is reviewed in the game, not here.
+
+To run it on its own (it never saves the input blend):
+
+```powershell
+& $B -b ue5/fit/P_UE5.blend --factory-startup --python scripts/blender/add_coat_chains.py -- `
+  export/P_UE5.fbx --profile profiles/characters/<id>.json [--save-blend coated.blend]
+```
 
 ### Output names
 
@@ -127,7 +194,8 @@ With `asset_prefix` `P`: `assembly/P_Character_Review.blend`,
 `rig-input/P_proxy.fbx`, `proxy-rig/P_proxy_rigged.{fbx,blend}`,
 `rigged/P_Rigged.blend`, `rigged/P_Body_Face.fbx`, `export/P_Groom.abc`,
 `ue5/fit/P_UE5.blend`, `export/P_UE5.fbx`, `export/P_Groom_UE5.abc`,
-`pose/P_Held_Inspection.blend`. Objects are `P_Outfit_And_Hands`, `P_head`,
+`pose/P_Held_Inspection.blend` (with a `coat`, also `export/P_UE5.nocoat.fbx`
+and `export/P_UE5.coat.json`). Objects are `P_Outfit_And_Hands`, `P_head`,
 `P_eyes`, `P_teeth`, `P_tongue`, `P_scalp-cap`, `P_groom`; materials include
 `P_Source_Outfit`, `P_Mouth_Interior`, `P_teeth`, `P_tongue`. Paint outputs keep
 fixed names: `face-paint/head_basecolor.png`, `body/paint/body_basecolor.png`,

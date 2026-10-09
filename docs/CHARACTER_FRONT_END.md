@@ -235,6 +235,14 @@ Also write an outfit-paint profile (`profiles/outfit-paint/<id>.json`, where
 each garment can be on the body) and point the character profile's
 `outfit_paint_params` at it.
 
+**A long coat.** If the character wears a knee-length coat (or anything the
+game should simulate below the belt), add a `coat` block to its profile; `{}`
+gives four chains (front and back, each side) of three bones from just under
+the belt to the knee. Set the hem (`hem_above_knee_m` or `hem_z_m`) to the
+garment's, and `open_front: true` for a coat worn open. The build then adds the
+chains after the UE5 export; `export/<prefix>_UE5.fbx` is the coated FBX. See
+CHARACTER_REBUILD.md, "A long coat". Without the block nothing changes.
+
 ## 9. Build (CPU, with GPU stages)
 
 ```powershell

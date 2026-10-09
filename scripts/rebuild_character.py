@@ -10,6 +10,7 @@ Run with Python 3.12 and Blender 5.2.2; see docs/CHARACTER_REBUILD.md.
 from __future__ import annotations
 
 import argparse
+import copy
 import hashlib
 import importlib.metadata
 import json
@@ -20,6 +21,8 @@ import time
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from coat_profile import resolve_coat  # noqa: E402
 
 
 def sha(path):
@@ -67,6 +70,22 @@ def body_paint_options(character):
     return options
 
 
+def coat_skeleton_profile(skeleton, coat_receipt):
+    """The skeleton contract plus a coat's chain bones, so the rig gate can check the coated FBX.
+
+    The chains are optional bones with their parents expected; everything else
+    (required bones, influence cap, triangle budget) stays the skeleton's.
+    """
+    profile = copy.deepcopy(skeleton)
+    bones = coat_receipt["bones"]
+    profile["profile_id"] = skeleton["profile_id"] + "+coat"
+    profile["optional_bones"] = list(skeleton.get("optional_bones", [])) + [b["name"] for b in bones]
+    profile["expected_parents"] = {**skeleton.get("expected_parents", {}),
+                                   **{b["name"]: b["parent"] for b in bones}}
+    profile["coat_note"] = "Coat chains from add_coat_chains.py added to {0}.".format(skeleton["profile_id"])
+    return profile
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--inputs", required=True)
@@ -89,6 +108,7 @@ def main():
     outfit_params = ROOT / character["outfit_paint_params"]
     try:
         body_args = body_reduction_options(recipe, character)
+        coat = resolve_coat(character.get("coat"))
     except ValueError as error:
         p.error(str(error))
     if out.exists():
@@ -229,7 +249,28 @@ def main():
             "--template", local / "template.npz", "--head-npz", out / "head.npz", "--name", prefix,
             "--arm-ratio", recipe["ue5"]["arm_ratio"], "--blender", a.blender])
         game = out / f"ue5/fit/{prefix}_UE5.blend"
-        run("blender/export_ue5_character.py", [out / f"export/{prefix}_UE5.fbx"], True, blend=game)
+        game_fbx = out / f"export/{prefix}_UE5.fbx"
+        if coat is None:
+            run("blender/export_ue5_character.py", [game_fbx], True, blend=game)
+        else:
+            # A long coat gets bones the game simulates. The plain export stays
+            # beside it as .nocoat.fbx; the coated one takes the game's name.
+            uncoated = out / f"export/{prefix}_UE5.nocoat.fbx"
+            run("blender/export_ue5_character.py", [uncoated], True, blend=game)
+            coat_receipt = out / f"export/{prefix}_UE5.coat.json"
+            run("blender/add_coat_chains.py", [game_fbx, "--profile", character_path, "--receipt", coat_receipt],
+                True, blend=game)
+            chains = json.loads(coat_receipt.read_text())
+            coat_skeleton = out / "export/skeleton-ue5-coat.json"
+            coat_skeleton.write_text(json.dumps(coat_skeleton_profile(
+                json.loads((ROOT / "profiles/skeletons/ue5_manny.json").read_text()), chains), indent=2))
+            receipt["coat"] = {"fbx": str(game_fbx.relative_to(out)), "uncoated_fbx": str(uncoated.relative_to(out)),
+                               "receipt": str(coat_receipt.relative_to(out)),
+                               "skeleton_profile": str(coat_skeleton.relative_to(out)),
+                               "chains": {name: {key: c[key] for key in ("degrees", "bones", "hem_found", "max_weight")}
+                                          for name, c in chains["chains"].items()},
+                               "coat_vertices": chains["coat_vertices"]}
+            save()
         run("blender/export_groom_alembic.py", [game, out / f"export/{prefix}_Groom_UE5.abc", "--name", prefix], True)
     views = character["review_views"]
     run("blender/pose_character_review.py", [native, out / "pose", "--samples", recipe["samples"], "--device", a.device,
@@ -242,11 +283,14 @@ def main():
     # The tier, when the recipe names one, sets the triangle ceiling in place of
     # the skeleton profile's flat number (profiles/triangle-budgets.json).
     tier = ["--tier", recipe["character_tier"]] if recipe.get("character_tier") else []
-    gates = [(out / f"rigged/{prefix}_Body_Face.fbx", out / "export/gate-rig.json")]
+    skeleton = ROOT / "profiles/skeletons/ue5_manny.json"
+    gates = [(out / f"rigged/{prefix}_Body_Face.fbx", out / "export/gate-rig.json", skeleton)]
     if (out / f"export/{prefix}_UE5.fbx").is_file():
-        gates.append((out / f"export/{prefix}_UE5.fbx", out / "export/gate-rig-ue5.json"))
-    for fbx, report in gates:
-        run("blender/gate_rig.py", [fbx, ROOT / "profiles/skeletons/ue5_manny.json", report, *tier],
+        # A coated FBX is gated against the skeleton plus its coat chains.
+        ue5_skeleton = out / "export/skeleton-ue5-coat.json" if "coat" in receipt else skeleton
+        gates.append((out / f"export/{prefix}_UE5.fbx", out / "export/gate-rig-ue5.json", ue5_skeleton))
+    for fbx, report, profile in gates:
+        run("blender/gate_rig.py", [fbx, profile, report, *tier],
             True, allowed_codes=(0, 1))
         if not report.is_file():
             raise RuntimeError("Rig gate crashed before producing its receipt")
@@ -265,6 +309,8 @@ def main():
         budget_limit, "Held inspection pose is not a moving idle"]
     if derived_landmarks:
         receipt["limits"].append("Rig landmarks derived in this build, not measured or reviewed")
+    if "coat" in receipt:
+        receipt["limits"].append("Coat chains placed and skinned automatically; their cloth physics is unreviewed")
     save()
     print(f"The fitting is reproducible, sir. Review receipt: {out / 'build-receipt.json'}", flush=True)
 
