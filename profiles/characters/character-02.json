@@ -110,19 +110,20 @@
   ],
   "coat": {
     "chains": {
-      "front_l": 60.0,
-      "front_r": -60.0,
-      "side_l": 90,
-      "side_r": -90,
-      "back_l": 150,
-      "back_r": -150
+      "front_l": 75.0,
+      "front_r": -75.0,
+      "side_l": 110.0,
+      "side_r": -110.0,
+      "back_l": 160.0,
+      "back_r": -160.0
     },
     "bones_per_chain": 3,
     "top_below_pelvis_m": 0.04,
-    "hem_above_knee_m": 0.0,
+    "hem_above_knee_m": 0.07,
     "leg_clearance_m": 0.12,
     "open_front": true,
-    "_chains_front": "The coat hangs open: at the hem its front panels sit at +-50 to 70 deg from forward (the band between +-40 is the trousers), so the front chains are at +-60. At +-40 they found no hem. 2026-10-09."
+    "_hem": "Pixal3D's coat (2026-10-09) ends above the knee (0.526 m): at 0.54 m on the front panels, 0.58 m on the back tails, 0.62 m at the sides (the receipt's coat_bottom_z_m). At the knee every hem ray met a trouser leg, so the hem sits 7 cm above it (0.596 m); the side rays find it 5 cm higher.",
+    "_chains": "Measured on horizontal sections of rebuild-v9's outfit near the hem: the open front panels hang at +-70..95 deg, the side panels at +-95..135, side-back vents at about +-140..150, the back tails at +-145..180 with a centre vent. Each chain hangs mid-panel: +-75, +-110, +-160 (at +-150 the back rays went through the side vents)."
   },
-  "_coat": "Knee-length navy coat, open at the front: front chains at +-40 deg land on each panel, side chains on the hips, back chains on the tails. Check the coat receipt's hem_found per chain after the build."
+  "_coat": "Knee-length navy coat, open at the front. Check the coat receipt's hem_found (and coat_bottom_z_m) per chain after the build."
 }

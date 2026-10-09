@@ -15,9 +15,13 @@ the chains hang:
   under the belt) finds the outfit's outermost surface; another at the hem
   height finds the hem. Only lower-body faces count (weighted mostly to
   pelvis, spine_01, thigh, calf, foot or ball), so hanging arms are never hit.
-  A hem ray that misses, or only finds a trouser leg (a hit within
-  leg_clearance_m of a leg axis), is retried 2.5 and 5 cm higher; then the
-  chain hangs straight down from its root. The receipt says which.
+  A ray that misses (a vent or a crack in a scanned coat at exactly the
+  chain's angle) is retried 3 and 6 degrees either side. A hem ray that still
+  misses, or only finds a trouser leg (a hit within leg_clearance_m of a leg
+  axis), is retried 2.5 and 5 cm higher; then the chain hangs straight down
+  from its root. The receipt says which, and where the coat really ends at
+  each chain (coat_bottom_z_m: the lowest coat vertices within 10 degrees),
+  so a coat that ends above the knee gets its hem_above_knee_m from one build.
 - Bones. coat_<group>_01_<side> .. _<NN>_<side> parented pelvis -> 01 -> 02 ...,
   plus a non-deforming coat_<group>_end_<side> leaf at the hem. Blender bone X
   runs along the chain toward the child (UE maps Blender bone axes as
@@ -59,6 +63,8 @@ HERE = Path(__file__).resolve().parent
 LOWER_BODY = re.compile(r"^(pelvis|spine_01|thigh_.*|calf_.*|foot_.*|ball_.*)$")
 CLEARANCE_RAMP_M = 0.03
 HEM_RETRIES_M = (0.0, 0.025, 0.05)
+FAN_DEG = (0.0, -3.0, 3.0, -6.0, 6.0)   # a ray that slips through a vent tries beside it
+BOTTOM_ARC_DEG = 10.0                   # coat vertices this close to a chain's angle measure its hem
 MAX_INFLUENCES = 4
 STUB_M = 0.08
 
@@ -251,28 +257,46 @@ def main():
             d = np.minimum(d, segment_distance(points, a, b))
         return d
 
-    def radius_at(direction, z, off_the_legs=False):
-        hit = farthest_hit(tree, Vector((axis[0], axis[1], z)), direction)
-        if hit is None or (off_the_legs and leg_distance(np.array([hit]))[0] < coat["leg_clearance_m"]):
-            return None
-        return float(np.hypot(hit.x - axis[0], hit.y - axis[1]))
+    def radius_at(degrees, z, off_the_legs=False):
+        """(radius, ray angle) of the outermost garment at this height, or (None, None)."""
+        for off in FAN_DEG:
+            a = math.radians(degrees + off)
+            hit = farthest_hit(tree, Vector((axis[0], axis[1], z)), Vector((math.sin(a), -math.cos(a), 0.0)))
+            if hit is None or (off_the_legs and leg_distance(np.array([hit]))[0] < coat["leg_clearance_m"]):
+                continue
+            return float(np.hypot(hit.x - axis[0], hit.y - axis[1])), degrees + off
+        return None, None
+
+    # Where the coat really ends round the body: lower-body outfit vertices off the legs, below the roots.
+    off_legs = lower_body & (leg_distance(pos) > coat["leg_clearance_m"]) & (pos[:, 2] < top_z)
+    off_legs_az = np.degrees(np.arctan2(pos[off_legs, 0] - axis[0], -(pos[off_legs, 1] - axis[1])))
+    off_legs_z = pos[off_legs, 2]
+
+    def coat_bottom(degrees):
+        near = np.abs((off_legs_az - degrees + 180.0) % 360.0 - 180.0) <= BOTTOM_ARC_DEG
+        return float(np.percentile(off_legs_z[near], 1)) if near.any() else None
 
     chains = []
     for chain, degrees in coat["chains"].items():
         a = math.radians(degrees)
         radial = Vector((math.sin(a), -math.cos(a), 0.0))
-        r_top = radius_at(radial, top_z)
+        r_top, _ = radius_at(degrees, top_z)
         if r_top is None:
             raise SystemExit("Chain {0}: no garment {1:.0f} degrees round the body at the roots' height "
                              "({2:.3f} m).".format(chain, degrees, top_z))
-        r_hem, hem_ray_z = None, None
+        r_hem, hem_ray_z, hem_ray_deg = None, None, None
         for lift in HEM_RETRIES_M:
-            r_hem = radius_at(radial, hem_z + lift, off_the_legs=True)   # a trouser leg is not the hem
+            r_hem, hem_ray_deg = radius_at(degrees, hem_z + lift, off_the_legs=True)   # a trouser leg is not the hem
             if r_hem is not None:
                 hem_ray_z = hem_z + lift
                 break
+        bottom = coat_bottom(degrees)
         if r_hem is None:
             r_hem = r_top
+            print("COAT WARNING chain {0}: no hem at {1:.3f} m{2}; it hangs straight down. Set the profile's "
+                  "hem_z_m or hem_above_knee_m (knee {3:.3f} m).".format(
+                      chain, hem_z, "" if bottom is None else ", the coat ends at {0:.3f} m here".format(bottom),
+                      knee_z))
         joints = []
         for k in range(nb + 1):
             t = k / nb
@@ -280,7 +304,7 @@ def main():
             joints.append(Vector((axis[0] + radial.x * r, axis[1] + radial.y * r, top_z + (hem_z - top_z) * t)))
         chains.append({"chain": chain, "degrees": degrees, "radial": radial, "joints": joints,
                        "names": coat_profile.bone_names(chain, nb), "radius_top_m": r_top, "radius_hem_m": r_hem,
-                       "hem_ray_z_m": hem_ray_z})
+                       "hem_ray_z_m": hem_ray_z, "hem_ray_deg": hem_ray_deg, "coat_bottom_z_m": bottom})
 
     bpy.context.view_layer.objects.active = arm
     arm.hide_set(False)
@@ -389,6 +413,9 @@ def main():
                                 "radius_hem_m": round(c["radius_hem_m"], 4),
                                 "hem_found": c["hem_ray_z_m"] is not None,
                                 "hem_ray_z_m": None if c["hem_ray_z_m"] is None else round(c["hem_ray_z_m"], 4),
+                                "hem_ray_deg": None if c["hem_ray_deg"] is None else round(c["hem_ray_deg"], 2),
+                                "coat_bottom_z_m": None if c["coat_bottom_z_m"] is None
+                                else round(c["coat_bottom_z_m"], 4),
                                 **per_chain[c["chain"]]} for c in chains},
         "bones": bones,
         "outfit_vertices": nv,

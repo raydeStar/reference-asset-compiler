@@ -295,7 +295,10 @@ each garment can be on the body) and point the character profile's
 game should simulate below the belt), add a `coat` block to its profile; `{}`
 gives four chains (front and back, each side) of three bones from just under
 the belt to the knee. Set the hem (`hem_above_knee_m` or `hem_z_m`) to the
-garment's, and `open_front: true` for a coat worn open. The build then adds the
+garment's, and `open_front: true` for a coat worn open. After the first build,
+read `export/<prefix>_UE5.coat.json`: every chain should say `hem_found: true`;
+if not, its `coat_bottom_z_m` says where the coat ends there (a scanned coat
+often ends above the knee). The build then adds the
 chains after the UE5 export; `export/<prefix>_UE5.fbx` is the coated FBX. See
 CHARACTER_REBUILD.md, "A long coat". Without the block nothing changes.
 

@@ -30,7 +30,11 @@ top_below_pelvis_m the chain roots' height: this far below the pelvis joint,
                    just under the belt.
 hem_above_knee_m   the hem's height above the knee (the calf joints); negative
                    is below the knee. Or hem_z_m: the hem's absolute height
-                   (feet on z=0). Give one, not both.
+                   (feet on z=0). Give one, not both. A coat that ends above
+                   the knee needs it: at the knee the hem rays only meet the
+                   trouser legs. The coat receipt's coat_bottom_z_m (per
+                   chain) says where the coat really ends, even when no hem
+                   was found.
 leg_clearance_m    a vertex is coat when it stands further than this from the
                    nearest leg axis (thigh, calf, foot); closer is trousers or
                    boots and keeps its weights. Full coat weight 3 cm beyond.

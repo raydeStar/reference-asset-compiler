@@ -4,7 +4,8 @@ The Blender checks build a Manny-named lower body (pelvis, spine_01, thighs,
 calves, feet, balls) wearing trouser legs, a torso and an open-hemmed skirt
 that flares from the belt to the knee, all one skinned mesh like a scanned
 outfit. add_coat_chains.py must hang four chains on the skirt, skin the skirt
-to them and leave the legs and torso exactly as they were.
+to them and leave the legs and torso exactly as they were. Variants: a skirt
+that ends above the knee, and one with a vent where a chain hangs.
 """
 import json
 import math
@@ -65,7 +66,7 @@ def test_comment_keys_are_allowed():
 # --- the stage on a synthetic body (Blender) -------------------------------------------------------
 
 PELVIS_Z, KNEE_Z, TOP_Z = 1.0, 0.52, 0.96
-SKIRT = dict(top=0.97, bottom=0.50, r_top=0.19, r_bottom=0.30, segs=32, rings=12)
+SKIRT = dict(top=0.97, bottom=0.50, r_top=0.19, r_bottom=0.30, segs=32, rings=12, vent=None)
 
 MAKE = r'''
 import math, sys, bpy
@@ -91,7 +92,7 @@ for side, sx in (("l", 1), ("r", -1)):
 bpy.ops.object.mode_set(mode="OBJECT")
 
 verts, faces, weights = [], [], []
-def tube(cx, cy, r_top, r_bottom, z_top, z_bottom, segs, rings, weigh):
+def tube(cx, cy, r_top, r_bottom, z_top, z_bottom, segs, rings, weigh, vent=None):
     base = len(verts)
     for i in range(rings + 1):
         t = i / rings
@@ -104,6 +105,10 @@ def tube(cx, cy, r_top, r_bottom, z_top, z_bottom, segs, rings, weigh):
     for i in range(rings):
         for s in range(segs):
             a, b = base + i * segs + s, base + i * segs + (s + 1) % segs
+            if vent:   # a slit up from the hem: (degrees it is centred on, half width, top height)
+                mid = math.degrees(2 * math.pi * (s + 0.5) / segs)
+                if abs((mid - vent[0] + 180) % 360 - 180) < vent[1] and verts[a][2] < vent[2]:
+                    continue
             faces.append((a, b, b + segs, a + segs))
 tube(0, 0, 0.16, 0.16, 1.25, 0.98, 24, 6, lambda x, y, z: {"pelvis": 0.5, "spine_01": 0.5})
 for side, sx in (("l", 1), ("r", -1)):
@@ -112,7 +117,8 @@ for side, sx in (("l", 1), ("r", -1)):
          else {"calf_" + side: 0.75, "thigh_" + side: 0.25})
 S = SKIRT
 tube(0, 0, S["r_top"], S["r_bottom"], S["top"], S["bottom"], S["segs"], S["rings"],
-     lambda x, y, z: {"pelvis": 0.6, ("thigh_l" if x > 1e-6 else "thigh_r"): 0.4} if abs(x) > 1e-6 else {"pelvis": 1.0})
+     lambda x, y, z: {"pelvis": 0.6, ("thigh_l" if x > 1e-6 else "thigh_r"): 0.4} if abs(x) > 1e-6 else {"pelvis": 1.0},
+     S["vent"])
 me = bpy.data.meshes.new("Synth_Outfit")
 me.from_pydata(verts, [], faces)
 obj = bpy.data.objects.new("Synth_Outfit", me)
@@ -164,9 +170,10 @@ def dump(tmp_path, source, name):
     return json.loads((tmp_path / name).read_text())
 
 
-def coat_run(tmp_path, block):
+def coat_run(tmp_path, block, skirt=None):
+    tmp_path.mkdir(parents=True, exist_ok=True)
     make = tmp_path / "make.py"
-    make.write_text(MAKE)
+    make.write_text(MAKE if skirt is None else MAKE.replace("S = " + repr(SKIRT), "S = " + repr({**SKIRT, **skirt})))
     source = tmp_path / "Synth_UE5.blend"
     blender("--python", make, "--", source)
     profile = tmp_path / "synth.json"
@@ -326,3 +333,35 @@ def test_an_open_front_never_blends_across_the_opening(tmp_path):
             assert not any(n.startswith("coat_front") and n.endswith("_r") for n in w), v
         if v["co"][2] < TOP_Z and -25.0 < a < -1.0:
             assert not any(n.startswith("coat_front") and n.endswith("_l") for n in w), v
+
+
+@needs_blender
+def test_a_coat_that_ends_above_the_knee_finds_its_hem_where_the_profile_says(tmp_path):
+    # The skirt stops 10 cm above the knee: at the knee the rays only meet trouser legs.
+    bottom = KNEE_Z + 0.10
+    skirt = {"bottom": bottom, "r_bottom": 0.27}
+    _, _, _, missed, run = coat_run(tmp_path / "at-knee", {}, skirt)
+    assert not any(c["hem_found"] for c in missed["chains"].values())
+    assert "COAT WARNING" in run.stdout
+    for c in missed["chains"].values():       # the receipt says where the coat ends instead
+        assert c["coat_bottom_z_m"] == pytest.approx(bottom, abs=0.01)
+    _, blend, _, receipt, _ = coat_run(tmp_path / "above-knee", {"hem_above_knee_m": 0.08}, skirt)
+    bones = dump(tmp_path / "above-knee", blend, "after.json")["bones"]
+    r_at = 0.19 + (0.27 - 0.19) * (0.97 - (KNEE_Z + 0.08)) / (0.97 - bottom)   # the skirt there, if it went on
+    for chain, c in receipt["chains"].items():
+        assert c["hem_found"], chain
+        assert c["hem_ray_z_m"] == pytest.approx(KNEE_Z + 0.105, abs=1e-4)     # 2.5 cm up: the skirt's last ring
+        leaf = bones[bone_names(chain, 3)[-1]]["head"]
+        assert leaf[2] == pytest.approx(KNEE_Z + 0.08, abs=1e-4)
+        assert math.hypot(*leaf[:2]) == pytest.approx(0.27, abs=0.006) and math.hypot(*leaf[:2]) < r_at + 0.006
+
+
+@needs_blender
+def test_a_hem_ray_that_slips_through_a_vent_finds_the_coat_beside_it(tmp_path):
+    # A 4-degree-wide slit up the back at back_l's angle, from the hem to above the knee rays.
+    _, _, _, receipt, _ = coat_run(tmp_path, {}, {"vent": [150.0, 2.0, 0.7]})
+    back = receipt["chains"]["back_l"]
+    assert back["hem_found"] and back["hem_ray_deg"] != 150.0 and abs(back["hem_ray_deg"] - 150.0) <= 6.0
+    assert back["radius_hem_m"] == pytest.approx(0.2953, abs=0.006)
+    assert all(c["hem_found"] for c in receipt["chains"].values())
+    assert receipt["chains"]["front_l"]["hem_ray_deg"] == 25.0

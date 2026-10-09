@@ -168,17 +168,25 @@ plain export's.
 
 Outputs: `export/P_UE5.fbx` (coated), `export/P_UE5.nocoat.fbx` (the plain
 export), `export/P_UE5.coat.json` (chains, bone positions, coat vertex count,
-largest weight per chain and bone; whether each hem ray found the garment) and
+largest weight per chain and bone; whether each hem ray found the garment,
+at what height and angle, and `coat_bottom_z_m`: where the coat really ends
+within 10 degrees of the chain) and
 `export/skeleton-ue5-coat.json`, the skeleton contract plus the chains, which
 the UE5 rig gate checks the coated FBX against. The build receipt's `coat`
 summarises them.
 
 Limits: the chains are straight lines from root to hem, not bent to the
-coat's shape between; a hem ray that misses, or finds only a trouser leg (a
-garment shorter than the hem height), hangs the chain straight down and says
-so (`hem_found: false`). An
-open coat needs `open_front: true` and front chains that land on the panels
-(angles wider than the opening). Anything else hanging below the belt that
+coat's shape between. A ray that slips through a vent or a crack at exactly
+the chain's angle is retried 3 and 6 degrees either side. A hem ray that still
+misses, or finds only a trouser leg (a garment shorter than the hem height),
+hangs the chain straight down and says so (`hem_found: false`, and a `COAT
+WARNING` line in the log with the coat's real end there). A coat that ends
+above the knee needs `hem_above_knee_m` set to about its shortest side (the
+rays also try 2.5 and 5 cm higher). An open coat needs `open_front: true` and
+front chains that land on the panels (angles wider than the opening). Hang
+each chain mid-panel, clear of vents: character-02's chains moved from
++-60/90/150 to +-75/110/160 once horizontal sections of the scan showed the
+panels and the side-back vents (2026-10-09). Anything else hanging below the belt that
 stands off the legs is skinned to the chains too (Ennix's sash, in a forced
 dry run). Physics feel is reviewed in the game, not here.
 
