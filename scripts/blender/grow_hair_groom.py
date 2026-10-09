@@ -119,6 +119,10 @@ def _args():
     p.add_argument("--extra-children", type=int, default=0,
                    help="more children per guide, rooted from an independent seed: denser hair "
                         "between the same locks (raising --children reshuffles every lock)")
+    p.add_argument("--cap-front-inset", type=float, default=None,
+                   help="metres the scalp cap stays behind the forehead hairline (default: the cap's own "
+                        "inset, %.3f). Under a fringe the cap's front edge shows between the locks: end it "
+                        "where the painted root shade is already full" % CAP_INSET)
     p.add_argument("--lock-thickness", type=float, default=0.0012,
                    help="metres: spread of a lock's strands through its layer (a full, round lock "
                         "rather than a flat ribbon)")
@@ -577,7 +581,15 @@ def main():
     dens = np.array([len(pt_tree.find_range(Vector((c + n * 0.006).tolist()), 0.01))
                      for c, n in zip(tri_c[cap_sel], tn[cap_sel])])
     dense = dens >= CAP_DENSITY * float(np.median(dens[inner])) if inner.any() else dens > 0
-    cap_tris = cap_t[inner & dense]
+    behind = np.ones(len(cap_t), bool)
+    if a.cap_front_inset is not None and tri_face.any():
+        # ...and, if asked, further behind the forehead hairline: the face's own triangles mark where it is.
+        face_tree = KDTree(int(tri_face.sum()))
+        for i, c in enumerate(tri_c[tri_face]):
+            face_tree.insert(Vector(c), i)
+        face_tree.balance()
+        behind = np.array([face_tree.find(Vector(c))[2] > a.cap_front_inset for c in tri_c[cap_sel]])
+    cap_tris = cap_t[inner & dense & behind]
     cap_verts = sv + sn * 0.0025
     cap_colour = np.median(strand_cols, 0) * 0.45
     np.savez_compressed(a.out, points=points, counts=counts, colours=colours, radius=radius,
@@ -587,6 +599,7 @@ def main():
     print(json.dumps({"roots_scalp": len(roots), "guides": n_g, "strands": int(len(strands)),
                       "points": int(len(points)), "hairline_z": hairline_z,
                       "cap_triangles": int(len(cap_tris)), "cap_thin_dropped": int((inner & ~dense).sum()),
+                      "cap_front_dropped": int((inner & dense & ~behind).sum()),
                       "envelope_m": {"median": float(np.median(outer[outer > 0])),
                                      "max": float(outer.max())},
                       "guide_length_m": {"median": float(np.median(lengths)), "max": float(max(lengths))}}))
