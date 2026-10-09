@@ -44,7 +44,7 @@ python scripts/conform_head_template.py $Ref/template/hm08-male.npz $W/hair/scan
 ```powershell
 py -3.12 scripts/build_mesh_hair.py --template $Ref/template/hm08-male.npz --scan <scan.glb> `
   --scan-conform $W/hair/conform.npz --scan-receipt $W/hair/conform.json `
-  --head $W/head/finish/head.npz --out $W/hair/mesh --blender $B --yaw-deg 180 --triangles 60000
+  --head $W/head/finish/head.npz --out $W/hair/mesh --blender $B --yaw-deg 180 --triangles 30000
 ```
 
 It runs, in order:
@@ -61,14 +61,20 @@ It runs, in order:
   on another's head.
 - `reduce_mesh_hair.py`: fast-simplification (MIT, optional dependency:
   `pip install fast-simplification`) to `--triangles`. It keeps the blades at
-  60k where Blender's collapse decimator turned them into shards at 134k.
+  60k where Blender's collapse decimator turned them into shards at 134k. The
+  collapse lays some thin blades' two sides onto each other (the same three
+  vertices twice, about 10% at 30-40k); those copies are dropped here, so the
+  count it reports is the count that ships. A count more than 2% off the
+  request is a WARNING, here and in the receipt.
 - `blender/bake_mesh_hair.py`: new UVs and a selected-to-active bake of the
   full-resolution colour and a tangent normal map. The cage reaches 15 mm; at
   4 mm most rays missed the thin blades.
 
 Outputs: `hair-mesh.npz` (verts, tris, loop_uv in the head's template space),
 `hair-mesh-basecolor.png`, `hair-mesh-normal.png`, and the receipt
-`mesh-hair.json`. character-02: 830,860 triangles cut, 56,032 shipped.
+`mesh-hair.json` (`triangles_requested`, `triangles_shipped`, `warnings`).
+character-02: 830,860 triangles cut; 30,000 requested, 26,990 shipped (the
+first build asked for 60,000 and shipped 56,032).
 
 Review: `render_painted_head.py` without `--strands` draws `hair-mesh.npz` as
 a textured mesh (pass it as the hair NPZ, the base colour as the hair
@@ -146,8 +152,26 @@ game's `Docs/CharacterPipeline.md`.
 ### Triangles
 
 The hair is in the skeletal mesh, so the rig gate counts it; groom strands
-never were. character-02's rebuild-v11 is 127,192 triangles (v10: 71,162),
-56,032 of them hair, over the hero tier's 80,000 ceiling. The gate fails
-without a `tri_budget_waiver` naming an approver; the build retains it as
-evidence. Fitting the tier means about 9k triangles of hair; otherwise a
-waiver, or a separate hair allowance in `profiles/triangle-budgets.json`.
+never were. character-02's first mesh-hair build (rebuild-v11) carried 56,032
+triangles of hair, 127,192 in all, against the hero tier's 80,000.
+
+Choosing a count: the same views (front, three-quarter, side, back, top-back,
+plus close crops of the fringe and the crown) at each count, judged for
+shards and jagged blades, scalp showing through and a smeared bake.
+
+| Requested | Shipped | Seen |
+| --- | --- | --- |
+| 60,000 | 56,032 | the first build |
+| 40,000 | 36,587 | clean |
+| 30,000 | 26,990 | clean: fringe, tips and silhouette hold; the crown's paint a little softer (as at 36,587) |
+| 24,000 | 21,326 | a stray shard on the forehead, banded smears in the crown's paint, blades merging into facets |
+| 18,000 | 18,053 | the fringe is lost (a straight hairline); the reduction stops at 20,467 before the copies go |
+
+Scalp showing between locks did not grow at lower counts (the merged blades
+cover more), and the bake's black texels fell (27% at 56k, 20% at 27k).
+character-02 ships 26,990 (rebuild-v12).
+
+Over the tier, the gate fails unless the recipe records the owner's
+acceptance, `budget_waiver` (CHARACTER_REBUILD.md): Mark accepted
+character-02's total on 2026-10-09 ("cut the hair to what is reasonable and
+accept that"), up to 100,000 triangles.

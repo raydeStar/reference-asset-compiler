@@ -182,7 +182,7 @@ def test_the_face_stage_lifts_each_corner_by_its_own_millimetres(tmp_path):
 SKELETON = str(ROOT / "profiles/skeletons/ue5_manny.json")
 
 
-def stub_build(tmp_path, monkeypatch, recipe, *options, blender="blender"):
+def stub_build(tmp_path, monkeypatch, recipe, *options, blender="blender", gate_tris=70000):
     """Run rebuild_character.main() on placeholder inputs; return the build directory.
 
     Each stub stage writes only what the runner reads back: the proxy, the
@@ -221,7 +221,7 @@ def stub_build(tmp_path, monkeypatch, recipe, *options, blender="blender"):
                 "coat_vertices": 1234}))
         elif script == "gate_rig.py":
             args[2].parent.mkdir(parents=True, exist_ok=True)
-            args[2].write_text(json.dumps({"total_tris": 70000, "tri_budget": 80000,
+            args[2].write_text(json.dumps({"total_tris": gate_tris, "tri_budget": 80000,
                                            "tri_budget_rule": {"character_tier": {"id": "hero"}}}))
         return subprocess.CompletedProcess(cmd, 0)
 
@@ -425,6 +425,54 @@ def test_a_strand_build_issues_no_mesh_hair_stage(tmp_path, monkeypatch):
 def test_mesh_hair_without_its_inputs_stops_the_build_before_it_starts(tmp_path, monkeypatch):
     recipe = copy.deepcopy(MESH_RECIPE)
     del recipe["inputs"]["hair-mesh.npz"]
+    with pytest.raises(SystemExit):
+        stub_build(tmp_path, monkeypatch, recipe, *MANNY)
+    assert not (tmp_path / "build").exists()
+
+
+# An owner's accepted overrun (budget_waiver): recorded in the recipe, folded into the gate, stated in the receipt.
+
+WAIVER = {"reason": "hair cut to what is reasonable", "approved_by": "Mark", "date": "2026-10-09",
+          "words": "cut the hair to what is reasonable and accept that", "max_triangles": 100000}
+
+
+def test_a_waiver_needs_its_reason_approver_date_and_ceiling():
+    assert rebuild_character.budget_waiver(RECIPE) is None
+    assert rebuild_character.budget_waiver({**RECIPE, "budget_waiver": WAIVER}) == WAIVER
+    for key in rebuild_character.WAIVER_KEYS:
+        with pytest.raises(ValueError, match=key):
+            rebuild_character.budget_waiver({**RECIPE, "budget_waiver": {k: v for k, v in WAIVER.items() if k != key}})
+    with pytest.raises(ValueError, match="whole number"):
+        rebuild_character.budget_waiver({**RECIPE, "budget_waiver": {**WAIVER, "max_triangles": "lots"}})
+
+
+def test_a_recorded_waiver_reaches_both_gates_and_the_receipt(tmp_path, monkeypatch):
+    out = stub_build(tmp_path, monkeypatch, {**RECIPE, "budget_waiver": WAIVER}, "--device", "CPU", *MANNY,
+                     gate_tris=92000)
+    receipt = receipt_of(out)
+    gates = [c["argv"][c["argv"].index("--") + 1:] for c in receipt["commands"] if c["script"] == "blender/gate_rig.py"]
+    assert [Path(g[1]).name for g in gates] == ["ue5_manny+waiver.json"] * 2
+    for g in gates:
+        profile = json.loads(Path(g[1]).read_text())
+        assert profile["tri_budget_waiver"] == WAIVER
+        assert profile["required_bones"] == json.loads(Path(SKELETON).read_text())["required_bones"]
+    assert receipt["budget_waiver"] == WAIVER
+    limit = next(line for line in receipt["limits"] if "triangles" in line)
+    assert limit.startswith("92,000 triangles exceed the hero tier's ceiling of 80,000; accepted by Mark on 2026-10-09 "
+                            "up to 100,000")
+
+
+def test_without_a_waiver_the_gates_read_the_plain_skeleton(tmp_path, monkeypatch):
+    out = stub_build(tmp_path, monkeypatch, RECIPE, "--device", "CPU", *MANNY, gate_tris=92000)
+    receipt = receipt_of(out)
+    gates = [c["argv"][c["argv"].index("--") + 1:] for c in receipt["commands"] if c["script"] == "blender/gate_rig.py"]
+    assert [g[1] for g in gates] == [SKELETON, SKELETON] and "budget_waiver" not in receipt
+    assert not list((out / "export").glob("*+waiver.json"))
+    assert "accepted" not in next(line for line in receipt["limits"] if "triangles" in line)
+
+
+def test_a_bad_waiver_stops_the_build_before_it_starts(tmp_path, monkeypatch):
+    recipe = {**RECIPE, "budget_waiver": {k: v for k, v in WAIVER.items() if k != "date"}}
     with pytest.raises(SystemExit):
         stub_build(tmp_path, monkeypatch, recipe, *MANNY)
     assert not (tmp_path / "build").exists()

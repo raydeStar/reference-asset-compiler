@@ -4445,3 +4445,23 @@ baked colour and normals) now goes through the generic build
   strands were never counted). The rig gate fails without a waiver naming an
   approver: Mark's decision (waiver, fewer hair triangles, or a hair
   allowance). No PIE check yet (GPU).
+
+## 2026-10-09 — character-02's hair at 26,990 triangles; the owner's accepted overrun (Claude)
+
+Mark, on the hair's 127k total: "cut the hair to what is reasonable and accept
+that. make sure with the lower count nothing appears too messy. I am ok with
+characters being as big as they need to be (within reason)".
+
+- Compared 56k / 37k / 27k / 21k / 18k shipped triangles on the same views
+  and close crops (CHARACTER_MESH_HAIR.md, "Triangles"). 27k (30,000
+  requested) is the lowest that stays clean; 21k showed a stray shard and a
+  banded crown, 18k lost the fringe.
+- `reduce_mesh_hair.py` drops the repeated faces its collapse makes (Blender's
+  validation dropped them at the bake, so receipts overstated the count), and
+  `build_mesh_hair.py` records `triangles_shipped` and warns when a count
+  misses the request by more than 2%.
+- Recipe `budget_waiver` (reason, approver, date, the owner's words,
+  `max_triangles`): folded into the gate's profiles; `gate_rig.py` fails above
+  `max_triangles`; the receipt keeps it.
+- character-02: recipe `character-02-mesh-hair-27k-20261009`, build
+  `work/character-02/rebuild-v12-mesh-hair-27k` (CPU).

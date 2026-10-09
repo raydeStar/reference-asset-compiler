@@ -13,7 +13,9 @@ Usage:
 --head is the character's own head (the one the build uses); the hair is
 carried onto it from the scan's conform. Writes DIR/hair-mesh.npz,
 hair-mesh-basecolor.png, hair-mesh-normal.png (the bundle's inputs of those
-names) and DIR/mesh-hair.json.
+names) and DIR/mesh-hair.json, whose triangles_shipped is the count in
+hair-mesh.npz; a count more than 2% from --triangles is a WARNING (stderr and the
+receipt's warnings).
 """
 
 from __future__ import annotations
@@ -26,7 +28,11 @@ import sys
 import time
 from pathlib import Path
 
+import numpy as np
+
 HERE = Path(__file__).resolve().parent
+sys.path.insert(0, str(HERE))
+from reduce_mesh_hair import count_warning  # noqa: E402
 
 
 def sha(path):
@@ -67,14 +73,20 @@ def main(argv=None):
     run(blender + [HERE / "blender/bake_mesh_hair.py", "--", work / "hair-on-head.npz",
                    work / "hair-full-basecolor.png", work / "hair-low.npz", out,
                    "--size", a.texture_size, "--cage", a.cage])
+    shipped = int(len(np.load(out / "hair-mesh.npz")["tris"]))
+    warning = count_warning(a.triangles, shipped, "the shipped hair")
+    if warning:
+        print("WARNING: " + warning, file=sys.stderr)
     receipt = {"stage": "build_mesh_hair", "scan": str(a.scan), "scan_sha256": sha(a.scan),
                "scan_conform_sha256": sha(a.scan_conform), "head": str(a.head), "head_sha256": sha(a.head),
-               "yaw_deg": a.yaw_deg, "triangles": a.triangles, "texture_size": a.texture_size, "cage_m": a.cage,
+               "yaw_deg": a.yaw_deg, "triangles_requested": a.triangles, "triangles_shipped": shipped,
+               "warnings": [warning] if warning else [], "texture_size": a.texture_size, "cage_m": a.cage,
                "outputs": {name: sha(out / name) for name in
                            ("hair-mesh.npz", "hair-mesh-basecolor.png", "hair-mesh-normal.png")},
                "steps": steps}
     (out / "mesh-hair.json").write_text(json.dumps(receipt, indent=2), encoding="utf-8")
-    print(json.dumps({"out": str(out), "seconds": round(sum(s["seconds"] for s in steps), 1)}))
+    print(json.dumps({"out": str(out), "triangles_shipped": shipped, "warnings": receipt["warnings"],
+                      "seconds": round(sum(s["seconds"] for s in steps), 1)}))
 
 
 if __name__ == "__main__":

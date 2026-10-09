@@ -1,0 +1,276 @@
+{
+  "schema": "ennix-open-rebuild.v1",
+  "character": "profiles/characters/character-02.json",
+  "inputs": {
+    "body-acquisition.blend": {
+      "sha256": "8054e3414f82e4bc18d959da01354b17b5e6ece00bee078268afe3d090921325",
+      "bytes": 37802214,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\pixal3d\\body-acquisition.blend"
+    },
+    "body-back.png": {
+      "sha256": "3e2a6729bdfe0574778cd04815988ee8428aeaa2fa076ff8918bb1958ccaf6db",
+      "bytes": 1090115,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\final\\body-back.png"
+    },
+    "body-front.png": {
+      "sha256": "4142fb0748fc4347928031d52b5bd26b5e5f81f8867b19a1adb9f2ab067883d7",
+      "bytes": 976170,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\final\\body-front.png"
+    },
+    "body-left.png": {
+      "sha256": "64085d665f67f408b0cd67f69bebaa5a814b79eeed296c3d952e62988d7a440f",
+      "bytes": 6177,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\final\\body-left.png"
+    },
+    "front-landmarks.json": {
+      "sha256": "8b6def68006ce249ed883baaa1118e3fd6acde8547bee31ae751e43986fd1116",
+      "bytes": 6152,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\dw-front.json"
+    },
+    "hair-basecolor.png": {
+      "sha256": "19548a262ff563510278ee211e97a8dd6b71ee74aaa805e0ac2b2613a396c220",
+      "bytes": 3267077,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\paint\\hair_basecolor.png"
+    },
+    "hair-mesh-basecolor.png": {
+      "sha256": "d9e0f0701e6ae41b7add665b2fdbd11c7112112210a47dbcd6ce63938c797d96",
+      "bytes": 2765514,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\hair-mesh\\final-30k\\hair-mesh-basecolor.png"
+    },
+    "hair-mesh-normal.png": {
+      "sha256": "32e49c8577adcfa14f04b5f6c09369733e1eb404150eda3cf84226b6476022ef",
+      "bytes": 3472470,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\hair-mesh\\final-30k\\hair-mesh-normal.png"
+    },
+    "hair-mesh.npz": {
+      "sha256": "0ba01c8ceb2dabccb622294962cb39a23106c9b60cc910cf8d7d0cc1058fa658",
+      "bytes": 1443966,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\hair-mesh\\final-30k\\hair-mesh.npz"
+    },
+    "hair.npz": {
+      "sha256": "0df6abcce0905be11de6ca3c7de9028bfad4121d13bcb37773ba26a1e0653dd1",
+      "bytes": 598482,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\hair-smooth.npz"
+    },
+    "head-basecolor.png": {
+      "sha256": "cd7a93d6f7df80e1c8ab041c0656b421a1d4e7c8eb95a99f94154aa49f1d8262",
+      "bytes": 2191873,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\paint\\head_basecolor_clean.png"
+    },
+    "head-front.png": {
+      "sha256": "722dc24f745acf6aa22624d74821db5ea2eb3463efc9224fe58c9e7154f1856b",
+      "bytes": 1349405,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\clean\\head-front.png"
+    },
+    "head-left.png": {
+      "sha256": "d8a8d2c6e0bf1b9ce27443490f4f51e6d977f2835ec5e4cbbb58d44c6272eb94",
+      "bytes": 1431305,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\clean\\head-left.png"
+    },
+    "head.json": {
+      "sha256": "0fec4e25ae690b562775203f89e5a03df3034c95b2833a241e74b7b8159b8285",
+      "bytes": 13999,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\head.json"
+    },
+    "head.npz": {
+      "sha256": "89ceb8e8c4d75bdcb846c7528a2182abbeea54030f72f4ee3f8db40808d38748",
+      "bytes": 30953702,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\head.npz"
+    },
+    "makehuman/teeth/teeth_base/teeth.mhmat": {
+      "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
+      "bytes": 1086,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rebuild-inputs\\makehuman\\teeth\\teeth_base\\teeth.mhmat"
+    },
+    "makehuman/teeth/teeth_base/teeth.png": {
+      "sha256": "d0afb57869c6fbb56b98f5efc4aec629ee7593e70d8dd2bfb9de923acfb65f43",
+      "bytes": 1799930,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rebuild-inputs\\makehuman\\teeth\\teeth_base\\teeth.png"
+    },
+    "makehuman/teeth/teeth_base/teeth_base.mhclo": {
+      "sha256": "9edc3deff3bb97a95c791878064dd069a74a38f95ea6d9707a9ba68d888b3b5c",
+      "bytes": 263220,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rebuild-inputs\\makehuman\\teeth\\teeth_base\\teeth_base.mhclo"
+    },
+    "makehuman/teeth/teeth_base/teeth_base.obj": {
+      "sha256": "f55198069e55d360c4b4cc7ecb1cc292b2c7665753ab8b65eabf46a8783f2875",
+      "bytes": 313110,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rebuild-inputs\\makehuman\\teeth\\teeth_base\\teeth_base.obj"
+    },
+    "makehuman/tongue/tongue01/tongue01.mhclo": {
+      "sha256": "61d825899cd78ff3146fa1324118060cb44b095fae1427d408c199ade74e3c9e",
+      "bytes": 2113,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rebuild-inputs\\makehuman\\tongue\\tongue01\\tongue01.mhclo"
+    },
+    "makehuman/tongue/tongue01/tongue01.mhmat": {
+      "sha256": "7769df66c69b8c09a0ec713d70d8381abbb08ac82207369f5413970495cd4340",
+      "bytes": 1261,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rebuild-inputs\\makehuman\\tongue\\tongue01\\tongue01.mhmat"
+    },
+    "makehuman/tongue/tongue01/tongue01.obj": {
+      "sha256": "12f4a6a9f85abae2ce3b4aa42d8119e1f679a437e0e89cb928ec68b29a7a1587",
+      "bytes": 17155,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rebuild-inputs\\makehuman\\tongue\\tongue01\\tongue01.obj"
+    },
+    "makehuman/tongue/tongue01/tongue01_diffuse.png": {
+      "sha256": "3150be398e48e8ba1feac164c3143c16c0b2e959d9ffb6155f0171f59cfb4ea9",
+      "bytes": 625419,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rebuild-inputs\\makehuman\\tongue\\tongue01\\tongue01_diffuse.png"
+    },
+    "original-head-crop.png": {
+      "sha256": "361f55d303398f9da4386ac1b99a946e5cf60a1a459b2c4c1e9479f18d203147",
+      "bytes": 546667,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\placement-head-v2\\reference-head-crop.png"
+    },
+    "original-landmarks.json": {
+      "sha256": "f6c1d9b973b62a568ead518e4738f65868be0f8599a2d654d78914dd7d36bd54",
+      "bytes": 6170,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\placement-head-v2\\reference-landmarks.json"
+    },
+    "original.png": {
+      "sha256": "61ad4616a13e6eb6c1e45463ae497eff416de17d04d74ea9e7a19d94066830e4",
+      "bytes": 871175,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\final\\original.png"
+    },
+    "placement.json": {
+      "sha256": "830c1a32024e9045324eabab2e14b71c370c44c21ed2ac31f7b5c0ce82df88ee",
+      "bytes": 2571,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\placement-head-v2\\placement.json"
+    },
+    "template.npz": {
+      "sha256": "d559a1902097b11ed5cddcf9d2f2e6a5ea949531f6bf84f6ca6eea0242934c8a",
+      "bytes": 969687,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\template\\hm08-male.npz"
+    }
+  },
+  "groom": {
+    "guides": 300,
+    "children": 255,
+    "seed": 7,
+    "wave": 0.25,
+    "wave_length": [
+      0.07,
+      0.12
+    ],
+    "curl": 0.6,
+    "clump": 0.9,
+    "strays": 0.05,
+    "length": [
+      0.08,
+      0.16
+    ],
+    "volume": 1.0,
+    "envelope_max": 0.085,
+    "tip_flick": 0.35,
+    "layer_wave": 0.14,
+    "part_min_sweep": 0.0,
+    "fringe": 0.3,
+    "fringe_sweep": 1.2,
+    "side_back": 0.9,
+    "strand_radius": 0.00016,
+    "nape_drop": 0.0,
+    "extra_children": 0,
+    "clump_power": 2.0,
+    "blend_guides": 3,
+    "blend_sigma": 0.0,
+    "lock_thickness": 0.0012
+  },
+  "character_tier": "hero",
+  "body": {
+    "garment_triangles": 48000,
+    "hand_triangles": 6000,
+    "hands_beyond_abs_x_m": 0.72,
+    "measure_samples": 40000
+  },
+  "samples": 32,
+  "resolution": 768,
+  "production_ready": false,
+  "license_sources": [
+    "https://static.makehumancommunity.org/assets/assetpacks/makehuman_system_assets.html",
+    "https://static.makehumancommunity.org/about/license.html"
+  ],
+  "ue5": {
+    "arm_ratio": 0.42,
+    "note": "Manny-conformant rig via scripts/rig_ue5_character.py; needs --manny-dir from scripts/ue5/dump_manny_reference.py"
+  },
+  "face_paint": {
+    "blush_keep": 0.6,
+    "blush_radius": 0.03,
+    "nose_blush": 0.6,
+    "blush_sigma": 0.004,
+    "blush_spread": 0.008,
+    "stubble_strength": 0.0,
+    "moustache_width": [
+      0.007,
+      0.003
+    ],
+    "moustache_droop": [
+      0.004,
+      0.006
+    ],
+    "soul_width": [
+      0.0025,
+      0.006
+    ],
+    "jaw_up": [
+      0.026,
+      0.02
+    ],
+    "jaw_down": 0.012,
+    "jaw_angle": [
+      0.008,
+      0.01
+    ],
+    "sideburn": [
+      0.025,
+      0.006,
+      0.4
+    ],
+    "density": [
+      0.85,
+      1.0,
+      1.0,
+      0.6
+    ],
+    "front_keep": 1.0,
+    "lighten_side": 1.0,
+    "stubble_sigma": 0.002,
+    "grain": [
+      1.5,
+      0.0006,
+      0.00022,
+      0.6,
+      7
+    ],
+    "side_detail": 0.08,
+    "hairline_above_eyes": 0.062,
+    "temple_behind_eyes": 0.03,
+    "sideburn_roots": 0.025,
+    "root_strength": 0.85,
+    "root_fade_out": 0.008,
+    "root_ramp_in": 0.012,
+    "root_gamma": 1.6,
+    "root_round": 0.006,
+    "ear_tone": 0.5,
+    "ear_feather": 0.005,
+    "ear_lightness": 0.3,
+    "neck_tone": 1.0,
+    "neck_lightness": 1.0,
+    "neck_probe": [
+      0.025,
+      0.06
+    ],
+    "neck_ramp": 0.015
+  },
+  "hair": {
+    "mode": "mesh"
+  },
+  "revision_note": "character-02 (2026-10-09): v10's inputs and settings with mesh hair (the Pixal3D scan's locks, docs/CHARACTER_MESH_HAIR.md) in place of the strand groom, over a scalp cap; hair 26,990 triangles",
+  "budget_waiver": {
+    "reason": "Mesh hair in place of the strand groom, which was never counted: 26,990 triangles of hair, the lowest count that stays clean (at 21k a stray shard sat on the forehead and the crown's paint banded; at 18k the fringe was lost), puts the hero over the tier's 80,000",
+    "approved_by": "Mark",
+    "date": "2026-10-09",
+    "words": "cut the hair to what is reasonable and accept that. make sure with the lower count nothing appears too messy. I am ok with characters being as big as they need to be (within reason)",
+    "max_triangles": 100000
+  }
+}

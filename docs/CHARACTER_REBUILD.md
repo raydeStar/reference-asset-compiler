@@ -100,8 +100,24 @@ runs on its own.
 | `blender/pose_character_review.py` | held pose, head turn, expressions | `asset_prefix`, `review_views` |
 | `blender/audit_semantic_fingerprint.py` | the semantic fingerprint (below) | |
 | `validate_silhouette.py` | front silhouette against the painting | |
-| `blender/gate_rig.py` | strict rig and triangle gate (recipe `character_tier`) | |
+| `blender/gate_rig.py` | strict rig and triangle gate (recipe `character_tier`; a recipe `budget_waiver` is the owner's accepted overrun, below) | |
 | `blender/deform_test.py` | deformation checks | |
+
+### An accepted triangle overrun
+
+A character over its tier's ceiling fails `gate_rig.py`. When the owner
+accepts the overrun, the recipe records it, never the gate's command line:
+
+```json
+"budget_waiver": {"reason": "...", "approved_by": "Mark", "date": "2026-10-09",
+                  "words": "<the owner's own words>", "max_triangles": 100000}
+```
+
+`reason`, `approved_by`, `date` and `max_triangles` are required (the build
+stops before it starts without them). The runner gates against copies of the
+skeleton profiles carrying it (`export/*+waiver.json`); the gate passes with a
+warning naming the approver and the date, and fails above `max_triangles`. The
+receipt keeps the waiver, and its limits line says who accepted what.
 
 ## The character profile
 

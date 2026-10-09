@@ -3,7 +3,8 @@
 Validates a skeletal FBX (or .blend) against a declared skeleton profile. There
 is no --force flag and there will not be one. The one escape hatch is
 `tri_budget_waiver` in the profile, which must name a reason and an approver;
-an exceeded budget without a waiver is a hard failure.
+an exceeded budget without a waiver is a hard failure. A waiver that also
+names `max_triangles` covers no more than that.
 
 The triangle ceiling is the character's tier when one is declared -- `--tier`,
 or `character_tier` folded into the profile -- read from
@@ -376,13 +377,21 @@ def main() -> int:
     report["tri_budget_rule"] = budget_rule
     waiver = profile.get("tri_budget_waiver")
     if budget is not None and total_tris > budget:
-        if waiver and waiver.get("reason") and waiver.get("approved_by"):
+        cap = waiver.get("max_triangles") if waiver else None
+        if waiver and waiver.get("reason") and waiver.get("approved_by") and cap and total_tris > cap:
+            failures.append(
+                "budget: {0} tris exceeds even the {1} {2} waived".format(total_tris, cap, waiver["approved_by"])
+            )
+            report["budget_waived"] = False
+        elif waiver and waiver.get("reason") and waiver.get("approved_by"):
             warnings.append(
-                "budget: {0} tris exceeds {1} -- WAIVED by {2}: {3}".format(
-                    total_tris, budget, waiver["approved_by"], waiver["reason"]
+                "budget: {0} tris exceeds {1} -- WAIVED by {2}{3}: {4}".format(
+                    total_tris, budget, waiver["approved_by"],
+                    " on {0}".format(waiver["date"]) if waiver.get("date") else "", waiver["reason"]
                 )
             )
             report["budget_waived"] = True
+            report["tri_budget_waiver"] = waiver
         else:
             tier = budget_rule.get("character_tier")
             failures.append(

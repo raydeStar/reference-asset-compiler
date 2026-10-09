@@ -1208,3 +1208,18 @@ the solid. Treat any envelope fallback as a failure.
 - Hair in the skeletal mesh counts against the character tier; a groom never
   did. 56k triangles of hair put character-02 at 127k against the hero tier's
   80k. That is a policy decision for the owner, not a gate to loosen.
+
+## 2026-10-09 — what a mesh hair's triangle count costs, and how an overrun is accepted
+
+- fast-simplification collapses a thin blade's two sides onto the same three
+  vertices; Blender's mesh validation then drops the copy at the bake. A
+  receipt that reports the reducer's count overstates the shipped mesh by
+  about 10% (40,000 requested, 36,587 shipped). Count what ships.
+- Below about 27k triangles character-02's scanned hair degrades in the ways
+  that read as mess: a lone shard on the forehead, bake paint banding in the
+  crown, blades merging into facets, and at 18k a fringe collapsed to a
+  straight hairline. Silhouette metrics and the scalp-gap count did not flag
+  any of it; the close crops did.
+- An accepted overrun belongs in the recipe with the approver, the date, the
+  owner's words and a ceiling, not in a gate flag: a waiver without a ceiling
+  would quietly cover a heavier mesh later.

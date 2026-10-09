@@ -88,3 +88,30 @@ def test_an_unknown_tier_stops_the_gate(skinned_cube, tmp_path):
     assert result.returncode != 0
     assert not report.exists()
     assert 'Unknown character tier' in result.stdout + result.stderr
+
+
+def waived(tmp_path, source, waiver):
+    profile = tmp_path / 'waived.json'
+    profile.write_text(json.dumps({**PROFILE, 'tri_budget_waiver': waiver}))
+    report = tmp_path / 'waived-report.json'
+    return gate(source, profile, report), report
+
+
+def test_a_waiver_passes_an_overrun_with_a_warning(skinned_cube, tmp_path):
+    source, _ = skinned_cube
+    result, report = waived(tmp_path, source, {'reason': 'owner accepted', 'approved_by': 'Mark',
+                                               'date': '2026-10-09', 'max_triangles': 12})
+    assert result.returncode == 0, result.stdout + result.stderr
+    verdict = json.loads(report.read_text())
+    assert verdict['budget_waived'] and verdict['tri_budget_waiver']['approved_by'] == 'Mark'
+    assert any('WAIVED by Mark on 2026-10-09' in w for w in verdict['warnings'])
+
+
+def test_a_waiver_covers_no_more_than_its_max_triangles(skinned_cube, tmp_path):
+    source, _ = skinned_cube
+    result, report = waived(tmp_path, source, {'reason': 'owner accepted', 'approved_by': 'Mark',
+                                               'max_triangles': 11})
+    assert result.returncode == 1
+    verdict = json.loads(report.read_text())
+    assert not verdict['budget_waived']
+    assert any('exceeds even the 11 Mark waived' in f for f in verdict['failures'])

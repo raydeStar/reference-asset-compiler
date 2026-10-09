@@ -11,6 +11,12 @@ The hair is a strand groom grown in the build (the default) or, with a recipe
 block `"hair": {"mode": "mesh"}`, the frozen mesh hair of
 docs/CHARACTER_MESH_HAIR.md: no groom and no Alembic, a scalp cap under the
 locks, and the hair's maps beside the game FBX in export/.
+
+A character over its tier's triangle ceiling fails the rig gate unless the
+recipe records the owner's acceptance: `budget_waiver` with a reason, the
+approver, the date and the most triangles accepted (`max_triangles`). The
+gate then passes with a warning, never above that number, and the receipt's
+limits say who accepted what.
 """
 from __future__ import annotations
 
@@ -107,6 +113,36 @@ def hair_options(recipe):
     return mode, dict(hair.get("cap", {}))
 
 
+WAIVER_KEYS = ("reason", "approved_by", "date", "max_triangles")
+
+
+def budget_waiver(recipe):
+    """The recipe's accepted triangle overrun (`budget_waiver`), or None.
+
+    The gate's own rule needs a reason and an approver; a character's
+    acceptance also names its date and the most triangles it covers, so it
+    cannot quietly cover a bigger mesh later.
+    """
+    waiver = recipe.get("budget_waiver")
+    if waiver is None:
+        return None
+    missing = [key for key in WAIVER_KEYS if not waiver.get(key)]
+    if missing:
+        raise ValueError("The recipe's budget_waiver needs " + ", ".join(missing) + ".")
+    if not isinstance(waiver["max_triangles"], int) or waiver["max_triangles"] <= 0:
+        raise ValueError("The recipe's budget_waiver.max_triangles must be a positive whole number.")
+    return dict(waiver)
+
+
+def waived_profile(profile_path, waiver, out_dir):
+    """A copy of a skeleton profile carrying the waiver (gate_rig.py reads tri_budget_waiver from it)."""
+    profile = json.loads(Path(profile_path).read_text(encoding="utf-8"))
+    profile["tri_budget_waiver"] = waiver
+    path = Path(out_dir) / (Path(profile_path).stem + "+waiver.json")
+    path.write_text(json.dumps(profile, indent=2), encoding="utf-8")
+    return path
+
+
 def coat_skeleton_profile(skeleton, coat_receipt):
     """The skeleton contract plus a coat's chain bones, so the rig gate can check the coated FBX.
 
@@ -151,6 +187,7 @@ def main():
         body_args = body_reduction_options(recipe, character)
         coat = resolve_coat(character.get("coat"))
         hair_mode, cap_options = hair_options(recipe)
+        waiver = budget_waiver(recipe)
     except ValueError as error:
         p.error(str(error))
     if out.exists():
@@ -353,6 +390,10 @@ def main():
         # A coated FBX is gated against the skeleton plus its coat chains.
         ue5_skeleton = out / "export/skeleton-ue5-coat.json" if "coat" in receipt else skeleton
         gates.append((out / f"export/{prefix}_UE5.fbx", out / "export/gate-rig-ue5.json", ue5_skeleton))
+    if waiver:
+        # The owner's recorded acceptance of the overrun (budget_waiver), up to its max_triangles.
+        receipt["budget_waiver"] = waiver
+        gates = [(fbx, report, waived_profile(profile, waiver, out / "export")) for fbx, report, profile in gates]
     for fbx, report, profile in gates:
         run("blender/gate_rig.py", [fbx, profile, report, *tier],
             True, allowed_codes=(0, 1))
@@ -369,6 +410,9 @@ def main():
         gate["total_tris"], "within" if gate["total_tris"] <= gate["tri_budget"] else "exceed",
         "the {0} tier's ceiling".format(tier_id) if tier_id else "the skeleton profile's flat ceiling",
         gate["tri_budget"])
+    if waiver and gate["total_tris"] > gate["tri_budget"]:
+        budget_limit += "; accepted by {0} on {1} up to {2:,}: {3}".format(
+            waiver["approved_by"], waiver["date"], waiver["max_triangles"], waiver["reason"])
     receipt["limits"] = ["Human likeness and texture approval pending", "No cooked runtime proof",
         budget_limit, "Held inspection pose is not a moving idle"]
     if derived_landmarks:
