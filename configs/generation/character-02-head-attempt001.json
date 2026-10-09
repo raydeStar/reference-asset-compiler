@@ -1,0 +1,38 @@
+{
+  "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+  "mode": "multiview",
+  "asset_id": "character-02-head",
+  "workspace": "${RAC_REPO_ROOT}/work/character-02-head",
+  "source_authority": {
+    "path": "${RAC_REPO_ROOT}/work/character-02-head/references/primary.png",
+    "sha256": "cb5394d5ca0696291dbe0ae54ab3b2b25c7df76805277ed50e95d16f37049867"
+  },
+  "derivation_report": {
+    "path": "${RAC_REPO_ROOT}/work/character-02-head/references/guidance/derivation-report.json",
+    "sha256": "bddd08cf48f5f0d5cfbedf1c31a15a594eb2f25a91b83730bffd03cb8c51c46d"
+  },
+  "inputs": [
+    {
+      "view": "front",
+      "path": "${RAC_REPO_ROOT}/work/character-02-head/references/guidance/front.png",
+      "sha256": "e4b05fcf6b4a920d1060d3231a308c721d50684cea9eb9a0e10080b4aa5a5830"
+    },
+    {
+      "view": "left",
+      "path": "${RAC_REPO_ROOT}/work/character-02-head/references/guidance/left.png",
+      "sha256": "161528490ab5225bab163385f23346aec681d06c54fb582e8366f3e6493c7b1f"
+    },
+    {
+      "view": "back",
+      "path": "${RAC_REPO_ROOT}/work/character-02-head/references/guidance/back.png",
+      "sha256": "15688ccec77230f4d2255c08ad191a69c74f17251fa41ee42a3fc593b96641c0"
+    }
+  ],
+  "parameters": {
+    "seed": 42,
+    "steps": 40,
+    "octree_resolution": 512,
+    "chunks": 20000
+  },
+  "output_directory": "${RAC_REPO_ROOT}/work/character-02-head/candidates/hy3d-mv-seed42-attempt001"
+}

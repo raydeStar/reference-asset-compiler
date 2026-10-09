@@ -1,0 +1,24 @@
+{
+  "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+  "mode": "single_view",
+  "asset_id": "character-02-body-tpose",
+  "workspace": "${RAC_REPO_ROOT}/work/character-02-body-tpose",
+  "source_authority": {
+    "path": "${RAC_REPO_ROOT}/work/character-02-body-tpose/references/primary.png",
+    "sha256": "61ad4616a13e6eb6c1e45463ae497eff416de17d04d74ea9e7a19d94066830e4"
+  },
+  "inputs": [
+    {
+      "view": "primary",
+      "path": "${RAC_REPO_ROOT}/work/character-02-body-tpose/references/primary.png",
+      "sha256": "61ad4616a13e6eb6c1e45463ae497eff416de17d04d74ea9e7a19d94066830e4"
+    }
+  ],
+  "parameters": {
+    "seed": 42,
+    "steps": 40,
+    "octree_resolution": 512,
+    "chunks": 20000
+  },
+  "output_directory": "${RAC_REPO_ROOT}/work/character-02-body-tpose/candidates/hy3d-single-seed42-attempt001"
+}

@@ -1,0 +1,11 @@
+{
+  "_comment": "Where character-02's garments can be (metres, character space centred on z=0: x across, y front-negative, z up). Palette: a dark navy wool coat, a cream shirt open to the sternum, brown leather belts/straps/pouch, black trousers, tall black boots. The coat and shirt are slightly saturated (navy chroma ~12, cream ~12), so cloth takes everything under chroma 20; the brown leather (chroma > 20) stays leather. The black boots read as cloth by colour (a known limit of colour-only classes). Bare skin: the hands, the neck and the open shirt's chest.",
+  "cloth_max_chroma": 20.0,
+  "skin_region_m": {
+    "min_abs_x": 0.71,
+    "neck_abs_x": 0.12,
+    "neck_min_z": 0.4
+  },
+  "skin_region_min_L": 30.0,
+  "hands_beyond_abs_x_m": 0.72
+}
