@@ -110,8 +110,8 @@
   ],
   "coat": {
     "chains": {
-      "front_l": 40,
-      "front_r": -40,
+      "front_l": 60.0,
+      "front_r": -60.0,
       "side_l": 90,
       "side_r": -90,
       "back_l": 150,
@@ -121,7 +121,8 @@
     "top_below_pelvis_m": 0.04,
     "hem_above_knee_m": 0.0,
     "leg_clearance_m": 0.12,
-    "open_front": true
+    "open_front": true,
+    "_chains_front": "The coat hangs open: at the hem its front panels sit at +-50 to 70 deg from forward (the band between +-40 is the trousers), so the front chains are at +-60. At +-40 they found no hem. 2026-10-09."
   },
   "_coat": "Knee-length navy coat, open at the front: front chains at +-40 deg land on each panel, side chains on the hips, back chains on the tails. Check the coat receipt's hem_found per chain after the build."
 }
