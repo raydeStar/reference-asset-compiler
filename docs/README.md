@@ -22,6 +22,7 @@ escalations are retained verbatim so nobody repeats them. Start with
 - [SCENE_TOOLS.md](SCENE_TOOLS.md) — atmosphere recipes, protected UE derivatives, portable review pages.
 - [CHARACTER_HEAD_AND_NECK.md](CHARACTER_HEAD_AND_NECK.md) — source-locked head fit and repeatable neck transition.
 - [CHARACTER_REBUILD.md](CHARACTER_REBUILD.md) — rebuild a rigged, groomed, painted character from frozen inputs, a recipe and a character profile; what is still tuned to the first character.
+- [CHARACTER_FRONT_END.md](CHARACTER_FRONT_END.md) — from reference pictures to that frozen input bundle and recipe, step by step, each step marked CPU or GPU.
 - [ENNIX_REBUILD.md](ENNIX_REBUILD.md) — Ennix's case study: each recipe's change, the reviews and the remaining gates.
 - [CHARACTER_ANIMATION.md](CHARACTER_ANIMATION.md) — pose-first authoring, relaxed-idle checks, exported-clip review and rejection handling.
 - [REGIONAL_CHARACTER_TEXTURES.md](REGIONAL_CHARACTER_TEXTURES.md) — rig-preserving regional UVs, independent head/clothing paint and seam-normal repair.

@@ -135,6 +135,8 @@ fixed names: `face-paint/head_basecolor.png`, `body/paint/body_basecolor.png`,
 
 ## A new character
 
+[CHARACTER_FRONT_END.md](CHARACTER_FRONT_END.md) has the whole path, with commands.
+
 1. Freeze the inputs into a bundle and write a recipe listing their hashes
    (copy the newest recipe's shape).
 2. Copy `profiles/characters/ennix.json`, set the names, and measure the
