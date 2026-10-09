@@ -26,6 +26,47 @@ def sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
 
+def face_proportions_options(character):
+    """transport_face_proportions.py's options from the profile (none: no corner lift)."""
+    lift = character.get("face_proportions", {}).get("mouth_corner_lift_mm")
+    return ["--mouth-corner-lift", *lift] if lift else []
+
+
+def body_reduction_options(recipe, character):
+    """prepare_body_acquisition.py's counts (recipe) and where the hands begin.
+
+    Recipes from 20261010 give hands and garment their own count (a body block);
+    older ones one uniform count. Where the hands begin belongs to the
+    character's pose: the profile's body.hands_beyond_abs_x_m. Recipes 20261010
+    and 20261011 carry it in their body block, which stands in when the profile
+    has none; two different values stop the build.
+    """
+    if "body" not in recipe:
+        return ["--triangles", recipe["body_review_triangles"]]
+    body = recipe["body"]
+    profile_x = character.get("body", {}).get("hands_beyond_abs_x_m")
+    recipe_x = body.get("hands_beyond_abs_x_m")
+    if profile_x is not None and recipe_x is not None and profile_x != recipe_x:
+        raise ValueError(f"The character profile puts the hands beyond |x| {profile_x} m and the "
+                         f"recipe beyond {recipe_x} m; keep one value (the profile's body.hands_beyond_abs_x_m).")
+    hands_x = recipe_x if profile_x is None else profile_x
+    if hands_x is None:
+        raise ValueError("The recipe gives the hands their own count; set where they begin in the "
+                         "character profile's body.hands_beyond_abs_x_m.")
+    return ["--triangles", body["garment_triangles"], "--hand-triangles", body["hand_triangles"],
+            "--hands-beyond-abs-x", hands_x, "--measure-samples", body.get("measure_samples", 0)]
+
+
+def body_paint_options(character):
+    """paint_body_from_views.py's registration and paint options from the profile."""
+    camera, paint = character["source_camera"], character["body_paint"]
+    options = ["--px-per-m", camera["px_per_m"], "--front-origin", *camera["front_origin_px"],
+               "--side-origin", *camera["side_origin_px"], "--side-band", *paint["side_band_abs_x_m"]]
+    if paint.get("unmirrored_red"):
+        options += ["--unmirrored-red", *paint["unmirrored_red"]]
+    return options
+
+
 def main():
     p = argparse.ArgumentParser()
     p.add_argument("--inputs", required=True)
@@ -46,6 +87,10 @@ def main():
     character = json.loads(character_path.read_text())
     prefix = character["asset_prefix"]
     outfit_params = ROOT / character["outfit_paint_params"]
+    try:
+        body_args = body_reduction_options(recipe, character)
+    except ValueError as error:
+        p.error(str(error))
     if out.exists():
         p.error("Choose a fresh output directory; old fittings are evidence, sir.")
     for name, info in recipe["inputs"].items():
@@ -108,7 +153,8 @@ def main():
             args += ["--" + key.replace("_", "-"), *(value if isinstance(value, list) else [value])]
         return args
 
-    run("transport_face_proportions.py", [local / "head.npz", local / "head.json", local / "original-landmarks.json", out / "head.npz"])
+    run("transport_face_proportions.py", [local / "head.npz", local / "head.json", local / "original-landmarks.json", out / "head.npz",
+        *face_proportions_options(character)])
     run("reproject_face_paint.py", ["--template", local / "template.npz", "--head", local / "head.npz",
         "--receipt", local / "head.json", "--texture", local / "head-basecolor.png",
         "--original-landmarks", local / "original-landmarks.json", "--out", out / "paint", "--restore-brows"])
@@ -132,21 +178,11 @@ def main():
     run("blender/fit_oral_anatomy.py", [out / "head-before-anatomy.blend", out / "head.npz",
         local / "makehuman", out / "head.blend", "--template", local / "template.npz", "--name", prefix,
         "--mouth-box", *oral["mouth_box_m"], "--neck", *oral["neck_m"]], True)
-    if "body" in recipe:
-        # Hands and garment each get their own count (recipe 20261010 onward).
-        body = recipe["body"]
-        body_args = ["--triangles", body["garment_triangles"], "--hand-triangles", body["hand_triangles"],
-                     "--hands-beyond-abs-x", body["hands_beyond_abs_x_m"],
-                     "--measure-samples", body.get("measure_samples", 0)]
-    else:
-        body_args = ["--triangles", recipe["body_review_triangles"]]
     run("blender/prepare_body_acquisition.py", [local / "body-acquisition.blend", out / "body", *body_args,
         "--body-object", character["inputs"]["body_object"]], True)
-    camera, body_paint = character["source_camera"], character["body_paint"]
+    camera = character["source_camera"]
     run("paint_body_from_views.py", [out / "body/body.npz", local / "body-front.png", local / "body-back.png",
-        out / "body/paint", "--side", local / "body-left.png", "--px-per-m", camera["px_per_m"],
-        "--front-origin", *camera["front_origin_px"], "--side-origin", *camera["side_origin_px"],
-        "--side-band", *body_paint["side_band_abs_x_m"], "--unmirrored-red", *body_paint["unmirrored_red"]])
+        out / "body/paint", "--side", local / "body-left.png", *body_paint_options(character)])
     # Game garment materials: mask, cleaned albedo and detail normals (the game imports outfit-paint/).
     run("refine_outfit_paint.py", [out / "body/body.npz", out / "body/paint/body_basecolor.png",
         out / "body/paint/coverage.png", out / "outfit-paint", "--params", outfit_params])

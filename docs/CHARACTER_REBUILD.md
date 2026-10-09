@@ -70,13 +70,13 @@ runs on its own.
 
 | Stage | Does | Profile |
 | --- | --- | --- |
-| `transport_face_proportions.py` | moves the conformed head's lower face to the painting's proportions | (tuned, see below) |
+| `transport_face_proportions.py` | moves the conformed head's lower face to the painting's proportions | `face_proportions`; zones tuned, see below |
 | `reproject_face_paint.py` | reprojects the painting onto the face; continuous neck paint | (tuned, see below) |
 | `refine_face_paint.py` | measured blush, stubble, hairline, ear and neck tone (recipe `face_paint`) | |
 | `blender/grow_hair_groom.py` | seeded strand groom (recipe `groom`) | |
 | `blender/render_painted_head.py` | head review renders; saves the head blend | |
 | `blender/fit_oral_anatomy.py` | CC0 teeth and tongue, mouth interior, neck extension | `asset_prefix`, `oral_anatomy` |
-| `blender/prepare_body_acquisition.py` | reduces the acquired outfit (recipe `body`), UVs it | `inputs.body_object` |
+| `blender/prepare_body_acquisition.py` | reduces the acquired outfit (recipe `body`), UVs it | `inputs.body_object`, `body` |
 | `paint_body_from_views.py` | bakes the source pictures onto the outfit | `source_camera`, `body_paint` |
 | `refine_outfit_paint.py` | garment mask, cleaned albedo, detail normals | `outfit_paint_params` |
 | `blender/assemble_character.py` | places the head on the body, cuts the collar overlap, review renders | `asset_prefix`, `body_lift_m`, `source_camera`, `neck_overlap` |
@@ -95,7 +95,8 @@ runs on its own.
 ## The character profile
 
 `profiles/characters/<name>.json`. Keys starting with `_` are comments. Lengths
-are metres in character space (x across, y front-negative, z up, feet on z=0);
+are metres in character space (x across, y front-negative, z up, feet on z=0;
+x < 0 is the character's right), millimetres where the key ends in `_mm`;
 pixels are the source pictures'.
 
 | Key | Meaning |
@@ -103,8 +104,10 @@ pixels are the source pictures'.
 | `name` | the character's name, for logs and the receipt |
 | `asset_prefix` | prefixes every object, material and output file (below) |
 | `inputs.body_object` | the outfit's object inside `body-acquisition.blend` |
+| `face_proportions.mouth_corner_lift_mm` | optional: how far to raise the mouth corner on the character's right and on its left (straight up), restoring a source's lifted corners; absent, no lift |
 | `source_camera` | the painting's orthographic frame: `image_px`, `px_per_m`, and the pixel the body's origin lands on in the front (`front_origin_px`) and side (`side_origin_px`) pictures |
 | `body_lift_m` | raises the acquired body (centred on z=0) onto the floor |
+| `body.hands_beyond_abs_x_m` | where the acquired outfit's hands begin along the T-pose arms (\|x\|); needed when the recipe gives the hands their own count. Recipes 20261010 and 20261011 also carry it; if both do, they must agree |
 | `body_paint.side_band_abs_x_m` | the side picture paints fully within the first \|x\| and fades out by the second |
 | `body_paint.unmirrored_red` | optional: a red garment on one side only, kept out of the mirrored side view (R/G, R/B, below pixel row, grow px) |
 | `outfit_paint_params` | the outfit-paint profile |
@@ -130,7 +133,8 @@ fixed names: `face-paint/head_basecolor.png`, `body/paint/body_basecolor.png`,
 1. Freeze the inputs into a bundle and write a recipe listing their hashes
    (copy the newest recipe's shape).
 2. Copy `profiles/characters/ennix.json`, set the names, and measure the
-   source pictures' frame and the body's lift.
+   source pictures' frame, the body's lift and where its hands begin. Drop
+   Ennix's mouth-corner lift and unmirrored red unless the new source has them.
 3. Write an outfit-paint profile for its garments.
 4. Re-tune what is still the first character's (next section), then build and
    review.
@@ -143,7 +147,8 @@ head or framing choices, and a second character should derive them (from its
 head's landmarks, its height) rather than copy numbers.
 
 - `transport_face_proportions.py`: the lower-face deformation zone (above
-  z 1.50 m, front of y -0.04 m) and the mouth-corner lift at z 1.625 m.
+  z 1.50 m, front of y -0.04 m) and where a mouth-corner lift lands
+  (z 1.625 m, |x| 0.03 m).
 - `reproject_face_paint.py`: the face, mouth, neck and forehead blend zones
   (z 1.525-1.746 m, with their widths) and the forehead colour probe at
   z 1.739 m.
@@ -151,8 +156,6 @@ head's landmarks, its height) rather than copy numbers.
   sash, rolled sleeve, boots).
 - `blender/pose_character_review.py`: the ortho frame widths (2.05, 0.45 and
   0.37 m) that go with `review_views`.
-- `prepare_body_acquisition.py`'s `--hands-beyond-abs-x` default (0.80 m);
-  recipes pass the value.
 
 ## Determinism
 

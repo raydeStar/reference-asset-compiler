@@ -54,8 +54,8 @@ bpy.ops.wm.save_as_mainfile(filepath={str(source)!r})
 
 def test_hands_and_garment_each_reach_their_own_count(acquisition, tmp_path):
     blender('--python', ROOT / 'scripts/blender/prepare_body_acquisition.py', '--', acquisition, tmp_path,
-            '--triangles', 4000, '--hand-triangles', 2000, '--measure-samples', 500,
-            '--body-object', 'Acquired_Outfit')
+            '--triangles', 4000, '--hand-triangles', 2000, '--hands-beyond-abs-x', 0.8,
+            '--measure-samples', 500, '--body-object', 'Acquired_Outfit')
 
     receipt = json.loads((tmp_path / 'body-preparation.json').read_text())
     reduction = receipt['reduction']
@@ -82,3 +82,14 @@ def test_a_single_count_is_still_one_uniform_collapse(acquisition, tmp_path):
     receipt = json.loads((tmp_path / 'body-preparation.json').read_text())
     assert 'reduction' not in receipt
     assert receipt['triangles'] == pytest.approx(6000, rel=0.05)
+
+
+def test_hand_counts_need_the_characters_hand_boundary(acquisition, tmp_path):
+    # Where the hands begin is the character's pose; no first character's default.
+    result = subprocess.run([BLENDER, '-b', '--factory-startup', '--python-exit-code', '1', '--python',
+                             str(ROOT / 'scripts/blender/prepare_body_acquisition.py'), '--',
+                             str(acquisition), str(tmp_path / 'out'), '--hand-triangles', '2000'],
+                            capture_output=True, text=True, timeout=300)
+    assert result.returncode != 0
+    assert '--hands-beyond-abs-x' in result.stdout + result.stderr
+    assert not (tmp_path / 'out').exists()

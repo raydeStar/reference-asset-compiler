@@ -3,6 +3,10 @@
 Pure NumPy, deterministic, with every expression transported through the same
 smooth deformation. Original UVs/topology and the crown are preserved.
 
+--mouth-corner-lift is the character's: how far to raise each mouth corner to
+restore a source's lifted corners (rebuild_character.py passes it from
+profiles/characters/<name>.json; default none).
+
 Per-character (Ennix-tuned): the deformation's zones are heights and depths on
 the first character's conformed head (lower face above z 1.50 m, the mouth
 corner at 1.625 m). See docs/CHARACTER_REBUILD.md, "Still tuned to the first
@@ -36,7 +40,11 @@ def main():
     p.add_argument("receipt")
     p.add_argument("original_landmarks")
     p.add_argument("out")
+    p.add_argument("--mouth-corner-lift", type=float, nargs=2, default=(0.0, 0.0), metavar=("RIGHT_MM", "LEFT_MM"),
+                   help="raise the mouth corner on the character's right (x < 0) and left (x > 0) by these "
+                        "millimetres, for a source whose corners sit higher than the conformed head's (default: 0 0)")
     a = p.parse_args()
+    right_lift, left_lift = (mm / 1000 for mm in a.mouth_corner_lift)
     z = dict(np.load(a.source))
     rec = json.loads(Path(a.receipt).read_text())
     before = normalized(landmarks(rec["picture"]["landmarks"]))
@@ -56,11 +64,12 @@ def main():
         extent = np.clip((pos[:, 2] - 1.50) / 0.07, 0, 1)
         extent = extent * extent * (3 - 2 * extent)
         out[:, 2] += below * (1 - ratio) * front * extent
-        # Restore the source's subtle lifted corner, not a permanent broad grin.
-        x, y, height = pos.T
-        mouth = np.exp(-((height - 1.625) / 0.014) ** 2 - ((np.abs(x) - 0.030) / 0.014) ** 2)
-        mouth *= np.clip((-y - 0.08) / 0.045, 0, 1)
-        out[:, 2] += mouth * np.where(x < 0, 0.0023, 0.0010)
+        if right_lift or left_lift:
+            # Restore the source's subtle lifted corner, not a permanent broad grin.
+            x, y, height = pos.T
+            mouth = np.exp(-((height - 1.625) / 0.014) ** 2 - ((np.abs(x) - 0.030) / 0.014) ** 2)
+            mouth *= np.clip((-y - 0.08) / 0.045, 0, 1)
+            out[:, 2] += mouth * np.where(x < 0, right_lift, left_lift)
         return out
 
     new = deform(v)

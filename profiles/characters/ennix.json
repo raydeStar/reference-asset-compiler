@@ -7,6 +7,10 @@
     "body_object": "Ennix_Garment_And_Wrists_Preserved",
     "_body_object": "The acquired outfit's object inside body-acquisition.blend."
   },
+  "face_proportions": {
+    "mouth_corner_lift_mm": [2.3, 1.0],
+    "_mouth_corner_lift_mm": "Millimetres, straight up (+z): his painting's mouth corners sit higher than the conformed head's, so transport_face_proportions.py raises the corner on his right (x < 0) by 2.3 and on his left (x > 0) by 1.0. Where the lift lands (z 1.625 m, |x| 0.03 m) is still in the code."
+  },
   "source_camera": {
     "_comment": "The painting's orthographic frame: a 1536 x 1024 picture at 538.89 px per metre. The body, centred on z=0 as acquired, has its origin on these pixels in the front (and back) and the side pictures.",
     "image_px": [1536, 1024],
@@ -16,6 +20,10 @@
   },
   "body_lift_m": 0.899942875,
   "_body_lift_m": "Raises the acquired body (centred on z=0) so the feet stand on the floor.",
+  "body": {
+    "hands_beyond_abs_x_m": 0.8,
+    "_hands_beyond_abs_x_m": "The acquired outfit's preserved hands begin at |x| 0.80 m along his T-pose arms (the scan's density jumps there); prepare_body_acquisition.py gives them their own triangle count when the recipe asks for one."
+  },
   "body_paint": {
     "side_band_abs_x_m": [0.33, 0.45],
     "_side_band_abs_x_m": "The side picture paints fully within |x| 0.33 m and fades out by 0.45 m: end-on arms take the front and back pictures.",

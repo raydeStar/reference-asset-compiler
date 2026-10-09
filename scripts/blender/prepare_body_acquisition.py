@@ -5,8 +5,10 @@ uniform collapse of the whole acquisition, and it spends where the scan was
 dense rather than where the eye reads: the acquisition's preserved hands are two
 thirds of its 1.33M triangles, so a uniform 120k left about 29k on the hands.
 
-``--hand-triangles`` gives each region its own count. The hands (everything
-beyond ``--hands-beyond-abs-x`` along the T-pose arms) are collapsed to their
+``--hand-triangles`` gives each region its own count. The hands are everything
+beyond ``--hands-beyond-abs-x`` along the T-pose arms; that is the character's
+pose (rebuild_character.py passes it from the profile), so it has no default and
+``--hand-triangles`` requires it. The hands are collapsed to their
 count while the garment is held still, then the garment to ``--triangles`` while
 the hands are held still. Both collapses rank edges by quadric error alone, which
 already spends on folds, hems and the outline: an extra fold/hem/outline weight
@@ -165,13 +167,16 @@ def main():
     p.add_argument("--triangles", type=int, default=120000,
                    help="The whole body's count, or the garment's when --hand-triangles is given")
     p.add_argument("--hand-triangles", type=int, help="Give the hands their own count")
-    p.add_argument("--hands-beyond-abs-x", type=float, default=0.80,
-                   help="Metres from the midline along the T-pose arms where the hands begin")
+    p.add_argument("--hands-beyond-abs-x", type=float,
+                   help="Metres from the midline along the T-pose arms where the hands begin "
+                        "(required with --hand-triangles)")
     p.add_argument("--body-object",
                    help="the outfit's object in the acquisition blend (default: its only mesh)")
     p.add_argument("--measure-samples", type=int, default=0,
                    help="Source vertices per region to measure the reduction against (0: skip)")
     a = p.parse_args(sys.argv[sys.argv.index("--") + 1:])
+    if a.hand_triangles and a.hands_beyond_abs_x is None:
+        p.error("--hand-triangles needs --hands-beyond-abs-x: where the character's hands begin.")
     out = Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.open_mainfile(filepath=str(Path(a.source).resolve()))
