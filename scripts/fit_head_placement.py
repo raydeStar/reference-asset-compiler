@@ -24,10 +24,13 @@ the middle of the head's open neck ring is put over --body-neck-y (0: the scan
 is centred on y=0, and assemble_character.py's neck-overlap ellipse is too), or
 --location-y sets it outright.
 
-Pass the head the build will use: rebuild_character.py moves the conformed
-head's lower face to the painting's proportions (transport_face_proportions.py)
-before placing it, so run that stage first and fit its output. The untransported
-head gives a different, worse fit.
+Fit the head the build will place: rebuild_character.py first moves the
+conformed head's lower face to the painting's proportions
+(transport_face_proportions.py, with the profile's mouth-corner lift).
+--transport-receipt runs that stage here, on the reference landmarks, so the
+conformed head can be passed as it is; without it, pass a transported head.
+On the first character the untransported head put the face 3.1 mm (mean) from
+the hand-fitted placement, against 0.8 mm for the transported one.
 
 The reference landmarks are DWPose's on a head crop of the reference picture
 (the picture in the source frame: the painting, or the front guidance). Either
@@ -44,14 +47,13 @@ jaw contour and brows are silhouettes and painted hair. Projected onto the
 first character's front render they sat 0.44 px rms from DWPose's own
 detection on it.
 
-Usage (paths from a frozen input bundle):
-  python scripts/transport_face_proportions.py <bundle>/head.npz <bundle>/head.json \
-      <bundle>/original-landmarks.json <work>/head-transported.npz
-  python scripts/fit_head_placement.py --head <work>/head-transported.npz \
+Usage (a finished head: finish_template_head.py's head.npz and head.json):
+  python scripts/fit_head_placement.py --head <finish>/head.npz --transport-receipt <finish>/head.json \
       --binding profiles/head-templates/hm08-male-face-landmarks.json \
       --profile profiles/characters/<id>.json \
-      --reference <bundle>/original.png --detect --out <work>/placement \
+      --reference <pictures>/original.png --detect --out <work>/placement \
       [--compare <bundle>/placement.json]
+  or, with a head already transported (a build's head.npz): no --transport-receipt
   or, with landmarks already detected on a crop:
       --reference-landmarks <bundle>/original-landmarks.json --reference-crop 674 5 855 172
   or, binding from the template's own files (and saving it):
@@ -262,6 +264,10 @@ def main(argv=None):
                      help="y of the body's neck centre; the head's neck ring is centred over it")
     fit.add_argument("--max-rms-px", type=float, default=3.0, help="refuse a worse fit (exit 1)")
     fit.add_argument("--compare", help="another placement.json to report the difference from")
+    fit.add_argument("--transport-receipt",
+                     help="the head's conform receipt (head.json): first move --head's lower face to the "
+                          "reference's proportions with transport_face_proportions.py, as the build does, "
+                          "and fit that head (written to <out>/head-transported.npz)")
     a = p.parse_args(argv)
     out = Path(a.out)
     out.mkdir(parents=True, exist_ok=True)
@@ -303,7 +309,16 @@ def main(argv=None):
     crop_pixels, crop_size = read_landmarks(reference_landmarks)
     pixels = to_picture(crop_pixels, crop_size, crop)
 
-    z = np.load(a.head)
+    head_path, transported_by = Path(a.head), None
+    if a.transport_receipt:
+        head_path = out / "head-transported.npz"
+        lift = profile.get("face_proportions", {}).get("mouth_corner_lift_mm")
+        command = [sys.executable, str(ROOT / "scripts/transport_face_proportions.py"), str(a.head),
+                   str(a.transport_receipt), str(reference_landmarks), str(head_path)]
+        command += ["--mouth-corner-lift", *map(str, lift)] if lift else []
+        subprocess.run(command, check=True)
+        transported_by = command[1:]
+    z = np.load(head_path)
     head = {k: z[k] for k in ("verts", "loops", "loop_starts", "loop_totals", "keep_polys")}
     points = head_points(head["verts"], binding)
     use = np.array([i for i in LANDMARK_SETS[a.landmarks] if not np.isnan(points[i]).any()])
@@ -328,7 +343,7 @@ def main(argv=None):
         "body_lift_m": body_lift,
         "reference": {"landmarks": str(Path(reference_landmarks).resolve()), "landmarks_sha256": sha(reference_landmarks),
                       "crop_box_px": crop, "picture": str(Path(a.reference).resolve()) if a.reference else None},
-        "head": {"path": str(Path(a.head).resolve()), "sha256": sha(a.head)},
+        "head": {"path": str(head_path.resolve()), "sha256": sha(head_path), "transported_by": transported_by},
         "binding_template_sha256": binding["template_sha256"],
     }
     if a.compare:
