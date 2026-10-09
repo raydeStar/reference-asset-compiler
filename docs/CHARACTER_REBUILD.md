@@ -77,7 +77,7 @@ runs on its own.
 | `transport_face_proportions.py` | moves the conformed head's lower face to the painting's proportions | `face_proportions`; zones tuned, see below |
 | `reproject_face_paint.py` | reprojects the painting onto the face; continuous neck paint | (tuned, see below) |
 | `refine_face_paint.py` | measured blush, stubble, hairline, ear and neck tone (recipe `face_paint`) | |
-| `blender/grow_hair_groom.py` | seeded strand groom (recipe `groom`) | |
+| `blender/grow_hair_groom.py` | seeded strand groom (recipe `groom`; `cap_front_inset` ends the dark scalp cap that far behind the forehead hairline, so its edge does not show between fringe locks) | |
 | `blender/render_painted_head.py` | head review renders; saves the head blend | |
 | `blender/fit_oral_anatomy.py` | CC0 teeth and tongue, mouth interior, neck extension | `asset_prefix`, `oral_anatomy` |
 | `blender/prepare_body_acquisition.py` | reduces the acquired outfit (recipe `body`), UVs it | `inputs.body_object`, `body` |
@@ -116,6 +116,7 @@ pixels are the source pictures'.
 | `body.hands_beyond_abs_x_m` | where the acquired outfit's hands begin along the T-pose arms (\|x\|); needed when the recipe gives the hands their own count. Recipes 20261010 and 20261011 also carry it; if both do, they must agree |
 | `body_paint.side_band_abs_x_m` | the side picture paints fully within the first \|x\| and fades out by the second |
 | `body_paint.min_facing`, `body_paint.mask_erode_px` | optional: how squarely a surface must face the front or back picture to take its paint (cosine, default 0.05) and how many pixels come off each cut-out's edge (default 1). With no side picture raise both (character-02: 0.35 and 4): a cut-out's halo of the old background otherwise smears across every side surface; the 3D fill paints the sides from their neighbours instead |
+| `body_paint.fill`, `body_paint.fill_trust`, `body_paint.normal_smoothing_m` | optional: how unseen outfit is painted. `nearest` (default) copies the nearest painted points in 3D; without a side picture that drags the cut-outs' outline across the coat's sides and shoulder tops as grey streaks. `surface` takes colour only where a picture faces the surface at `fill_trust` (cosine, default 0.6) or better, spreads it as a smooth membrane over the mesh's own edges (it never reaches across a gap), and fades the paint between `min_facing` and `fill_trust` into it. `normal_smoothing_m` judges facing on normals averaged over that many metres (a scan's wrinkle facets otherwise take a picture's outline). character-02: `surface`, 0.6, 0.03 |
 | `body_paint.unmirrored_red` | optional: a red garment on one side only, kept out of the mirrored side view (R/G, R/B, below pixel row, grow px) |
 | `outfit_paint_params` | the outfit-paint profile |
 | `oral_anatomy` | `mouth_box_m` (\|x\|, min y, z range of the mouth interior); `neck_m` (open neck boundary below, extended down to) |
@@ -234,8 +235,16 @@ head's landmarks, its height) rather than copy numbers.
   z 1.50 m, front of y -0.04 m) and where a mouth-corner lift lands
   (z 1.625 m, |x| 0.03 m).
 - `reproject_face_paint.py`: the face, mouth, neck and forehead blend zones
-  (z 1.525-1.746 m, with their widths) and the forehead colour probe at
-  z 1.739 m.
+  (z 1.525-1.746 m, with their widths) and where the forehead colour is
+  sampled (z 1.739 m). Conformed heads share the frame (character-02's eyes
+  sit 3 mm below Ennix's), so the zones carry over. Since 2026-10-09 the
+  picture-space parts come from each picture's own landmarks: the brow window
+  (`--brow-window landmarks`; Ennix's hand-set pixels are within 0.25 px of it,
+  `fixed` reproduces them exactly), a forehead colour taken from the skin
+  between the eyes and on the cheeks when a fringe covers the probe (the
+  receipt's `forehead_colour`), and the painting's mouth kept only when its
+  lips are closed (`--source-mouth auto`: inner-lip gap over mouth width at
+  most 0.03; a grin's teeth on the lips read as a grin in every expression).
 - `blender/render_outfit_review.py`: the outfit close-up cameras (jacket,
   sash, rolled sleeve, boots).
 - `blender/pose_character_review.py`: the ortho frame widths (2.05, 0.45 and

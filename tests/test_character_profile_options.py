@@ -90,7 +90,15 @@ def test_a_profile_without_a_side_picture_sets_the_facing_and_erosion():
     assert argv(body_paint_options(character)) == ENNIX_PAINT + ["--min-facing", "0.35", "--mask-erode-px", "4"]
     second = json.loads((ROOT / "profiles/characters/character-02.json").read_text(encoding="utf-8"))
     tail = argv(body_paint_options(second))
-    assert tail[tail.index("--min-facing"):] == ["--min-facing", "0.35", "--mask-erode-px", "4"]
+    assert tail[tail.index("--min-facing"):] == ["--min-facing", "0.35", "--mask-erode-px", "4",
+                                                 "--fill", "surface", "--fill-trust", "0.6", "--normal-smoothing", "0.03"]
+
+
+def test_the_fill_options_pass_through_only_when_set():
+    assert "--fill" not in argv(body_paint_options(ENNIX))
+    character = copy.deepcopy(ENNIX)
+    character["body_paint"].update({"fill": "surface", "normal_smoothing_m": 0.02})
+    assert argv(body_paint_options(character))[-4:] == ["--fill", "surface", "--normal-smoothing", "0.02"]
 
 
 def test_a_profile_without_a_mouth_corner_lift_passes_no_flag():

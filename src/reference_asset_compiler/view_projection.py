@@ -427,6 +427,89 @@ def fill_unseen_3d(tex, painted, texel, positions, k=6):
     return out
 
 
+def mesh_edges(tris):
+    """Each undirected edge of a triangle mesh once, as (a, b) with a < b."""
+    e = np.concatenate([tris[:, [0, 1]], tris[:, [1, 2]], tris[:, [2, 0]]])
+    return np.unique(np.sort(e, axis=1), axis=0)
+
+
+def smooth_normals(verts, tris, normals, radius):
+    """Vertex normals averaged over the mesh's own edges out to about `radius` metres.
+
+    A scanned sleeve's wrinkles have facets that tilt toward the front or the
+    back picture; judged by those facets, the top of the sleeve faces a picture
+    and takes the paint at its outline. Averaged over a few centimetres, the
+    top faces up and is filled instead. Repeated one-ring means (a diffusion):
+    (radius / median edge)^2 of them reach about `radius`.
+    """
+    from scipy import sparse
+    if radius <= 0:
+        return normals.copy()
+    e = mesh_edges(tris)
+    n = len(verts)
+    adj = sparse.coo_matrix((np.ones(2 * len(e)), (np.r_[e[:, 0], e[:, 1]], np.r_[e[:, 1], e[:, 0]])),
+                            shape=(n, n)).tocsr() + sparse.identity(n, format="csr")
+    adj = sparse.diags(1.0 / np.asarray(adj.sum(1)).ravel()) @ adj
+    steps = max(1, int(round((radius / np.median(np.linalg.norm(verts[e[:, 0]] - verts[e[:, 1]], axis=1))) ** 2)))
+    out = normals.astype(float).copy()
+    for _ in range(steps):
+        out = adj @ out
+        out /= np.linalg.norm(out, axis=1, keepdims=True) + 1e-12
+    return out
+
+
+def fill_unseen_surface(tex, keep, tri_id, bary, verts, tris):
+    """Paint what no picture saw squarely as a smooth membrane over the mesh, from the paint that one did.
+
+    `keep` (texels, 0..1) is how much of the bake to keep: 1 where a picture
+    faced the surface squarely (those texels are the sources), 0 where nothing
+    painted, between at the edge of a picture's view. The sources' colours go to
+    their triangles' vertices; every other vertex gets the harmonic (Laplace)
+    interpolation of them over the mesh's own edges, weighted by inverse edge
+    length; texels take their triangle's vertex colours, blended with the bake
+    by `keep`. Nearest painted points in 3D (fill_unseen_3d) copy a picture's
+    outline across a coat's side as streaks and can reach across a gap (the arm
+    to the coat); over the surface the fill is a smooth blend between the paint
+    on either side, and only what the surface connects. A part with no source at
+    all takes the sources' median colour. Returns (texture, record).
+    """
+    from scipy import sparse
+    from scipy.sparse.linalg import spsolve
+    valid = tri_id >= 0
+    ids = tris[tri_id[valid]]
+    w3 = bary[valid]
+    cols = tex[valid].astype(float)
+    k = np.clip(keep[valid], 0.0, 1.0)
+    src = k >= 0.999
+    n = len(verts)
+    acc, wsum = np.zeros((n, 3)), np.zeros(n)
+    for c in range(3):
+        np.add.at(acc, ids[src, c], cols[src] * w3[src, c:c + 1])
+        np.add.at(wsum, ids[src, c], w3[src, c])
+    known = wsum > 1e-3
+    out = tex.copy()
+    if not known.any():
+        return out, {"source_vertices": 0, "filled_vertices": 0}
+    vc = np.zeros((n, 3))
+    vc[known] = acc[known] / wsum[known, None]
+    e = mesh_edges(tris)
+    w = 1.0 / np.maximum(np.linalg.norm(verts[e[:, 0]] - verts[e[:, 1]], axis=1), 1e-5)
+    W = sparse.coo_matrix((np.r_[w, w], (np.r_[e[:, 0], e[:, 1]], np.r_[e[:, 1], e[:, 0]])), shape=(n, n)).tocsr()
+    L = (sparse.diags(np.asarray(W.sum(1)).ravel()) - W).tocsr()
+    u, kn = np.nonzero(~known)[0], np.nonzero(known)[0]
+    if len(u):
+        # A tiny pull toward the sources' median keeps parts with no source (and loose vertices) solvable.
+        eps = 1e-6 * float(np.median(w))
+        luu = (L[u][:, u] + sparse.identity(len(u)) * eps).tocsc()
+        rhs = -(L[u][:, kn] @ vc[kn]) + eps * np.median(vc[kn], axis=0)[None]
+        vc[u] = np.stack([spsolve(luu, rhs[:, c]) for c in range(3)], axis=1)
+    fill = np.einsum("nk,nkc->nc", w3, vc[ids])
+    out[valid] = cols * k[:, None] + fill * (1.0 - k[:, None])
+    return out, {"source_vertices": int(known.sum()), "filled_vertices": int(len(u)),
+                 "kept_texels": int(src.sum()), "feathered_texels": int(((k > 0) & ~src).sum()),
+                 "filled_texels": int((k <= 0).sum())}
+
+
 def fill_unpainted(tex, painted, blur=2.0):
     """Give every unpainted texel (seams, unseen undersides) its nearest paint.
 

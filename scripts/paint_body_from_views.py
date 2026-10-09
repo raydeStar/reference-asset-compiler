@@ -5,8 +5,18 @@ normal-weighted views are deterministic; no new generated image is required.
 
 The registration is the character's: how many pixels a metre is in the source
 pictures and which pixel the body's origin (centred at z=0) lands on. So are
---side-band and --unmirrored-red. rebuild_character.py passes them from
-profiles/characters/<name>.json.
+--side-band, --unmirrored-red and the fill options. rebuild_character.py
+passes them from profiles/characters/<name>.json.
+
+What no picture saw squarely is filled. --fill nearest (the default) takes the
+nearest painted points in 3D. Without a side picture that is most of a coat's
+sides and every shoulder top, and the nearest paint is a picture's outline: it
+comes out as grey streaks. --fill surface takes colour only from texels a
+picture faced squarely (--fill-trust), spreads it as a smooth membrane over the
+mesh's own edges (view_projection.fill_unseen_surface), and fades the paint at
+the edge of each picture's view into it. --normal-smoothing judges facing on
+normals averaged over a few centimetres, so a scan's wrinkle facets do not take
+a picture's outline either.
 """
 import argparse
 import hashlib
@@ -45,17 +55,27 @@ def main():
                         "picture's last pixels smeared across them")
     p.add_argument("--mask-erode-px", type=int, default=1,
                    help="pixels taken off each picture's cut-out edge (a halo of the old background)")
+    p.add_argument("--fill", choices=("nearest", "surface"), default="nearest",
+                   help="how unseen surface is painted: nearest painted points in 3D, or a membrane over the mesh "
+                        "from squarely seen paint (better without a side picture)")
+    p.add_argument("--fill-trust", type=float, default=0.6,
+                   help="--fill surface: how squarely (cosine) a picture must face a texel for its paint to be a fill "
+                        "source and kept whole; between --min-facing and this the paint fades into the fill")
+    p.add_argument("--normal-smoothing", type=float, default=0.0, metavar="METRES",
+                   help="judge facing on normals averaged over about this distance on the mesh (0: the mesh's own)")
     p.add_argument("--unmirrored-red", type=float, nargs=4, metavar=("R_OVER_G", "R_OVER_B", "BELOW_ROW", "GROW_PX"),
                    help="a red garment on one side only: keep it out of the mirrored side view "
                         "(red beyond both ratios, below the pixel row, grown by GROW_PX)")
     a = p.parse_args()
     if a.side and not a.side_origin:
         p.error("--side needs --side-origin")
+    if a.fill == "surface" and not a.min_facing < a.fill_trust <= 1:
+        p.error("--fill-trust must lie above --min-facing and at most 1")
     out = Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     z = np.load(a.mesh)
     verts, tris, uv, tris_uv = z["verts"], z["tris"], z["uv"], z["tris_uv"]
-    normals = tc.vertex_normals(verts, tris)
+    normals = vp.smooth_normals(verts, tris, tc.vertex_normals(verts, tris), a.normal_smoothing)
     views = []
     records = {}
     for name, path in (("front", a.front), ("back", a.back)):
@@ -100,14 +120,36 @@ def main():
     tex, cov, painted, where = vp.bake(views, verts, normals, tris, uv, tris_uv,
                                      a.size, (verts, tris), min_facing=a.min_facing,
                                      view_weights=weights)
-    valid = vp.uv_rasterize(uv, tris_uv, a.size)[0] >= 0
-    tex = vp.fill_unseen_3d(tex, painted, valid, where, k=12)
+    tri_id, bary = vp.uv_rasterize(uv, tris_uv, a.size)
+    valid = tri_id >= 0
+    fill_record = {"method": a.fill}
+    if a.fill == "surface":
+        # How squarely the pictures that paint a texel face it (a side view only within its band).
+        ids, w3 = tris[tri_id[valid]], bary[valid]
+        pos = np.einsum("nk,nkj->nj", w3, verts[ids])
+        nrm = np.einsum("nk,nkj->nj", w3, normals[ids])
+        nrm /= np.linalg.norm(nrm, axis=1, keepdims=True) + 1e-12
+        facing = np.zeros(len(nrm))
+        for view in views:
+            cos = nrm @ -vp.VIEW_AXES[view.name][2]
+            if view.name in weights:
+                cos = cos * np.clip(weights[view.name](pos), 0.0, 1.0)
+            facing = np.maximum(facing, cos)
+        keep = np.zeros(valid.shape)
+        keep[valid] = np.where(painted[valid], np.clip((facing - a.min_facing) / (a.fill_trust - a.min_facing), 0, 1), 0)
+        keep = keep * keep * (3 - 2 * keep)
+        tex, stats = vp.fill_unseen_surface(tex, keep, tri_id, bary, verts, tris)
+        fill_record.update(stats, trust=a.fill_trust)
+        cov = cov * keep          # the outfit stage weighs paint by coverage: the faded edge counts for less
+    else:
+        tex = vp.fill_unseen_3d(tex, painted, valid, where, k=12)
     tex = vp.fill_unpainted(tex, valid)
     Image.fromarray((np.clip(tex, 0, 1) * 255).astype(np.uint8)).save(out / "body_basecolor.png")
     Image.fromarray((np.clip(cov, 0, 1) * 255).astype(np.uint8)).save(out / "coverage.png")
     record = {"sources": records, "mesh_sha256": hashlib.sha256(Path(a.mesh).read_bytes()).hexdigest(),
               "painted_fraction": float(painted.sum() / valid.sum()),
               "method": "source-registered multiview bake, 3D fill on unseen underside texels",
+              "fill": fill_record, "normal_smoothing_m": a.normal_smoothing, "min_facing": a.min_facing,
               "side_region": ("full below abs(x)={0} m, fades to zero at {1} m; arms use front/back".format(*a.side_band)
                               if a.side_band else "everywhere"),
               "review": "Inferred back and unseen surfaces need visual review; candidate only."}

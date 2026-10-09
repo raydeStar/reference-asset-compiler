@@ -71,6 +71,9 @@ def body_paint_options(character):
         options += ["--min-facing", paint["min_facing"]]
     if "mask_erode_px" in paint:
         options += ["--mask-erode-px", paint["mask_erode_px"]]
+    for key, flag in (("fill", "--fill"), ("fill_trust", "--fill-trust"), ("normal_smoothing_m", "--normal-smoothing")):
+        if key in paint:
+            options += [flag, paint[key]]
     return options
 
 

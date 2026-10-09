@@ -60,6 +60,13 @@ on the CPU.
 `body-left.png` and `body-back.png`. Check each alpha by eye: the bake paints
 whatever the alpha keeps.
 
+No usable side picture (character-02: the image model drew busts)? Leave an
+empty `body-left.png`, set `body_paint.side_band_abs_x_m` to `[0, 0.001]`, and
+in the profile's `body_paint` raise `min_facing` (0.35) and `mask_erode_px`
+(4) and set `fill: "surface"` with `normal_smoothing_m` 0.03: the sides are then
+a smooth blend of the front and back paint over the mesh, not the cut-outs'
+outline in streaks (CHARACTER_REBUILD.md, the `body_paint` keys).
+
 ## 3. Measure the source frame (CPU)
 
 ```powershell
