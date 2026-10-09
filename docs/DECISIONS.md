@@ -1223,3 +1223,17 @@ the solid. Treat any envelope fallback as a failure.
 - An accepted overrun belongs in the recipe with the approver, the date, the
   owner's words and a ceiling, not in a gate flag: a waiver without a ceiling
   would quietly cover a heavier mesh later.
+
+## 2026-10-09 — mesh hair goes where the scan's face goes, not where its conformed skin went
+
+- A template conformed to a stylised scan takes the scan's skull but not
+  always its face: character-02's came out squashed (brow to chin 10.0 cm
+  against 13.5 cm). Hair carried with that skin keeps the scan's absolute
+  height and scale. Placing it by the scan's own upper face (brows, nose
+  bridge, eyes) on the character's put it 20 mm lower and 13% smaller.
+- Push hair out of the skin after reducing it, not before: a per-vertex push
+  lays neighbouring blades onto one offset shell, and the quadric collapse
+  stops (36,442 triangles for a 30,000 request).
+- conform_head_template.py's NPZ keeps the scan in template metres while its
+  front render saw it in scan units: bind pixels on the scan carried back
+  through the alignment, then read the points off the template-metre copy.

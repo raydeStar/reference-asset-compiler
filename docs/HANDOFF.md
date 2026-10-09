@@ -4465,3 +4465,25 @@ characters being as big as they need to be (within reason)".
   `max_triangles`; the receipt keeps it.
 - character-02: recipe `character-02-mesh-hair-27k-20261009`, build
   `work/character-02/rebuild-v12-mesh-hair-27k` (CPU).
+
+## 2026-10-09 — Mesh hair placed by the face: character-02 rebuild-v13 (Claude)
+
+Mark, on rebuild-v12: "the hair still doesnt look quite right. maybe its not
+correctly placed on his head? needs to run a little lower i mean?"
+
+- Cause: the template conformed to the Pixal3D head is squashed (brow to chin
+  10.0 cm against the scan's 13.5 cm, brows 1.1 cm low), and skin-follow kept
+  the hair at the scan's height and scale: about 1 cm high and 13% large.
+- `transfer_mesh_hair.py --place-by-face`: one similarity from the scan's upper
+  face (its front render's landmarks, bound to the scan, through the conform's
+  alignment) to the character's (the template's landmark binding). Scale
+  0.873, median residual 3.3 mm; the hair 20 mm lower on average. Matches the
+  parent session's prototype to 0.00 mm. Skin-follow stays the default.
+- `keep_hair_clear.py` (new) pushes the hair out to 2 mm off the skin, after
+  the reduction: pushed first, the collapse stalled at 36,442 of 30,000.
+- `build_mesh_hair.py --scan-landmarks --scan-camera` runs both.
+- character-02: recipe `character-02-mesh-hair-27k-face-20261009`,
+  `work/character-02/rebuild-v13-mesh-hair-27k-face` (CPU, 402 s): 98,334
+  triangles (hair 26,982, cap 634), gates pass under Mark's acceptance;
+  installed in the game headless, audit passes. The back hair now ends at the
+  nape: a strip of neck shows above the high collar.

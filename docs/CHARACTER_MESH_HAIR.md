@@ -44,8 +44,13 @@ python scripts/conform_head_template.py $Ref/template/hm08-male.npz $W/hair/scan
 ```powershell
 py -3.12 scripts/build_mesh_hair.py --template $Ref/template/hm08-male.npz --scan <scan.glb> `
   --scan-conform $W/hair/conform.npz --scan-receipt $W/hair/conform.json `
-  --head $W/head/finish/head.npz --out $W/hair/mesh --blender $B --yaw-deg 180 --triangles 30000
+  --head $W/head/finish/head.npz --out $W/hair/mesh --blender $B --yaw-deg 180 --triangles 30000 `
+  --scan-landmarks $W/hair/dw-acq-front.json --scan-camera $W/hair/acq-front-camera.json
 ```
+
+`--scan-landmarks` and `--scan-camera` are step 2's detection on the scan's
+front render; with them the hair is placed by the face (below), without them
+it follows the skin.
 
 It runs, in order:
 
@@ -55,10 +60,23 @@ It runs, in order:
   paints as skin close to the skin (an ear scrap), welded, in template metres,
   with the scan's base colour.
 - `transfer_mesh_hair.py`: carried onto the character's own head (`--head`),
-  which is conformed from the same template: each vertex follows the skin
-  under it. On character-02 the hair moved 17 mm (median) from the Pixal3D
-  head onto his Hunyuan-built head. The same step puts one character's hair
-  on another's head.
+  which is conformed from the same template.
+  - By the face (`--place-by-face`, with scan landmarks): the scan's own upper
+    face (brows, nose bridge, eyes: 26 of the 68 points), bound to the scan
+    through its front render and brought into template metres by the conform's
+    alignment, is matched to the same points on the character's head (the
+    template's landmark binding, `profiles/head-templates/`) by one
+    similarity with scale, and the hair moves with it.
+  - By the skin (otherwise): each vertex follows the skin under it, between
+    the template conformed to the scan and the character's head.
+  - Why the face: the template conformed to a stylised scan can be squashed.
+    On character-02's Pixal3D head its brow-to-chin was 10.0 cm against the
+    scan's own 13.5 cm, its brows 1.1 cm low, so hair that followed that skin
+    kept the scan's height and scale: about 1 cm high against his brows and
+    13% too big ("maybe its not correctly placed on his head? needs to run a
+    little lower", Mark, 2026-10-09). By the face: scale 0.873, median
+    residual 3.3 mm, the hair 20 mm lower on average and the fringe 7 mm
+    lower than skin-follow put it.
 - `reduce_mesh_hair.py`: fast-simplification (MIT, optional dependency:
   `pip install fast-simplification`) to `--triangles`. It keeps the blades at
   60k where Blender's collapse decimator turned them into shards at 134k. The
@@ -66,6 +84,12 @@ It runs, in order:
   vertices twice, about 10% at 30-40k); those copies are dropped here, so the
   count it reports is the count that ships. A count more than 2% off the
   request is a WARNING, here and in the receipt.
+- `keep_hair_clear.py` (with face placement): hair closer than `--clearance`
+  (2 mm) outside the character's skin, or inside it, pushed out along the
+  skin's normal; on character-02, 16% of the reduced hair's vertices. It runs
+  after the reduction: pushed vertex by vertex first, neighbouring blades lie
+  on one offset shell and the collapse stalls (36,442 triangles for a 30,000
+  request; unpushed, 29,999).
 - `blender/bake_mesh_hair.py`: new UVs and a selected-to-active bake of the
   full-resolution colour and a tangent normal map. The cage reaches 15 mm; at
   4 mm most rays missed the thin blades.
@@ -132,8 +156,9 @@ the skin's neighbours), ended `--front-inset` 15 mm behind the face, lifted
 skipped). Options come from the recipe's `hair.cap` block (keys are the option
 names, e.g. `{"front_inset": 0.035}`).
 
-character-02: 442 triangles (the strand cap had 444), colour linear (0.0056,
-0.0044, 0.0044). In review renders it cut the skin visible between locks by
+character-02: 442 triangles under the skin-followed hair (the strand cap had
+444); 634 under the face-placed hair, which lies closer over the whole scalp.
+Colour linear (0.0056, 0.0044, 0.0044). In review renders it cut the skin visible between locks by
 44% from the front and 61% at three-quarter; under the fringe it reads as dark
 roots, not bare scalp.
 
@@ -169,7 +194,8 @@ shards and jagged blades, scalp showing through and a smeared bake.
 
 Scalp showing between locks did not grow at lower counts (the merged blades
 cover more), and the bake's black texels fell (27% at 56k, 20% at 27k).
-character-02 ships 26,990 (rebuild-v12).
+character-02 shipped 26,990 skin-followed (rebuild-v12), then 26,982 placed by
+the face (rebuild-v13, 98,334 triangles in all).
 
 Over the tier, the gate fails unless the recipe records the owner's
 acceptance, `budget_waiver` (CHARACTER_REBUILD.md): Mark accepted
