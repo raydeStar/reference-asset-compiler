@@ -67,6 +67,13 @@ class ClassifyTests(unittest.TestCase):
     def test_hands_are_skin(self):
         self.assertEqual(self.cls(rgb(60, 40, 30), (0.9, 0.0, 0.4)), SKIN)
 
+    def test_black_boots_in_a_leather_box_are_leather(self):
+        boots = dict(DEFAULTS, cloth_max_chroma=20.0, leather_boxes_m=[{"abs_x": 0.3, "z": [-1.0, -0.43]}])
+        black = rgb(30, 30, 34)
+        self.assertEqual(self.cls(black, (0.12, -0.05, -0.7), boots), LEATHER)    # the boot
+        self.assertEqual(self.cls(black, (0.12, -0.05, -0.2), boots), CLOTH)      # the trousers above it
+        self.assertEqual(self.cls(black, (0.5, -0.05, -0.7), boots), CLOTH)       # outside the box's |x|
+
     def test_ungated_defaults_use_colour_alone(self):
         self.assertEqual(self.cls(rgb(190, 125, 90), (0.12, -0.1, -0.3), DEFAULTS), SKIN)
         self.assertEqual(self.cls(rgb(52, 46, 44), (0.12, -0.1, -0.3), DEFAULTS), CLOTH)

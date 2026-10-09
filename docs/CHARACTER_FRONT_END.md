@@ -110,6 +110,13 @@ reaches) below the cut, or there is a gap; the stage warns.
   head level (`--head-above-cut-m`, 0.12 m above the cut), and whatever is left
   floating above the cut. A collar that rises above the cut outside the column
   (at the back, say) is kept, so a tilted collar survives.
+- With `neck_overlap.face_box_m` [|x|, y] (or `--face-box-m`) it also removes
+  everything above the cut within that |x| and in front of that y. A scan whose
+  chin and lower face are wider than the neck column and sit below the head
+  level (under a high collar) otherwise keeps them, and they stand in front of
+  the placed head: character-02's painted grin showed through his face from
+  the side. His box is [0.10, -0.02]; check the front of the prepared body
+  above the cut before going on.
 - `--cut-z-m` and `--neck-ellipse-m` override the profile; `--measure-neck`
   measures the column on the scan instead (it fails when a collar hides the
   back of the neck, as Ennix's does). The measurement is in the receipt either
@@ -147,24 +154,52 @@ new binding (`fit_head_placement.py --save-binding`, step 7).
 & $Torch scripts/detect_face_landmarks_dwpose.py $W/guidance/head-front.png $W/head/dw-front.json --model $DW --overlay $W/head/dw-front.png
 & $Torch scripts/detect_face_landmarks_dwpose.py $W/guidance/head-left.png $W/head/dw-left.json --model $DW --overlay $W/head/dw-left.png
 
+# The scan's own face: a front render (Workbench, GPU; absolute paths, Blender drops relative ones) and DWPose on it
+& $B -b --factory-startup --python scripts/blender/render_mesh_view.py -- "$PWD\$W\head\acquisition.npz" `
+  "$PWD\$W\head\acq-front.png" "$PWD\$W\head\acq-front-camera.json" --arrays
+& $Torch scripts/detect_face_landmarks_dwpose.py $W/head/acq-front.png $W/head/dw-acq-front.json --model $DW --overlay $W/head/dw-acq-front.png
+
 # Conform the template onto the scan, held to the guidance's features (about 15 s)
 python scripts/conform_head_template.py $Ref/template/hm08-male.npz $W/head/acquisition.npz `
   $W/head/conform.npz $W/head/conform.json --picture-landmarks $W/head/dw-front.json `
-  --template-landmarks $Ref/landmarks/dw-template-front.json --template-camera $Ref/landmarks/template-front-camera.json
+  --template-landmarks $Ref/landmarks/dw-template-front.json --template-camera $Ref/landmarks/template-front-camera.json `
+  --acquisition-landmarks $W/head/dw-acq-front.json --acquisition-camera $W/head/acq-front-camera.json
 
 # Hair: what stands off the conformed skin, as a closed shell
 python scripts/extract_hair_region.py $W/head/conform.npz $W/head/hair-raw.npz
 & $B -b --factory-startup --python scripts/blender/build_hair_shell.py -- $W/head/hair-raw.npz $W/head/hair-shell.glb $W/head/hair-shell.npz
 
+# Stylised (inked) guidance only: take the ink off the skin before it is painted on (seconds, CPU)
+python scripts/clean_line_art.py $W/guidance/head-front.png $W/guidance/clean/head-front.png --landmarks $W/head/dw-front.json
+python scripts/clean_line_art.py $W/guidance/head-left.png $W/guidance/clean/head-left.png --landmarks $W/head/dw-left.json
+python scripts/clean_line_art.py $W/guidance/head-back.png $W/guidance/clean/head-back.png
+
 # Neck, hair trim, paint, groom and review renders (Cycles on the CPU; --skip-render to skip them)
 python scripts/finish_template_head.py --template $Ref/template/hm08-male.npz --conform $W/head/conform.npz `
   --conform-receipt $W/head/conform.json --hair-shell $W/head/hair-shell.npz `
-  --front $W/guidance/head-front.png --side $W/guidance/head-left.png --back $W/guidance/head-back.png `
+  --front $W/guidance/clean/head-front.png --side $W/guidance/clean/head-left.png --back $W/guidance/clean/head-back.png `
   --side-landmarks $W/head/dw-left.json --template-landmarks $Ref/landmarks/dw-template-front.json `
   --template-camera $Ref/landmarks/template-front-camera.json --out $W/head/finish --groom --blender $B --device CPU
+
+# Hair the pictures showed in front of the skin (a lock past the jaw) off the skin texture
+python scripts/clean_skin_paint.py --template $Ref/template/hm08-male.npz `
+  --binding profiles/head-templates/hm08-male-face-landmarks.json `
+  --texture $W/head/finish/paint/head_basecolor.png --out $W/head/finish/paint/head_basecolor_clean.png --mask $W/head/skin-blots.png
 ```
 
-Review `$W/head/finish/render/` (and the overlays) before going on.
+**Why the scan's own landmarks.** Without `--acquisition-landmarks` the
+similarity alignment starts from the scan's frontmost point, which is the nose
+only on a bare face. On character-02 a fringe spike stood in front of it: the
+face fit settled into the hair at half scale (10.06 against 5.54), the eyes sat
+in the fringe, the template skull stood 4.6 cm out of the top of the hair (a
+bald crown and a band-only groom of 16.5k strands) and the jaw was painted a
+hand's width below the chin. With the scan's landmarks the picture's features
+start 2.6 mm off instead of 7.5 mm and the groom fills the hair (76.8k strands).
+The receipt's `alignment.seed` records which start was used.
+
+Review `$W/head/finish/render/` (and the overlays, and `skin-blots.png`) before
+going on. Freeze `head_basecolor_clean.png` as the bundle's `head-basecolor.png`,
+and the cleaned pictures as `head-front.png` and `head-left.png`.
 
 ## 7. Place the head on the body (CPU)
 

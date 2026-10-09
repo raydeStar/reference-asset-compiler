@@ -3,9 +3,9 @@
   "character": "profiles/characters/character-02.json",
   "inputs": {
     "body-acquisition.blend": {
-      "sha256": "a99d1a36ed873ee990f6200944da5f3443a6ebe14ac31fd892d0313487d56a71",
-      "bytes": 18515304,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\body-acquisition.blend"
+      "sha256": "f9eb2503a9850127cb32923da03c2fb60d1041ca0ac6f3b28abfa8507d7f866d",
+      "bytes": 18260330,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\body-acquisition-v2.blend"
     },
     "body-back.png": {
       "sha256": "3e2a6729bdfe0574778cd04815988ee8428aeaa2fa076ff8918bb1958ccaf6db",
@@ -25,42 +25,42 @@
     "front-landmarks.json": {
       "sha256": "8b6def68006ce249ed883baaa1118e3fd6acde8547bee31ae751e43986fd1116",
       "bytes": 6152,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head\\dw-front.json"
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\dw-front.json"
     },
     "hair-basecolor.png": {
-      "sha256": "82420f3a0d7cbf953cee0f07d090310fc997caa5ec67119b30115ef8444bae47",
-      "bytes": 2453945,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head\\finish\\paint\\hair_basecolor.png"
+      "sha256": "19548a262ff563510278ee211e97a8dd6b71ee74aaa805e0ac2b2613a396c220",
+      "bytes": 3267077,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\paint\\hair_basecolor.png"
     },
     "hair.npz": {
-      "sha256": "d629a8729fed05ca8026f01e08adc7aac15d24e0f7db0ba9f91f854b5bedaf29",
-      "bytes": 608082,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head\\finish\\hair-smooth.npz"
+      "sha256": "0df6abcce0905be11de6ca3c7de9028bfad4121d13bcb37773ba26a1e0653dd1",
+      "bytes": 598482,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\hair-smooth.npz"
     },
     "head-basecolor.png": {
-      "sha256": "82db3f2cf23a2a6b916ee858586fd79d9891a63a3019cbf6baa36a2db10bd7d2",
-      "bytes": 1403212,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head\\finish\\paint\\head_basecolor.png"
+      "sha256": "cd7a93d6f7df80e1c8ab041c0656b421a1d4e7c8eb95a99f94154aa49f1d8262",
+      "bytes": 2191873,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\paint\\head_basecolor_clean.png"
     },
     "head-front.png": {
-      "sha256": "e4b05fcf6b4a920d1060d3231a308c721d50684cea9eb9a0e10080b4aa5a5830",
-      "bytes": 1234706,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\final\\head-front.png"
+      "sha256": "722dc24f745acf6aa22624d74821db5ea2eb3463efc9224fe58c9e7154f1856b",
+      "bytes": 1349405,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\clean\\head-front.png"
     },
     "head-left.png": {
-      "sha256": "161528490ab5225bab163385f23346aec681d06c54fb582e8366f3e6493c7b1f",
-      "bytes": 1346826,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\final\\head-left.png"
+      "sha256": "d8a8d2c6e0bf1b9ce27443490f4f51e6d977f2835ec5e4cbbb58d44c6272eb94",
+      "bytes": 1431305,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\clean\\head-left.png"
     },
     "head.json": {
-      "sha256": "15d589acc8351b72c3062cdafb95bf5081c99c91f5f3e5974e6324ea928d593f",
-      "bytes": 13601,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head\\finish\\head.json"
+      "sha256": "0fec4e25ae690b562775203f89e5a03df3034c95b2833a241e74b7b8159b8285",
+      "bytes": 13999,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\head.json"
     },
     "head.npz": {
-      "sha256": "dad2450c7cde2a7710b3a8025e49df96e7acc872a8d30cdfbbd9b42593d292f6",
-      "bytes": 30008593,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head\\finish\\head.npz"
+      "sha256": "89ceb8e8c4d75bdcb846c7528a2182abbeea54030f72f4ee3f8db40808d38748",
+      "bytes": 30953702,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\head-v2\\finish-clean\\head.npz"
     },
     "makehuman/teeth/teeth_base/teeth.mhmat": {
       "sha256": "3baeff72d9eb06ca16c3cff7ca2ab304216717dee247e0d88f1dc33037c8320e",
@@ -105,12 +105,12 @@
     "original-head-crop.png": {
       "sha256": "361f55d303398f9da4386ac1b99a946e5cf60a1a459b2c4c1e9479f18d203147",
       "bytes": 546667,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\placement\\reference-head-crop.png"
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\placement-head-v2\\reference-head-crop.png"
     },
     "original-landmarks.json": {
-      "sha256": "f2ceb7b78f77f22977d1333e45b2dcd67cc778d98bfdc84aa6a816046be008d3",
-      "bytes": 6162,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\placement\\reference-landmarks.json"
+      "sha256": "f6c1d9b973b62a568ead518e4738f65868be0f8599a2d654d78914dd7d36bd54",
+      "bytes": 6170,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\placement-head-v2\\reference-landmarks.json"
     },
     "original.png": {
       "sha256": "61ad4616a13e6eb6c1e45463ae497eff416de17d04d74ea9e7a19d94066830e4",
@@ -118,9 +118,9 @@
       "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\guidance\\final\\original.png"
     },
     "placement.json": {
-      "sha256": "d4745335e07fd7866c5cd6e153babbaa8725871789f6fbce5810abdd38041989",
-      "bytes": 2516,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\placement\\placement.json"
+      "sha256": "830c1a32024e9045324eabab2e14b71c370c44c21ed2ac31f7b5c0ce82df88ee",
+      "bytes": 2571,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\placement-head-v2\\placement.json"
     },
     "template.npz": {
       "sha256": "d559a1902097b11ed5cddcf9d2f2e6a5ea949531f6bf84f6ca6eea0242934c8a",
@@ -129,36 +129,36 @@
     }
   },
   "groom": {
-    "guides": 550,
-    "children": 140,
+    "guides": 300,
+    "children": 255,
     "seed": 7,
-    "wave": 0.3,
+    "wave": 0.25,
     "wave_length": [
-      0.045,
-      0.08
+      0.07,
+      0.12
     ],
-    "curl": 0.4,
-    "clump": 0.85,
-    "strays": 0.035,
+    "curl": 0.6,
+    "clump": 0.9,
+    "strays": 0.05,
     "length": [
-      0.06,
-      0.14
+      0.08,
+      0.16
     ],
-    "volume": 1.5,
+    "volume": 1.0,
     "envelope_max": 0.085,
     "tip_flick": 0.35,
     "layer_wave": 0.14,
-    "part_min_sweep": 0.3,
-    "fringe": 0.6,
-    "fringe_sweep": 0.5,
-    "side_back": 0.45,
+    "part_min_sweep": 0.0,
+    "fringe": 0.3,
+    "fringe_sweep": 1.2,
+    "side_back": 0.9,
     "strand_radius": 0.00016,
-    "nape_drop": 0.08,
-    "extra_children": 60,
-    "clump_power": 3.0,
-    "blend_guides": 6,
-    "blend_sigma": 0.01,
-    "lock_thickness": 0.0035
+    "nape_drop": 0.0,
+    "extra_children": 0,
+    "clump_power": 2.0,
+    "blend_guides": 3,
+    "blend_sigma": 0.0,
+    "lock_thickness": 0.0012
   },
   "character_tier": "hero",
   "body": {
@@ -247,5 +247,5 @@
     ],
     "neck_ramp": 0.015
   },
-  "revision_note": "character-02 first build (2026-10-08): Qwen-Image-Edit guidance, Hunyuan scans, one-shot front end"
+  "revision_note": "character-02 (2026-10-09): landmark-seeded head alignment, inkless head paint, face-box body cut, no white sides, boots as leather, swept groom"
 }

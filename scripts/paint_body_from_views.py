@@ -39,6 +39,12 @@ def main():
     p.add_argument("--side-band", type=float, nargs=2, metavar=("FULL_BELOW", "ZERO_AT"),
                    help="side views weigh fully within |x| FULL_BELOW m and fade to nothing at ZERO_AT, "
                         "so end-on arms take the front and back pictures (default: everywhere)")
+    p.add_argument("--min-facing", type=float, default=0.05,
+                   help="how squarely a surface must face a picture to take its paint (cosine). Raise it when "
+                        "there is no side picture: grazing sides then come from the 3D fill, not from a "
+                        "picture's last pixels smeared across them")
+    p.add_argument("--mask-erode-px", type=int, default=1,
+                   help="pixels taken off each picture's cut-out edge (a halo of the old background)")
     p.add_argument("--unmirrored-red", type=float, nargs=4, metavar=("R_OVER_G", "R_OVER_B", "BELOW_ROW", "GROW_PX"),
                    help="a red garment on one side only: keep it out of the mirrored side view "
                         "(red beyond both ratios, below the pixel row, grown by GROW_PX)")
@@ -61,7 +67,7 @@ def main():
         # The retained body is centred at z=0; foot and hand landmarks anchor
         # the registration.
         view = vp.View(name, raw[..., :3], a.px_per_m, np.eye(2), np.array(a.front_origin),
-                       mask=ndimage.binary_erosion(mask, iterations=1), sharpness=2.0)
+                       mask=ndimage.binary_erosion(mask, iterations=a.mask_erode_px), sharpness=2.0)
         views.append(view)
         records[name] = {"path": str(Path(path).resolve()), "sha256": hashlib.sha256(Path(path).read_bytes()).hexdigest(),
                          "scale": view.scale, "translation": view.translation.tolist()}
@@ -92,7 +98,7 @@ def main():
 
     weights = {"left": side_region, "right": side_region} if a.side_band else {}
     tex, cov, painted, where = vp.bake(views, verts, normals, tris, uv, tris_uv,
-                                     a.size, (verts, tris), min_facing=0.05,
+                                     a.size, (verts, tris), min_facing=a.min_facing,
                                      view_weights=weights)
     valid = vp.uv_rasterize(uv, tris_uv, a.size)[0] >= 0
     tex = vp.fill_unseen_3d(tex, painted, valid, where, k=12)

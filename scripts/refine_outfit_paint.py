@@ -48,10 +48,11 @@ DEFAULTS = {
     # Where each garment can be is the character's (a profile, see profiles/outfit-paint/); unset, no gate:
     # cloth_box_m {abs_x, z: [lo, hi], max_y}: cloth only inside this box (e.g. a vest on the torso front);
     # cloth_max_L: inside the box, anything darker than this is cloth too;
+    # leather_boxes_m [{abs_x, z: [lo, hi]}]: what colour calls cloth inside a box is leather (black boots);
     # skin_region_m {min_abs_x, neck_abs_x, neck_min_z}: bare skin only on the arms beyond min_abs_x and the neck;
     # skin_region_min_L: inside that region, darker (shadowed) skin still counts;
     # hands_beyond_abs_x_m: triangles beyond this |x| are skin, whatever their paint.
-    "cloth_box_m": None, "cloth_max_L": None,
+    "cloth_box_m": None, "cloth_max_L": None, "leather_boxes_m": None,
     "skin_region_m": None, "skin_region_min_L": None,
     "hands_beyond_abs_x_m": None,
     "vote_iterations": 8,
@@ -98,6 +99,9 @@ def classify(lab, centroids, p):
     if p.get("cloth_max_L") is not None:
         dark |= L < p["cloth_max_L"]
     cls[dark & inside] = CLOTH
+    for lb in p.get("leather_boxes_m") or []:
+        in_lb = (x < lb["abs_x"]) & (centroids[:, 2] > lb["z"][0]) & (centroids[:, 2] < lb["z"][1])
+        cls[in_lb & (cls == CLOTH)] = LEATHER
     fabric = (a > p["fabric_min_a"]) & (hue < p["fabric_max_hue"]) & (chroma > p["fabric_min_chroma"])
     cls[fabric] = FABRIC
     skin = (L > p["skin_min_L"]) & (chroma > p["skin_min_chroma"]) & (hue > p["skin_hue"][0]) & (hue < p["skin_hue"][1])

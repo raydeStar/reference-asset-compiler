@@ -115,10 +115,11 @@ pixels are the source pictures'.
 | `body_lift_m` | raises the acquired body (centred on z=0) onto the floor |
 | `body.hands_beyond_abs_x_m` | where the acquired outfit's hands begin along the T-pose arms (\|x\|); needed when the recipe gives the hands their own count. Recipes 20261010 and 20261011 also carry it; if both do, they must agree |
 | `body_paint.side_band_abs_x_m` | the side picture paints fully within the first \|x\| and fades out by the second |
+| `body_paint.min_facing`, `body_paint.mask_erode_px` | optional: how squarely a surface must face the front or back picture to take its paint (cosine, default 0.05) and how many pixels come off each cut-out's edge (default 1). With no side picture raise both (character-02: 0.35 and 4): a cut-out's halo of the old background otherwise smears across every side surface; the 3D fill paints the sides from their neighbours instead |
 | `body_paint.unmirrored_red` | optional: a red garment on one side only, kept out of the mirrored side view (R/G, R/B, below pixel row, grow px) |
 | `outfit_paint_params` | the outfit-paint profile |
 | `oral_anatomy` | `mouth_box_m` (\|x\|, min y, z range of the mouth interior); `neck_m` (open neck boundary below, extended down to) |
-| `neck_overlap` | the acquired collar's duplicate neck patch: `ellipse_m` radii and `above_z_m` to cut, the cut rim (`rim_above_z_m`, `rim_abs_x_m`) to smooth, where the binding also lets the body differ from the proxy |
+| `neck_overlap` | the acquired collar's duplicate neck patch: `ellipse_m` radii and `above_z_m` to cut, the cut rim (`rim_above_z_m`, `rim_abs_x_m`) to smooth, where the binding also lets the body differ from the proxy; optional `face_box_m` [\|x\|, y]: `prepare_body_scan.py` also cuts the scan's chin and face in front of the neck (CHARACTER_FRONT_END.md, step 5) |
 | `neck_weight_blend_m` | head weight rises from 0 at the first height to 1 over the second |
 | `review_views` | what the posed review renders look at |
 | `coat` | optional: a long coat's bone chains (below); absent, no coat bones |

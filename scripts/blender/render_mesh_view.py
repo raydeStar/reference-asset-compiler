@@ -25,6 +25,23 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from render_conform_review import VIEWS, build_head, camera  # noqa: E402
 
 
+def build_arrays(z):
+    me = bpy.data.meshes.new("mesh")
+    v, t = z["verts"].astype(np.float64), z["tris"].astype(np.int64)
+    me.vertices.add(len(v))
+    me.vertices.foreach_set("co", v.ravel())
+    me.loops.add(t.size)
+    me.loops.foreach_set("vertex_index", t.ravel())
+    me.polygons.add(len(t))
+    me.polygons.foreach_set("loop_start", np.arange(0, t.size, 3))
+    me.polygons.foreach_set("loop_total", np.full(len(t), 3))
+    me.update()
+    me.shade_smooth()
+    ob = bpy.data.objects.new("mesh", me)
+    bpy.context.scene.collection.objects.link(ob)
+    return ob
+
+
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:]
     p = argparse.ArgumentParser()
@@ -35,6 +52,7 @@ def main():
     p.add_argument("--view", default="front", choices=sorted(VIEWS))
     p.add_argument("--resolution", type=int, default=1024)
     p.add_argument("--expression", nargs="*", default=[])
+    p.add_argument("--arrays", action="store_true", help="the input is a plain verts/tris mesh")
     a = p.parse_args(argv)
 
     z = np.load(a.conform)
@@ -46,7 +64,11 @@ def main():
     scene.display.shading.color_type = "VERTEX"
     scene.display.shading.show_cavity = True
     scene.render.resolution_x = scene.render.resolution_y = a.resolution
-    head = build_head(z, z["rest"] if a.rest else None)
+    if a.arrays:
+        head = build_arrays(z)
+        scene.display.shading.color_type = "SINGLE"
+    else:
+        head = build_head(z, z["rest"] if a.rest else None)
     for item in a.expression:
         name, w = item.split("=")
         head.data.shape_keys.key_blocks[name].value = float(w)

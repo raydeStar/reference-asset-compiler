@@ -84,6 +84,15 @@ def test_a_profile_without_an_unmirrored_red_passes_no_flag():
     assert argv(body_paint_options(character)) == ENNIX_PAINT[:ENNIX_PAINT.index("--unmirrored-red")]
 
 
+def test_a_profile_without_a_side_picture_sets_the_facing_and_erosion():
+    character = copy.deepcopy(ENNIX)
+    character["body_paint"].update({"min_facing": 0.35, "mask_erode_px": 4})
+    assert argv(body_paint_options(character)) == ENNIX_PAINT + ["--min-facing", "0.35", "--mask-erode-px", "4"]
+    second = json.loads((ROOT / "profiles/characters/character-02.json").read_text(encoding="utf-8"))
+    tail = argv(body_paint_options(second))
+    assert tail[tail.index("--min-facing"):] == ["--min-facing", "0.35", "--mask-erode-px", "4"]
+
+
 def test_a_profile_without_a_mouth_corner_lift_passes_no_flag():
     character = copy.deepcopy(ENNIX)
     del character["face_proportions"]

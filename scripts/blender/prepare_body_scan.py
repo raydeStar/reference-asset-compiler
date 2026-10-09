@@ -50,6 +50,11 @@ What it does, in order:
      it; a given ellipse is used as given;
    - faces with a vertex above the head level (cut + --head-above-cut-m) are
      removed wherever they are: the rest of the head, ears, hair;
+   - with a face box (--face-box-m, else the profile's neck_overlap.face_box_m),
+     faces with a vertex above the cut, within |x| of the axis and in front of
+     a y are removed too: a chin and lower face that stand wider than the neck
+     column and below the head level (character-02's, under a high collar),
+     which the column alone leaves in front of the placed head;
    - collar faces outside the column are kept even where they rise above the
      cut;
    - then whatever is left lying wholly above the cut, attached to nothing
@@ -89,7 +94,7 @@ Usage:
   blender -b --factory-startup --python scripts/blender/prepare_body_scan.py \
       -- <scan.glb> <out/body-acquisition.blend> --height-m 1.8 \
       [--cut-z-m Z | --profile profiles/characters/<id>.json] [--object-name N]
-      [--neck-ellipse-m RX RY] [--head-above-cut-m 0.12]
+      [--neck-ellipse-m RX RY] [--head-above-cut-m 0.12] [--face-box-m ABS_X FRONT_Y]
 """
 from __future__ import annotations
 
@@ -318,6 +323,9 @@ def main() -> int:
     p.add_argument("--neck-ellipse-m", type=float, nargs=2, metavar=("RADIUS_X", "RADIUS_Y"),
                    help="the neck column, on the axis (default: the profile's neck_overlap.ellipse_m, "
                         "else measured)")
+    p.add_argument("--face-box-m", type=float, nargs=2, metavar=("ABS_X", "FRONT_Y"),
+                   help="also cut above the cut within |x| < ABS_X and y < FRONT_Y (the scan's chin and face; "
+                        "default: the profile's neck_overlap.face_box_m, else none)")
     p.add_argument("--neck-margin-m", type=float,
                    help="grow the neck column by this much before cutting inside it "
                         "(default: {0} m for a measured column, 0 for a given one)".format(MEASURED_MARGIN_M))
@@ -411,7 +419,13 @@ def main() -> int:
     in_column = face_flags(mesh, inside & above)
     in_head = face_flags(mesh, verts[:, 2] > head_level)
     removed = {"neck_column": int(in_column.sum()), "above_head_level": int((in_head & ~in_column).sum())}
-    delete_faces(mesh, in_column | in_head)
+    face_box = a.face_box_m or (profile.get("neck_overlap") or {}).get("face_box_m")
+    in_face = np.zeros_like(in_column)
+    if face_box:
+        abs_x, front_y = (float(v) for v in face_box)
+        in_face = face_flags(mesh, above & (np.abs(verts[:, 0]) < abs_x) & (verts[:, 1] < front_y))
+        removed["face_box"] = int((in_face & ~in_column & ~in_head).sum())
+    delete_faces(mesh, in_column | in_head | in_face)
 
     faces_before_floating = len(mesh.polygons)
     drop_floating(body, mesh_vertices(mesh)[:, 2] <= cut)
@@ -447,6 +461,7 @@ def main() -> int:
         "cut_z_m": {"floor": round(cut_floor, 6), "centred": round(cut, 6), "source": cut_source},
         "head_level_z_m": {"floor": round(head_level + lift, 6), "centred": round(head_level, 6)},
         "neck_column": neck,
+        "face_box_m": [float(v) for v in face_box] if face_box else None,
         "faces_removed": removed,
         "body_lift_m": round(lift, 9),
         "profile": str(Path(a.profile).resolve()) if a.profile else None,

@@ -12,9 +12,15 @@ Writes one NPZ (the fitted head and its expression deltas, in metres) and a
 JSON receipt with hashes, the alignment, the fit log and surface-distance
 measurements.
 
+The similarity alignment starts from the scan's frontmost point unless the
+same face detector has read a front render of the acquisition
+(`render_mesh_view.py --arrays`): then it starts from those landmarks, which a
+fringe or a spike of hair in front of the face cannot mislead.
+
 Usage:
   python scripts/conform_head_template.py <template.npz> <acquisition.npz> \
       <out.npz> <receipt.json> [--mpfb-data <mpfb data dir>]
+      [--acquisition-landmarks dw.json --acquisition-camera camera.json]
 """
 
 from __future__ import annotations
@@ -78,6 +84,12 @@ HELPER_FOLLOW = {
 }
 
 
+def _landmark_rms(template_pts, acquisition_pts, s, r, t):
+    """Landmark mismatch after a template-to-acquisition similarity, in template metres."""
+    d = tc.apply_similarity(template_pts, s, r, t) - acquisition_pts
+    return float(np.sqrt(np.mean(np.sum(d * d, 1))) / s)
+
+
 def _sha(path):
     return hashlib.sha256(Path(path).read_bytes()).hexdigest()
 
@@ -97,9 +109,14 @@ def main(argv=None):
     p.add_argument("--picture-landmarks", help="detect_face_landmarks.py JSON of the front picture")
     p.add_argument("--template-landmarks", help="the same, run on a render of the template")
     p.add_argument("--template-camera", help="render_mesh_view.py camera JSON of that render")
+    p.add_argument("--acquisition-landmarks",
+                   help="the same detector on a front render of the acquisition (render_mesh_view.py --arrays)")
+    p.add_argument("--acquisition-camera", help="that render's camera JSON")
     a = p.parse_args(argv)
     if a.picture_landmarks and not (a.template_landmarks and a.template_camera):
         p.error("--picture-landmarks needs --template-landmarks and --template-camera")
+    if a.acquisition_landmarks and not (a.acquisition_camera and a.template_landmarks and a.template_camera):
+        p.error("--acquisition-landmarks needs --acquisition-camera, --template-landmarks and --template-camera")
 
     t = tc.load_template(a.template)
     body = np.zeros(len(t.verts), bool)
@@ -130,14 +147,39 @@ def main(argv=None):
     band = (np.abs(acq_v[:, 0] - centre_x) < 0.2) & (acq_v[:, 2] > np.quantile(acq_v[:, 2], 0.2)) \
         & (acq_v[:, 2] < np.quantile(acq_v[:, 2], 0.7))
     nose_a = acq_v[band][np.argmin(acq_v[band, 1])]
+    seeds = [(s0, None, nose_a - s0 * nose_t) for s0 in np.geomspace(2.0, 20.0, 13)]
+    seed_landmarks = None
+    if a.acquisition_landmarks:
+        # The frontmost point is the nose only on a bare face: a fringe or a
+        # spike of hair in front of it seats the face in the hair. Detected
+        # landmarks on both renders give the start instead.
+        tpl_px, layout = read_landmarks(a.template_landmarks)
+        acq_px, acq_layout = read_landmarks(a.acquisition_landmarks)
+        if acq_layout != layout:
+            raise SystemExit("acquisition and template landmarks use different layouts")
+        keys = np.array(LANDMARK_SETS[layout]["registration"])
+        cam_t = json.loads(Path(a.template_camera).read_text(encoding="utf-8"))
+        cam_a = json.loads(Path(a.acquisition_camera).read_text(encoding="utf-8"))
+        ti, tb, tf = tc.bind_pixels(t.verts, tris[(active & body)[tris].all(1)], cam_t, tpl_px[keys])
+        ai, ab, af = tc.bind_pixels(acq_v, acq_t, cam_a, acq_px[keys])
+        ok = tf & af
+        if ok.sum() < 6:
+            raise SystemExit(f"only {int(ok.sum())} registration landmarks land on both meshes")
+        lm_t = np.einsum("lk,lkj->lj", tb, t.verts[ti])[ok]
+        lm_a = np.einsum("lk,lkj->lj", ab, acq_v[ai])[ok]
+        s0, r0, t0 = tc.umeyama(lm_t, lm_a)
+        seeds = [(s0, r0, t0)]
+        seed_landmarks = {"landmarks": str(a.acquisition_landmarks), "used": keys[ok].tolist(),
+                          "scale": float(s0), "rms_m": _landmark_rms(lm_t, lm_a, s0, r0, t0)}
     best = None
-    for s0 in np.geomspace(2.0, 20.0, 13):
-        t0 = nose_a - s0 * nose_t
-        s, r, tt, err = tc.similarity_icp(src, src_n, target_raw, s=s0, t=t0, iterations=80, trim=0.6)
+    for s0, r0, t0 in seeds:
+        s, r, tt, err = tc.similarity_icp(src, src_n, target_raw, s=s0, r=r0, t=t0, iterations=80, trim=0.6)
         rel = err / s
         if best is None or rel < best[-1]:
             best = (s, r, tt, err, rel)
     s, r, tt, err, rel = best
+    if seed_landmarks is not None:
+        seed_landmarks["rms_m_after_icp"] = _landmark_rms(lm_t, lm_a, s, r, tt)
     # The acquisition, expressed in template metres.
     acq_m = (acq_v - tt) @ r / s
     target = tc.Target.from_mesh(acq_m, acq_t)
@@ -297,7 +339,7 @@ def main(argv=None):
         "output": {"path": str(out), "sha256": _sha(out)},
         "alignment": {"scale_template_to_acquisition": float(s), "rotation": r.tolist(),
                       "translation": tt.tolist(), "face_rms_acquisition_units": float(err),
-                      "face_rms_m": float(rel)},
+                      "face_rms_m": float(rel), "seed": seed_landmarks or "frontmost point"},
         "active_vertices": int(active.sum()),
         "cavity_vertices": int((active & ~exposed).sum()),
         "turned_triangles_after_unfold": still_turned,

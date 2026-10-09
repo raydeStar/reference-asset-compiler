@@ -67,6 +67,10 @@ def body_paint_options(character):
                "--side-origin", *camera["side_origin_px"], "--side-band", *paint["side_band_abs_x_m"]]
     if paint.get("unmirrored_red"):
         options += ["--unmirrored-red", *paint["unmirrored_red"]]
+    if "min_facing" in paint:
+        options += ["--min-facing", paint["min_facing"]]
+    if "mask_erode_px" in paint:
+        options += ["--mask-erode-px", paint["mask_erode_px"]]
     return options
 
 
