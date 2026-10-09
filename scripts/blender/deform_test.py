@@ -118,13 +118,15 @@ def setup_render(centre, extent, resolution):
     scene = bpy.context.scene
     engines = scene.render.bl_rna.properties["engine"].enum_items.keys()
     # EEVEE needs a GPU even in the background: a CPU build (RAC_RENDER_DEVICE=CPU) renders with Cycles on the CPU.
-    cpu = os.environ.get("RAC_RENDER_DEVICE", "").upper() == "CPU"
-    for candidate in (("CYCLES",) if cpu else ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "CYCLES")):
-        if candidate in engines:
-            scene.render.engine = candidate
-            break
-    if cpu:
+    # Cycles is an add-on engine, missing from the static list above, so it is set directly.
+    if os.environ.get("RAC_RENDER_DEVICE", "").upper() == "CPU":
+        scene.render.engine = "CYCLES"
         scene.cycles.device, scene.cycles.samples, scene.cycles.use_denoising = "CPU", 8, True
+    else:
+        for candidate in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "CYCLES"):
+            if candidate in engines:
+                scene.render.engine = candidate
+                break
     print("RENDER ENGINE", scene.render.engine, scene.cycles.device if scene.render.engine == "CYCLES" else "")
     scene.render.resolution_x = resolution
     scene.render.resolution_y = resolution
