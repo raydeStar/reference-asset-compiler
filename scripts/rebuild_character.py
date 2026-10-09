@@ -197,10 +197,22 @@ def main():
         "--device", a.device], True)
     proxy = out / f"rig-input/{prefix}_proxy.fbx"
     run("blender/export_skinning_proxy.py", [assembly, proxy, "--name", prefix], True)
-    landmarks = json.loads((local / "rig-landmarks.json").read_text())
-    landmarks.update(payload_fbx=str(proxy), payload_fbx_sha256=sha(proxy),
-        based_on_measured_landmarks_sha256=recipe["inputs"]["rig-landmarks.json"]["sha256"],
-        rebuild_note="Fixed measured skeleton reused with the same frozen body; fresh proxy includes the recorded collar/head repairs.")
+    derived_landmarks = "rig-landmarks.json" not in recipe["inputs"]
+    if derived_landmarks:
+        # No measured skeleton for this character yet: derive one from this build's proxy.
+        # Its review overlays render with EEVEE (a GPU), so a CPU build skips them.
+        derived = out / "rig-input/derived"
+        run("blender/derive_humanoid_landmarks.py", [proxy, derived, "--profile", ROOT / "profiles/skeletons/ue5_manny.json",
+            *(["--no-overlays"] if a.device == "CPU" else [])], True)
+        landmarks = json.loads((derived / "humanoid-landmarks.json").read_text())
+        landmarks.update(rebuild_note="Derived in this build from its own proxy by derive_humanoid_landmarks.py; "
+                         "not measured and not reviewed.")
+        receipt["rig_landmarks"] = "derived in this build from its proxy (rig-input/derived/); not measured and not reviewed"
+    else:
+        landmarks = json.loads((local / "rig-landmarks.json").read_text())
+        landmarks.update(payload_fbx=str(proxy), payload_fbx_sha256=sha(proxy),
+            based_on_measured_landmarks_sha256=recipe["inputs"]["rig-landmarks.json"]["sha256"],
+            rebuild_note="Fixed measured skeleton reused with the same frozen body; fresh proxy includes the recorded collar/head repairs.")
     lm = out / "rig-input/landmarks.json"
     lm.write_text(json.dumps(landmarks, indent=2))
     (out / "proxy-rig").mkdir()
@@ -251,6 +263,8 @@ def main():
         gate["tri_budget"])
     receipt["limits"] = ["Human likeness and texture approval pending", "No cooked runtime proof",
         budget_limit, "Held inspection pose is not a moving idle"]
+    if derived_landmarks:
+        receipt["limits"].append("Rig landmarks derived in this build, not measured or reviewed")
     save()
     print(f"The fitting is reproducible, sir. Review receipt: {out / 'build-receipt.json'}", flush=True)
 

@@ -5,6 +5,9 @@ corner lift (transport_face_proportions.py), where the hands begin
 (prepare_body_acquisition.py) and the body paint's registration and optional
 unmirrored red (paint_body_from_views.py). Ennix's options must stay the ones
 his builds recorded, and a second character must not inherit his.
+
+The whole runner, with every stage stubbed, must still issue his recorded
+commands; a recipe without rig-landmarks.json derives them from its own proxy.
 """
 from __future__ import annotations
 
@@ -20,6 +23,7 @@ import pytest
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
 
+import rebuild_character  # noqa: E402
 from rebuild_character import (  # noqa: E402
     body_paint_options,
     body_reduction_options,
@@ -154,3 +158,116 @@ def test_the_face_stage_lifts_each_corner_by_its_own_millimetres(tmp_path):
     assert lift[1] == pytest.approx(0.0010, abs=1e-12)
     assert np.abs(lift[2:]).max() < 1e-9
     assert np.array_equal(before[:, :2], after[:, :2])
+
+
+# The whole runner, every stage stubbed: which commands it issues, in what order.
+
+SKELETON = str(ROOT / "profiles/skeletons/ue5_manny.json")
+
+
+def stub_build(tmp_path, monkeypatch, recipe, *options, blender="blender"):
+    """Run rebuild_character.main() on placeholder inputs; return the build directory.
+
+    Each stub stage writes only what the runner reads back: the proxy, the
+    derived landmarks and the rig gate's report.
+    """
+    bundle, recipe = tmp_path / "bundle", copy.deepcopy(recipe)
+    for name, info in recipe["inputs"].items():
+        path = bundle / name
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(json.dumps({"picture": {}, "image": name}))  # the runner rewrites these pointers
+        info["sha256"] = rebuild_character.sha(path)
+    recipe_path = tmp_path / "recipe.json"
+    recipe_path.write_text(json.dumps(recipe))
+
+    def stage(cmd, **_):
+        script = Path(cmd[cmd.index("--python") + 1] if "--python" in cmd else cmd[1]).name
+        args = [Path(x) for x in (cmd[cmd.index("--") + 1:] if "--" in cmd else cmd[2:])]
+        if script == "export_skinning_proxy.py":
+            args[1].parent.mkdir(parents=True, exist_ok=True)
+            args[1].write_bytes(b"proxy")
+        elif script == "derive_humanoid_landmarks.py":
+            args[1].mkdir(parents=True)
+            (args[1] / "humanoid-landmarks.json").write_text(json.dumps({
+                "skeleton_profile": "ue5_manny", "payload_fbx": str(args[0]),
+                "payload_fbx_sha256": rebuild_character.sha(args[0]), "joints": {}, "bones": {},
+                "reviewed_by": None, "review_status": "derived_pending_overlay_review"}))
+        elif script == "gate_rig.py":
+            args[2].parent.mkdir(parents=True, exist_ok=True)
+            args[2].write_text(json.dumps({"total_tris": 70000, "tri_budget": 80000,
+                                           "tri_budget_rule": {"character_tier": {"id": "hero"}}}))
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(rebuild_character.subprocess, "run", stage)
+    monkeypatch.setattr(rebuild_character.subprocess, "check_output", lambda *_, **__: "Blender (stub)")
+    out = tmp_path / "build"
+    monkeypatch.setattr(sys, "argv", ["rebuild_character.py", "--inputs", str(bundle), "--out", str(out),
+                                      "--blender", blender, "--recipe", str(recipe_path), *options])
+    rebuild_character.main()
+    return out
+
+
+def receipt_of(out):
+    return json.loads((out / "build-receipt.json").read_text(encoding="utf-8"))
+
+
+def stage_args(receipt, script):
+    """The arguments a Blender stage got after `--`."""
+    argv = next(c["argv"] for c in receipt["commands"] if c["script"] == script)
+    return argv[argv.index("--") + 1:]
+
+
+VERIFY = RECEIPTS / "rebuild-v10-verify-evidence/cpu-build/build-receipt.json"
+
+
+@pytest.mark.skipif(not VERIFY.is_file(), reason="Ennix's build receipts are kept out of Git")
+def test_ennix_build_issues_the_commands_his_cpu_build_recorded(tmp_path, monkeypatch):
+    recorded = json.loads(VERIFY.read_text(encoding="utf-8"))["commands"]
+    blender = next(c["argv"][0] for c in recorded if "--python" in c["argv"])
+    issued = receipt_of(stub_build(tmp_path, monkeypatch, RECIPE, "--device", "CPU", blender=blender))["commands"]
+
+    def normalised(commands, root, out):
+        return [(c["script"], ["{exe}"] + [x.replace(str(out), "{out}").replace(str(root), "{root}")
+                                           for x in c["argv"][1:]]) for c in commands]
+
+    # transport_face_proportions.py: python, script, head.npz, head.json, landmarks, out/head.npz
+    first = recorded[0]["argv"]
+    expected = normalised(recorded, Path(first[1]).parents[1], Path(first[5]).parent)
+    # Since that build the mouth-corner lift comes from the profile as arguments (it was in the code).
+    expected[0][1].extend(["--mouth-corner-lift", "2.3", "1.0"])
+    assert normalised(issued, ROOT, tmp_path / "build") == expected
+
+
+def test_a_recipe_with_measured_landmarks_rigs_from_them(tmp_path, monkeypatch):
+    out = stub_build(tmp_path, monkeypatch, RECIPE, "--device", "CPU")
+    receipt = receipt_of(out)
+    assert "blender/derive_humanoid_landmarks.py" not in [c["script"] for c in receipt["commands"]]
+    proxy, landmarks = out / "rig-input/Ennix_proxy.fbx", out / "rig-input/landmarks.json"
+    assert stage_args(receipt, "blender/rig_from_landmarks.py")[:3] == [str(proxy), str(landmarks), SKELETON]
+    used = json.loads(landmarks.read_text())
+    assert used["based_on_measured_landmarks_sha256"] == receipt["input_hashes"]["rig-landmarks.json"]
+    assert used["payload_fbx_sha256"] == rebuild_character.sha(proxy)
+    assert not (out / "rig-input/derived").exists() and "rig_landmarks" not in receipt
+
+
+@pytest.mark.parametrize(("device", "overlays"), [("CPU", ["--no-overlays"]), ("GPU", [])])
+def test_a_recipe_without_rig_landmarks_derives_them_from_its_proxy(tmp_path, monkeypatch, device, overlays):
+    recipe = copy.deepcopy(RECIPE)
+    del recipe["inputs"]["rig-landmarks.json"]
+    out = stub_build(tmp_path, monkeypatch, recipe, "--device", device)
+    receipt = receipt_of(out)
+    scripts = [c["script"] for c in receipt["commands"]]
+    at = scripts.index("blender/derive_humanoid_landmarks.py")
+    assert scripts[at - 1:at + 2] == ["blender/export_skinning_proxy.py", "blender/derive_humanoid_landmarks.py",
+                                      "blender/rig_from_landmarks.py"]
+    proxy, derived = out / "rig-input/Ennix_proxy.fbx", out / "rig-input/derived"
+    assert stage_args(receipt, "blender/derive_humanoid_landmarks.py") == [
+        str(proxy), str(derived), "--profile", SKELETON, *overlays]
+    landmarks = out / "rig-input/landmarks.json"
+    assert stage_args(receipt, "blender/rig_from_landmarks.py")[:3] == [str(proxy), str(landmarks), SKELETON]
+    used = json.loads(landmarks.read_text())
+    measured = json.loads((derived / "humanoid-landmarks.json").read_text())
+    assert {key: used[key] for key in measured} == measured
+    assert "based_on_measured_landmarks_sha256" not in used
+    assert "not measured" in used["rebuild_note"] and "not measured" in receipt["rig_landmarks"]
+    assert any("derived in this build" in limit for limit in receipt["limits"])

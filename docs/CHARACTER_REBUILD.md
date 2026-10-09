@@ -36,6 +36,10 @@ py -3.12 scripts/rebuild_character.py `
 - The build needs only `--inputs` and the recipe. Every input's SHA-256 is
   checked against the recipe before anything runs. The recipes' `source`
   fields are provenance (where an input was frozen from); nothing reads them.
+- `rig-landmarks.json` is the measured, reviewed skeleton. A recipe without
+  one (a new character's first build) derives the joints from the build's own
+  proxy instead; the landmarks, the receipt (`rig_landmarks`) and its limits
+  then say they were derived in this build, not measured or reviewed.
 - The recipe names its character profile (`"character"`); `--character
   profiles/characters/<name>.json` overrides it. Recipes older than
   `ennix-open-review-20261011` predate the profile and need `--character`.
@@ -81,7 +85,8 @@ runs on its own.
 | `refine_outfit_paint.py` | garment mask, cleaned albedo, detail normals | `outfit_paint_params` |
 | `blender/assemble_character.py` | places the head on the body, cuts the collar overlap, review renders | `asset_prefix`, `body_lift_m`, `source_camera`, `neck_overlap` |
 | `blender/export_skinning_proxy.py` | joined body+head proxy for rigging | `asset_prefix` |
-| `blender/rig_from_landmarks.py` | rigs the proxy from the measured landmarks | |
+| `blender/derive_humanoid_landmarks.py` (no `rig-landmarks.json` in the recipe) | derives the joints from this build's proxy into `rig-input/derived/`; `--device CPU` passes `--no-overlays` (the overlays render with EEVEE) | |
+| `blender/rig_from_landmarks.py` | rigs the proxy from the measured (or derived) landmarks | |
 | `blender/bind_assembly_to_rig.py` | transfers the proxy's weights to the editable assembly | `asset_prefix`, `neck_weight_blend_m`, `neck_overlap` |
 | `blender/export_groom_alembic.py` | groom to Alembic, with a round-trip count check | `asset_prefix` |
 | `rig_ue5_character.py` (with `--manny-dir`) | Manny-conformant game rig | `asset_prefix` |
