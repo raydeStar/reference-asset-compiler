@@ -43,10 +43,14 @@ py -3.12 scripts/rebuild_character.py `
 - The recipe names its character profile (`"character"`); `--character
   profiles/characters/<name>.json` overrides it. Recipes older than
   `ennix-open-review-20261011` predate the profile and need `--character`.
-- `--device CPU` renders the Cycles review images on the CPU. Three stage
-  scripts still render with EEVEE, which needs a GPU: `render_ortho_views.py`
-  and `pose_ue5_anim_test.py` (both inside `rig_ue5_character.py`; the
-  orthographic views feed DWPose) and `deform_test.py`.
+- `--device CPU` keeps the whole build off the GPU: the Cycles review images
+  render on the CPU, and the three stage scripts that render with EEVEE
+  (which needs a GPU even in the background) switch to Cycles on the CPU:
+  `render_ortho_views.py` and `pose_ue5_anim_test.py` (both inside
+  `rig_ue5_character.py`; the orthographic views feed DWPose) and
+  `deform_test.py`. The runner sets `RAC_RENDER_DEVICE=CPU`, which every stage
+  inherits; set it yourself to run those scripts alone on the CPU. Until
+  2026-10-09 they used EEVEE regardless. DWPose itself always runs on the CPU.
 - `--manny-dir` (Epic's Manny dumps from `scripts/ue5/dump_manny_reference.py`,
   kept out of Git) adds the Manny-conformant game rig and its exports.
 - The receipt (`build-receipt.json`) records the recipe's, the character

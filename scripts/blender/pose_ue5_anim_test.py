@@ -8,8 +8,12 @@ collapsing shoulder show up here before anything reaches Unreal.
 
 blender -b <name>_UE5.blend --python pose_ue5_anim_test.py -- \
     <manny_refpose.json> <manny_anim_poses.json> <out_dir> [--res 640]
+
+RAC_RENDER_DEVICE=CPU (rebuild_character.py --device CPU sets it) renders with Cycles on the CPU:
+EEVEE needs a GPU even in the background.
 """
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -53,7 +57,12 @@ def main():
     for n in parents:
         visit(n)
     scene = bpy.context.scene
-    scene.render.engine = "BLENDER_EEVEE"
+    if os.environ.get("RAC_RENDER_DEVICE", "").upper() == "CPU":
+        scene.render.engine = "CYCLES"
+        scene.cycles.device, scene.cycles.samples, scene.cycles.use_denoising = "CPU", 8, True
+    else:
+        scene.render.engine = "BLENDER_EEVEE"
+    print("RENDER ENGINE", scene.render.engine, scene.cycles.device if scene.render.engine == "CYCLES" else "")
     scene.render.resolution_x, scene.render.resolution_y = res, int(res * 1.25)
     scene.render.film_transparent = False
     if scene.world is None:

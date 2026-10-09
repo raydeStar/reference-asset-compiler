@@ -14,6 +14,7 @@ import copy
 import hashlib
 import importlib.metadata
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -101,9 +102,13 @@ def main():
     p.add_argument("--recipe", required=True, help="e.g. recipes/ennix-open-review-20261011.json")
     p.add_argument("--character", help="character profile, e.g. profiles/characters/ennix.json (default: the one the recipe names)")
     p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
-                   help="Cycles device for the review renders; CPU leaves the GPU free (slower)")
+                   help="Cycles device for the review renders; CPU leaves the GPU free (slower): the stages that "
+                        "render with EEVEE (the UE5 rig's ortho and pose views, the deform test) switch to Cycles on "
+                        "the CPU through RAC_RENDER_DEVICE")
     p.add_argument("--manny-dir", help="Manny reference dumps (scripts/ue5/dump_manny_reference.py); enables the UE5 rig stage")
     a = p.parse_args()
+    # Every stage runs as a subprocess and inherits this; EEVEE needs a GPU even in the background.
+    os.environ["RAC_RENDER_DEVICE"] = a.device
     inputs, out = Path(a.inputs).resolve(), Path(a.out).resolve()
     recipe_path = Path(a.recipe).resolve()
     recipe = json.loads(recipe_path.read_text())

@@ -5,10 +5,14 @@ blender -b <character.blend> --python render_ortho_views.py -- <out_dir> [resolu
 Writes front/left/back/top PNGs plus ortho.json (centre, ortho scale and
 camera axes), so a pixel maps back to world metres exactly:
 x = cx + (px - res/2) * scale / res, z = cz + (res/2 - py) * scale / res.
+
+RAC_RENDER_DEVICE=CPU (rebuild_character.py --device CPU sets it) renders with Cycles on the CPU:
+EEVEE needs a GPU even in the background.
 """
 
 import bpy
 import json
+import os
 import sys
 import math
 from mathutils import Vector
@@ -32,7 +36,12 @@ for o in meshes:
         lo = Vector(map(min, lo, w))
         hi = Vector(map(max, hi, w))
 center = (lo + hi) / 2
-scene.render.engine = "BLENDER_EEVEE"
+if os.environ.get("RAC_RENDER_DEVICE", "").upper() == "CPU":
+    scene.render.engine = "CYCLES"
+    scene.cycles.device, scene.cycles.samples, scene.cycles.use_denoising = "CPU", 16, True
+else:
+    scene.render.engine = "BLENDER_EEVEE"
+print("RENDER ENGINE", scene.render.engine, scene.cycles.device if scene.render.engine == "CYCLES" else "")
 scene.render.resolution_x = res
 scene.render.resolution_y = res
 scene.render.film_transparent = False

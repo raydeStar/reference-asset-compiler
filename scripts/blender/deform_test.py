@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import math
+import os
 import sys
 from pathlib import Path
 
@@ -116,10 +117,15 @@ def setup_render(centre, extent, resolution):
 
     scene = bpy.context.scene
     engines = scene.render.bl_rna.properties["engine"].enum_items.keys()
-    for candidate in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "CYCLES"):
+    # EEVEE needs a GPU even in the background: a CPU build (RAC_RENDER_DEVICE=CPU) renders with Cycles on the CPU.
+    cpu = os.environ.get("RAC_RENDER_DEVICE", "").upper() == "CPU"
+    for candidate in (("CYCLES",) if cpu else ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "CYCLES")):
         if candidate in engines:
             scene.render.engine = candidate
             break
+    if cpu:
+        scene.cycles.device, scene.cycles.samples, scene.cycles.use_denoising = "CPU", 8, True
+    print("RENDER ENGINE", scene.render.engine, scene.cycles.device if scene.render.engine == "CYCLES" else "")
     scene.render.resolution_x = resolution
     scene.render.resolution_y = resolution
     scene.render.image_settings.file_format = "PNG"
