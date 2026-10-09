@@ -217,7 +217,14 @@ def main():
         # Strands carry the hair; a dark scalp cap under them keeps skin from showing
         # between them (the dense under-layer real hair has).
         sz = np.load(a.strands)
-        cap = mesh("scalp-cap", sz["cap_verts"], sz["cap_tris"])
+        # Keep only the vertices the cap's triangles use: a groom can hand over the whole template's vertex array,
+        # and loose vertices far below the head (down to the feet) then poison every bounds-based measurement
+        # downstream (the UE5 rig planner took "ground" from them).
+        cap_tris = np.asarray(sz["cap_tris"]).astype(np.int64)
+        used = np.unique(cap_tris)
+        remap = -np.ones(len(sz["cap_verts"]), np.int64)
+        remap[used] = np.arange(len(used))
+        cap = mesh("scalp-cap", np.asarray(sz["cap_verts"])[used], remap[cap_tris])
         cm = bpy.data.materials.new("scalp-cap")
         cm.use_nodes = True
         cb = cm.node_tree.nodes["Principled BSDF"]

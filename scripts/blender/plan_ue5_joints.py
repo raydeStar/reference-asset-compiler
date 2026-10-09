@@ -272,7 +272,14 @@ def main():
                      "shoulder_to_tip_ratio": (tip_x - sh_x) / H}
 
     # --- fingers: slices across the flat hand ------------------------------
-    J.update(trace_fingers(sl, wr_x, tip_x, J["hand_l"], H))
+    try:
+        J.update(trace_fingers(sl, wr_x, tip_x, J["hand_l"], H))
+        notes["fingers"] = "traced from x-slices of the hand"
+    except RuntimeError as error:
+        # Fused or mitten-like scanned fingers: place the knuckles by hand proportions instead, so the rig
+        # stays complete (the hand then bends as one piece). Recorded, for review.
+        J.update(proportional_fingers(wr_x, tip_x, J["hand_l"]))
+        notes["fingers"] = f"proportional fallback ({error})"
 
     # --- proportion remap ------------------------------------------------
     plan = {"schema": "rac.ue5-joint-plan.v1", "units": "Blender metres; facing -Y; character left = +X",
@@ -298,6 +305,27 @@ def main():
         notes["arm_remap"] = {"from_ratio": ratio, "to_ratio": a.arm_ratio}
     Path(a.out).write_text(json.dumps(plan, indent=1))
     print("PLAN DONE", a.out, json.dumps(notes, indent=1))
+
+
+def proportional_fingers(wr_x, tip_x, hand, spread=(-0.024, -0.008, 0.008, 0.022), length=(0.95, 1.0, 0.95, 0.8)):
+    """Knuckles of the left hand from proportions alone (palm 48% of the wrist-to-tip length; fingers fanned
+    front (-Y) to back (+Y) across the palm; thumb forward), for hands whose fingers do not separate in slices."""
+    hand = np.array(hand, float)
+    span = tip_x - wr_x
+    mcp_x = wr_x + 0.48 * span
+    out = {}
+    for n, dy, k in zip(["index", "middle", "ring", "pinky"], spread, length):
+        finger = (tip_x - mcp_x) * k
+        def at(x, dy=dy):
+            return [float(x), float(hand[1] + dy), float(hand[2])]
+        out[f"{n}_01_l"] = at(mcp_x)
+        out[f"{n}_02_l"] = at(mcp_x + 0.45 * finger)
+        out[f"{n}_03_l"] = at(mcp_x + 0.73 * finger)
+        out[f"{n}_metacarpal_l"] = list(hand + 0.15 * (np.array(out[f"{n}_01_l"]) - hand))
+    out["thumb_01_l"] = [float(wr_x + 0.08 * span), float(hand[1] - 0.02), float(hand[2] - 0.005)]
+    out["thumb_02_l"] = [float(wr_x + 0.25 * span), float(hand[1] - 0.034), float(hand[2] - 0.01)]
+    out["thumb_03_l"] = [float(wr_x + 0.40 * span), float(hand[1] - 0.044), float(hand[2] - 0.012)]
+    return out
 
 
 def trace_fingers(sl, wr_x, tip_x, hand, H):
