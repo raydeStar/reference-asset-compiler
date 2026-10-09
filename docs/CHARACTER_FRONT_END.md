@@ -88,6 +88,21 @@ derivation report it needs are in [AI_STAGES_SETUP.md](AI_STAGES_SETUP.md),
 Each attempt writes `candidate.glb` in its output directory. Review the clay
 views before going on.
 
+**The body from Pixal3D (MIT, single view, WSL).** With only a front picture
+of the body, Pixal3D's candidate is the sharper one: on character-02 it kept
+the boot laces and straps, the holster, the cuff buttons, the collar's edges
+and separate fingers, where Hunyuan3D-2's single view fused the fingers and
+softened the outfit. It needs about 20 GiB of free VRAM (close the editor),
+takes about 2 minutes at 1024, and delivers the figure facing +y:
+
+```powershell
+$env:RAC_WSL_PIXAL3D_PYTHON = "/home/you/ai/envs/pixal3d/bin/python"; $env:PIXAL3D_ROOT = "/home/you/ai/Pixal3D"
+python scripts/generate_geometry.py $C-body-pixal3d $W/guidance/body-front.png --seed 42 --resolution 1024
+```
+
+Then prepare it with `--yaw-deg 180 --centre-y-on-neck` (step 5). From Git Bash, set
+`MSYS_NO_PATHCONV=1` or the WSL paths are rewritten into Windows ones.
+
 ## 5. Prepare the body scan (CPU)
 
 First set the profile's `neck_overlap` for this figure: `above_z_m` is the cut
@@ -117,6 +132,12 @@ reaches) below the cut, or there is a gap; the stage warns.
   the placed head: character-02's painted grin showed through his face from
   the side. His box is [0.10, -0.02]; check the front of the prepared body
   above the cut before going on.
+- `--yaw-deg` turns the scan about the vertical axis first, so its front
+  faces -y (Pixal3D: 180). The receipt records it.
+- `--centre-y-on-neck` centres depth on the body in the 10 cm below the cut
+  (|x| < 0.12 m), where step 7 puts the head's neck ring (y = 0). A coat that
+  flares behind moves the box centre off the neck: Pixal3D's character-02 sat
+  6 cm forward of it, and the head's neck stood out behind his collar.
 - `--cut-z-m` and `--neck-ellipse-m` override the profile; `--measure-neck`
   measures the column on the scan instead (it fails when a collar hides the
   back of the neck, as Ennix's does). The measurement is in the receipt either

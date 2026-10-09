@@ -3,9 +3,9 @@
   "character": "profiles/characters/character-02.json",
   "inputs": {
     "body-acquisition.blend": {
-      "sha256": "f9eb2503a9850127cb32923da03c2fb60d1041ca0ac6f3b28abfa8507d7f866d",
-      "bytes": 18260330,
-      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\body-acquisition-v2.blend"
+      "sha256": "8054e3414f82e4bc18d959da01354b17b5e6ece00bee078268afe3d090921325",
+      "bytes": 37802214,
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\front-end\\pixal3d\\body-acquisition.blend"
     },
     "body-back.png": {
       "sha256": "3e2a6729bdfe0574778cd04815988ee8428aeaa2fa076ff8918bb1958ccaf6db",

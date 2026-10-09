@@ -94,7 +94,7 @@ Usage:
   blender -b --factory-startup --python scripts/blender/prepare_body_scan.py \
       -- <scan.glb> <out/body-acquisition.blend> --height-m 1.8 \
       [--cut-z-m Z | --profile profiles/characters/<id>.json] [--object-name N]
-      [--neck-ellipse-m RX RY] [--head-above-cut-m 0.12] [--face-box-m ABS_X FRONT_Y]
+      [--neck-ellipse-m RX RY] [--head-above-cut-m 0.12] [--face-box-m ABS_X FRONT_Y] [--yaw-deg 180]
 """
 from __future__ import annotations
 
@@ -323,6 +323,11 @@ def main() -> int:
     p.add_argument("--neck-ellipse-m", type=float, nargs=2, metavar=("RADIUS_X", "RADIUS_Y"),
                    help="the neck column, on the axis (default: the profile's neck_overlap.ellipse_m, "
                         "else measured)")
+    p.add_argument("--yaw-deg", type=float, default=0.0,
+                   help="turn the scan about the vertical axis first, so its front faces -y "
+                        "(Pixal3D delivers figures facing +y: 180)")
+    p.add_argument("--centre-y-on-neck", action="store_true",
+                   help="centre depth (y) on the body just below the cut, where the head's neck ring will sit")
     p.add_argument("--face-box-m", type=float, nargs=2, metavar=("ABS_X", "FRONT_Y"),
                    help="also cut above the cut within |x| < ABS_X and y < FRONT_Y (the scan's chin and face; "
                         "default: the profile's neck_overlap.face_box_m, else none)")
@@ -365,6 +370,9 @@ def main() -> int:
         raise SystemExit("The scan has no vertical extent to scale.")
     factor = a.height_m / extent
     mesh.transform(Matrix.Scale(factor, 4))
+    if a.yaw_deg:
+        # Generators disagree on which way the figure faces; the stages expect the front at -y.
+        mesh.transform(Matrix.Rotation(math.radians(a.yaw_deg), 4, "Z"))
     verts = mesh_vertices(mesh)
     centre = (verts.min(axis=0) + verts.max(axis=0)) / 2
     shift = np.zeros(3)
@@ -378,6 +386,19 @@ def main() -> int:
     lift = float(-verts[:, 2].min())
     cut = cut_floor - lift
     head_level = cut + a.head_above_cut_m
+    neck_depth = None
+    if a.centre_y_on_neck:
+        # The head is placed with its neck ring over y=0. A coat flaring behind
+        # moves the box centre off the neck, so centre depth on the chest and
+        # collar just below the cut instead (front and back pictures are
+        # orthographic along y: their registration does not move).
+        band = verts[(verts[:, 2] > cut - 0.10) & (verts[:, 2] < cut) & (np.abs(verts[:, 0]) < 0.12)]
+        if len(band) == 0:
+            raise SystemExit("--centre-y-on-neck: nothing within |x| 0.12 m in the 10 cm below the cut")
+        neck_depth = float((band[:, 1].min() + band[:, 1].max()) / 2)
+        mesh.transform(Matrix.Translation((0.0, -neck_depth, 0.0)))
+        verts = verts - np.array([0.0, neck_depth, 0.0])
+        shift[1] -= neck_depth
 
     edges = np.empty(len(mesh.edges) * 2, dtype=np.int64)
     mesh.edges.foreach_get("vertices", edges)
@@ -451,6 +472,8 @@ def main() -> int:
         "triangles": {"before": before["triangles"], "after": after["triangles"]},
         "vertices": {"before": before["vertices"], "after": after["vertices"]},
         "height_m": a.height_m,
+        "yaw_deg": a.yaw_deg,
+        "neck_depth_centred_from_y_m": None if neck_depth is None else round(neck_depth, 6),
         "scale": {"factor": round(factor, 8), "delivered_bounds_m": delivered},
         "centre": {"bbox_centre_after_scale_m": [round(float(v), 6) for v in centre],
                    "shift_applied_m": [round(float(v), 6) for v in shift],
