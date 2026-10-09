@@ -19,12 +19,14 @@ Sources, in order of trust:
 Output is the same landmark schema `rig_from_landmarks.py` consumes for the
 mascot, plus overlay renders for review. Fingers are a template fit, not a
 measurement: review the overlay before trusting hand deformation.
+`--no-overlays` writes the same landmarks without the overlays (they render
+with EEVEE, which needs a GPU); the JSON then has no `overlay_sha256`.
 
 Usage:
   blender -b --factory-startup --python-exit-code 1 --python \
       scripts/blender/derive_humanoid_landmarks.py -- \
       <mesh.fbx|glb> <out_dir> [--profile profiles/skeletons/ue5_manny.json] \
-      [--manny profiles/rigging/manny-reference-pose.json]
+      [--manny profiles/rigging/manny-reference-pose.json] [--no-overlays]
 """
 
 from __future__ import annotations
@@ -266,7 +268,11 @@ def main() -> int:
 
     required = list(profile["required_bones"])
     optional = list(profile.get("optional_bones", []))
-    wanted = [b for b in required + optional if b in T or b == "root"]
+    # Manny's interaction and center_of_mass helpers (optional in the profile since
+    # 2026-10-07, for the game export's gate) have no joint here; the proxy rig
+    # leaves them out, as the first character's measured landmarks do.
+    wanted = [b for b in required + optional
+              if (b in T or b == "root") and b not in ("interaction", "center_of_mass")]
     if profile.get("root_bone") and profile["root_bone"] not in wanted:
         wanted.insert(0, profile["root_bone"])
     missing = [b for b in required if b not in joints]
@@ -340,6 +346,12 @@ def main() -> int:
         "review_status": "derived_pending_overlay_review",
     }
     landmarks_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    summary = "[LANDMARKS] {0} bones={1} height={2:.3f} crotch_z={3:.3f} notes={4}".format(
+        landmarks_path, len(bones), H, crotch_z, notes)
+    if "--no-overlays" in argv:
+        # The overlays render with EEVEE, which needs a GPU; the landmarks above are complete without them.
+        print(summary + " overlays=skipped")
+        return 0
 
     # Overlay renders.
     scene = bpy.context.scene
@@ -423,7 +435,7 @@ def main() -> int:
     views["hand-left"] = sha256(path)
     payload["overlay_sha256"] = views
     landmarks_path.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
-    print("[LANDMARKS] {0} bones={1} height={2:.3f} crotch_z={3:.3f} notes={4}".format(landmarks_path, len(bones), H, crotch_z, notes))
+    print(summary)
     return 0
 
 
