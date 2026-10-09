@@ -4416,3 +4416,32 @@ study).
   paints byte-identical, semantic audit equal except the proxy rig's heat
   weights (as v9/v10), UE5 joint plan byte-identical and game blend semantic
   match on v10's keypoints. `deform_test.py` was not run (GPU reserved).
+
+## 2026-10-09 — Mesh hair in the character build: character-02 rebuild-v11 (Claude)
+
+Mark could not stand the strand groom on character-02. The mesh hair of
+`build_mesh_hair.py` (the Pixal3D scan's sculpted locks, 56,032 triangles,
+baked colour and normals) now goes through the generic build
+(CHARACTER_MESH_HAIR.md, section 4).
+
+- Recipe `"hair": {"mode": "mesh"}`; strands stay the default and Ennix's
+  recorded commands are unchanged (test). `freeze_character_inputs.py
+  --hair-mode mesh` requires and freezes `hair-mesh.npz` and its two maps.
+- Mesh mode: no groom and no Alembic; `mesh_hair_scalp_cap.py` (new, numpy)
+  makes the dark scalp cap under the locks; `render_painted_head.py
+  --scalp-cap --hair-normal`; `assemble_character.py --mesh-hair`; the maps are
+  copied to `export/`; `rig_ue5_character.py --plan-ignore <prefix>_hair`.
+- The joint planner took the largest mesh as the body; character-02's hair has
+  more vertices (26,100) than his body (24,731). `plan_ue5_joints.py --ignore`
+  leaves the hair out of every measurement.
+- `import_character_review.py` takes `groom=None`.
+- character-02: recipe `character-02-mesh-hair-20261009` (v10's inputs and
+  settings plus the hair), `work/character-02/rebuild-v11-mesh-hair`, built on
+  the CPU in 392 s (`work/character-02/run_mesh_hair_build.sh`). Cap 442
+  triangles; joint plan within 3.8 mm of v10's; all six coat chains find the
+  hem. Installed in the game headless (audit passes: no groom component, the
+  hair slot on a two-sided mesh-hair material).
+- Open: 127,192 triangles against the hero tier's 80,000 (56,032 are hair;
+  strands were never counted). The rig gate fails without a waiver naming an
+  approver: Mark's decision (waiver, fewer hair triangles, or a hair
+  allowance). No PIE check yet (GPU).

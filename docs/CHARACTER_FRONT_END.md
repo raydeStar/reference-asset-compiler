@@ -287,6 +287,12 @@ recipe from the template recipe with the new hashes. Review the recipe's
 `body` counts, `groom`, `face_paint` and `character_tier`: they are the
 template recipe's starting point.
 
+**Mesh hair.** For sculpted locks from a scan instead of a groom
+([CHARACTER_MESH_HAIR.md](CHARACTER_MESH_HAIR.md)), add `--hair-mode mesh` and
+the three outputs of `build_mesh_hair.py`:
+`hair-mesh.npz=... hair-mesh-basecolor.png=... hair-mesh-normal.png=...`. The
+recipe gets `"hair": {"mode": "mesh"}`; the build then grows no groom.
+
 **Rig landmarks.** `rig-landmarks.json` is the measured skeleton, measured on
 the skinning proxy of the assembled character, which only the build makes.
 Leave it out of a first bundle (`--rig-landmarks-optional`): the build then

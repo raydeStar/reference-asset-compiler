@@ -21,7 +21,10 @@ front-landmarks.json, original.png, original-head-crop.png,
 original-landmarks.json, placement.json, body-acquisition.blend,
 body-front.png, body-back.png, body-left.png, makehuman/... and, unless the
 build derives it from its own proxy, rig-landmarks.json. head-left.png is used
-by the face-paint and groom reviews.
+by the face-paint and groom reviews. Mesh hair (--hair-mode mesh, or a template
+recipe whose hair block says so) adds hair-mesh.npz, hair-mesh-basecolor.png
+and hair-mesh-normal.png (build_mesh_hair.py's outputs, see
+docs/CHARACTER_MESH_HAIR.md) and sets the new recipe's hair mode.
 
 Usage:
   python scripts/freeze_character_inputs.py --bundle work/<id>/rebuild-inputs \
@@ -46,6 +49,8 @@ REQUIRED = ("template.npz", "head.npz", "head.json", "hair.npz", "head-basecolor
             "original-landmarks.json", "placement.json", "body-acquisition.blend", "body-front.png",
             "body-back.png", "body-left.png")
 REQUIRED_DIRECTORIES = ("makehuman",)
+HAIR_MODES = ("strands", "mesh")
+MESH_HAIR = ("hair-mesh.npz", "hair-mesh-basecolor.png", "hair-mesh-normal.png")
 
 
 def sha(path):
@@ -74,17 +79,20 @@ def expand(pairs):
     return files
 
 
-def missing_inputs(names, rig_landmarks_optional):
+def missing_inputs(names, rig_landmarks_optional, hair_mode="strands"):
     required = REQUIRED + (() if rig_landmarks_optional else ("rig-landmarks.json",))
+    required += MESH_HAIR if hair_mode == "mesh" else ()
     gaps = [name for name in required if name not in names]
     gaps += [d + "/" for d in REQUIRED_DIRECTORIES if not any(n.startswith(d + "/") for n in names)]
     return gaps
 
 
-def recipe_for(template, character, inputs):
+def recipe_for(template, character, inputs, hair_mode=None):
     recipe = {k: v for k, v in template.items() if not k.endswith("_note")}
     recipe["character"] = character
     recipe["inputs"] = inputs
+    if hair_mode:
+        recipe["hair"] = {**template.get("hair", {}), "mode": hair_mode}
     return recipe
 
 
@@ -98,9 +106,14 @@ def main(argv=None):
                    help="the character profile, as the recipe names it (relative to the repository)")
     p.add_argument("--rig-landmarks-optional", action="store_true",
                    help="allow a bundle without rig-landmarks.json (the build derives them from its proxy)")
+    p.add_argument("--hair-mode", choices=HAIR_MODES,
+                   help="the new recipe's hair: strands (a groom grown in the build) or mesh (frozen mesh hair); "
+                        "default: the template recipe's")
     a = p.parse_args(argv)
+    template = json.loads(a.recipe_from.read_text(encoding="utf-8"))
+    hair_mode = a.hair_mode or template.get("hair", {}).get("mode", "strands")
     files = expand(a.inputs)
-    gaps = missing_inputs(files, a.rig_landmarks_optional)
+    gaps = missing_inputs(files, a.rig_landmarks_optional, hair_mode)
     if gaps:
         p.error("missing bundle inputs: " + ", ".join(gaps))
     if not (ROOT / a.character).is_file() and not Path(a.character).is_file():
@@ -109,7 +122,6 @@ def main(argv=None):
         p.error(f"{a.bundle} is not empty; freeze into a new directory")
     if a.recipe_out.exists():
         p.error(f"{a.recipe_out} exists; recipes are evidence, write a new one")
-    template = json.loads(a.recipe_from.read_text(encoding="utf-8"))
     inputs = {}
     for name, source in sorted(files.items()):
         dest = a.bundle / name
@@ -119,7 +131,7 @@ def main(argv=None):
         if digest != sha(source):
             raise SystemExit(f"{name}: the copy does not match its source")
         inputs[name] = {"sha256": digest, "bytes": dest.stat().st_size, "source": str(source.resolve())}
-    recipe = recipe_for(template, a.character.replace("\\", "/"), inputs)
+    recipe = recipe_for(template, a.character.replace("\\", "/"), inputs, a.hair_mode)
     a.recipe_out.parent.mkdir(parents=True, exist_ok=True)
     a.recipe_out.write_text(json.dumps(recipe, indent=2) + "\n", encoding="utf-8")
     total = sum(item["bytes"] for item in inputs.values())

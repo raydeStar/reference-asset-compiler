@@ -8,9 +8,10 @@ the head picture gave Arcane-like blade locks with their own painted colour
 (near-black brown, caramel highlights); Hunyuan3D-2mv gave a mop of thin
 tendrils, which as a mesh reads as dreadlocks.
 
-Status: the stages below run end to end on the CPU in about 15 seconds. Wiring
-the result into `rebuild_character.py` and the game install is the next step
-(see the end).
+Status: the stages below run end to end on the CPU in about 15 seconds, and
+`rebuild_character.py` builds a character with them (section 4). character-02's
+rebuild-v11 (2026-10-09) is the first, built on the CPU in 6.5 minutes and
+installed in The Aether Wars in place of his strand groom.
 
 ## 1. Scan the head (GPU, about 2 to 4 minutes)
 
@@ -73,16 +74,80 @@ Review: `render_painted_head.py` without `--strands` draws `hair-mesh.npz` as
 a textured mesh (pass it as the hair NPZ, the base colour as the hair
 texture).
 
-## 4. Next: the build and the game
+## 4. The build and the game
 
-- `rebuild_character.py`, a recipe `hair: {"mode": "mesh"}`. Freeze
-  `hair-mesh.npz` and its two maps as bundle inputs. Skip `grow_hair_groom.py`
-  and both `export_groom_alembic.py` calls. Pass the hair mesh to
-  `render_painted_head.py` (no `--strands`). Have `assemble_character.py` load
-  its `hair` object. `bind_assembly_to_rig.py` already weights every mesh
-  other than the body and head 100% to `head`, so the rig, the review poses and
-  the UE5 FBX carry the hair unchanged.
-- Game: the character JSON gets a mesh-hair material role (base colour, normal,
-  two-sided) and skips the groom step.
-- A dark scalp under the locks (the strand path's scalp cap) so skin does not
-  show between them.
+### Freeze it with the character's inputs
+
+`freeze_character_inputs.py --hair-mode mesh` requires the three outputs as
+bundle inputs and writes `"hair": {"mode": "mesh"}` into the new recipe (a
+template recipe that already says so carries its mode and `cap` block over):
+
+```powershell
+python scripts/freeze_character_inputs.py --bundle $W/rebuild-inputs-mesh-hair --hair-mode mesh `
+  --recipe-from recipes/$C-open-review-<date>.json --recipe-out recipes/$C-mesh-hair-<date>.json `
+  --character profiles/characters/$C.json <the usual NAME=PATH inputs> `
+  hair-mesh.npz=$W/hair/mesh/hair-mesh.npz hair-mesh-basecolor.png=$W/hair/mesh/hair-mesh-basecolor.png `
+  hair-mesh-normal.png=$W/hair/mesh/hair-mesh-normal.png
+```
+
+Strands stay the default: a recipe without a `hair` block builds exactly as
+before (Ennix's recorded commands are pinned by a test).
+
+### What the build does with mesh hair
+
+- No `grow_hair_groom.py` and no `export_groom_alembic.py` (neither Alembic).
+- `mesh_hair_scalp_cap.py` makes the dark scalp cap on this build's head
+  (below), then `render_painted_head.py` draws the hair mesh with its base
+  colour and normal map over the cap (`--scalp-cap`, `--hair-normal`; no
+  `--strands`). The saved head blend holds the `hair` and `scalp-cap` objects.
+- `assemble_character.py --mesh-hair` brings the `hair` object onto the body.
+  `bind_assembly_to_rig.py` and the UE5 fit weight it 100% to `head`.
+- `rig_ue5_character.py --plan-ignore <prefix>_hair`: the joint plan leaves
+  the hair out of its measurements. character-02's hair has more vertices
+  (26,100) than his body (24,731), so the plan would have taken it for the
+  body; and the character's height, which sets every proportion, would have
+  included hair standing above the crown. With it ignored, rebuild-v11's plan
+  measured 1.727 m (v10: 1.729) and every joint landed within 3.8 mm of v10's.
+- The two maps are copied beside the game FBX:
+  `export/hair-mesh-basecolor.png`, `export/hair-mesh-normal.png`. The FBX's
+  hair slot is the material `hair`.
+- The receipt records `hair` (mode, cap, maps).
+
+### The scalp cap
+
+The locks have gaps, and through a gap the head's skin paint reads as bare
+scalp. `mesh_hair_scalp_cap.py` (numpy and scipy, under a second) makes the
+cap the strand groom makes, under the same NPZ keys: the template's `scalp`
+vertex group where hair lies over it (hair within `--reach` 3 cm out along the
+normal, searched in a column `--probe-radius` 6 mm wide, so the cap ends near
+the hair's edge), closed over the gaps between locks (`--close` 2 passes over
+the skin's neighbours), ended `--front-inset` 15 mm behind the face, lifted
+2.5 mm and coloured with the median of the hair's paint (black bake misses
+skipped). Options come from the recipe's `hair.cap` block (keys are the option
+names, e.g. `{"front_inset": 0.035}`).
+
+character-02: 442 triangles (the strand cap had 444), colour linear (0.0056,
+0.0044, 0.0044). In review renders it cut the skin visible between locks by
+44% from the front and 61% at three-quarter; under the fringe it reads as dark
+roots, not bare scalp.
+
+### The game (The Aether Wars)
+
+`Tools/Characters/<Name>.json` says `"hair": {"mode": "mesh"}`, names the two
+maps in `build` (`hair_mesh_basecolor`, `hair_mesh_normal`) and maps the role
+`hair_mesh` to the FBX slot `hair`. `CharacterInstall.py` then skips the groom,
+imports the maps (the normal map with its green flipped: Blender bakes
+OpenGL), builds `M_<prefix>_HairMesh` (two-sided, default lit: the root colour
+under the paint, the luminance capped at `look.hair_mesh_tip_luminance` so
+light tips stay caramel in a low sun, a little saturation, a low rough sheen),
+removes any groom component from the player and audits all of it. See the
+game's `Docs/CharacterPipeline.md`.
+
+### Triangles
+
+The hair is in the skeletal mesh, so the rig gate counts it; groom strands
+never were. character-02's rebuild-v11 is 127,192 triangles (v10: 71,162),
+56,032 of them hair, over the hero tier's 80,000 ceiling. The gate fails
+without a `tri_budget_waiver` naming an approver; the build retains it as
+evidence. Fitting the tier means about 9k triangles of hair; otherwise a
+waiver, or a separate hair allowance in `profiles/triangle-budgets.json`.

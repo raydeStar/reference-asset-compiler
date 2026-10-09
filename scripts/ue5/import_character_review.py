@@ -4,8 +4,10 @@ Call main(fbx_path, groom_path, fresh_content_folder, receipt_path, name=<asset
 prefix>) from the editor's Python bridge. ``name`` is the character profile's
 asset_prefix: it finds the build's materials (<name>_Source_Outfit, <name>_teeth,
 ...) and names the assets (SK_<name>_Review, G_<name>_Review, BP_<name>_Review).
-``eye_texture`` is the imported texture the eyes' material samples. This is an
-import check, never a production promotion.
+``eye_texture`` is the imported texture the eyes' material samples. With mesh
+hair (docs/CHARACTER_MESH_HAIR.md) the hair is in the FBX: pass groom_path=None
+and the review has no groom, binding or groom component. This is an import
+check, never a production promotion.
 """
 import hashlib
 import json
@@ -95,11 +97,13 @@ def configure_body_materials(mesh, destination, prefix, eye_texture):
 
 
 def assemble_blueprint(mesh, groom, destination, name):
-    binding = unreal.GroomLibrary.create_new_groom_binding_asset_with_path(
-        destination + f'/GB_{name}_Review', groom, mesh, 100, None, 0)
-    if not binding:
-        raise RuntimeError('Groom binding creation failed')
-    unreal.EditorAssetLibrary.save_loaded_asset(binding)
+    binding = None
+    if groom:
+        binding = unreal.GroomLibrary.create_new_groom_binding_asset_with_path(
+            destination + f'/GB_{name}_Review', groom, mesh, 100, None, 0)
+        if not binding:
+            raise RuntimeError('Groom binding creation failed')
+        unreal.EditorAssetLibrary.save_loaded_asset(binding)
     factory = unreal.BlueprintFactory()
     factory.set_editor_property('parent_class', unreal.Actor)
     bp = unreal.AssetToolsHelpers.get_asset_tools().create_asset(f'BP_{name}_Review', destination, unreal.Blueprint, factory)
@@ -121,13 +125,14 @@ def assemble_blueprint(mesh, groom, destination, name):
     body.set_skeletal_mesh_asset(mesh)
     body.set_editor_property('skin_cache_usage', [unreal.SkinCacheUsage.ENABLED])
     body.set_update_animation_in_editor(True)
-    _, hair = component(body_handle, unreal.GroomComponent)
-    hair.set_groom_asset(groom)
-    hair.set_binding_asset(binding)
-    settings = hair.get_editor_property('simulation_settings')
-    settings.set_editor_property('override_settings', True)
-    hair.set_editor_property('simulation_settings', settings)
-    hair.set_enable_simulation(False)
+    if groom:
+        _, hair = component(body_handle, unreal.GroomComponent)
+        hair.set_groom_asset(groom)
+        hair.set_binding_asset(binding)
+        settings = hair.get_editor_property('simulation_settings')
+        settings.set_editor_property('override_settings', True)
+        hair.set_editor_property('simulation_settings', settings)
+        hair.set_enable_simulation(False)
     unreal.BlueprintEditorLibrary.compile_blueprint(bp)
     unreal.EditorAssetLibrary.save_loaded_asset(bp)
     return bp, binding
@@ -168,24 +173,29 @@ def main(fbx, groom, destination, receipt, name="Character", eye_texture="head-f
         raise RuntimeError(f"Expected one assembled skeletal mesh, got {len(meshes)}")
     mesh = meshes[0]
     configure_body_materials(mesh, destination, name, eye_texture)
-    groom_asset = import_groom(groom, destination, name)
+    groom_asset = import_groom(groom, destination, name) if groom else None
     blueprint, binding = assemble_blueprint(mesh, groom_asset, destination, name)
     result = {
         "inputs": {name: {"path": str(Path(path).resolve()), "sha256": hashlib.sha256(Path(path).read_bytes()).hexdigest()}
-                   for name, path in (("fbx", fbx), ("groom", groom))},
-        "skeletal_mesh": mesh.get_path_name(), "groom": groom_asset.get_path_name(),
-        "review_blueprint": blueprint.get_path_name(), "groom_binding": binding.get_path_name(),
-        "binding_groups": [{key: group.get_editor_property(key)
-                            for key in ('ren_root_count', 'sim_root_count', 'ren_lod_count')}
-                           for group in binding.get_editor_property('group_infos')],
+                   for name, path in (("fbx", fbx), ("groom", groom)) if path},
+        "skeletal_mesh": mesh.get_path_name(), "review_blueprint": blueprint.get_path_name(),
         "morph_targets": [target.get_name() for target in mesh.get_editor_property("morph_targets")],
         "material_slots": [str(mat.material_slot_name) for mat in mesh.materials],
-        "groom_groups": [{"curves": group.get_editor_property("num_curves"),
-                           "points": group.get_editor_property("num_curve_vertices"),
-                           "guides": group.get_editor_property("num_guides")}
-                          for group in groom_asset.get_editor_property("hair_groups_info")],
         "imported": True, "render_verified": False, "runtime_verified": False, "production_ready": False,
-        "hair_colour_note": "Native per-strand colours remain in Blender. Alembic strips that custom colour attribute; UE uses an explicit brown review material.",
     }
+    if groom_asset:
+        result.update({
+            "groom": groom_asset.get_path_name(), "groom_binding": binding.get_path_name(),
+            "binding_groups": [{key: group.get_editor_property(key)
+                                for key in ('ren_root_count', 'sim_root_count', 'ren_lod_count')}
+                               for group in binding.get_editor_property('group_infos')],
+            "groom_groups": [{"curves": group.get_editor_property("num_curves"),
+                               "points": group.get_editor_property("num_curve_vertices"),
+                               "guides": group.get_editor_property("num_guides")}
+                              for group in groom_asset.get_editor_property("hair_groups_info")],
+            "hair_colour_note": "Native per-strand colours remain in Blender. Alembic strips that custom colour "
+                                "attribute; UE uses an explicit brown review material."})
+    else:
+        result["hair"] = "mesh: in the FBX (its material slot), no groom"
     Path(receipt).write_text(json.dumps(result, indent=2), encoding="utf-8")
     print(json.dumps(result, indent=2))

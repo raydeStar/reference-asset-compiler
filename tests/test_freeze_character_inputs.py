@@ -82,3 +82,41 @@ def test_an_existing_bundle_or_recipe_is_never_overwritten(tmp_path):
     (tmp_path / "recipe.json").write_text("{}")
     with pytest.raises(SystemExit):
         freeze.main(freeze_args(tmp_path, pairs, template))
+
+
+def mesh_hair_sources(tmp_path):
+    folder = tmp_path / "hair"
+    folder.mkdir()
+    pairs = []
+    for name in freeze.MESH_HAIR:
+        (folder / name).write_bytes(name.encode())
+        pairs.append(f"{name}={folder / name}")
+    return pairs
+
+
+def test_mesh_hair_freezes_its_three_files_and_sets_the_recipes_hair(tmp_path):
+    pairs, template = sources(tmp_path)
+    with pytest.raises(SystemExit):              # mesh hair without its files
+        freeze.main(freeze_args(tmp_path, pairs, template, "--hair-mode", "mesh"))
+    assert not (tmp_path / "bundle").exists()
+    assert freeze.main(freeze_args(tmp_path, pairs + mesh_hair_sources(tmp_path), template, "--hair-mode", "mesh")) == 0
+    recipe = json.loads((tmp_path / "recipe.json").read_text())
+    assert recipe["hair"] == {"mode": "mesh"}
+    assert set(freeze.MESH_HAIR) <= set(recipe["inputs"])
+
+
+def test_a_mesh_hair_template_recipe_carries_its_mode_and_cap(tmp_path):
+    pairs, template = sources(tmp_path)
+    data = json.loads(template.read_text())
+    data["hair"] = {"mode": "mesh", "cap": {"front_inset": 0.035}}
+    template.write_text(json.dumps(data))
+    with pytest.raises(SystemExit):              # the template's mode needs the files too
+        freeze.main(freeze_args(tmp_path, pairs, template))
+    assert freeze.main(freeze_args(tmp_path, pairs + mesh_hair_sources(tmp_path), template)) == 0
+    assert json.loads((tmp_path / "recipe.json").read_text())["hair"] == {"mode": "mesh", "cap": {"front_inset": 0.035}}
+
+
+def test_strand_hair_needs_no_mesh_files_and_writes_no_hair_block(tmp_path):
+    pairs, template = sources(tmp_path)
+    assert freeze.main(freeze_args(tmp_path, pairs, template)) == 0
+    assert "hair" not in json.loads((tmp_path / "recipe.json").read_text())

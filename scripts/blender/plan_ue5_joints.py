@@ -2,7 +2,7 @@
 
 blender -b <character.blend> --python plan_ue5_joints.py -- \
     --front-kp front_kp.json --side-kp left_kp.json --ortho ortho.json --out plan.json \
-    [--template hm08.npz --head-npz head.npz] [--arm-ratio 0.42] [--sole 0.015]
+    [--template hm08.npz --head-npz head.npz] [--arm-ratio 0.42] [--sole 0.015] [--ignore OBJECT ...]
 
 Every joint comes from a measurement, with the proportion rule written beside it:
 
@@ -18,6 +18,10 @@ Every joint comes from a measurement, with the proportion rule written beside it
 * Arms longer than ``--arm-ratio`` of the height (shoulder to fingertip) are
   remapped shorter so hanging hands land mid-thigh, as Manny's do; the forearm
   and hand take most of the change. 0 disables the remap.
+
+Objects named by --ignore are left out of every measurement (the height, the
+ground, the choice of body): mesh hair is no part of the anatomy, stands above
+the crown and can have more vertices than the body.
 
 The output is the plan consumed by fit_ue5_manny_rig.py.
 """
@@ -132,8 +136,13 @@ def main():
     p.add_argument("--head-npz")
     p.add_argument("--arm-ratio", type=float, default=0.42)
     p.add_argument("--sole", type=float, default=0.015)
+    p.add_argument("--ignore", nargs="*", default=[], help="objects left out of the measurements (mesh hair)")
     a = p.parse_args(argv)
-    meshes = sorted([o for o in bpy.data.objects if o.type == "MESH"], key=lambda o: -len(o.data.vertices))
+    missing = [name for name in a.ignore if name not in bpy.data.objects]
+    if missing:
+        raise RuntimeError(f"--ignore names no object in the blend: {missing}")
+    meshes = sorted([o for o in bpy.data.objects if o.type == "MESH" and o.name not in a.ignore],
+                    key=lambda o: -len(o.data.vertices))
     body = bpy.data.objects[a.body] if a.body else meshes[0]
     head = bpy.data.objects[a.head] if a.head else next((o for o in meshes if "head" in o.name.lower()), None)
     ortho = json.loads(Path(a.ortho).read_text())
@@ -283,7 +292,7 @@ def main():
 
     # --- proportion remap ------------------------------------------------
     plan = {"schema": "rac.ue5-joint-plan.v1", "units": "Blender metres; facing -Y; character left = +X",
-            "body_object": body.name, "head_object": head.name if head else None,
+            "body_object": body.name, "head_object": head.name if head else None, "ignored_objects": list(a.ignore),
             "joints": {k: [round(float(x), 5) for x in v] for k, v in J.items()}, "derivation": notes}
     ratio = (tip_x - sh_x) / H
     if a.arm_ratio > 0 and ratio > a.arm_ratio + 0.015:

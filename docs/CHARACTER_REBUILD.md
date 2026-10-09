@@ -81,19 +81,20 @@ runs on its own.
 | `transport_face_proportions.py` | moves the conformed head's lower face to the painting's proportions | `face_proportions`; zones tuned, see below |
 | `reproject_face_paint.py` | reprojects the painting onto the face; continuous neck paint | (tuned, see below) |
 | `refine_face_paint.py` | measured blush, stubble, hairline, ear and neck tone (recipe `face_paint`) | |
-| `blender/grow_hair_groom.py` | seeded strand groom (recipe `groom`; `cap_front_inset` ends the dark scalp cap that far behind the forehead hairline, so its edge does not show between fringe locks) | |
-| `blender/render_painted_head.py` | head review renders; saves the head blend | |
+| `blender/grow_hair_groom.py` | seeded strand groom (recipe `groom`; `cap_front_inset` ends the dark scalp cap that far behind the forehead hairline, so its edge does not show between fringe locks); not with mesh hair | |
+| `mesh_hair_scalp_cap.py` (recipe `hair.mode` `mesh`) | the dark scalp cap under the frozen mesh hair, in place of the groom (recipe `hair.cap`, see [CHARACTER_MESH_HAIR.md](CHARACTER_MESH_HAIR.md)) | |
+| `blender/render_painted_head.py` | head review renders; saves the head blend (mesh hair: the `hair` mesh over its cap) | |
 | `blender/fit_oral_anatomy.py` | CC0 teeth and tongue, mouth interior, neck extension | `asset_prefix`, `oral_anatomy` |
 | `blender/prepare_body_acquisition.py` | reduces the acquired outfit (recipe `body`), UVs it | `inputs.body_object`, `body` |
 | `paint_body_from_views.py` | bakes the source pictures onto the outfit | `source_camera`, `body_paint` |
 | `refine_outfit_paint.py` | garment mask, cleaned albedo, detail normals | `outfit_paint_params` |
-| `blender/assemble_character.py` | places the head on the body, cuts the collar overlap, review renders | `asset_prefix`, `body_lift_m`, `source_camera`, `neck_overlap` |
+| `blender/assemble_character.py` | places the head on the body, cuts the collar overlap, review renders; `--mesh-hair` brings the hair mesh | `asset_prefix`, `body_lift_m`, `source_camera`, `neck_overlap` |
 | `blender/export_skinning_proxy.py` | joined body+head proxy for rigging | `asset_prefix` |
 | `blender/derive_humanoid_landmarks.py` (no `rig-landmarks.json` in the recipe) | derives the joints from this build's proxy into `rig-input/derived/`; `--device CPU` passes `--no-overlays` (the overlays render with EEVEE) | |
 | `blender/rig_from_landmarks.py` | rigs the proxy from the measured (or derived) landmarks | |
 | `blender/bind_assembly_to_rig.py` | transfers the proxy's weights to the editable assembly | `asset_prefix`, `neck_weight_blend_m`, `neck_overlap` |
-| `blender/export_groom_alembic.py` | groom to Alembic, with a round-trip count check | `asset_prefix` |
-| `rig_ue5_character.py` (with `--manny-dir`) | Manny-conformant game rig | `asset_prefix` |
+| `blender/export_groom_alembic.py` | groom to Alembic, with a round-trip count check (strands only; mesh hair copies its two maps to `export/`) | `asset_prefix` |
+| `rig_ue5_character.py` (with `--manny-dir`) | Manny-conformant game rig; mesh hair is left out of the joint plan's measurements (`--plan-ignore P_hair`) and weighted rigidly to `head` | `asset_prefix` |
 | `blender/export_ue5_character.py`, `export_groom_alembic.py` | game FBX and groom | `asset_prefix` |
 | `blender/add_coat_chains.py` (profile has `coat`) | coat-tail bone chains for the game's cloth physics; the plain export becomes `P_UE5.nocoat.fbx` (below) | `coat` |
 | `blender/pose_character_review.py` | held pose, head turn, expressions | `asset_prefix`, `review_views` |
@@ -211,7 +212,11 @@ With `asset_prefix` `P`: `assembly/P_Character_Review.blend`,
 `pose/P_Held_Inspection.blend` (with a `coat`, also `export/P_UE5.nocoat.fbx`
 and `export/P_UE5.coat.json`). Objects are `P_Outfit_And_Hands`, `P_head`,
 `P_eyes`, `P_teeth`, `P_tongue`, `P_scalp-cap`, `P_groom`; materials include
-`P_Source_Outfit`, `P_Mouth_Interior`, `P_teeth`, `P_tongue`. Paint outputs keep
+`P_Source_Outfit`, `P_Mouth_Interior`, `P_teeth`, `P_tongue`. With mesh hair
+there is no groom or Alembic: the object `P_hair` (material `hair`) rides in
+the FBX, `hair-cap/scalp-cap.npz` is its cap, and
+`export/hair-mesh-basecolor.png` and `export/hair-mesh-normal.png` are its maps
+for the game. Paint outputs keep
 fixed names: `face-paint/head_basecolor.png`, `body/paint/body_basecolor.png`,
 `outfit-paint/`. A game importing a build relies on these names.
 

@@ -1190,3 +1190,21 @@ the solid. Treat any envelope fallback as a failure.
   the game sets its own width.
 - Every new option defaults to the old behaviour. Recipe `20261010`'s groom
   still reproduces `rebuild-v9/strands.npz` byte for byte.
+
+## 2026-10-09 — Mesh hair in the build: the planner's "largest mesh" and the hair budget
+
+- `plan_ue5_joints.py` took the largest mesh (by vertices) as the body and the
+  height over every mesh. A hair mesh breaks both: character-02's reduced hair
+  has more vertices than his outfit, and it stands above the crown, which would
+  have scaled every proportional joint. Name objects to ignore rather than
+  guessing from size (`--ignore`, passed by the rebuild for mesh hair).
+- A scalp cap probe that is a ball over each scalp vertex reaches sideways as
+  far as it reaches out, so the cap ran about 1.5 cm past the hair's edge. A
+  narrow column along the normal, then closing over the skin's neighbours,
+  puts the cap under the gaps between locks and ends it at the hair.
+- Sampling the baked hair texture at UV corners hits the bake margin and the
+  black texels of missed bake rays (28% of character-02's triangle centres are
+  black): sample at triangle centres and skip pure black.
+- Hair in the skeletal mesh counts against the character tier; a groom never
+  did. 56k triangles of hair put character-02 at 127k against the hero tier's
+  80k. That is a policy decision for the owner, not a gate to loosen.

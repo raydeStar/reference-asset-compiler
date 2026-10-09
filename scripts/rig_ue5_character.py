@@ -2,12 +2,13 @@
 
   py -3.12 scripts/rig_ue5_character.py <character.blend> <out_dir> \
       --manny-dir <dir with manny_refpose.json + manny_anim_poses.json> \
-      [--template hm08.npz --head-npz head.npz] [--arm-ratio 0.42]
+      [--template hm08.npz --head-npz head.npz] [--arm-ratio 0.42] [--plan-ignore OBJECT ...]
 
 Stages (each writes into <out_dir>, which must not exist):
   1. ortho/      calibrated orthographic renders  (blender/render_ortho_views.py)
   2. keypoints/  DWPose body keypoints, front + side  (detect_body_landmarks_dwpose.py)
-  3. plan.json   joint plan from keypoints + mesh slices  (blender/plan_ue5_joints.py)
+  3. plan.json   joint plan from keypoints + mesh slices  (blender/plan_ue5_joints.py);
+                 --plan-ignore leaves objects (mesh hair) out of its measurements
   4. fit/        skin + Manny-axis export rig  (blender/fit_ue5_manny_rig.py)
   5. fit/poses/  real Manny animation frames on the result  (blender/pose_ue5_anim_test.py)
 
@@ -56,6 +57,9 @@ def main():
     p.add_argument("--head-npz")
     p.add_argument("--arm-ratio", default="0.42")
     p.add_argument("--name", default="Character")
+    p.add_argument("--plan-ignore", nargs="*", default=[],
+                   help="objects the joint plan leaves out of its measurements (mesh hair); they are still "
+                        "weighted, rigidly to the head")
     p.add_argument("--blender", default=os.environ.get("RAC_BLENDER", DEFAULT_BLENDER))
     p.add_argument("--comfyui", default=os.environ.get("RAC_COMFYUI", LOCAL_COMFYUI),
                    help="ComfyUI portable install with comfyui_controlnet_aux (env RAC_COMFYUI)")
@@ -83,6 +87,8 @@ def main():
             out / f"logs/2-keypoints-{view}.log")
     plan_args = ["--front-kp", out / "keypoints/front.json", "--side-kp", out / "keypoints/left.json",
                  "--ortho", out / "ortho/ortho.json", "--out", out / "plan.json", "--arm-ratio", a.arm_ratio]
+    if a.plan_ignore:
+        plan_args += ["--ignore", *a.plan_ignore]
     fit_extra = []
     if a.template and a.head_npz:
         plan_args += ["--template", Path(a.template).resolve(), "--head-npz", Path(a.head_npz).resolve()]

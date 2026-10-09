@@ -45,6 +45,8 @@ def _args():
     p.add_argument("--samples", type=int, default=64)
     p.add_argument("--strands", help="grow_hair_groom.py NPZ: draw the hair as strands over its "
                    "scalp cap instead of the shell")
+    p.add_argument("--scalp-cap", help="mesh hair: draw this cap (mesh_hair_scalp_cap.py NPZ) under the hair mesh")
+    p.add_argument("--hair-normal", help="mesh hair: its tangent-space normal map (build_mesh_hair.py)")
     p.add_argument("--device", choices=("GPU", "CPU"), default="GPU",
                    help="Cycles device (CPU when the GPU is reserved)")
     p.add_argument("--subdivision", type=int, default=0)
@@ -68,7 +70,7 @@ def _args():
                    help="diffuse: no light through the hair, so locks shade each other as game hair's "
                         "deep shadows do (Cycles' hair BSDF lights the inside of the hair)")
     p.add_argument("--id-pass", action="store_true",
-                   help="also write <tag>-<view>-id.png: strands red, scalp cap green, skin blue")
+                   help="also write <tag>-<view>-id.png: hair (strands or mesh) red, scalp cap green, skin blue")
     return p.parse_args(argv)
 
 
@@ -86,7 +88,7 @@ def mesh(name, verts, faces, uv=None):
     return ob
 
 
-def material(name, image_path, emission=0.55, roughness=0.85, specular=0.15, darken=1.0):
+def material(name, image_path, emission=0.55, roughness=0.85, specular=0.15, darken=1.0, normal_map=None):
     mat = bpy.data.materials.new(name)
     mat.use_nodes = True
     nt = mat.node_tree
@@ -106,7 +108,35 @@ def material(name, image_path, emission=0.55, roughness=0.85, specular=0.15, dar
     bsdf.inputs["Roughness"].default_value = roughness
     if "Specular IOR Level" in bsdf.inputs:
         bsdf.inputs["Specular IOR Level"].default_value = specular
+    if normal_map:
+        image = nt.nodes.new("ShaderNodeTexImage")
+        image.image = bpy.data.images.load(str(Path(normal_map).resolve()))
+        image.image.colorspace_settings.name = "Non-Color"
+        node = nt.nodes.new("ShaderNodeNormalMap")
+        nt.links.new(image.outputs["Color"], node.inputs["Color"])
+        nt.links.new(node.outputs["Normal"], bsdf.inputs["Normal"])
     return mat
+
+
+def scalp_cap(caps, colour=None):
+    """The dark scalp cap under the hair (keys cap_verts, cap_tris, cap_colour), so skin never shows between
+    locks or strands (the dense under-layer real hair has)."""
+    # Keep only the vertices the cap's triangles use: a groom can hand over the whole template's vertex array,
+    # and loose vertices far below the head (down to the feet) then poison every bounds-based measurement
+    # downstream (the UE5 rig planner took "ground" from them).
+    cap_tris = np.asarray(caps["cap_tris"]).astype(np.int64)
+    used = np.unique(cap_tris)
+    remap = -np.ones(len(caps["cap_verts"]), np.int64)
+    remap[used] = np.arange(len(used))
+    cap = mesh("scalp-cap", np.asarray(caps["cap_verts"])[used], remap[cap_tris])
+    cm = bpy.data.materials.new("scalp-cap")
+    cm.use_nodes = True
+    cb = cm.node_tree.nodes["Principled BSDF"]
+    cap_colour = colour if colour else caps["cap_colour"].tolist()
+    cb.inputs["Base Color"].default_value = (*cap_colour, 1.0)
+    cb.inputs["Roughness"].default_value = 0.9
+    cap.data.materials.append(cm)
+    return cap
 
 
 def main():
@@ -210,28 +240,16 @@ def main():
 
     hv, ht = hz["verts"], hz["tris"]
     if not a.strands:
+        # The hair shell, or mesh hair (build_mesh_hair.py) over its own scalp cap.
         hair = mesh("hair", hv, ht, hz["loop_uv"])
         hair.data.materials.append(material("hair", a.hair_tex, emission=0.5, roughness=0.9,
-                                            specular=0.08))
+                                            specular=0.08, normal_map=a.hair_normal))
+        if a.scalp_cap:
+            scalp_cap(np.load(a.scalp_cap), a.cap_colour)
     else:
-        # Strands carry the hair; a dark scalp cap under them keeps skin from showing
-        # between them (the dense under-layer real hair has).
+        # Strands carry the hair over a dark scalp cap.
         sz = np.load(a.strands)
-        # Keep only the vertices the cap's triangles use: a groom can hand over the whole template's vertex array,
-        # and loose vertices far below the head (down to the feet) then poison every bounds-based measurement
-        # downstream (the UE5 rig planner took "ground" from them).
-        cap_tris = np.asarray(sz["cap_tris"]).astype(np.int64)
-        used = np.unique(cap_tris)
-        remap = -np.ones(len(sz["cap_verts"]), np.int64)
-        remap[used] = np.arange(len(used))
-        cap = mesh("scalp-cap", np.asarray(sz["cap_verts"])[used], remap[cap_tris])
-        cm = bpy.data.materials.new("scalp-cap")
-        cm.use_nodes = True
-        cb = cm.node_tree.nodes["Principled BSDF"]
-        cap_colour = a.cap_colour if a.cap_colour else sz["cap_colour"].tolist()
-        cb.inputs["Base Color"].default_value = (*cap_colour, 1.0)
-        cb.inputs["Roughness"].default_value = 0.9
-        cap.data.materials.append(cm)
+        scalp_cap(sz, a.cap_colour)
         hv = sz["points"]
         counts = sz["counts"]
         curves = bpy.data.hair_curves.new("groom")
@@ -351,8 +369,8 @@ def main():
         bpy.ops.wm.save_as_mainfile(filepath=str(Path(a.save_blend).resolve()))
     if a.id_pass:
         # Flat emission per surface, no light: a pixel's red, green and blue are the shares of
-        # it covered by strands, scalp cap and skin (black: background).
-        ids = {"groom": (1, 0, 0), "scalp-cap": (0, 1, 0)}
+        # it covered by hair, scalp cap and skin (black: background).
+        ids = {"groom": (1, 0, 0), "hair": (1, 0, 0), "scalp-cap": (0, 1, 0)}
         flat = {}
         for ob in scene.objects:
             if ob.type not in ("MESH", "CURVES"):

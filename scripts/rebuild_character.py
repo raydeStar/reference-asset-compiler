@@ -6,6 +6,11 @@ recipe), the recipe (counts, groom, face paint, tier) and the character profile
 (profiles/characters/<name>.json: names, input object names and the
 character's measurements). The recipe names its profile; --character overrides.
 Run with Python 3.12 and Blender 5.2.2; see docs/CHARACTER_REBUILD.md.
+
+The hair is a strand groom grown in the build (the default) or, with a recipe
+block `"hair": {"mode": "mesh"}`, the frozen mesh hair of
+docs/CHARACTER_MESH_HAIR.md: no groom and no Alembic, a scalp cap under the
+locks, and the hair's maps beside the game FBX in export/.
 """
 from __future__ import annotations
 
@@ -78,6 +83,30 @@ def body_paint_options(character):
     return options
 
 
+HAIR_MODES = ("strands", "mesh")
+MESH_HAIR_INPUTS = ("hair-mesh.npz", "hair-mesh-basecolor.png", "hair-mesh-normal.png")
+MESH_HAIR_EXPORTS = ("hair-mesh-basecolor.png", "hair-mesh-normal.png")
+
+
+def hair_options(recipe):
+    """The recipe's hair mode and, for mesh hair, the scalp cap's options (the hair block's `cap`).
+
+    "strands" (the default) grows a groom; "mesh" uses the frozen mesh hair
+    (build_mesh_hair.py), whose three files must be in the bundle.
+    """
+    hair = recipe.get("hair", {})
+    mode = hair.get("mode", "strands")
+    if mode not in HAIR_MODES:
+        raise ValueError(f"The recipe's hair mode is {mode!r}; use one of {', '.join(HAIR_MODES)}.")
+    if mode == "strands":
+        return mode, {}
+    missing = [name for name in MESH_HAIR_INPUTS if name not in recipe["inputs"]]
+    if missing:
+        raise ValueError("Mesh hair needs the frozen inputs " + ", ".join(missing)
+                         + " (freeze_character_inputs.py --hair-mode mesh).")
+    return mode, dict(hair.get("cap", {}))
+
+
 def coat_skeleton_profile(skeleton, coat_receipt):
     """The skeleton contract plus a coat's chain bones, so the rig gate can check the coated FBX.
 
@@ -121,6 +150,7 @@ def main():
     try:
         body_args = body_reduction_options(recipe, character)
         coat = resolve_coat(character.get("coat"))
+        hair_mode, cap_options = hair_options(recipe)
     except ValueError as error:
         p.error(str(error))
     if out.exists():
@@ -198,11 +228,21 @@ def main():
             "--guidance", local / "head-front.png", "--painting", out / "paint/original-aligned.png",
             "--hair-shell", local / "hair.npz", "--out", out / "face-paint", *flags(recipe["face_paint"])])
         head_paint = out / "face-paint/head_basecolor.png"
-    run("blender/grow_hair_groom.py", [local / "template.npz", local / "head.npz", local / "hair.npz",
-        local / "hair-basecolor.png", out / "strands.npz", *flags(recipe["groom"]), "--coherent-waves"], True)
+    if hair_mode == "strands":
+        run("blender/grow_hair_groom.py", [local / "template.npz", local / "head.npz", local / "hair.npz",
+            local / "hair-basecolor.png", out / "strands.npz", *flags(recipe["groom"]), "--coherent-waves"], True)
+        hair = [local / "hair.npz", head_paint, local / "hair-basecolor.png"]
+        hair_draw = ["--strands", out / "strands.npz"]
+    else:
+        # Mesh hair: its locks over a dark scalp cap, on this build's head.
+        cap = out / "hair-cap/scalp-cap.npz"
+        cap.parent.mkdir()
+        run("mesh_hair_scalp_cap.py", [local / "template.npz", out / "head.npz", local / "hair-mesh.npz",
+            local / "hair-mesh-basecolor.png", cap, *flags(cap_options)])
+        hair = [local / "hair-mesh.npz", head_paint, local / "hair-mesh-basecolor.png"]
+        hair_draw = ["--scalp-cap", cap, "--hair-normal", local / "hair-mesh-normal.png"]
     run("blender/render_painted_head.py", [local / "template.npz", out / "head.npz", local / "head.json",
-        local / "hair.npz", head_paint, local / "hair-basecolor.png", local / "head-front.png",
-        out / "head-review", "--strands", out / "strands.npz", "--resolution", recipe["resolution"],
+        *hair, local / "head-front.png", out / "head-review", *hair_draw, "--resolution", recipe["resolution"],
         "--samples", recipe["samples"], "--views", "front", "three-quarter", "side", "back", "top",
         "--subdivision", 1, "--oral-helpers", "--skin-emission", .4, "--hair-tint", .85, .95, 1.05,
         "--hair-roughness", .45, "--save-blend", out / "head-before-anatomy.blend", "--device", a.device], True)
@@ -226,7 +266,7 @@ def main():
         "--source-camera", camera["px_per_m"], *camera["image_px"], *camera["front_origin_px"],
         "--head-placement", local / "placement.json",
         "--clear-neck-overlap", *neck["ellipse_m"], neck["above_z_m"], neck["rim_above_z_m"], neck["rim_abs_x_m"],
-        "--device", a.device], True)
+        "--device", a.device, *(["--mesh-hair"] if hair_mode == "mesh" else [])], True)
     proxy = out / f"rig-input/{prefix}_proxy.fbx"
     run("blender/export_skinning_proxy.py", [assembly, proxy, "--name", prefix], True)
     derived_landmarks = "rig-landmarks.json" not in recipe["inputs"]
@@ -254,12 +294,23 @@ def main():
         "--name", prefix, "--neck-blend", *character["neck_weight_blend_m"],
         "--collar-repair", neck["rim_above_z_m"], neck["rim_abs_x_m"]], True)
     native = out / f"rigged/{prefix}_Rigged.blend"
-    run("blender/export_groom_alembic.py", [native, out / f"export/{prefix}_Groom.abc", "--name", prefix], True)
+    if hair_mode == "strands":
+        run("blender/export_groom_alembic.py", [native, out / f"export/{prefix}_Groom.abc", "--name", prefix], True)
+    else:
+        # Mesh hair rides in the FBX (100% head); the game material samples its maps.
+        (out / "export").mkdir(exist_ok=True)
+        for name in MESH_HAIR_EXPORTS:
+            shutil.copy2(local / name, out / "export" / name)
+        receipt["hair"] = {"mode": "mesh", "scalp_cap": str(cap.relative_to(out)),
+                           "maps": [str(Path("export") / name) for name in MESH_HAIR_EXPORTS]}
+        save()
     if a.manny_dir and "ue5" in recipe:
         # Manny-conformant game rig: measured joints, solid-voxel weights, Manny's bone axes.
+        # Mesh hair is no part of the body's measurements (and can outnumber its vertices).
         run("rig_ue5_character.py", [native, out / "ue5", "--manny-dir", Path(a.manny_dir).resolve(),
             "--template", local / "template.npz", "--head-npz", out / "head.npz", "--name", prefix,
-            "--arm-ratio", recipe["ue5"]["arm_ratio"], "--blender", a.blender])
+            "--arm-ratio", recipe["ue5"]["arm_ratio"], "--blender", a.blender,
+            *(["--plan-ignore", f"{prefix}_hair"] if hair_mode == "mesh" else [])])
         game = out / f"ue5/fit/{prefix}_UE5.blend"
         game_fbx = out / f"export/{prefix}_UE5.fbx"
         if coat is None:
@@ -283,7 +334,8 @@ def main():
                                           for name, c in chains["chains"].items()},
                                "coat_vertices": chains["coat_vertices"]}
             save()
-        run("blender/export_groom_alembic.py", [game, out / f"export/{prefix}_Groom_UE5.abc", "--name", prefix], True)
+        if hair_mode == "strands":
+            run("blender/export_groom_alembic.py", [game, out / f"export/{prefix}_Groom_UE5.abc", "--name", prefix], True)
     views = character["review_views"]
     run("blender/pose_character_review.py", [native, out / "pose", "--samples", recipe["samples"], "--device", a.device,
         "--name", prefix, "--held-centre", *views["held_centre_m"], "--head-centre", *views["head_centre_m"],

@@ -4,7 +4,8 @@ The character's measurements come in as arguments (rebuild_character.py takes
 them from profiles/characters/<name>.json): --name prefixes every object and the
 saved blend, --body-lift raises the acquired body onto the floor, and
 --source-camera is the painting's orthographic frame, which the review renders
-reproduce so they register against it.
+reproduce so they register against it. --mesh-hair also brings the head's
+`hair` mesh (docs/CHARACTER_MESH_HAIR.md); without it the hair is the groom.
 """
 import argparse
 import hashlib
@@ -38,6 +39,8 @@ def main():
                    metavar=("RADIUS_X", "RADIUS_Y", "ABOVE_Z", "RIM_ABOVE_Z", "RIM_ABS_X"),
                    help="remove the acquired duplicate skin patch inside the collar: faces inside the "
                         "ellipse above ABOVE_Z, then smooth the cut rim (above RIM_ABOVE_Z, within RIM_ABS_X)")
+    p.add_argument("--mesh-hair", action="store_true",
+                   help="the hair is the head blend's `hair` mesh (mesh hair), not its groom")
     a = p.parse_args(sys.argv[sys.argv.index("--") + 1:])
     out = Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
@@ -94,9 +97,12 @@ def main():
     bsdf.inputs["Specular IOR Level"].default_value = 0.15
     body.data.materials.append(mat)
     placement = json.loads(Path(a.head_placement).read_text())
+    parts = ["head", "eyes", "groom", "scalp-cap", "teeth", "tongue", "helper-upper-teeth", "helper-lower-teeth",
+             "helper-tongue"] + (["hair"] if a.mesh_hair else [])
     with bpy.data.libraries.load(str(Path(a.head).resolve()), link=False) as (src, dst):
-        dst.objects = [name for name in src.objects if name in
-                       ("head", "eyes", "groom", "scalp-cap", "teeth", "tongue", "helper-upper-teeth", "helper-lower-teeth", "helper-tongue")]
+        dst.objects = [name for name in src.objects if name in parts]
+    if a.mesh_hair and "hair" not in [ob.name for ob in dst.objects]:
+        raise RuntimeError("--mesh-hair: the head blend has no `hair` object")
     for ob in dst.objects:
         scene.collection.objects.link(ob)
         ob.scale = (placement["scale"],) * 3
@@ -163,7 +169,10 @@ def main():
               "head_transform": placement,
               "duplicate_neck_faces_removed": removed_neck_faces,
               "production_ready": False, "body_rigged": False,
-              "note": "Editable full-character visual candidate; hair is native Cycles curves, not yet game cards."}
+              "hair": "mesh" if a.mesh_hair else "strands",
+              "note": "Editable full-character visual candidate; hair is " + (
+                  "a textured mesh (mesh hair) over a scalp cap." if a.mesh_hair else
+                  "native Cycles curves, not yet game cards.")}
     (out / "assembly-receipt.json").write_text(json.dumps(report, indent=2))
     print(f"{a.name} is dressed for inspection, sir; the rig still awaits its fitting.")
 

@@ -361,3 +361,70 @@ def test_a_bad_coat_block_stops_the_build_before_it_starts(tmp_path, monkeypatch
 
 def test_ennix_has_no_coat():
     assert "coat" not in ENNIX
+
+
+# Mesh hair (docs/CHARACTER_MESH_HAIR.md): a recipe `hair` block swaps the groom for the frozen hair mesh.
+
+MESH_RECIPE = copy.deepcopy(RECIPE)
+MESH_RECIPE["hair"] = {"mode": "mesh", "cap": {"front_inset": 0.035}}
+for _name in rebuild_character.MESH_HAIR_INPUTS:
+    MESH_RECIPE["inputs"][_name] = {"sha256": ""}
+
+
+def test_the_hair_is_strands_unless_the_recipe_says_mesh():
+    assert rebuild_character.hair_options(RECIPE) == ("strands", {})
+    assert rebuild_character.hair_options(MESH_RECIPE) == ("mesh", {"front_inset": 0.035})
+    with pytest.raises(ValueError, match="cards"):
+        rebuild_character.hair_options({**RECIPE, "hair": {"mode": "cards"}})
+    recipe = copy.deepcopy(MESH_RECIPE)
+    del recipe["inputs"]["hair-mesh-normal.png"]
+    with pytest.raises(ValueError, match="hair-mesh-normal.png"):
+        rebuild_character.hair_options(recipe)
+
+
+def test_mesh_hair_replaces_the_groom_in_every_stage(tmp_path, monkeypatch):
+    out = stub_build(tmp_path, monkeypatch, MESH_RECIPE, "--device", "CPU", *MANNY)
+    receipt = receipt_of(out)
+    scripts = [c["script"] for c in receipt["commands"]]
+    assert "blender/grow_hair_groom.py" not in scripts and "blender/export_groom_alembic.py" not in scripts
+    assert scripts.index("mesh_hair_scalp_cap.py") == scripts.index("blender/render_painted_head.py") - 1
+    local, cap = out / "inputs", out / "hair-cap/scalp-cap.npz"
+    cap_argv = next(c["argv"] for c in receipt["commands"] if c["script"] == "mesh_hair_scalp_cap.py")
+    assert cap_argv[2:] == [str(local / "template.npz"), str(out / "head.npz"), str(local / "hair-mesh.npz"),
+                            str(local / "hair-mesh-basecolor.png"), str(cap), "--front-inset", "0.035"]
+    # The review draws the hair mesh and its maps over the cap, with no strands.
+    render = stage_args(receipt, "blender/render_painted_head.py")
+    assert render[3:6] == [str(local / "hair-mesh.npz"), str(out / "face-paint/head_basecolor.png"),
+                           str(local / "hair-mesh-basecolor.png")]
+    assert "--strands" not in render
+    assert render[render.index("--scalp-cap") + 1] == str(cap)
+    assert render[render.index("--hair-normal") + 1] == str(local / "hair-mesh-normal.png")
+    assert stage_args(receipt, "blender/assemble_character.py")[-1] == "--mesh-hair"
+    # The joint plan leaves the hair out of its measurements; the game gets the maps beside its FBX.
+    rig = next(c["argv"] for c in receipt["commands"] if c["script"] == "rig_ue5_character.py")
+    assert rig[-2:] == ["--plan-ignore", "Ennix_hair"]
+    for name in rebuild_character.MESH_HAIR_EXPORTS:
+        assert (out / "export" / name).read_bytes() == (local / name).read_bytes()
+    assert receipt["hair"] == {"mode": "mesh", "scalp_cap": str(Path("hair-cap/scalp-cap.npz")),
+                               "maps": [str(Path("export") / n) for n in rebuild_character.MESH_HAIR_EXPORTS]}
+
+
+def test_a_strand_build_issues_no_mesh_hair_stage(tmp_path, monkeypatch):
+    out = stub_build(tmp_path, monkeypatch, RECIPE, "--device", "CPU", *MANNY)
+    receipt = receipt_of(out)
+    scripts = [c["script"] for c in receipt["commands"]]
+    assert "mesh_hair_scalp_cap.py" not in scripts and "hair" not in receipt
+    assert scripts.count("blender/export_groom_alembic.py") == 2
+    render = stage_args(receipt, "blender/render_painted_head.py")
+    assert render[render.index("--strands") + 1] == str(out / "strands.npz") and "--scalp-cap" not in render
+    assert "--mesh-hair" not in stage_args(receipt, "blender/assemble_character.py")
+    rig = next(c["argv"] for c in receipt["commands"] if c["script"] == "rig_ue5_character.py")
+    assert "--plan-ignore" not in rig
+
+
+def test_mesh_hair_without_its_inputs_stops_the_build_before_it_starts(tmp_path, monkeypatch):
+    recipe = copy.deepcopy(MESH_RECIPE)
+    del recipe["inputs"]["hair-mesh.npz"]
+    with pytest.raises(SystemExit):
+        stub_build(tmp_path, monkeypatch, recipe, *MANNY)
+    assert not (tmp_path / "build").exists()
