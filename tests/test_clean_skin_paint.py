@@ -62,3 +62,25 @@ def test_blot_goes_brows_and_scalp_stay(tmp_path):
     assert np.abs(img[300, 256] - SKIN).max() < 30     # the blot is skin now
     assert img[205, 130].max() < 60                      # the brow keeps its colour
     assert img[10, 256].max() < 60                       # so does the scalp
+
+
+def test_foreign_hue_on_skin_goes_eye_stays(tmp_path):
+    size = 512
+    tex = np.full((size, size, 3), SKIN, np.uint8)
+    cv2.line(tex, (300, 300), (330, 330), (60, 170, 120), 4)      # BGR: a yellow-green streak on the cheek
+    cv2.circle(tex, (192, 192), 10, (40, 160, 40), -1)           # an iris inside the eye outline
+    cv2.imwrite(str(tmp_path / "tex.png"), tex)
+    # The eye outline (landmarks 36-41) on grid vertices round the iris: vertex (i, j) sits at pixel
+    # (64 i, 512 - 64 j) in this 8 x 8 template's UVs.
+    vertices, bary = [None] * 70, [None] * 70
+    for k, (i, j) in enumerate([(2, 5), (3, 6), (4, 5), (3, 4), (2, 5), (4, 5)]):
+        vertices[36 + k] = [i * 9 + j] * 3
+        bary[36 + k] = [1.0, 0.0, 0.0]
+    (tmp_path / "binding.json").write_text(json.dumps({"vertices": vertices, "barycentric": bary}), encoding="utf-8")
+    out = tmp_path / "out.png"
+    clean_skin_paint.main(["--template", str(template(tmp_path)), "--binding", str(tmp_path / "binding.json"),
+                           "--texture", str(tmp_path / "tex.png"), "--out", str(out), "--work-size", "512",
+                           "--min-depth", "250", "--foreign-hue", "55", "300", "--head-min-z", "1.4"])
+    img = cv2.imread(str(out)).astype(int)
+    assert np.abs(img[315, 315] - SKIN).max() < 30     # the streak is skin now
+    assert img[192, 192, 1] > img[192, 192, 2] + 60     # the iris keeps its green

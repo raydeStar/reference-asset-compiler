@@ -1,6 +1,6 @@
 {
   "_comment": "Where character-02's garments can be (metres, character space centred on z=0: x across, y front-negative, z up). Palette: a dark navy wool coat, a cream shirt open to the sternum, brown leather belts/straps/pouch, black trousers, tall black boots. The coat and shirt are slightly saturated (navy chroma ~12, cream ~12), so cloth takes everything under chroma 20; the brown leather (chroma > 20) stays leather. The black boots read as cloth by colour, so leather_boxes_m makes everything below the coat hem (z -0.43, the hem is at -0.38) leather. Bare skin: the hands, the neck and the open shirt's chest.",
-  "cloth_max_chroma": 20.0,
+  "cloth_max_chroma": 24.0,
   "skin_region_m": {
     "min_abs_x": 0.71,
     "neck_abs_x": 0.12,
@@ -16,5 +16,23 @@
         -0.43
       ]
     }
-  ]
+  ],
+  "detail_keep": {
+    "leather": 0.9,
+    "cloth": 0.9,
+    "fabric": 0.9
+  },
+  "light_gamma": {
+    "leather": 1.0,
+    "cloth": 1.0,
+    "fabric": 1.0
+  },
+  "fine_keep": 1.0,
+  "_detail": "character-02 is painted (Arcane-like): the painting's buttons, buckles, stitching and shoulder emblem are the style. At the defaults (detail 0.3, light gamma 0.5, fine 0.65), made for Ennix's photo-like paint, they blurred away, and the cream shirt, sharing the cloth class with the navy coat, was pulled to grey. Light is left as painted (gamma 1.0): even 0.9 pulled the cream shirt toward the dark navy cloth median. 2026-10-10.",
+  "skin_min_chroma": 25.0,
+  "skin_hue": [
+    30.0,
+    70.0
+  ],
+  "_skin": "His tan skin is colourful (Lab chroma ~50, hue ~56 deg); the cream shirt is not (chroma ~16, hue ~76) but passed the default skin test (chroma > 14, hue 40-80) inside the open-collar neck region, so the game shaded the shirt as skin. 2026-10-10."
 }

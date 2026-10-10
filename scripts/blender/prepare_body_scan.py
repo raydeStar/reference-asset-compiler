@@ -145,8 +145,8 @@ def bounds(verts: np.ndarray) -> dict:
             "max": [round(float(v), 6) for v in verts.max(axis=0)]}
 
 
-def import_scan(path: Path):
-    """Import the GLB and return one mesh object with every transform applied."""
+def import_scan(path: Path, recalc_normals: bool = False):
+    """Import the GLB and return one mesh object with every transform applied (and the faces turned, when asked)."""
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.context.scene.unit_settings.system = "METRIC"
     bpy.context.scene.unit_settings.scale_length = 1.0
@@ -182,9 +182,19 @@ def import_scan(path: Path):
     count = len(bm.verts)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=WELD_DISTANCE)
     welded = count - len(bm.verts)
+    turned = 0
+    if recalc_normals:
+        # Pixal3D's figures arrive with about half their faces wound inward (47% of character-02's torso by
+        # area, Hunyuan's 23%): those fail every picture's facing test in the paint stage, which then rebuilds
+        # them from neighbours (22% of his texture painted, against 54%), and they shade inside out in game.
+        before = np.array([f.normal.copy() for f in bm.faces])
+        bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+        bm.normal_update()
+        after = np.array([f.normal for f in bm.faces])
+        turned = int((np.einsum("ij,ij->i", before, after) < 0).sum())
     bm.to_mesh(body.data)
     bm.free()
-    return body, len(meshes), welded
+    return body, len(meshes), welded, turned
 
 
 def slice_points(verts: np.ndarray, edges: np.ndarray, z: float) -> np.ndarray:
@@ -326,6 +336,8 @@ def main() -> int:
     p.add_argument("--yaw-deg", type=float, default=0.0,
                    help="turn the scan about the vertical axis first, so its front faces -y "
                         "(Pixal3D delivers figures facing +y: 180)")
+    p.add_argument("--recalc-normals", action="store_true",
+                   help="wind every face outward (Blender's recalculate outside) after welding")
     p.add_argument("--centre-y-on-neck", action="store_true",
                    help="centre depth (y) on the body just below the cut, where the head's neck ring will sit")
     p.add_argument("--face-box-m", type=float, nargs=2, metavar=("ABS_X", "FRONT_Y"),
@@ -359,7 +371,7 @@ def main() -> int:
                     "there will be a gap at the collar.".format(neck_m[1], cut_floor))
         print("WARNING: " + gap_note)
 
-    body, imported_meshes, welded = import_scan(scan)
+    body, imported_meshes, welded, turned = import_scan(scan, a.recalc_normals)
     mesh = body.data
     before = counts([body])
 
@@ -469,6 +481,7 @@ def main() -> int:
         "object": name,
         "imported_meshes_joined": imported_meshes,
         "coincident_vertices_welded": welded,
+        "faces_turned_outward": turned if a.recalc_normals else None,
         "triangles": {"before": before["triangles"], "after": after["triangles"]},
         "vertices": {"before": before["vertices"], "after": after["vertices"]},
         "height_m": a.height_m,

@@ -141,6 +141,9 @@ reaches) below the cut, or there is a gap; the stage warns.
   above the cut before going on.
 - `--yaw-deg` turns the scan about the vertical axis first, so its front
   faces -y (Pixal3D: 180). The receipt records it.
+- `--recalc-normals` winds every face outward after welding (Blender's recalculate outside) and records
+  how many turned. character-02's Pixal3D body turned 2%; its inward area is mostly the coat's
+  inner walls, which no picture sees.
 - `--centre-y-on-neck` centres depth on the body in the 10 cm below the cut
   (|x| < 0.12 m), where step 7 puts the head's neck ring (y = 0). A coat that
   flares behind moves the box centre off the neck: Pixal3D's character-02 sat

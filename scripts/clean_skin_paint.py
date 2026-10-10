@@ -62,6 +62,11 @@ def main(argv=None):
     p.add_argument("--min-depth", type=float, default=40.0, help="how much darker than the skin around (0-255)")
     p.add_argument("--keep-margin-frac", type=float, default=0.012)
     p.add_argument("--head-min-z", type=float, default=1.4, help="template height (m) where the head's skin starts")
+    p.add_argument("--foreign-hue", type=float, nargs=2, metavar=("FROM", "TO"),
+                   help="also lift colour no skin has (HSV hue degrees FROM..TO, e.g. 80 300: green, blue, violet), "
+                        "such as an iris projected beside the eye; only a hair-thin margin round the eye opening stays")
+    p.add_argument("--foreign-min-sat", type=float, default=0.15)
+    p.add_argument("--eye-margin-frac", type=float, default=0.002, help="the margin the foreign-hue pass leaves the eyes")
     a = p.parse_args(argv)
 
     t = np.load(a.template, allow_pickle=True)
@@ -92,11 +97,13 @@ def main(argv=None):
     scalp, body = group("scalp", "ears"), group("body")
     body &= t["verts"][:nv, 2] > a.head_min_z      # the head and neck: the rest of the body's UVs carry no paint here
     skin = np.zeros((n, n), np.uint8)       # only the body's own skin: never the eyeballs, teeth or tongue
+    scalp_keep = np.zeros((n, n), np.uint8)  # the scalp and ears alone (the foreign-hue pass keeps no face features)
     for st, tot in zip(starts, totals):
         poly = [to_px(t["loop_uv"][st:st + tot], n).astype(np.int32)]
         vs = loops[st:st + tot]
         if scalp[vs].all():
             cv2.fillPoly(keep, poly, 1)
+            cv2.fillPoly(scalp_keep, poly, 1)
         elif body[vs].all():
             cv2.fillPoly(skin, poly, 1)
     m = max(1, int(a.keep_margin_frac * n))
@@ -110,18 +117,40 @@ def main(argv=None):
     around = cv2.morphologyEx(small, cv2.MORPH_CLOSE, kernel)
     blot = (depth > a.min_depth) & skin_like(around) & ~keep
     blot = cv2.dilate(blot.astype(np.uint8), np.ones((5, 5), np.uint8))
+    foreign = np.zeros((full, full), np.uint8)
+    if a.foreign_hue:
+        # Skin is red-to-yellow; green, blue or violet on it is another feature's paint landed beside it. A
+        # projected iris is a few texels wide: found at full resolution (the working size blends it away).
+        eyes = np.zeros((n, n), np.uint8)
+        for g in (range(36, 42), range(42, 48)):
+            pts = np.array([lm[i] for i in g if i in lm])
+            if len(pts) >= 3:
+                cv2.fillConvexPoly(eyes, cv2.convexHull(pts.astype(np.int32)), 1)
+        em = max(1, int(a.eye_margin_frac * n))
+        eyes = cv2.dilate(eyes, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * em + 1,) * 2))
+        allowed = skin.astype(bool) & ~scalp_keep.astype(bool) & ~eyes.astype(bool)
+        allowed = cv2.resize(allowed.astype(np.uint8), (full, full), interpolation=cv2.INTER_NEAREST).astype(bool)
+        hsv = cv2.cvtColor(tex, cv2.COLOR_BGR2HSV).astype(np.float32)
+        hue, sat, val = hsv[..., 0] * 2, hsv[..., 1] / 255, hsv[..., 2] / 255
+        lo, hi = a.foreign_hue
+        foreign = ((hue >= lo) & (hue <= hi) & (sat > a.foreign_min_sat) & (val > 0.08) & allowed).astype(np.uint8)
+        foreign = cv2.dilate(foreign, np.ones((7, 7), np.uint8))
     filled = cv2.inpaint(small, blot, 7, cv2.INPAINT_TELEA)
     up_mask = cv2.resize(cv2.GaussianBlur(blot.astype(np.float32), (5, 5), 0), (full, full))[..., None]
     up_fill = cv2.resize(filled, (full, full), interpolation=cv2.INTER_CUBIC).astype(np.float32)
     out = tex.astype(np.float32) * (1 - up_mask) + up_fill * up_mask
+    if foreign.any():
+        out = cv2.inpaint(np.clip(out, 0, 255).astype(np.uint8), foreign, 9, cv2.INPAINT_TELEA).astype(np.float32)
     Path(a.out).parent.mkdir(parents=True, exist_ok=True)
     cv2.imwrite(a.out, np.clip(out, 0, 255).astype(np.uint8))
     if a.mask:
         vis = small.copy()
         vis[keep] = (vis[keep] * 0.5).astype(np.uint8)
         vis[blot.astype(bool)] = (255, 0, 255)
+        vis[cv2.resize(foreign, (n, n), interpolation=cv2.INTER_AREA) > 0] = (0, 255, 255)
         cv2.imwrite(a.mask, vis)
-    print(json.dumps({"texture": a.texture, "out": a.out, "blot_share": round(float(blot.mean()), 5)}))
+    print(json.dumps({"texture": a.texture, "out": a.out, "blot_share": round(float(blot.mean()), 5),
+                      "foreign_share": round(float(foreign.mean()), 5)}))
 
 
 if __name__ == "__main__":
