@@ -95,6 +95,8 @@ runs on its own.
 | `blender/bind_assembly_to_rig.py` | transfers the proxy's weights to the editable assembly | `asset_prefix`, `neck_weight_blend_m`, `neck_overlap` |
 | `blender/export_groom_alembic.py` | groom to Alembic, with a round-trip count check (strands only; mesh hair copies its two maps to `export/`) | `asset_prefix` |
 | `rig_ue5_character.py` (with `--manny-dir`) | Manny-conformant game rig; mesh hair is left out of the joint plan's measurements (`--plan-ignore P_hair`) and weighted rigidly to `head` | `asset_prefix` |
+| `blender/refine_shoulder_weights.py` (profile has `shoulder_weights`) | keeps a T-pose scan's upper-arm weights on the arm: inboard of the shoulder to the clavicle, under the armpit to the spine (below) | `shoulder_weights` |
+| `paint_template_hands.py`, `blender/transplant_template_hands.py` (profile has `template_hands`) | the template's hands in place of the scan's, cut at the cuffs and painted in the face's skin tone (below) | `template_hands` |
 | `blender/export_ue5_character.py`, `export_groom_alembic.py` | game FBX and groom | `asset_prefix` |
 | `blender/add_coat_chains.py` (profile has `coat`) | coat-tail bone chains for the game's cloth physics; the plain export becomes `P_UE5.nocoat.fbx` (below) | `coat` |
 | `blender/pose_character_review.py` | held pose, head turn, expressions | `asset_prefix`, `review_views` |
@@ -145,6 +147,8 @@ pixels are the source pictures'.
 | `neck_weight_blend_m` | head weight rises from 0 at the first height to 1 over the second |
 | `review_views` | what the posed review renders look at |
 | `coat` | optional: a long coat's bone chains (below); absent, no coat bones |
+| `shoulder_weights` | optional: `inboard_m`, `outboard_m`, `under_armpit_m`, `armpit_blend_m`, `clavicle_from_m` for `refine_shoulder_weights.py` (below); absent, the solved weights stand |
+| `template_hands` | optional: `hand_weight`, `wrist_back_m` for the template's hands (below); absent, the scan's hands stand |
 
 ### A long coat (`coat`)
 
@@ -218,6 +222,39 @@ To run it on its own (it never saves the input blend):
 & $B -b ue5/fit/P_UE5.blend --factory-startup --python scripts/blender/add_coat_chains.py -- `
   export/P_UE5.fbx --profile profiles/characters/<id>.json [--save-blend coated.blend]
 ```
+
+### Arms from a T-pose scan (`shoulder_weights`, `template_hands`)
+
+Two stages after `rig_ue5_character.py` repair what a T-pose scan does to the
+arms, each on the game blend before its export (the coat chains and the FBX
+follow them):
+
+- `blender/refine_shoulder_weights.py` (`reference_asset_compiler.shoulder_weights`).
+  Weights solved on a T-pose let the upper arm reach into the torso
+  (character-02: to 2 cm from the breastbone). Lowered or swinging, the arm
+  then drags the chest into the armpit (crumpled lapels) and swings the coat's
+  side panel with it. Upper-arm weight fades out from `outboard_m` outboard of
+  the shoulder joint to `inboard_m` inboard of it and goes to the clavicle
+  (from `clavicle_from_m` off the midline; nearer the breastbone, to the spine);
+  below the armpit (the lowest point of the sleeve 8-12 cm outboard of the
+  joint) less `under_armpit_m`, over `armpit_blend_m`, it goes to the spine bone
+  the vertex follows most. Writes `ue5/fit/P_UE5_shoulders.blend` and
+  `ue5/shoulder-weights.json`.
+- `paint_template_hands.py`, then `blender/transplant_template_hands.py`
+  (`reference_asset_compiler.template_hands`). A generator's T-pose hands are
+  paddles. The template's (hm08, the head's) have finger topology, UE5-named
+  finger weights and UVs in the head texture's atlas. The paint stage paints
+  their polygons there (`hands-paint/head_basecolor.png`) in the cheeks' skin
+  tone, the palm and nails lighter. The transplant finds where each sleeve's
+  cuff ends (the outfit's height over the back of the hand, along the hand's
+  axis), cuts the scan's hand past it, and fits the template's hand to the
+  rig's `hand`, `middle_01`, `index_01` and `pinky_01` joints, its forearm
+  `wrist_back_m` back inside the cuff so no view into the sleeve sees through.
+  The skin material takes the painted texture. Writes `ue5/fit/P_UE5_hands.blend`
+  and `ue5/hands.json` (with the build's triangle count).
+
+A game importing such a build takes its skin texture from
+`hands-paint/head_basecolor.png` before `face-paint/head_basecolor.png`.
 
 ### Output names
 

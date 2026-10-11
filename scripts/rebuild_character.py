@@ -350,6 +350,26 @@ def main():
             *(["--plan-ignore", f"{prefix}_hair"] if hair_mode == "mesh" else [])])
         game = out / f"ue5/fit/{prefix}_UE5.blend"
         game_fbx = out / f"export/{prefix}_UE5.fbx"
+        shoulders = character.get("shoulder_weights")
+        if shoulders:
+            # A T-pose scan's arm weights reach into the torso: keep them on the arm (refine_shoulder_weights.py).
+            refined = out / f"ue5/fit/{prefix}_UE5_shoulders.blend"
+            run("blender/refine_shoulder_weights.py", ["--save-blend", refined,
+                "--receipt", out / "ue5/shoulder-weights.json",
+                *flags({k: v for k, v in shoulders.items() if not k.startswith("_")})], True, blend=game)
+            game = refined
+        hands = character.get("template_hands")
+        if hands is not None:
+            # A T-pose picture's hands are mittens: the template's take their place, painted in the
+            # face's skin tone where they sit in its atlas (paint_template_hands.py, transplant_template_hands.py).
+            params = flags({k: v for k, v in hands.items() if not k.startswith("_")})
+            painted = out / "hands-paint/head_basecolor.png"
+            run("paint_template_hands.py", ["--template", local / "template.npz", "--texture", head_paint,
+                "--out", painted, "--receipt", out / "hands-paint/receipt.json", *params])
+            handed = out / f"ue5/fit/{prefix}_UE5_hands.blend"
+            run("blender/transplant_template_hands.py", ["--template", local / "template.npz", "--skin-texture", painted,
+                "--save-blend", handed, "--receipt", out / "ue5/hands.json", *params], True, blend=game)
+            game = handed
         if coat is None:
             run("blender/export_ue5_character.py", [game_fbx], True, blend=game)
         else:
