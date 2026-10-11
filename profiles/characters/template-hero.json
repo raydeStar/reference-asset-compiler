@@ -1,0 +1,120 @@
+{
+  "_comment": "Template character profile for scripts/rebuild_character.py. Copy this file to profiles/characters/<name>.json to author new hero, NPC, or boss avatars. Lengths are metres in character space (x across, y front-negative, z up, feet on z=0 after body_lift_m); pixels are from the source reference pictures.",
+  "name": "TemplateHero",
+  "asset_prefix": "TemplateHero",
+  "_asset_prefix": "Prefixes every object, material and output file: assembly/<Prefix>_Character_Review.blend, export/<Prefix>_UE5.fbx, etc.",
+  "inputs": {
+    "body_object": "TemplateHero_Garment_And_Wrists_Preserved",
+    "_body_object": "The acquired outfit mesh object inside body-acquisition.blend."
+  },
+  "face_proportions": {
+    "mouth_corner_lift_mm": [
+      0.0,
+      0.0
+    ],
+    "_mouth_corner_lift_mm": "Millimetres, straight up (+z) on [right, left] to match portrait smirks or asymmetry."
+  },
+  "source_camera": {
+    "_comment": "The orthographic reference frame measured by scripts/measure_source_frame.py.",
+    "image_px": [
+      1536,
+      1024
+    ],
+    "px_per_m": 540.0,
+    "front_origin_px": [
+      768.0,
+      500.0
+    ],
+    "side_origin_px": [
+      768.0,
+      500.0
+    ]
+  },
+  "body_lift_m": 0.90,
+  "_body_lift_m": "Raises the acquired body so the sole vertices rest exactly on the floor (z=0).",
+  "body": {
+    "hands_beyond_abs_x_m": 0.72,
+    "_hands_beyond_abs_x_m": "Distance along x where the cuffs end and hand topology begins."
+  },
+  "body_paint": {
+    "side_band_abs_x_m": [
+      0.0,
+      0.001
+    ],
+    "_side_band_abs_x_m": "Width of side-view blend band; [0.0, 0.001] for 2-view (front/back) reference sets.",
+    "min_facing": 0.35,
+    "mask_erode_px": 4,
+    "fill": "surface",
+    "fill_trust": 0.6,
+    "normal_smoothing_m": 0.03
+  },
+  "outfit_paint_params": "profiles/outfit-paint/template-hero.json",
+  "oral_anatomy": {
+    "mouth_box_m": [
+      0.043,
+      -0.135,
+      1.601,
+      1.648
+    ],
+    "neck_m": [
+      1.64,
+      1.43
+    ]
+  },
+  "neck_overlap": {
+    "ellipse_m": [
+      0.072,
+      0.061
+    ],
+    "above_z_m": 1.49,
+    "rim_above_z_m": 1.46,
+    "rim_abs_x_m": 0.2
+  },
+  "neck_weight_blend_m": [
+    1.515,
+    0.08
+  ],
+  "review_views": {
+    "held_centre_m": [
+      0.0,
+      0.0,
+      0.9
+    ],
+    "head_centre_m": [
+      0.0,
+      0.0,
+      1.66
+    ],
+    "face_centre_m": [
+      0.0,
+      -0.02,
+      1.67
+    ]
+  },
+  "coat": {
+    "chains": {
+      "front_l": 75.0,
+      "front_r": -75.0,
+      "side_l": 110.0,
+      "side_r": -110.0,
+      "back_l": 160.0,
+      "back_r": -160.0
+    },
+    "bones_per_chain": 3,
+    "top_below_pelvis_m": 0.04,
+    "hem_above_knee_m": 0.07,
+    "leg_clearance_m": 0.12,
+    "open_front": true
+  },
+  "shoulder_weights": {
+    "inboard_m": 0.03,
+    "outboard_m": 0.07,
+    "under_armpit_m": 0.05,
+    "armpit_blend_m": 0.05,
+    "clavicle_from_m": 0.08
+  },
+  "template_hands": {
+    "hand_weight": 0.3,
+    "wrist_back_m": 0.05
+  }
+}

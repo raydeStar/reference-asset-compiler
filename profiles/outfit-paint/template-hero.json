@@ -1,0 +1,36 @@
+{
+  "_comment": "Template outfit paint segmentation for profiles/outfit-paint/<name>.json. Distinguishes cloth, leather, metal, and exposed skin regions from source reference paint.",
+  "cloth_max_chroma": 24.0,
+  "skin_region_m": {
+    "min_abs_x": 0.71,
+    "neck_abs_x": 0.12,
+    "neck_min_z": 0.4
+  },
+  "skin_region_min_L": 30.0,
+  "hands_beyond_abs_x_m": 0.72,
+  "leather_boxes_m": [
+    {
+      "abs_x": 0.3,
+      "z": [
+        -1.0,
+        -0.43
+      ]
+    }
+  ],
+  "detail_keep": {
+    "leather": 0.9,
+    "cloth": 0.9,
+    "fabric": 0.9
+  },
+  "light_gamma": {
+    "leather": 1.0,
+    "cloth": 1.0,
+    "fabric": 1.0
+  },
+  "fine_keep": 1.0,
+  "skin_min_chroma": 25.0,
+  "skin_hue": [
+    30.0,
+    70.0
+  ]
+}
