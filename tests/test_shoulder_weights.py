@@ -77,3 +77,34 @@ def test_layers_millimetres_apart_take_one_weight_and_the_rest_stays():
     gap = np.abs(new[:len(grid)][inner] - new[len(grid):2 * len(grid)][inner]).max()
     assert gap < 0.1                                     # was 1.0 (spine_04) apart
     assert np.allclose(new[-1], w[-1])
+
+
+def test_sleeve_below_armpit_keeps_arm_weight():
+    """An arm vertex outboard of the shoulder but below the armpit height must keep its arm weight."""
+    pos, _ = figure()
+    # Add sleeve points outboard at x=0.30 but with low Z (e.g. z=1.20, below pit=1.31)
+    sleeve_low = np.array([[0.30, 0.0, 1.20], [0.35, 0.05, 1.15]])
+    all_pos = np.vstack([pos, sleeve_low])
+    w = np.zeros((len(all_pos), len(BONES)))
+    w[:, 3] = 0.8  # upper arm
+    w[:, 1] = 0.2  # spine_05
+    new, _ = refine(w, BONES, all_pos, {"l": SHOULDER})
+    # Both low sleeve points should keep their arm weight (index 3) and not be wiped to spine
+    assert new[-2, 3] > 0.75
+    assert new[-1, 3] > 0.75
+
+
+def test_chest_below_shoulder_joint_transitions_to_spine():
+    """Chest vertices below the shoulder joint should follow spine_05, not clavicle, preventing lapel tearing."""
+    # Points on the mid-chest at x=0.12 (inboard of shoulder=0.16) at z=1.25 (below shoulder=1.41)
+    chest_mid = np.array([[0.12, -0.05, 1.25], [0.12, -0.05, 1.30]])
+    w = np.zeros((len(chest_mid), len(BONES)))
+    w[:, 3] = 0.8  # bled upper arm weight
+    w[:, 1] = 0.2  # spine_05
+    new, _ = refine(w, BONES, chest_mid, {"l": SHOULDER})
+    # Clavicle is index 2, spine_05 is index 1
+    # Below shoulder - 0.06m (z < 1.35), clavicle weight should be 0, all going to spine
+    assert new[0, 2] < 1e-5  # z=1.25: no clavicle
+    assert new[0, 1] > 0.95  # z=1.25: all spine_05
+    assert new[1, 2] < 0.2   # z=1.30: minimal/transitional clavicle
+

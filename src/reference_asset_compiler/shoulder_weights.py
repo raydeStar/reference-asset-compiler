@@ -47,11 +47,13 @@ def armpit_height(positions, shoulder, side_sign, near=(0.08, 0.12), reach=0.25)
 
 
 def refine(weights, bones, positions, shoulders, inboard_m=0.03, outboard_m=0.07, under_armpit_m=0.05,
-           armpit_blend_m=0.05, clavicle_from_m=0.08, max_influences=4, spine_fallback="spine_04"):
+           armpit_blend_m=0.05, clavicle_from_m=0.08, clavicle_drop_m=0.06, lapel_front_m=0.03,
+           max_influences=4, spine_fallback="spine_04"):
     """weights (n, b), bones (b names), positions (n, 3) rest, shoulders {"l": xyz, "r": xyz} (upperarm heads).
 
     Returns (new weights, report)."""
     w = np.array(weights, float)
+    pos = np.asarray(positions, float)
     index = {name: i for i, name in enumerate(bones)}
     report = {"armpit_z": {}, "moved_to_clavicle": 0.0, "moved_to_spine": 0.0}
     spine_cols = [index[s] for s in SPINES if s in index]
@@ -62,23 +64,36 @@ def refine(weights, bones, positions, shoulders, inboard_m=0.03, outboard_m=0.07
         arm_cols = [index[b.format(s=side)] for b in ARM_BONES if b.format(s=side) in index]
         if not arm_cols:
             continue
-        d = sign * (positions[:, 0] - sh[0])
+        d = sign * (pos[:, 0] - sh[0])
         t_in = _smooth((d + inboard_m) / (inboard_m + outboard_m))
-        pit = armpit_height(positions, sh, sign)
+        pit = armpit_height(pos, sh, sign)
         report["armpit_z"][side] = None if pit is None else round(pit, 4)
-        t_under = np.ones(len(w)) if pit is None else _smooth((positions[:, 2] - (pit - under_armpit_m)) / armpit_blend_m)
+        t_under = np.ones(len(w)) if pit is None else _smooth((pos[:, 2] - (pit - under_armpit_m)) / armpit_blend_m)
+
+        # Under-armpit clearing applies to the torso under the armpit, not to sleeves outboard on the arm
+        t_arm = _smooth((d - outboard_m) / 0.04)
+        under_clear = (1.0 - t_arm) * (1.0 - t_under)
+
         arm_w = w[:, arm_cols]
-        keep = arm_w * (t_in * t_under)[:, None]
+        keep = arm_w * np.maximum(t_in * (1.0 - under_clear), 0.0)[:, None]
         lost = (arm_w - keep).sum(1)
         w[:, arm_cols] = keep
-        # what fades under the arm goes to the spine; what fades inboard goes to the clavicle
-        to_spine = lost * (1 - t_under) / np.maximum((1 - t_under) + (1 - t_in) * t_under, 1e-9)
+
+        # What fades under the arm goes to the spine; what fades inboard goes toward the clavicle
+        to_spine = lost * under_clear / np.maximum(under_clear + (1.0 - t_in) * (1.0 - under_clear), 1e-9)
         to_spine[lost <= 0] = 0
         to_clav = lost - to_spine
-        # near the breastbone the chest follows the spine, not the clavicle
-        share = _smooth((sign * positions[:, 0] - clavicle_from_m) / max(sign * sh[0] - inboard_m - clavicle_from_m, 1e-6))
-        to_spine += to_clav * (1 - share)
+
+        # Clavicle influence:
+        # 1. Near breastbone: follows spine, not clavicle (horizontal X blend)
+        share_x = _smooth((sign * pos[:, 0] - clavicle_from_m) / max(sign * sh[0] - inboard_m - clavicle_from_m, 1e-6))
+        # 2. Below shoulder joint: chest follows spine, not clavicle (vertical Z blend)
+        share_z = _smooth((pos[:, 2] - (sh[2] - clavicle_drop_m)) / max(clavicle_drop_m, 1e-6))
+
+        share = share_x * share_z
+        to_spine += to_clav * (1.0 - share)
         to_clav *= share
+
         w[:, index[f"clavicle_{side}"]] += to_clav
         if spine_cols:
             sp = np.array(spine_cols)[np.argmax(w[:, spine_cols], axis=1)]
