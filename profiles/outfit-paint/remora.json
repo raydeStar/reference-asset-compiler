@@ -1,0 +1,43 @@
+{
+  "_comment": "Remora outfit paint segmentation: cream sleeveless tunic, brown leather belt/pouch/holster, dark combat trousers, tall leather boots, and right forearm leather bracer.",
+  "cloth_max_chroma": 22.0,
+  "skin_region_m": {
+    "min_abs_x": 0.35,
+    "neck_abs_x": 0.10,
+    "neck_min_z": 0.35
+  },
+  "skin_region_min_L": 30.0,
+  "hands_beyond_abs_x_m": 0.65,
+  "leather_boxes_m": [
+    {
+      "abs_x": 0.25,
+      "z": [
+        -1.0,
+        -0.40
+      ]
+    },
+    {
+      "abs_x": 0.28,
+      "z": [
+        -0.08,
+        0.08
+      ]
+    }
+  ],
+  "detail_keep": {
+    "leather": 0.9,
+    "cloth": 0.9,
+    "fabric": 0.9
+  },
+  "light_gamma": {
+    "leather": 1.0,
+    "cloth": 1.0,
+    "fabric": 1.0
+  },
+  "fine_keep": 1.0,
+  "skin_min_chroma": 20.0,
+  "skin_hue": [
+    30.0,
+    75.0
+  ]
+}

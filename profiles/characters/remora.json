@@ -1,0 +1,105 @@
+{
+  "_comment": "Remora: the second hero / partner to Ennix. Sleek Arcane-style aesthetic: braided crown hair, sleeveless cream tunic with criss-cross lacing, leather bracer, dark combat trousers, tall boots. Source: 04 - Remora - airship outfit v1.png and 02 - Remora - original concept.png.",
+  "name": "Remora",
+  "asset_prefix": "Remora",
+  "_asset_prefix": "Prefixes every object, material and output file: assembly/Remora_Character_Review.blend, export/Remora_UE5.fbx, etc.",
+  "inputs": {
+    "body_object": "Remora_Garment_And_Wrists_Preserved",
+    "_body_object": "The acquired outfit mesh object inside body-acquisition.blend."
+  },
+  "face_proportions": {
+    "mouth_corner_lift_mm": [
+      0.0,
+      0.0
+    ],
+    "_mouth_corner_lift_mm": "Millimetres [right, left] corner lift: neutral determined mouth."
+  },
+  "source_camera": {
+    "_comment": "The orthographic reference frame measured by scripts/measure_source_frame.py on 04 - Remora - airship outfit v1.png (1024x1536).",
+    "image_px": [
+      1024,
+      1536
+    ],
+    "px_per_m": 840.0,
+    "front_origin_px": [
+      521.5,
+      800.0
+    ],
+    "side_origin_px": [
+      521.5,
+      800.0
+    ]
+  },
+  "body_lift_m": 0.88,
+  "_body_lift_m": "Raises the acquired body so the sole vertices rest exactly on the floor (z=0).",
+  "body": {
+    "hands_beyond_abs_x_m": 0.65,
+    "_hands_beyond_abs_x_m": "Sleeveless / bracer: wrists start around |x| 0.65 m."
+  },
+  "body_paint": {
+    "side_band_abs_x_m": [
+      0.0,
+      0.001
+    ],
+    "_side_band_abs_x_m": "Width of side-view blend band; [0.0, 0.001] for 2-view (front/back) reference sets.",
+    "min_facing": 0.35,
+    "mask_erode_px": 4,
+    "fill": "surface",
+    "fill_trust": 0.6,
+    "normal_smoothing_m": 0.03
+  },
+  "outfit_paint_params": "profiles/outfit-paint/remora.json",
+  "oral_anatomy": {
+    "mouth_box_m": [
+      0.040,
+      -0.130,
+      1.550,
+      1.610
+    ],
+    "neck_m": [
+      1.58,
+      1.40
+    ]
+  },
+  "neck_overlap": {
+    "ellipse_m": [
+      0.065,
+      0.055
+    ],
+    "above_z_m": 1.45,
+    "rim_above_z_m": 1.42,
+    "rim_abs_x_m": 0.18
+  },
+  "neck_weight_blend_m": [
+    1.480,
+    0.08
+  ],
+  "review_views": {
+    "held_centre_m": [
+      0.0,
+      0.0,
+      0.88
+    ],
+    "head_centre_m": [
+      0.0,
+      0.0,
+      1.60
+    ],
+    "face_centre_m": [
+      0.0,
+      -0.02,
+      1.62
+    ]
+  },
+  "shoulder_weights": {
+    "inboard_m": 0.03,
+    "outboard_m": 0.06,
+    "under_armpit_m": 0.04,
+    "armpit_blend_m": 0.04,
+    "clavicle_from_m": 0.07
+  },
+  "template_hands": {
+    "hand_weight": 0.3,
+    "wrist_back_m": 0.05
+  }
+}
