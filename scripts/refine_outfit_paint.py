@@ -260,7 +260,8 @@ def main():
     cov_soft = np.clip(ndimage.gaussian_filter(cov, 2.0), 0, 1)
     fine_sigma = p["fine_m"] / metres_per_uv * size
     smooth = np.stack([ndimage.gaussian_filter(tex[..., k], fine_sigma) for k in range(3)], -1)
-    fine = (tex - smooth) * (p["fine_keep"] * cov_soft)[..., None]
+    cov_detail = np.maximum(cov_soft, 0.45)
+    fine = (tex - smooth) * (p["fine_keep"] * cov_detail)[..., None]
     for c in (LEATHER, CLOTH, FABRIC):
         name = NAMES[c]
         inside = onehot[..., c]
@@ -283,7 +284,7 @@ def main():
         median = np.median(low_adj[seen if seen.any() else sel], 0)
         unseen = (p["unseen_to_median"] * (1 - cov_soft))[..., None]
         low_adj = low_adj * (1 - unseen) + median * unseen
-        detail = (smooth - low) * (p["detail_keep"][name] * cov_soft)[..., None] + fine
+        detail = (smooth - low) * (p["detail_keep"][name] * cov_detail)[..., None] + fine
         garment = np.clip(low_adj + detail, 0, 1)
         clean = clean * (1 - soft[..., c:c + 1]) + garment * soft[..., c:c + 1]
         record_cls[name] = {"triangles": int((cls == c).sum()), "area_m2": round(float(areas[cls == c].sum()), 4),

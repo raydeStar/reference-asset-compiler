@@ -14,7 +14,9 @@ def point_camera_at(cam, target_pos):
     cam.rotation_euler = rot_quat.to_euler()
 
 def main():
-    out_dir = r"C:\work\character-02\review_views"
+    out_dir = r"C:\work\character-02\review_views_v22"
+    if "--out-dir" in sys.argv:
+        out_dir = sys.argv[sys.argv.index("--out-dir") + 1]
     os.makedirs(out_dir, exist_ok=True)
 
     scene = bpy.context.scene

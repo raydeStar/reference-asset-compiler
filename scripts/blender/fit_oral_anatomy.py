@@ -96,11 +96,7 @@ def extend_neck(ob, below_z, end_z):
     result = bmesh.ops.extrude_edge_only(bm, edges=ring)
     created = [x for x in result["geom"] if isinstance(x, bmesh.types.BMVert) and x not in old_verts]
     for v in created:
-        flare_y = 0.0
-        if v.co.y < y_center and min_y < y_center:
-            t = (y_center - v.co.y) / (y_center - min_y)
-            flare_y = -0.055 * t
-        end = Vector((v.co.x * 1.15, v.co.y + flare_y, end_z))
+        end = Vector((v.co.x, v.co.y, end_z))
         v.co = end
         for layer in shapes:
             v[layer] = end

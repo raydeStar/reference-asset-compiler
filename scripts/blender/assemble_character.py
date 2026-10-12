@@ -60,6 +60,19 @@ def main():
     bsdf = nt.nodes["Principled BSDF"]
     tex = nt.nodes.new("ShaderNodeTexImage")
     tex.image = bpy.data.images.load(str(Path(a.body_texture).resolve()))
+    placement = json.loads(Path(a.head_placement).read_text())
+    parts = ["head", "eyes", "groom", "scalp-cap", "teeth", "tongue", "helper-upper-teeth", "helper-lower-teeth",
+             "helper-tongue"] + (["hair"] if a.mesh_hair else [])
+    with bpy.data.libraries.load(str(Path(a.head).resolve()), link=False) as (src, dst):
+        dst.objects = [name for name in src.objects if name in parts]
+    if a.mesh_hair and "hair" not in [ob.name for ob in dst.objects]:
+        raise RuntimeError("--mesh-hair: the head blend has no `hair` object")
+    for ob in dst.objects:
+        scene.collection.objects.link(ob)
+        ob.scale = (placement["scale"],) * 3
+        ob.location = placement["location"]
+        ob.name = a.name + "_" + ob.name
+    head_ob = bpy.data.objects.get(a.name + "_head")
     removed_neck_faces = 0
     if a.clear_neck_overlap:
         radius_x, radius_y, above_z, rim_z, rim_x = a.clear_neck_overlap
@@ -73,10 +86,28 @@ def main():
         doomed = []
         for face in bm.faces:
             c = body.matrix_world @ face.calc_center_median()
-            if (c.x / radius_x) ** 2 + (c.y / radius_y) ** 2 < 1 and c.z > above_z:
+            if ((c.x / radius_x) ** 2 + (c.y / radius_y) ** 2 < 1 or (abs(c.x) < rim_x and c.y < 0.0)) and c.z > above_z:
                 doomed.append(face)
         removed_neck_faces = len(doomed)
         bmesh.ops.delete(bm, geom=doomed, context="FACES_ONLY")
+
+        # Snap the boundary rim of the open throat flush against the conformed head neck
+        if head_ob:
+            from mathutils.bvhtree import BVHTree
+            bm_h = bmesh.new()
+            bm_h.from_mesh(head_ob.data)
+            bm_h.transform(head_ob.matrix_world)
+            bvh_head = BVHTree.FromBMesh(bm_h)
+            body_inv = body.matrix_world.inverted()
+            for v in bm.verts:
+                if any(e.is_boundary for e in v.link_edges):
+                    w = body.matrix_world @ v.co
+                    if rim_z <= w.z <= above_z + 0.03 and abs(w.x) <= rim_x and w.y < 0.0:
+                        loc, normal, idx, dist = bvh_head.find_nearest(w)
+                        if loc and dist < 0.04:
+                            v.co = body_inv @ w.lerp(loc, 0.98)
+            bm_h.free()
+
         boundary = [v for v in bm.verts if any(e.is_boundary for e in v.link_edges)
                     and (body.matrix_world @ v.co).z > rim_z
                     and abs((body.matrix_world @ v.co).x) < rim_x]
@@ -96,18 +127,6 @@ def main():
     bsdf.inputs["Roughness"].default_value = 0.7
     bsdf.inputs["Specular IOR Level"].default_value = 0.15
     body.data.materials.append(mat)
-    placement = json.loads(Path(a.head_placement).read_text())
-    parts = ["head", "eyes", "groom", "scalp-cap", "teeth", "tongue", "helper-upper-teeth", "helper-lower-teeth",
-             "helper-tongue"] + (["hair"] if a.mesh_hair else [])
-    with bpy.data.libraries.load(str(Path(a.head).resolve()), link=False) as (src, dst):
-        dst.objects = [name for name in src.objects if name in parts]
-    if a.mesh_hair and "hair" not in [ob.name for ob in dst.objects]:
-        raise RuntimeError("--mesh-hair: the head blend has no `hair` object")
-    for ob in dst.objects:
-        scene.collection.objects.link(ob)
-        ob.scale = (placement["scale"],) * 3
-        ob.location = placement["location"]
-        ob.name = a.name + "_" + ob.name
     scene.render.engine = "CYCLES"
     scene.cycles.samples = a.samples
     scene.cycles.use_denoising = True
