@@ -69,6 +69,10 @@ DEFAULTS = {
     # Where no view saw the garment, the 3D fill can carry a neighbour's colour (skin beside a sleeve):
     # pull those texels toward the garment's painted median colour.
     "unseen_to_median": 0.7,
+    # Grazing-light correction (off unless a profile sets grazing_ref_m): texels whose coverage is below
+    # grazing_trust[1] blend toward the garment colour seen squarely within grazing_ref_m, and are capped
+    # at that colour's luminance x (1 + grazing_lift). Removes rim light smeared over surfaces no picture faces.
+    "grazing_ref_m": None, "grazing_trust": [0.2, 0.7], "grazing_lift": 0.12,
     "mask_size": 1024,
     "normal_size": 512,
     # Detail tiles: physical size of one tile and its feature count.
@@ -286,9 +290,34 @@ def main():
         low_adj = low_adj * (1 - unseen) + median * unseen
         detail = (smooth - low) * (p["detail_keep"][name] * cov_detail)[..., None] + fine
         garment = np.clip(low_adj + detail, 0, 1)
+        if p.get("grazing_ref_m"):
+            # Grazing projections carry the painting's rim light (a pale wash over sleeve and shoulder
+            # tops that face neither picture). Reference: the same garment nearby where a picture saw it
+            # squarely (weight cov^4). Weakly seen texels take that colour's hue and may not be brighter
+            # than it by more than grazing_lift; the kept fine detail rides on top.
+            w_ref = inside * cov ** 4
+            w_ref_small = w_ref.reshape(small, q, small, q).mean((1, 3))
+            col_ref_small = (garment * w_ref[..., None]).reshape(small, q, small, q, 3).sum((1, 3)) / np.maximum(
+                w_ref.reshape(small, q, small, q).sum((1, 3)), 1e-6)[..., None]
+            ref_small, _ = masked_lowpass(col_ref_small, w_ref_small, p["grazing_ref_m"] / metres_per_uv * small)
+            ref = np.stack([np.asarray(Image.fromarray(ref_small[..., k].astype(np.float32)).resize((size, size), Image.BILINEAR)) for k in range(3)], -1)
+            lum = np.array([0.2126, 0.7152, 0.0722])
+            y_g, y_r = garment @ lum, np.maximum(ref @ lum, 1e-4)
+            lo, hi = p["grazing_trust"]
+            trust = np.clip((cov_soft - lo) / (hi - lo), 0, 1)
+            trust = (trust * trust * (3 - 2 * trust))[..., None]
+            y_cap = np.minimum(y_g, y_r * (1 + p["grazing_lift"]))
+            # Reference hue at the (capped) painted luminance, plus the kept fine detail.
+            graze = np.clip(ref * (y_cap / y_r)[..., None] + fine, 0, 1)
+            garment = garment * trust + graze * (1 - trust)
+            record_grazing = {"ref_m": p["grazing_ref_m"], "trust": [lo, hi], "lift": p["grazing_lift"],
+                              "texels_corrected": int(((trust[..., 0] < 0.99) & (inside > 0.5)).sum())}
+        else:
+            record_grazing = None
         clean = clean * (1 - soft[..., c:c + 1]) + garment * soft[..., c:c + 1]
         record_cls[name] = {"triangles": int((cls == c).sum()), "area_m2": round(float(areas[cls == c].sum()), 4),
-                            "median_luminance": round(y_med, 4), "light_gamma": gamma, "detail_keep": p["detail_keep"][name]}
+                            "median_luminance": round(y_med, 4), "light_gamma": gamma, "detail_keep": p["detail_keep"][name],
+                            "grazing": record_grazing}
     record_cls["skin"] = {"triangles": int((cls == SKIN).sum()), "area_m2": round(float(areas[cls == SKIN].sum()), 4),
                           "albedo": "unchanged"}
     # Skin texels are the bake's own colour, exactly.
