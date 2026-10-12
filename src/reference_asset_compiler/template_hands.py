@@ -54,7 +54,8 @@ def landmarks(verts, weights, index, side):
     return marks
 
 
-def hand_vertices(verts, weights, index, side, hand_weight=0.3, wrist_back_m=0.05, lining_radius_m=0.06):
+def hand_vertices(verts, weights, index, side, hand_weight=0.3, wrist_back_m=0.05, lining_radius_m=0.06,
+                  exclude_mask=None):
     """The template's hand (hand and finger weights past `hand_weight`) and its forearm up to `wrist_back_m`
     behind the wrist within `lining_radius_m` of the hand's axis: it lines the sleeve, so no view into the
     cuff sees through it."""
@@ -66,7 +67,10 @@ def hand_vertices(verts, weights, index, side, hand_weight=0.3, wrist_back_m=0.0
     radial = np.linalg.norm(rel - along[:, None] * axis, axis=1)
     lining = ((along > -wrist_back_m) & (along <= 0) & (radial < lining_radius_m)
               & (weights[:, index[f"lowerarm_{side}"]] + hand > 0.5))
-    return (hand > hand_weight) | lining
+    res = (hand > hand_weight) | lining
+    if exclude_mask is not None:
+        res = res & ~exclude_mask
+    return res
 
 
 def polygons_within(mask, loops, starts, totals):

@@ -136,7 +136,15 @@ def apply_signature_smirk():
 
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:]
-    ref_path, poses_path, out_dir = argv[0], argv[1], Path(argv[2]).resolve()
+    import argparse
+    parser = argparse.ArgumentParser()
+    parser.add_argument("ref_pose")
+    parser.add_argument("anim_poses")
+    parser.add_argument("out_dir")
+    parser.add_argument("--samples", type=int, default=64)
+    parser.add_argument("--res", type=int, default=1024)
+    args = parser.parse_args(argv)
+    ref_path, poses_path, out_dir = args.ref_pose, args.anim_poses, Path(args.out_dir).resolve()
     out_dir.mkdir(parents=True, exist_ok=True)
 
     manny = json.loads(Path(ref_path).read_text())
@@ -163,7 +171,7 @@ def main():
         visit(n)
 
     scene = bpy.context.scene
-    setup_optix_cycles(scene, samples=256)
+    setup_optix_cycles(scene, samples=args.samples)
     setup_studio_environment(scene)
     setup_cinematic_lighting()
     apply_signature_smirk()
@@ -198,14 +206,15 @@ def main():
             mat = Matrix((M_UE @ G[n] @ P_AX).tolist()).to_4x4()
             mat.translation = Vector(M_UE @ Pp[n] / 100.0)
             rig.pose.bones[n].matrix = mat
-            bpy.context.view_layer.update()
+        bpy.context.view_layer.update()
         return Pp
 
+    res_tuple = (args.res, args.res)
     shots = [
         {
             "name": "01_Hero_Idle_FullBody",
             "pose": poses.get("MM_Idle_3p78"),
-            "res": (2048, 2048),
+            "res": res_tuple,
             "lens": 52.0,
             "cam_offset": Vector((-1.6, -3.2, 1.15)),
             "look_target": Vector((0.0, 0.0, 0.95)),
@@ -215,7 +224,7 @@ def main():
         {
             "name": "02_Hero_Portrait_Smirk",
             "pose": poses.get("MM_Idle_3p78"),
-            "res": (2048, 2048),
+            "res": res_tuple,
             "lens": 85.0,
             "cam_offset": Vector((-0.25, -1.65, 0.02)),
             "look_target": Vector((0.0, -0.02, 0.0)),
@@ -226,7 +235,7 @@ def main():
         {
             "name": "03_Hero_Combat_Attack",
             "pose": poses.get("MM_Attack_01_0p25"),
-            "res": (2048, 2048),
+            "res": res_tuple,
             "lens": 46.0,
             "cam_offset": Vector((-1.4, -2.8, 1.25)),
             "look_target": Vector((0.0, 0.0, 1.05)),
@@ -236,7 +245,7 @@ def main():
         {
             "name": "04_Hero_Action_Dash",
             "pose": poses.get("MM_Dash_0p19"),
-            "res": (2048, 2048),
+            "res": res_tuple,
             "lens": 46.0,
             "cam_offset": Vector((-1.6, -2.4, 0.90)),
             "look_target": Vector((0.0, 0.0, 0.85)),
@@ -287,6 +296,7 @@ def main():
         bpy.ops.render.render(write_still=True)
         shot_duration = time.time() - t_shot_start
         print(f"Saved: {out_path} ({shot_duration:.2f}s)")
+        sys.stdout.flush()
 
         receipts.append({
             "name": shot["name"],

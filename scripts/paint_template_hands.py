@@ -82,13 +82,17 @@ def main(argv=None):
     lin = to_linear(tone)
     nails = np.zeros(len(verts), bool)
     nails[t["vg__fingernails"]] = True
+    exclude = np.zeros(len(verts), bool)
+    for key in ("vg__JointCubes", "vg__HelperGeometry"):
+        if key in t:
+            exclude[t[key]] = True
     normals = polygon_normals(verts, loops, starts, totals)
     colour = np.zeros_like(tex)
     inside = np.zeros(tex.shape[:2], bool)
     counts, every_hand = {}, []
     for side in ("l", "r"):
         hand = np.flatnonzero(polygons_within(
-            hand_vertices(verts, weights, index, side, a.hand_weight, a.wrist_back_m), loops, starts, totals))
+            hand_vertices(verts, weights, index, side, a.hand_weight, a.wrist_back_m, exclude_mask=exclude), loops, starts, totals))
         every_hand.append(hand)
         palm = hand[normals[hand] @ palm_normal(landmarks(verts, weights, index, side), side) > 0.3]
         nail = hand[polygons_within(nails, loops, starts, totals)[hand]]

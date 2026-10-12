@@ -35,6 +35,7 @@ from pathlib import Path
 import bmesh
 import bpy
 import numpy as np
+from mathutils import Vector
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from reference_asset_compiler.template_hands import (  # noqa: E402
@@ -74,12 +75,28 @@ def main():
         return np.array(mw @ arm.data.bones[name].head_local)
 
     report = {"stage": "transplant_template_hands", "template": a.template, "sides": {}}
+    exclude = np.zeros(len(tv), bool)
+    for key in ("vg__JointCubes", "vg__HelperGeometry"):
+        if key in t:
+            exclude[t[key]] = True
+
+    joints_by_side = {}
     for side in ("l", "r"):
         mt = landmarks(tv, tw, bi, side)
         mg = {k: joint(f"{b}_{side}") for k, b in (("wrist", "hand"), ("middle", "middle_01"), ("index", "index_01"),
                                                     ("pinky", "pinky_01"))}
         rot, scale = fit(mt, mg)
-        poly_ok = polygons_within(hand_vertices(tv, tw, bi, side, a.hand_weight, a.wrist_back_m), loops, starts, totals)
+        side_joints = {}
+        for fname, f_idx in [("thumb", 1), ("index", 2), ("middle", 3), ("ring", 4), ("pinky", 5)]:
+            for k in range(1, 5):
+                key = f"vg__joint-{side}-finger-{f_idx}-{k}"
+                if key in t:
+                    pt = tv[t[key]].mean(0)
+                    tag = f"{fname}_0{k}_{side}" if k < 4 else f"{fname}_tip_{side}"
+                    side_joints[tag] = place(pt, mt, mg, rot, scale)
+        joints_by_side[side] = side_joints
+
+        poly_ok = polygons_within(hand_vertices(tv, tw, bi, side, a.hand_weight, a.wrist_back_m, exclude_mask=exclude), loops, starts, totals)
         used = np.unique(np.concatenate([loops[s:s + n] for s, n, ok in zip(starts, totals, poly_ok) if ok]))
         remap = -np.ones(len(tv), np.int64)
         remap[used] = np.arange(len(used))
@@ -120,7 +137,7 @@ def main():
         gone = near & (along > end + a.cut_beyond_m)
         bm = bmesh.new()
         bm.from_mesh(outfit.data)
-        doomed = [f for f in bm.faces if any(gone[v.index] for v in f.verts)]
+        doomed = [f for f in bm.faces if all(gone[v.index] for v in f.verts)]
         bmesh.ops.delete(bm, geom=doomed, context="FACES")
         bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
         # pieces of the scan's hand the cut left loose (a thumb tip hanging past the radius): no part in the sleeve
@@ -149,6 +166,29 @@ def main():
             "template_vertices": int(len(used)), "faces": len(faces), "scale": round(scale, 4),
             "cuff_end_m": round(end, 4), "cuff_height_m": round(height, 4), "outfit_faces_cut": len(doomed),
             "loose_vertices_removed": len(loose), "hand_length_m": round(float(np.linalg.norm(mg["middle"] - mg["wrist"])), 4)}
+
+    # Update armature edit bones to match template knuckle joints
+    bpy.context.view_layer.objects.active = arm
+    bpy.ops.object.mode_set(mode="EDIT")
+    for s in ("l", "r"):
+        wrist = Vector(arm.data.edit_bones[f"hand_{s}"].head)
+        for fname in ["thumb", "index", "middle", "ring", "pinky"]:
+            metacarpal = f"{fname}_metacarpal_{s}"
+            b01 = f"{fname}_01_{s}"
+            b02 = f"{fname}_02_{s}"
+            b03 = f"{fname}_03_{s}"
+            btip = f"{fname}_tip_{s}"
+            if metacarpal in arm.data.edit_bones and b01 in joints_by_side[s]:
+                eb = arm.data.edit_bones[metacarpal]
+                eb.head = wrist
+                eb.tail = Vector(mw.inverted() @ Vector(joints_by_side[s][b01]))
+            for bcurr, bnext in [(b01, b02), (b02, b03), (b03, btip)]:
+                if bcurr in arm.data.edit_bones and bcurr in joints_by_side[s] and bnext in joints_by_side[s]:
+                    eb = arm.data.edit_bones[bcurr]
+                    eb.head = Vector(mw.inverted() @ Vector(joints_by_side[s][bcurr]))
+                    eb.tail = Vector(mw.inverted() @ Vector(joints_by_side[s][bnext]))
+    bpy.ops.object.mode_set(mode="OBJECT")
+    bpy.context.view_layer.update()
     if a.skin_texture:
         node = next(n for n in skin_mat.node_tree.nodes if n.type == "TEX_IMAGE")
         node.image = bpy.data.images.load(str(Path(a.skin_texture).resolve()))
