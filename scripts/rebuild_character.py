@@ -370,6 +370,7 @@ def main():
             run("blender/transplant_template_hands.py", ["--template", local / "template.npz", "--skin-texture", painted,
                 "--save-blend", handed, "--receipt", out / "ue5/hands.json", *params], True, blend=game)
             game = handed
+        game_review_source = game
         if coat is None:
             run("blender/export_ue5_character.py", [game_fbx], True, blend=game)
         else:
@@ -378,7 +379,9 @@ def main():
             uncoated = out / f"export/{prefix}_UE5.nocoat.fbx"
             run("blender/export_ue5_character.py", [uncoated], True, blend=game)
             coat_receipt = out / f"export/{prefix}_UE5.coat.json"
-            run("blender/add_coat_chains.py", [game_fbx, "--profile", character_path, "--receipt", coat_receipt],
+            game_review_source = out / f"ue5/fit/{prefix}_UE5_coat.blend"
+            run("blender/add_coat_chains.py", [game_fbx, "--profile", character_path, "--receipt", coat_receipt,
+                "--save-blend", game_review_source],
                 True, blend=game)
             chains = json.loads(coat_receipt.read_text())
             coat_skeleton = out / "export/skeleton-ue5-coat.json"
@@ -393,6 +396,12 @@ def main():
             save()
         if hair_mode == "strands":
             run("blender/export_groom_alembic.py", [game, out / f"export/{prefix}_Groom_UE5.abc", "--name", prefix], True)
+        if hands is not None:
+            # Earlier portraits/animation probes predate replacement hands. The
+            # final export source deserves its own honest fitting-room mirror.
+            run("blender/review_character_seams.py", [game_review_source, out / "game-review",
+                "--manny-dir", Path(a.manny_dir).resolve(), "--device", a.device,
+                "--samples", recipe["samples"]], True)
     views = character["review_views"]
     run("blender/pose_character_review.py", [native, out / "pose", "--samples", recipe["samples"], "--device", a.device,
         "--name", prefix, "--held-centre", *views["held_centre_m"], "--head-centre", *views["head_centre_m"],

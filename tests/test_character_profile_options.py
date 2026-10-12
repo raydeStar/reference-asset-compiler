@@ -89,6 +89,9 @@ def test_a_profile_without_a_side_picture_sets_the_facing_and_erosion():
     character["body_paint"].update({"min_facing": 0.35, "mask_erode_px": 4})
     assert argv(body_paint_options(character)) == ENNIX_PAINT + ["--min-facing", "0.35", "--mask-erode-px", "4"]
     second = json.loads((ROOT / "profiles/characters/character-02.json").read_text(encoding="utf-8"))
+    # Exercise option routing with a fixed fixture; later art-direction tuning
+    # of the live profile must not silently rewrite this test's input.
+    second["body_paint"].update(min_facing=0.35, mask_erode_px=4, fill_trust=0.6)
     tail = argv(body_paint_options(second))
     assert tail[tail.index("--min-facing"):] == ["--min-facing", "0.35", "--mask-erode-px", "4",
                                                  "--fill", "surface", "--fill-trust", "0.6", "--normal-smoothing", "0.03"]
@@ -334,7 +337,8 @@ def test_a_coat_profile_adds_chains_after_the_ue5_export(tmp_path, monkeypatch):
     assert export[3] == game and coat[3] == game          # both read the rig stage's blend
     assert stage_args(receipt, "blender/export_ue5_character.py") == [str(out / "export/Ennix_UE5.nocoat.fbx")]
     assert stage_args(receipt, "blender/add_coat_chains.py") == [
-        str(out / "export/Ennix_UE5.fbx"), "--profile", str(profile), "--receipt", str(out / "export/Ennix_UE5.coat.json")]
+        str(out / "export/Ennix_UE5.fbx"), "--profile", str(profile), "--receipt", str(out / "export/Ennix_UE5.coat.json"),
+        "--save-blend", str(out / "ue5/fit/Ennix_UE5_coat.blend")]
     assert receipt["coat"]["uncoated_fbx"] == str(Path("export/Ennix_UE5.nocoat.fbx"))
     assert receipt["coat"]["coat_vertices"] == 1234 and set(receipt["coat"]["chains"]) == {"front_l"}
     assert any("Coat chains" in limit for limit in receipt["limits"])
@@ -347,6 +351,26 @@ def test_a_coat_profile_adds_chains_after_the_ue5_export(tmp_path, monkeypatch):
     assert contract["expected_parents"]["coat_front_end_l"] == "coat_front_02_l"
     assert {"coat_front_01_l", "coat_front_end_l"} <= set(contract["optional_bones"])
     assert contract["max_influences"] == json.loads(Path(SKELETON).read_text())["max_influences"]
+
+
+@pytest.mark.parametrize("with_coat", [False, True])
+def test_final_hand_review_reads_the_finished_export_source(tmp_path, monkeypatch, with_coat):
+    character = copy.deepcopy(ENNIX)
+    character["template_hands"] = {"hand_weight": 0.3}
+    if with_coat:
+        character["coat"] = {"chains": {"front_l": 25}, "bones_per_chain": 2}
+    profile = tmp_path / "finished-hands.json"
+    profile.write_text(json.dumps(character))
+    out = stub_build(tmp_path, monkeypatch, RECIPE, "--device", "CPU", *MANNY, "--character", str(profile))
+    receipt = receipt_of(out)
+    commands = [c["script"] for c in receipt["commands"]]
+    review = commands.index("blender/review_character_seams.py")
+    assert review > commands.index("blender/transplant_template_hands.py")
+    if with_coat:
+        assert review > commands.index("blender/add_coat_chains.py")
+    source = "Ennix_UE5_coat.blend" if with_coat else "Ennix_UE5_hands.blend"
+    assert stage_args(receipt, "blender/review_character_seams.py")[:2] == [
+        str(out / "ue5/fit" / source), str(out / "game-review")]
 
 
 def test_a_bad_coat_block_stops_the_build_before_it_starts(tmp_path, monkeypatch):

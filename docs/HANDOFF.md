@@ -4487,3 +4487,47 @@ correctly placed on his head? needs to run a little lower i mean?"
   triangles (hair 26,982, cap 634), gates pass under Mark's acceptance;
   installed in the game headless, audit passes. The back hair now ends at the
   nape: a strip of neck shows above the high collar.
+
+## 2026-10-12 — Character02 hands and seams: preserved repair candidate (Codex)
+
+User asked to continue fixing seams toward AAA quality after rejecting mangled
+hands. The actual final v23 hand blend, unlike the earlier portrait/rig previews,
+collapsed when driven by Manny poses. The transplant changed bone axes. Preserve
+those axes while moving the joints, bisect protruding acquired wrist triangles,
+and cap interpolated cuff weights to four. The Character02 profile now trims
+15 mm inside the detected cuff end. No acquisition, texture regeneration,
+proprietary tooling, Unreal content replacement, push or publishing occurred.
+
+Candidate: `work/character-02/seams-20261012/release-v2/`; native
+`Character02_UE5_coat.blend`; FBX `export/Character02_UE5.fbx`, SHA-256
+`f4827fb2b9224d72e9265af1c652cd82c8ee36b4499b9ce1b17aa0440baf6d2e`.
+Driver/recipe and reproduction command are in CHARACTER_REBUILD.md. The run
+preserves commands, versions, input/output hashes, logs, script snapshots,
+four-view images, collar/wrist close-ups and attack close-ups. New full builds
+also render the final game source after the hand/coat stages.
+
+Both hands across six sampled poses pass the gross-collapse diagnostic: worst
+per-hand p99 edge stretch 7.409x before, 1.751x after (worst single edge still
+3.711x). Head/hair/eyes/oral/hand mesh geometry, UVs, morphs and weights are
+unchanged. Export reimport gate passes 112 bones, 98,097 triangles, four
+influences, zero unweighted, using the existing 100k waiver. `release-v1` was
+rejected for six interpolated influences; that failure is retained.
+
+Bounded 8 mm collar fairing reduces neck streaks but leaves pointed collar
+tears. Inset cuffs, acquisition-neck restoration and stronger smoothing were
+rejected visually. The complete attempt index is
+`docs/evidence/character-02-seams-20261012.json`. Attack hand/coat intersections,
+natural fist articulation, visible cuff lining, torn collar, material/hair
+detail and later runtime work remain open. Human appearance acceptance and
+production readiness are explicitly false/pending; no Unreal play/cook claim.
+
+Validation: 887 tests passed, 36 skipped, 198 subtests passed. Changed-file
+Ruff passes and all 272 stage files parse. The full verifier stops on seven
+pre-existing unused-variable/import/f-string lint findings in
+`fit_oral_anatomy.py`, `render_front_and_three_quarter.py`,
+`render_hero_cinematic_optix.py`, `render_top_arms_view.py` and
+`build_showcase_poster.py`; those files were left unchanged. The profile-option
+test now supplies its intended paint settings explicitly, avoiding dependence
+on later art tuning, and the coat-stage expectation includes the saved review
+blend. New regression coverage checks that final-hand reviews read the finished
+source with or without coat chains.

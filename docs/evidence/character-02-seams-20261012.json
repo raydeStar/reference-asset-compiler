@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-12",
+  "asset": "Character02",
+  "status": "repair_candidate_pending_visual_acceptance",
+  "production_ready": false,
+  "recipe": "recipes/character-02-seam-repair-20261012.json",
+  "directory": "work/character-02/seams-20261012/release-v2",
+  "inputs": {
+    "shoulders": {
+      "path": "work/character-02/rebuild-v23/ue5/fit/Character02_UE5_shoulders.blend",
+      "sha256": "94d6f7a9c217d1f90df4549e2141b9281044527a0831e104898f4645dbf05acf"
+    },
+    "original": {
+      "path": "work/character-02/rebuild-v23/ue5/fit/Character02_UE5_hands.blend",
+      "sha256": "4101f3a29075cc53085021781f88ab494ea902e40b2eda455df11d92975a2c16"
+    },
+    "template": {
+      "path": "work/character-02/rebuild-v23/inputs/template.npz",
+      "sha256": "d559a1902097b11ed5cddcf9d2f2e6a5ea949531f6bf84f6ca6eea0242934c8a"
+    },
+    "skin_texture": {
+      "path": "work/character-02/rebuild-v23/hands-paint/head_basecolor.png",
+      "sha256": "169e2f55e7dca6750ac57f02371d9bc47d77e79d90591767607f333ce55f41ea"
+    },
+    "manny_reference": {
+      "path": "work/ennix-character-v1/rig-ue5/manny_refpose.json",
+      "sha256": "a4f99ea737922809db9a780871ccfe83d4cbcc3febdc210223f674addbc956f9"
+    },
+    "manny_poses": {
+      "path": "work/ennix-character-v1/rig-ue5/manny_anim_poses.json",
+      "sha256": "e314df1d7790024b90269651cb9b96fe08857d8e2743703dd180668c74e1f1c3"
+    },
+    "character_profile": {
+      "path": "profiles/characters/character-02.json",
+      "sha256": "5c9296c966068aa23a561f08ecfbfdd3705902c330b6d3f40b1de2edc37d8154"
+    },
+    "skeleton_profile": {
+      "path": "work/character-02/rebuild-v23/export/skeleton-ue5-coat+waiver.json",
+      "sha256": "8c14855bf9679105f401ec7bb203fa002e0f9399e5e3a09478006bcf4ddd7877"
+    }
+  },
+  "outputs": {
+    "native": {
+      "path": "work/character-02/seams-20261012/release-v2/Character02_UE5_coat.blend",
+      "sha256": "4f643761abb8f80c25dde36bd4442903ad8086772d13d62013e9cb2d0b7c0ebb"
+    },
+    "fbx": {
+      "path": "work/character-02/seams-20261012/release-v2/export/Character02_UE5.fbx",
+      "sha256": "f4827fb2b9224d72e9265af1c652cd82c8ee36b4499b9ce1b17aa0440baf6d2e"
+    }
+  },
+  "checks": {
+    "identity_meshes_uvs_shapes_weights_unchanged": true,
+    "same_bone_names_and_parents": true,
+    "export_axes_preserved": true,
+    "all_sampled_hand_p99_stretch_below_2": true,
+    "all_sampled_hand_max_stretch_below_5": true
+  },
+  "sampled_pose_count": 6,
+  "hands_per_pose": 2,
+  "worst_p99_edge_stretch_before": 7.408597946166992,
+  "worst_p99_edge_stretch_after": 1.750584363937378,
+  "maximum_edge_stretch_after": 3.7111356258392334,
+  "export_rig": {
+    "passed": true,
+    "bones": 112,
+    "triangles": 98097,
+    "maximum_influences": 4,
+    "unweighted_vertices": 0,
+    "budget_waiver": "Existing Mark approval dated 2026-10-09, ceiling 100000"
+  },
+  "visual_findings": [
+    "Finger-axis collapse substantially reduced; not a natural-articulation acceptance",
+    "Cuff spikes trimmed; inner rim remains visible",
+    "Conservative collar fairing reduces streaks but pointed tears remain",
+    "Attack hand/coat intersections remain",
+    "No Unreal install, play-test or cooked-runtime validation"
+  ],
+  "preserved_attempts": {
+    "baseline": "Final v23 hands deformed severely; old intermediate previews were misleading",
+    "hands-v1": "Numerical tolerance failed at 1e-5; measured float32 edit-bone roundtrip 1.416e-5, bounded 5e-5 adopted",
+    "hands-v2": "Axes fixed; retained old cuff triangle flaps",
+    "hands-v3": "Bisect removed flaps but retained a long orange rim",
+    "hands-v4": "Rejected inset: jagged cuff intersections",
+    "hands-v5": "Selected cuff depth, regenerated with four-weight capping in release-v2",
+    "hands-v6": "Rejected inset with copied weights: white cuff distortion",
+    "seams-v1": "Rejected acquisition-neck restoration: reopened sawtooth seam and punched cuffs",
+    "seams-v2": "Rejected clothing-only restoration: collar spikes",
+    "collar-v3": "Conservative collar test; input still had rejected cuffs",
+    "collar-v4": "Rejected stronger 16mm smoothing: added stray triangle",
+    "candidate-v1": "Combined conservative pass, used for early regression",
+    "release-v1": "Export gate rejected six interpolated weights after cuff cutting",
+    "release-v2": "Technical candidate; sampled regression and FBX rig checks pass, visual acceptance remains open"
+  }
+}

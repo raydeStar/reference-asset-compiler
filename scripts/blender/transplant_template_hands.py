@@ -7,12 +7,11 @@
 
 The geometry is reference_asset_compiler.template_hands:
 
-- Cut: the outfit's height over the back of the hand, step by step along the
-  hand's axis, finds where the cuff ends (cuff_end). Every outfit face with a
-  vertex past that (+ `--cut-beyond-m`) within `--cut-radius-m` of the axis
-  goes, and any loose piece of the scan's hand left wholly past the cuff (a
-  hanging thumb tip). The cuff stays and hides the seam. (A plane at the wrist
-  left shards; the rig's weights fade from forearm to hand too slowly to cut by.)
+- Cut: the outfit's height over the back of the hand finds where the cuff
+  ends (cuff_end). Bisect nearby faces at that end + `--cut-beyond-m`, keeping
+  interpolated UVs and weights. Remove small detached pieces beyond the cuff.
+  A negative offset trims inside the sleeve; tune it per character. Deleting
+  only whole triangles left pointed flaps of the acquired wrist behind.
 - Fit: the template hand (hand and finger weights past `--hand-weight`, and
   its forearm `--wrist-back-m` behind the wrist to line the sleeve; every
   polygon wholly inside) is turned, scaled and moved so its wrist, middle
@@ -134,11 +133,23 @@ def main():
         near = np.linalg.norm(d - along[:, None] * axis, axis=1) < a.cut_radius_m
         palm = np.cross(axis, mg["index"] - mg["pinky"]) * (1.0 if side == "l" else -1.0)
         end, height = cuff_end(along, -(d @ (palm / np.linalg.norm(palm))), near, a.cuff_ratio)
-        gone = near & (along > end + a.cut_beyond_m)
         bm = bmesh.new()
         bm.from_mesh(outfit.data)
-        doomed = [f for f in bm.faces if all(gone[v.index] for v in f.verts)]
-        bmesh.ops.delete(bm, geom=doomed, context="FACES")
+        # Trim intersecting triangles as well as whole faces. Keeping any face
+        # with one vertex behind the cut left the old wrist as pointed flaps.
+        cut_faces = [f for f in bm.faces if all(near[v.index] for v in f.verts)]
+        cut_geom = set(cut_faces)
+        for face in cut_faces:
+            cut_geom.update(face.verts)
+            cut_geom.update(face.edges)
+        previous_faces = len(bm.faces)
+        world_plane = Vector(mg["wrist"] + axis * (end + a.cut_beyond_m))
+        local_plane = outfit.matrix_world.inverted() @ world_plane
+        local_normal = outfit.matrix_world.to_3x3().transposed() @ Vector(axis)
+        bmesh.ops.bisect_plane(bm, geom=list(cut_geom), dist=1e-7,
+                              plane_co=local_plane, plane_no=local_normal.normalized(),
+                              clear_outer=True, clear_inner=False)
+        faces_cut = previous_faces - len(bm.faces)
         bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context="VERTS")
         # pieces of the scan's hand the cut left loose (a thumb tip hanging past the radius): no part in the sleeve
         loose, seen = [], set()
@@ -164,10 +175,34 @@ def main():
         bm.free()
         report["sides"][side] = {
             "template_vertices": int(len(used)), "faces": len(faces), "scale": round(scale, 4),
-            "cuff_end_m": round(end, 4), "cuff_height_m": round(height, 4), "outfit_faces_cut": len(doomed),
+            "cuff_end_m": round(end, 4), "cuff_height_m": round(height, 4), "outfit_faces_cut": faces_cut,
+            "cut_beyond_m": a.cut_beyond_m,
             "loose_vertices_removed": len(loose), "hand_length_m": round(float(np.linalg.norm(mg["middle"] - mg["wrist"])), 4)}
 
-    # Update armature edit bones to match template knuckle joints
+    # A cut vertex interpolates both endpoints' groups, potentially combining
+    # more than four influences. Limit those new blends before Unreal can
+    # silently choose its own tailoring. Untouched four-weight vertices stay.
+    deform_groups = {g.index for g in outfit.vertex_groups if g.name in arm.data.bones}
+    capped = 0
+    for vertex in outfit.data.vertices:
+        weights = [(g.group, g.weight) for g in vertex.groups
+                   if g.group in deform_groups and g.weight > 0]
+        if len(weights) <= 4:
+            continue
+        weights.sort(key=lambda item: (-item[1], item[0]))
+        total = sum(weight for _, weight in weights[:4])
+        for group, _ in weights[4:]:
+            outfit.vertex_groups[group].remove([vertex.index])
+        for group, weight in weights[:4]:
+            outfit.vertex_groups[group].add([vertex.index], weight / total, "REPLACE")
+        capped += 1
+    report["cut_vertices_weights_capped"] = capped
+
+    # Move joints without aiming the export bones down their anatomical segments.
+    # Their axes encode Manny's animation convention, not Blender's display sticks.
+    # Changing head/tail directly rotated fingers by 80-176 degrees: rather a
+    # severe case of butterfingers, even for this household.
+    original_frames = {b.name: b.matrix_local.copy() for b in arm.data.bones}
     bpy.context.view_layer.objects.active = arm
     bpy.ops.object.mode_set(mode="EDIT")
     for s in ("l", "r"):
@@ -180,15 +215,24 @@ def main():
             btip = f"{fname}_tip_{s}"
             if metacarpal in arm.data.edit_bones and b01 in joints_by_side[s]:
                 eb = arm.data.edit_bones[metacarpal]
-                eb.head = wrist
-                eb.tail = Vector(mw.inverted() @ Vector(joints_by_side[s][b01]))
+                frame = original_frames[metacarpal].copy()
+                frame.translation = wrist
+                eb.matrix = frame
             for bcurr, bnext in [(b01, b02), (b02, b03), (b03, btip)]:
                 if bcurr in arm.data.edit_bones and bcurr in joints_by_side[s] and bnext in joints_by_side[s]:
                     eb = arm.data.edit_bones[bcurr]
-                    eb.head = Vector(mw.inverted() @ Vector(joints_by_side[s][bcurr]))
-                    eb.tail = Vector(mw.inverted() @ Vector(joints_by_side[s][bnext]))
+                    frame = original_frames[bcurr].copy()
+                    frame.translation = mw.inverted() @ Vector(joints_by_side[s][bcurr])
+                    eb.matrix = frame
     bpy.ops.object.mode_set(mode="OBJECT")
     bpy.context.view_layer.update()
+    frame_error = max(max(abs(b.matrix_local[row][col] - original_frames[b.name][row][col])
+                          for row in range(3) for col in range(3)) for b in arm.data.bones)
+    # Blender round-trips edit-bone direction/roll through float32; at a metre
+    # from the origin the measured error is about 1.5e-5 (under 0.003 degrees).
+    if frame_error > 5e-5:
+        raise RuntimeError(f"Hand fitting changed the export bone axes: {frame_error}")
+    report["maximum_bone_axis_component_delta"] = frame_error
     if a.skin_texture:
         node = next(n for n in skin_mat.node_tree.nodes if n.type == "TEX_IMAGE")
         node.image = bpy.data.images.load(str(Path(a.skin_texture).resolve()))

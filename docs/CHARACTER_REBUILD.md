@@ -367,3 +367,41 @@ recipes, handoff entries and receipts keep the old names.
 
 `ue5/review_character_import.py`'s `capture()` uses The Aether Wars' private
 editor plugin (`aether_mcp_tools`); its other functions need only Unreal.
+
+## Character02 hand and seam repair (2026-10-12)
+
+This bounded downstream repair reuses the acquired v23 mesh, template and
+paint. It runs no inference and does not install or replace game content.
+Choose a fresh output directory; existing evidence and input hash mismatches
+stop the driver. The recipe pins the input blends, template, skin image,
+Manny pose dumps, character profile and existing skeleton/budget waiver.
+
+```powershell
+python scripts/repair_character_seams.py --recipe recipes/character-02-seam-repair-20261012.json --out work/character-02/seams-20261012/fresh-replay --blender 'C:\Program Files (x86)\Steam\steamapps\common\Blender\blender.exe' --device CPU
+```
+
+Recorded run: `work/character-02/seams-20261012/release-v2/`, Blender 5.2.2 LTS,
+Cycles OPTIX, 768-square images, 32 samples, seed 23. `repair.json` records
+commands, hashes and exit codes; `scripts/` preserves the executed code and
+helpers. Blend/FBX containers are not promised byte-identical between runs.
+
+The transplant preserves Manny bone orientation while moving template finger
+joints. It bisects the acquired cuff triangles 15 mm inside the detected cuff
+end and caps new interpolated skin weights at four. `fair_character_collar.py`
+only fairs boundary vertices and their neighbours inside the recipe's measured
+neck box, up to 8 mm, retaining UVs and topology. This reduces some neck streaks
+but does **not** repair all torn collar geometry.
+
+`verify_character_hand_repair.py` protects identity meshes and checks both hands
+at six recorded poses (idle, two attack, two jog, one jump). Edge stretch uses
+rest edges longer than 0.5 mm; the 99th percentile must stay below 2x and maximum
+below 5x. These are gross-collapse diagnostics, not artistic acceptance gates.
+`gate_rig.py` checks the reimported FBX with the existing hero-budget waiver.
+The final coat-weighted source supplies four full views and seam close-ups;
+the attack close-ups deliberately retain garment intersections as evidence.
+
+New full rebuilds also save the coat-weighted game blend and render
+`game-review/` after the hand replacement. The existing `pose/` portraits and
+`ue5/fit/poses/` samples are intermediate-stage diagnostics, not final hand proof.
+Do not call this derivative AAA or production-ready: visual seam acceptance,
+natural articulation, materials/LOD work and Unreal runtime proof remain open.

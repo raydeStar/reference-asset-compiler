@@ -2,7 +2,7 @@
 
 *Type: reference*
 
-Last updated: 2026-10-07. This file holds the current state only and is
+Last updated: 2026-10-12. This file holds the current state only and is
 rewritten in place. History is in [HANDOFF.md](HANDOFF.md) (append-only,
 dated); failures and retained lessons are in [DECISIONS.md](DECISIONS.md);
 scoped open work is in [AGENT_TASKS.md](AGENT_TASKS.md). The stage names below
@@ -12,6 +12,38 @@ Every `work/`, `out/` and `output/` path here is on the development workstation
 and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
+
+## Character02: hand and cuff repair candidate, not production-ready
+
+Current review derivative: `work/character-02/seams-20261012/release-v2/`.
+Editable game source: `Character02_UE5_coat.blend`; export:
+`export/Character02_UE5.fbx`. Reproduce with
+`recipes/character-02-seam-repair-20261012.json` and
+`scripts/repair_character_seams.py` (command in CHARACTER_REBUILD.md).
+The original v23 and the currently installed Unreal asset are preserved.
+
+Fixed the hand transplant's rotation of Manny finger axes and trimmed the
+acquired wrist's protruding triangles with a UV-preserving plane cut. The
+161 cut vertices that gained excess influences are capped and normalized to
+four. Conservative collar fairing moves only a measured region, at most 8 mm.
+Head, hair, eyes, oral meshes, hand geometry, their UVs/weights/morphs and
+transforms match the v23 final-hand source exactly in the native regression.
+
+Technical checks: six sampled Manny poses, both hands; worst per-hand 99th
+percentile edge stretch falls from 7.409x to 1.751x. The FBX reimport gate passes:
+112 bones, 98,097 triangles, max four influences, zero unweighted vertices,
+under Mark's existing 100,000-triangle waiver. Receipts: `repair.json`,
+`hand-verification.json`, `gate-rig.json`. Views in `review/` include front,
+three-quarter, side, back, neck and both wrists; `attack-review/` adds close-ups.
+
+**Next unresolved gate: visual seam/deformation acceptance.** The collar still
+has pointed tears, the cuff has a visible inner rim, and fist/garment intersections
+remain in the attack sample. The stretch checks catch gross collapse; they do
+not establish natural hand articulation or collision freedom. Hair, surface
+detail and material quality also remain below the requested AAA standard.
+This derivative has no Unreal import, play-test or cooked-runtime proof.
+Earlier `pose/` and `ue5/fit/poses/` images predate the final hand transplant;
+do not present them as evidence for the exported v23 character.
 
 ## Ennix character: reproducible review, not production-ready
 

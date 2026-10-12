@@ -1237,3 +1237,26 @@ the solid. Treat any envelope fallback as a failure.
 - conform_head_template.py's NPZ keeps the scan in template metres while its
   front render saw it in scan units: bind pixels on the scan carried back
   through the alignment, then read the points off the template-metre copy.
+
+## 2026-10-12 — preserve export axes when transplanting hands; review the final source
+
+- `EditBone.head/tail` aiming rotated the fitted finger frames away from the
+  Manny animation convention. Good-looking static template hands then collapsed
+  under the recorded game poses. Move the original bone matrix's translation;
+  retain its orientation. Measure the float32 round-trip error and fail above
+  5e-5 per matrix component. This fixes a convention error, not all articulation.
+- Whole-triangle deletion at a cuff leaves pointed remnants. Bisect the bounded
+  cuff region with interpolated UVs/weights, then cap newly blended weights to
+  four. The first corrected FBX was properly rejected for six influences;
+  preserve that failure (`seams-20261012/release-v1/`). Do not loosen the rig gate.
+- The full rebuild's `pose/` and rig-fitting `poses/` renders precede replacement
+  hands. They cannot validate the final character. `game-review/` now reads the
+  finished game blend, including coat weights when present. Checks cover both
+  source selection with and without coat chains and deformation on real files.
+- Pulling the cuff inward and restoring the acquired neck both produced new
+  visible tears. Strong collar smoothing introduced spikes. Preserve those
+  rejected variants; do not repeat them as supposed fixes. The bounded 8 mm
+  collar pass is a review candidate and still fails the AAA appearance target.
+- Six sampled native poses and an FBX skeleton gate do not prove consumer
+  animation, contact, materials, natural fist shape or human visual acceptance.
+  Exact hashes and rejection reasons: `evidence/character-02-seams-20261012.json`.
