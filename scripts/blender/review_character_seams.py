@@ -143,10 +143,11 @@ def main():
     wanted = set(args.only.split(",")) if args.only else None
     shots = []
 
-    def render(name, center, angle, scale):
+    def render(name, center, angle, scale, elevation=math.degrees(math.atan(0.08))):
         if wanted and name not in wanted:
             return
-        direction = Vector((math.sin(math.radians(angle)), -math.cos(math.radians(angle)), 0.08)).normalized()
+        direction = Vector((math.sin(math.radians(angle)), -math.cos(math.radians(angle)),
+                            math.tan(math.radians(elevation)))).normalized()
         camera = scene.camera
         camera.location = Vector(center) + direction * 5
         camera.rotation_euler = (-direction).to_track_quat("-Z", "Y").to_euler()
@@ -154,6 +155,7 @@ def main():
         scene.render.filepath = str(out / (name + ".png"))
         bpy.ops.render.render(write_still=True)
         shots.append({"name": name, "center": list(center), "angle": angle, "scale": scale,
+                      "elevation_degrees": elevation,
                       "sha256": sha(out / (name + ".png"))})
 
     for view, angle in (("front", 0), ("three-quarter", 35), ("side", 90), ("back", 180)):
@@ -164,6 +166,8 @@ def main():
         center.z -= 0.035
         render("wrist-" + side, center, 30 if side == "l" else -30, 0.28)
         render("wrist-" + side + "-outer", center, 100 if side == "l" else -100, 0.28)
+    render("full-top-three-quarter", (0, 0, 1.0), 35, 1.95, 40)
+    render("shoulders-top-three-quarter", (0, -0.015, 1.45), 35, 0.8, 40)
     neck = rig.pose.bones["neck_01"]
     neck.rotation_mode = "QUATERNION"
     neck.rotation_quaternion = neck.rotation_quaternion @ Quaternion(Vector((0, 1, 0)), math.radians(25))

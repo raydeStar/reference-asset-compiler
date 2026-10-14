@@ -13,7 +13,35 @@ and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
 
-## Character02: hand and cuff repair candidate, not production-ready
+## Character02: sleeve and posture repairs installed for review, not production-ready
+
+2026-10-12 posture follow-up: the existing source already has a T-pose. The
+animation-only repair lowers the shoulders 3 cm, opens their spacing by 2.5 cm
+per side, straightens the torso slightly and moves the hands clear of the coat.
+Selected bake: `work/character-02/posture-20261012/bake-v6-clearance/`; recipe
+`recipes/character-02-posture-20261012.json`. All 1,113 recorded frames in 19
+clips and 960 sampled locomotion blends pass the palm/finger versus torso/coat
+intersection check. Rightward jog and attack 01 also receive bounded, smoothly
+entered arm separation. Mesh, bind, weights, paint and facial data are unchanged.
+UE installation reads every changed key back and measures zero lower-body
+position drift. See [CHARACTER_POSTURE_REPAIR.md](CHARACTER_POSTURE_REPAIR.md).
+User play/appearance acceptance and unsampled combat/traversal remain open.
+
+2026-10-12 consumer follow-up: The Aether Wars has the `release-v2` FBX
+installed (its import receipt matches the hash below). The current texture-only
+derivative is `work/character-02/sleeve-repair-20261012-release-v2/`, rebuilt with
+`scripts/repair_character_sleeves.py` and
+`recipes/character-02-sleeve-continuation-20261012.json`. Its FBX, rig, head,
+mask, normal tiles and hair maps are byte-identical to release-v2. Sleeve circumference detail is continued from the retained paintings; it is inferred
+paint on unseen surfaces, not new acquisition. Other garment surface texels
+remain unchanged. See `docs/CHARACTER_SLEEVE_REPAIR.md` for the exact command,
+source hashes, candidate comparisons and rejected experiments.
+
+The UE installer now keeps this hero's body albedo and garment mask resident,
+with normal mip filtering. Detached scene captures previously showed coarse
+mips as tan shards. Residency removes that failure but cannot repair blurry
+source paint or collar geometry. The subsequent posture pass addresses sampled
+hand/coat intersections; human acceptance and cooked gameplay remain unresolved.
 
 Current review derivative: `work/character-02/seams-20261012/release-v2/`.
 Editable game source: `Character02_UE5_coat.blend`; export:
@@ -37,11 +65,14 @@ under Mark's existing 100,000-triangle waiver. Receipts: `repair.json`,
 three-quarter, side, back, neck and both wrists; `attack-review/` adds close-ups.
 
 **Next unresolved gate: visual seam/deformation acceptance.** The collar still
-has pointed tears, the cuff has a visible inner rim, and fist/garment intersections
-remain in the attack sample. The stretch checks catch gross collapse; they do
-not establish natural hand articulation or collision freedom. Hair, surface
+has pointed tears and the cuff has a visible inner rim. The later posture pass
+clears the measured first-attack hand/coat contacts; other actions remain
+unvalidated. The stretch checks catch gross collapse; they do not establish
+natural hand articulation or universal collision freedom. Hair, surface
 detail and material quality also remain below the requested AAA standard.
-This derivative has no Unreal import, play-test or cooked-runtime proof.
+Unreal import and editor-render evidence now exist in the game project's
+`Saved/CharacterInstall/Character02/` and `Saved/PosedCloseups/`; neither is
+play-test or cooked-runtime proof.
 Earlier `pose/` and `ue5/fit/poses/` images predate the final hand transplant;
 do not present them as evidence for the exported v23 character.
 

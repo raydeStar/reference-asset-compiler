@@ -1,0 +1,81 @@
+{
+  "name": "character-02-sleeve-continuation-20261012",
+  "source_provenance": "Existing acquired mesh and retained front/back guidance. Open-source processing only; no new acquisition.",
+  "px_per_m": 542.78,
+  "origin": [
+    761.5,
+    500.5
+  ],
+  "sleeve_range": [
+    0.24,
+    0.07,
+    0.7,
+    0.04
+  ],
+  "inputs": {
+    "mesh": {
+      "path": "work/character-02/rebuild-v23/body/body.npz",
+      "sha256": "aee3dc0540351af5befcdff8a66b32f0a6394235f45e92b373db3c5b653cc123"
+    },
+    "paint": {
+      "path": "work/character-02/seams-20261012/release-v2/outfit-paint/body_basecolor.png",
+      "sha256": "26ef256446fcb98cd1aa3793373a4425bcd7d40fce9536151fbb6182b259f152"
+    },
+    "front": {
+      "path": "work/character-02/rebuild-v23/inputs/body-front.png",
+      "sha256": "4142fb0748fc4347928031d52b5bd26b5e5f81f8867b19a1adb9f2ab067883d7"
+    },
+    "back": {
+      "path": "work/character-02/rebuild-v23/inputs/body-back.png",
+      "sha256": "3e2a6729bdfe0574778cd04815988ee8428aeaa2fa076ff8918bb1958ccaf6db"
+    },
+    "native": {
+      "path": "work/character-02/seams-20261012/release-v2/Character02_UE5_coat.blend",
+      "sha256": "4f643761abb8f80c25dde36bd4442903ad8086772d13d62013e9cb2d0b7c0ebb"
+    },
+    "fbx": {
+      "path": "work/character-02/seams-20261012/release-v2/export/Character02_UE5.fbx",
+      "sha256": "f4827fb2b9224d72e9265af1c652cd82c8ee36b4499b9ce1b17aa0440baf6d2e"
+    },
+    "head": {
+      "path": "work/character-02/seams-20261012/release-v2/hands-paint/head_basecolor.png",
+      "sha256": "169e2f55e7dca6750ac57f02371d9bc47d77e79d90591767607f333ce55f41ea"
+    },
+    "mask": {
+      "path": "work/character-02/seams-20261012/release-v2/outfit-paint/garment_mask.png",
+      "sha256": "d930ef24054c8a1633e67fdb6f5a5db13cd02458e011b99f1bbec5d31c5ae6d8"
+    },
+    "leather": {
+      "path": "work/character-02/seams-20261012/release-v2/outfit-paint/leather_normal.png",
+      "sha256": "bcb1c2041293ce116e7711697599e05ed78b6ac0d366e844cf7ea9da89bb6a75"
+    },
+    "weave": {
+      "path": "work/character-02/seams-20261012/release-v2/outfit-paint/weave_normal.png",
+      "sha256": "2ba20a2562673c63328e8abf999282e9043de3a8bb275f816cdb4ca37970a06a"
+    },
+    "stage": {
+      "path": "work/character-02/seams-20261012/release-v2/outfit-paint/outfit-paint.json",
+      "sha256": "3cb9fe0484967a9cbf6bb25d736fc842f24917822bd08ae4de6fdcf5ed88c0a1"
+    },
+    "hair_colour": {
+      "path": "work/character-02/seams-20261012/release-v2/export/hair-mesh-basecolor.png",
+      "sha256": "002064a7b5652158e98976c018a2708c0837d9c3d4e85171de4c574c664e9d8b"
+    },
+    "hair_normal": {
+      "path": "work/character-02/seams-20261012/release-v2/export/hair-mesh-normal.png",
+      "sha256": "70c8cf890b5fd480fda9cabeaaa23a7ff4cbc67b096994bd8accad75f7b2ff0b"
+    }
+  },
+  "copies": {
+    "fbx": "export/Character02_UE5.fbx",
+    "head": "hands-paint/head_basecolor.png",
+    "mask": "outfit-paint/garment_mask.png",
+    "leather": "outfit-paint/leather_normal.png",
+    "weave": "outfit-paint/weave_normal.png",
+    "stage": "outfit-paint/outfit-paint.json",
+    "hair_colour": "export/hair-mesh-basecolor.png",
+    "hair_normal": "export/hair-mesh-normal.png"
+  },
+  "production_ready": false,
+  "surface_coverage": "full"
+}

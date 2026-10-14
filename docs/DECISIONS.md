@@ -1260,3 +1260,42 @@ the solid. Treat any envelope fallback as a failure.
 - Six sampled native poses and an FBX skeleton gate do not prove consumer
   animation, contact, materials, natural fist shape or human visual acceptance.
   Exact hashes and rejection reasons: `evidence/character-02-seams-20261012.json`.
+
+## 2026-10-12 — distinguish capture mip failures from source paint and topology
+
+- Tiny per-face UV islands can turn a low-res resident mip into tan shards.
+  Test prestreaming/residency before repainting. Full UV precision and forced
+  LOD0 were negative controls here; disabling mipmaps offered no benefit.
+- A detached scene capture is not a reliable texture-streaming viewpoint.
+  Record camera, actual bone positions, fixed pose/time and image hashes; an
+  export-success flag cannot prove framing or appearance. Include elevated 3/4.
+- Front and back guidance can place the arms at different heights despite
+  sharing frame dimensions. Register sleeve silhouettes independently before
+  extending their paint around the acquired surface. Broad harmonic fill and
+  averaging unrelated folds both erase detail.
+- A voxel union can pass distance/rig-preservation gates while damaging painted
+  surface quality. The surface-v3 candidate was visually rejected. Keep the
+  mesh/rig immutable for a texture-only defect; numeric gates never overrule
+  the pixels or a user's rejection.
+
+## 2026-10-12 — fit animation clearance to the actual mesh bind and coat
+
+- A Skeleton asset can retain older reference joints after mesh replacement.
+  Character02's actual mesh component reference agrees with its native bind;
+  the Skeleton reference does not. Reject that mismatch, retain its receipt and
+  use the mesh reference for source-bound deformation measurements.
+- A valid T-pose does not guarantee a suitable idle. The acquired coat needs
+  more hand clearance than the Manny animation supplies. Shoulder lowering alone
+  still clips; establish a held pose visually before applying its local matrices
+  to the original moving tracks. Preserve the bind and update hand IK markers.
+- Keyframes alone missed one blended contact. A skirt-only collision region
+  also missed higher contacts in rightward jog and first attack. Include the
+  torso through the collar and sample idle/movement, adjacent directions and
+  walk/jog blends. Retain the rejected v3 and v5 evidence; do not soften the gate.
+- Isolated moving contacts need smoothly entered corrections; a per-frame
+  collision solver with discontinuous offsets would introduce elbow pops.
+  The accepted v6 uses a short plateau and smooth fades, with cyclic wrapping
+  for locomotion. This finite check still cannot certify every gameplay blend.
+- Install absolute local keys and hash-pin the original animation dump, native
+  mesh and imported FBX. Reapplying the packet is safe; dumping corrected clips
+  as a new baseline would double-apply the posture and must be rejected.

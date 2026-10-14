@@ -4531,3 +4531,74 @@ test now supplies its intended paint settings explicitly, avoiding dependence
 on later art tuning, and the coat-stage expectation includes the saved review
 blend. New regression coverage checks that final-hand reviews read the finished
 source with or without coat chains.
+
+## 2026-10-12 — Character02 engine residency and sleeve paint follow-up (Codex)
+
+Continued the Antigravity handoff in The Aether Wars and checked the requested
+older elevated/top arm images. Two issues coexist: detached captures had coarse
+mips, and the source sleeve fill was blurry. Saved per-character texture residency
+fixes the former without disabling mip filtering. The latter now has a bounded
+sleeve-only rebake from the retained front/back paintings, with independent
+silhouette registration and a narrow blend between views. The new derivative
+is `work/character-02/sleeve-repair-20261012-release-v2/`; its FBX and other maps
+are byte-identical to `seams-20261012/release-v2`. The driver, hash-pinned recipe,
+versions, commands and rejection record are in CHARACTER_SLEEVE_REPAIR.md.
+
+A broad voxel garment repair passed distance checks but degraded appearance and
+was rejected, never imported. A stricter whole-body paint rebake was too smooth.
+The first sleeve pass improved the crown but still failed the user's forearm
+crop in UE; full-circumference paint replaced it. The selected v9 atlas matches
+the independent release-v2 driver output byte for byte. Human approval remains
+pending; pointed collar tears, imperfect shoulder paint, hair appearance and
+hand/coat intersections are still visible. No gameplay or cooked-runtime claim.
+
+UE `textures audit` succeeded with zero errors and all 34 morphs preserved.
+Fresh 1024px evidence includes explicit pose/time, camera/bone transforms and
+hashes, plus elevated 3/4 body/shoulder shots. Changed-script lint/syntax passes;
+baseline verifier passed 887 tests, 36 skipped, 198 subtests before stopping on
+seven pre-existing lint findings. No unrelated files were corrected or published.
+
+Follow-up validation: focused character-profile, outfit-paint and projection
+regressions all pass. The final 19 UE capture files were read back and matched
+their recorded SHA-256 values; the fresh engine log contains no MorphTargets
+fallback/default-material warnings. Installed skeletal mesh asset hash stayed
+unchanged across both texture installs. The final game comparison sheet is
+`Saved/CharacterTextureRepair/sleeve-comparison.png` (prior paint left, installed
+full-sleeve rebake right; equal crop/scale, no retouch or colour correction).
+
+## 2026-10-12 — Character02 posture and hand clearance (Codex)
+
+The user found the texture improvement better and requested less hunched
+shoulders and hands outside the jacket, allowing a T-pose rebuild if necessary.
+The actual source already has a T-pose. Preserved its acquired geometry, face,
+34 expressions, weights, bind transforms and paint, and tailored 19 original
+Unreal animation clips instead. The held correction lowers shoulders 3 cm,
+widens them 2.5 cm per side, straightens the torso 3 degrees and changes arm
+placement. Motion remains animated; this is not a held replacement idle.
+
+The selected bake is `work/character-02/posture-20261012/bake-v6-clearance/`.
+Rebuild commands, pinned inputs and retained failures are documented in
+CHARACTER_POSTURE_REPAIR.md and `recipes/character-02-posture-20261012.json`.
+The source Skeleton asset has stale reference joints; the mesh component's
+actual reference agrees with Blender within 0.000021 matrix units. The first
+reference mismatch was rejected. Wider blend checks found one residual contact;
+expanding from coat skirt to full torso found four rightward-jog and five attack
+frames. Smooth bounded arm separation clears them, peaking at 10 and 8 degrees
+respectively. Hand IK markers follow the corrected hands.
+
+Final gate: 1,113 frames in idle, eight walk directions, eight jog directions,
+first attack and jump; 960 sampled idle/movement, direction and walk/jog blends.
+Zero palm/finger versus torso/coat intersections in those samples. Sleeves/cuff
+seam overlap and untested actions are excluded, so this is not universal contact
+or cooked-runtime proof. The game installs absolute tracks after retargeting,
+backs up original assets and checks every changed key. Final Unreal readback:
+maximum angular error 0.001133 degrees; lower-body world-position drift 0 cm.
+Packet: `Saved/CharacterPosture/selected-v2-20261012/` in The Aether Wars.
+
+Real Unreal idle and jogging captures include front, side, back, three-quarter
+and elevated three-quarter views. Both idle hands clear the coat and the shoulder
+stance is lower and more open. The existing collar tears, cuff lining and hair
+quality remain visible. Gameplay/appearance acceptance stays with the user.
+Resume verifier: 887 tests passed, 36 skipped, 198 subtests passed; it then stops
+on the same seven pre-existing lint findings in unrelated render/showcase files.
+Original assets, rejected trials and logs are retained. No push or publication.
