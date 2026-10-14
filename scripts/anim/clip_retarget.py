@@ -413,6 +413,18 @@ def retime(length, n, source_length, keys=()):
     return tt, np.interp(tt, [p[0] for p in pts], [p[1] for p in pts])
 
 
+def _rest_side_roots(world, rig):
+    """UE parents ik_foot_root / ik_hand_root (and other side roots) to the root bone. Once a pose is expressed
+    relative to the root, they belong at rest there; carried along with the pose they sit metres off whenever the
+    engine locks or extracts the root, and foot IK drags the feet after them. The IK targets under them keep their
+    world positions (on the hands and feet)."""
+    pelvis = rig.index['pelvis']
+    for i, p in enumerate(rig.parents):
+        if p < 0 and i != pelvis:
+            world[i] = rig.rest[i].copy()
+    return world
+
+
 def extract_root_motion(world, rig, start_pelvis):
     """Move the pelvis's horizontal offset from start_pelvis onto the root. Returns (world, shift): with a
     'root' bone the root (and its IK children) carry the shift; without one (the armature object is UE's root
@@ -428,6 +440,7 @@ def extract_root_motion(world, rig, start_pelvis):
                 world[i][:3, 3] += shift
     else:
         world[:, :3, 3] -= shift       # the whole pose, rigidly: these are world matrices
+        _rest_side_roots(world, rig)
     return world, shift
 
 
@@ -462,7 +475,7 @@ def facing_root_motion(worlds, rig, smooth_s=0.2, fps=30, forward=(0.0, -1.0, 0.
         R = np.eye(4)
         R[:3, :3] = np.array(Matrix.Rotation(float(a), 3, 'Z'))
         R[:3, 3] = np.array([g[0], g[1], 0.0]) - R[:3, :3] @ rest_xy
-        out.append(np.linalg.inv(R) @ w)
+        out.append(_rest_side_roots(np.linalg.inv(R) @ w, rig))
         roots.append(R)
     return out, roots
 
