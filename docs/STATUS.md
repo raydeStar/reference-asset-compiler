@@ -2,7 +2,7 @@
 
 *Type: reference*
 
-Last updated: 2026-10-12. This file holds the current state only and is
+Last updated: 2026-10-14. This file holds the current state only and is
 rewritten in place. History is in [HANDOFF.md](HANDOFF.md) (append-only,
 dated); failures and retained lessons are in [DECISIONS.md](DECISIONS.md);
 scoped open work is in [AGENT_TASKS.md](AGENT_TASKS.md). The stage names below
@@ -13,7 +13,30 @@ and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
 
-## Character02: sleeve and posture repairs installed for review, not production-ready
+## Character02: open-library animation, cleaned coat paint, measured skin (2026-10-14), not production-ready
+
+The user retired the 2026-10-12 baked posture packet (it moved the motion by a few
+degrees; renders in `work/character-02/anim-review-20261013/`). Locomotion now comes
+from Quaternius UAL (CC0) retargeted onto the character's own rig
+(`scripts/anim/`, `profiles/animation/`, [CHARACTER_LIBRARY_ANIMATION.md](CHARACTER_LIBRARY_ANIMATION.md)):
+idle, walk, jog, a new sprint row and jump, with baked coat-follow so coat panels
+clear the legs. Installed in The Aether Wars by its `library` step
+(`Saved/LibraryAnims/Character02/ual-v2`); the user liked the motion. Open: clenched
+hands and a wide "ready" idle stance (user, 2026-10-14), combat/dash/traversal still
+on earlier clips, no starts/stops/pivots (100STYLE mocap downloaded for that).
+
+The spotty coat came from projection paint at ~3 texels per triangle; re-UV fails on
+this scan mesh. `scripts/clean_garment_paint.py` filters it on the body surface
+([CHARACTER_GARMENT_PAINT_CLEAN.md](CHARACTER_GARMENT_PAINT_CLEAN.md)); build
+`work/character-02/coat-clean-20261014/build-v6/` is installed texture-only. The user
+called the clothing "decent" and open to more iterations.
+
+Skin: the game's skin material gained opt-in look keys (`skin_shading`,
+`skin_saturation`, `skin_tint`); measured with `scripts/measure_skin_tone.py` against
+the portrait, normalised by the shirt. The installed look (v7) is tan, hue 58 deg vs
+the painting's 56.5. In-game Play-in-Editor stills: game `Saved/GameShots/final-20261014/`.
+
+## Character02 (2026-10-12, superseded above): sleeve and posture repairs
 
 2026-10-12 posture follow-up: the existing source already has a T-pose. The
 animation-only repair lowers the shoulders 3 cm, opens their spacing by 2.5 cm

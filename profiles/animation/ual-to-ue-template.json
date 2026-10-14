@@ -1,0 +1,37 @@
+{
+  "_about": "Quaternius Universal Animation Library 1 + 2 (CC0, quaternius.com) onto a UE5 Manny-conformant game rig, replacing the UE template's locomotion. Read by scripts/anim/bake_library_clips.py. Clip keys are the template's asset names without the character prefix; the game's installer writes each into <prefix>_<key>. Libraries are passed on the command line (--library ual1=<AL_Standard.fbx> --library ual2=<UAL2_Standard.glb>); the archives are not redistributed here.",
+  "adapter": "ual",
+  "license": "CC0 1.0 (Quaternius Universal Animation Library 1 and 2, Standard)",
+  "bone_map": {
+    "pelvis": "pelvis", "spine_01": "spine_01", "spine_02": "spine_03", "spine_03": "spine_05",
+    "neck_01": "neck_01", "Head": "head",
+    "clavicle_l": "clavicle_l", "upperarm_l": "upperarm_l", "lowerarm_l": "lowerarm_l", "hand_l": "hand_l",
+    "clavicle_r": "clavicle_r", "upperarm_r": "upperarm_r", "lowerarm_r": "lowerarm_r", "hand_r": "hand_r",
+    "thigh_l": "thigh_l", "calf_l": "calf_l", "foot_l": "foot_l", "ball_l": "ball_l",
+    "thigh_r": "thigh_r", "calf_r": "calf_r", "foot_r": "foot_r", "ball_r": "ball_r",
+    "index_01_l": "index_01_l", "index_02_l": "index_02_l", "index_03_l": "index_03_l",
+    "middle_01_l": "middle_01_l", "middle_02_l": "middle_02_l", "middle_03_l": "middle_03_l",
+    "ring_01_l": "ring_01_l", "ring_02_l": "ring_02_l", "ring_03_l": "ring_03_l",
+    "pinky_01_l": "pinky_01_l", "pinky_02_l": "pinky_02_l", "pinky_03_l": "pinky_03_l",
+    "thumb_01_l": "thumb_01_l", "thumb_02_l": "thumb_02_l", "thumb_03_l": "thumb_03_l",
+    "index_01_r": "index_01_r", "index_02_r": "index_02_r", "index_03_r": "index_03_r",
+    "middle_01_r": "middle_01_r", "middle_02_r": "middle_02_r", "middle_03_r": "middle_03_r",
+    "ring_01_r": "ring_01_r", "ring_02_r": "ring_02_r", "ring_03_r": "ring_03_r",
+    "pinky_01_r": "pinky_01_r", "pinky_02_r": "pinky_02_r", "pinky_03_r": "pinky_03_r",
+    "thumb_01_r": "thumb_01_r", "thumb_02_r": "thumb_02_r", "thumb_03_r": "thumb_03_r"
+  },
+  "_clips": "loop: sampled cyclically (last key = first). measure_speed: record the planted-foot ground speed, so the game can set the blend-space sample's play rate and the feet do not slide. also_as: further template assets that get the same motion; the 8-way walk/jog samples all take the forward cycle, which is right for a character that turns to face its movement (bOrientRotationToMovement) and wrong for a strafing one.",
+  "clips": {
+    "MM_Idle": {"library": "ual1", "action": "Idle_Loop", "loop": true},
+    "MF_Unarmed_Walk_Fwd": {"library": "ual1", "action": "Walk_Loop", "loop": true, "measure_speed": true,
+      "also_as": ["MF_Unarmed_Walk_Fwd_Left", "MF_Unarmed_Walk_Fwd_Right", "MF_Unarmed_Walk_Left", "MF_Unarmed_Walk_Right",
+                  "MF_Unarmed_Walk_Bwd", "MF_Unarmed_Walk_Bwd_Left", "MF_Unarmed_Walk_Bwd_Right"]},
+    "MF_Unarmed_Jog_Fwd": {"library": "ual1", "action": "Jog_Fwd_Loop", "loop": true, "measure_speed": true,
+      "also_as": ["MF_Unarmed_Jog_Fwd_Left", "MF_Unarmed_Jog_Fwd_Right", "MF_Unarmed_Jog_Left", "MF_Unarmed_Jog_Right",
+                  "MF_Unarmed_Jog_Bwd", "MF_Unarmed_Jog_Bwd_Left", "MF_Unarmed_Jog_Bwd_Right"]},
+    "MF_Unarmed_Sprint_Fwd": {"library": "ual1", "action": "Sprint_Loop", "loop": true, "measure_speed": true},
+    "MM_Jump": {"library": "ual1", "action": "Jump_Start", "loop": false},
+    "MM_Fall_Loop": {"library": "ual1", "action": "Jump_Loop", "loop": true},
+    "MM_Land": {"library": "ual1", "action": "Jump_Land", "loop": false}
+  }
+}

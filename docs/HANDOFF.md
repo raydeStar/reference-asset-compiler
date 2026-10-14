@@ -4602,3 +4602,27 @@ quality remain visible. Gameplay/appearance acceptance stays with the user.
 Resume verifier: 887 tests passed, 36 skipped, 198 subtests passed; it then stops
 on the same seven pre-existing lint findings in unrelated render/showcase files.
 Original assets, rejected trials and logs are retained. No push or publication.
+
+## 2026-10-13/14 — Character02 animation, coat paint and skin (Claude)
+
+Mark asked to take Character02 over from Astra (his Codex session): textures and
+"embarrassing" animations, target AAA, walk around in UE without anything feeling off.
+Rule from Mark: animation sources must be open source; nothing paid (Mixamo and
+Epic's Game Animation Sample excluded).
+
+- Baseline vs posture-packet renders showed the 2026-10-12 offsets changed little;
+  the cause was the 19 template clips copied 1:1 and script-keyed traversal/combat.
+  Mark chose to roll the packet back (game config `_posture_retired`).
+- Quaternius UAL 1 + 2 (CC0) and 100STYLE (CC BY 4.0, md5 matches Zenodo) downloaded
+  to `work/anim-sources/` (hashes in SHA256SUMS.txt). New stage: `clip_retarget.py`
+  (world-rotation transfer against a matched T-pose, planted-foot speed, CoatFollow,
+  mirror, multi-segment Sequence, retime, root motion), `bake_library_clips.py`,
+  `preview_baked_clips.py`, profiles `ual-to-ue-template.json` and
+  `ual-combat-to-ue-template.json` (combat not yet baked). Installed packet
+  `anim-ual-20261014/bake-v3`; blend space walk 91 / jog 500 / sprint 840 cm/s.
+- Coat: `clean_garment_paint.py` v6 (bilateral, grazing-trust); `repack_outfit_coherent.py`
+  kept for atlases with real texel density. Installed build `coat-clean-20261014/build-v6`.
+- Skin: shirt-normalised measurement; v4..v7 in game `Saved/PosedCloseups/skin-v*-20261014*`.
+- Mark (2026-10-14): animations fine, clothing decent; hands look clenched and the
+  posture a little weird. Next: relaxed hand pose and a hip-width idle stance, then combat.
+

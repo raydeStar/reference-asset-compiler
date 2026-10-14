@@ -1,0 +1,16 @@
+{
+  "_about": "Quaternius UAL 1 + 2 (CC0) sword clips replacing the UE template's combo and charged attack on a twin-blade character. Read by scripts/anim/bake_library_clips.py with --contract <game combat-contract.json> (TheAetherWars Tools/CombatContract.py): every clip is retimed to the game's own length with its fastest sword-hand moment on the game's hit-trace time, so combo windows and damage frames do not move. The second cut is mirrored so the combo alternates right, left, right. Horizontal travel is root motion.",
+  "adapter": "ual",
+  "license": "CC0 1.0 (Quaternius Universal Animation Library 1 and 2, Standard)",
+  "bone_map_from": "ual-to-ue-template.json",
+  "clips": {
+    "MM_Attack_01": {"segments": [{"library": "ual2", "action": "Sword_Regular_A"}, {"library": "ual2", "action": "Sword_Regular_A_Rec"}],
+                     "loop": false, "root_motion": true, "retime": {"impact_bone": "hand_r"}},
+    "MM_Attack_02": {"segments": [{"library": "ual2", "action": "Sword_Regular_B"}, {"library": "ual2", "action": "Sword_Regular_B_Rec"}],
+                     "loop": false, "mirror": true, "root_motion": true, "retime": {"impact_bone": "hand_l"}},
+    "MM_Attack_03": {"segments": [{"library": "ual2", "action": "Sword_Regular_C"}],
+                     "loop": false, "root_motion": true, "retime": {"impact_bone": "hand_r"}},
+    "MM_ChargedAttack": {"segments": [{"library": "ual1", "action": "Sword_Attack_RM"}],
+                         "loop": false, "root_motion": true, "retime": {"impact_bone": "hand_r"}}
+  }
+}
