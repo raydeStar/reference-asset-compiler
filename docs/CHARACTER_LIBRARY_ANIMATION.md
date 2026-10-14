@@ -42,6 +42,13 @@ $B = 'C:/Program Files (x86)/Steam/steamapps/common/Blender/blender.exe'   # Ble
   outward hinge at each chain root that keeps the joints below it clear of the leg capsules
   (min(0.85 x rest clearance, 4 cm)); lower joints bend back 35%/30% so the panel drapes over a knee instead
   of levering out like a board; eased in 4 frames before contact, out over 8. `--no-coat-follow` disables.
+- `RelaxedHands` and `Stance` (same module), per clip in the profile (`hands`, `stance`): the library's
+  locomotion holds loose fists and its idle is a wide, staggered fighting stance (feet 0.50 m apart, one
+  foot 0.46 m back), which the user read as clenched hands and odd posture. RelaxedHands builds a rest curl
+  from the rig's own geometry (curl 18–32 deg at the knuckles rising index to pinky, spread closed to 30%,
+  thumb tucked) and carries it with the animated hand; Stance runs two-bone leg IK to 0.26 m and at most
+  0.14 m stagger with the knees turned forward, keeping each foot's animated rotation. Aim leg bones by the
+  real vector to the child joint: this rig's bone axes do not point at their children.
 - `profiles/animation/ual-to-ue-template.json` — bone map and clip map onto UE template asset names. The
   8-way walk/jog samples all take the forward cycle: right for a character that turns to face its movement
   (`bOrientRotationToMovement`), wrong for a strafing one.
@@ -54,8 +61,9 @@ into `<prefix>_<clip>` on the character's skeleton (no IK retargeter in between)
 
 ## Character-02 result
 
-Packet `work/character-02/anim-ual-20261014/bake-v3/` (coat-follow with drape), installed as the game's
-`Saved/LibraryAnims/Character02/ual-v2`. Blender previews in `bake-v3/preview/`; earlier comparison
+Packet `work/character-02/anim-ual-20261014/bake-v5/` (coat-follow with drape, relaxed hands, hip-width
+idle), installed as the game's `Saved/LibraryAnims/Character02/ual-v3`. CPU review stills:
+`bake-v5/stills-big/` (`preview_baked_clips.py --engine CYCLES` renders without the GPU). Blender previews in `bake-v3/preview/`; earlier comparison
 videos (template vs UAL) in `work/character-02/anim-review-20261013/preview/`. The user liked the motion.
 In-engine editor captures: game `Saved/PosedCloseups/ual-*-20261014*`.
 

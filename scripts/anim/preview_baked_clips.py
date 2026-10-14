@@ -61,12 +61,22 @@ def main():
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--seconds', type=float, default=0)
     p.add_argument('--size', default='400x560')
+    p.add_argument('--frames', default='', help='only these frame numbers (comma list), e.g. stills for review')
+    p.add_argument('--engine', choices=['EEVEE', 'CYCLES'], default='EEVEE',
+                   help='CYCLES renders on the CPU (no GPU needed); use few samples')
+    p.add_argument('--samples', type=int, default=16)
     a = p.parse_args(sys.argv[sys.argv.index('--') + 1:])
     a.out = a.out.resolve()     # Blender would resolve a relative render path against the .blend
     data = json.loads(a.clips.read_text())
     scene = bpy.context.scene
     rig = cr.TargetRig(next(o for o in scene.objects if o.type == 'ARMATURE'))
     cam = stage(scene, tuple(int(v) for v in a.size.split('x')))
+    if a.engine == 'CYCLES':
+        scene.render.engine = 'CYCLES'
+        scene.cycles.device = 'CPU'
+        scene.cycles.samples = a.samples
+        scene.cycles.use_denoising = True
+    only = {int(f) for f in a.frames.split(',') if f}
     ffmpeg = shutil.which('ffmpeg')
     for name in a.names.split(','):
         clip = data['clips'][name]
@@ -76,6 +86,8 @@ def main():
         total = round((a.seconds or max(2 * (n - 1) / fps, 2.0)) * fps)
         period = n - 1 if clip['loop'] else n
         for f in range(total):
+            if only and f not in only:
+                continue
             k = f % period if clip['loop'] else min(f, n - 1)
             local = np.array([matrix_from_ue(clip['tracks'][b][k]) if b in clip['tracks'] else rig.local_rest[i]
                               for i, b in enumerate(rig.names)])
@@ -87,7 +99,7 @@ def main():
                 cam.rotation_euler = (Vector((0, 0, 0.95)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
                 scene.render.filepath = str(out / f'{v}_{f:04d}.png')
                 bpy.ops.render.render(write_still=True)
-        if ffmpeg:
+        if ffmpeg and not only:
             for v in a.views.split(','):
                 subprocess.run([ffmpeg, '-y', '-loglevel', 'error', '-framerate', str(fps), '-i', str(out / f'{v}_%04d.png'),
                                 '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-crf', '20', str(a.out / f'{name}_{v}.mp4')], check=True)

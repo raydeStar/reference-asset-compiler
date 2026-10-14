@@ -93,6 +93,18 @@ def main():
             if spec.get('root_motion'):
                 p0 = worlds[0][rig.index['pelvis']][:3, 3].copy()
                 worlds = [cr.extract_root_motion(w, rig, p0) for w in worlds]
+        layers = {}
+        if spec.get('stance'):
+            st = cr.Stance(rig, **spec['stance'])
+            lf, rf = rig.index['foot_l'], rig.index['foot_r']
+            before = float(np.median([np.dot(w[lf][:3, 3] - w[rf][:3, 3], st.lat) for w in worlds]))
+            worlds = [st.apply(w) for w in worlds]
+            after = float(np.median([np.dot(w[lf][:3, 3] - w[rf][:3, 3], st.lat) for w in worlds]))
+            layers['stance'] = {'feet_apart_before_m': round(before, 3), 'feet_apart_after_m': round(after, 3)}
+        if spec.get('hands') == 'relaxed':
+            hands = cr.RelaxedHands(rig)
+            worlds = [hands.apply(w) for w in worlds]
+            layers['hands'] = 'relaxed'
         coat = None
         if coat_follow and coat_follow.chains:
             coat_follow.apply(worlds, spec['loop'])
@@ -108,8 +120,8 @@ def main():
         source = ' + '.join(f"{g['library']}:{g['action']}" for g in segs) + (' (mirrored)' if spec.get('mirror') else '')
         out['clips'][clip] = {'source': source, 'fps': a.fps, 'frames': n, 'length': length, 'loop': spec['loop'],
                               'speed_cm_s': speed, 'root_motion': bool(spec.get('root_motion')), 'timing': timing,
-                              'also_as': spec.get('also_as', []), 'coat_follow': coat, 'tracks': tracks}
-        print(f'BAKED {clip} <- {source}: {n} keys, {length:.2f}s, speed {speed}, timing {timing}', flush=True)
+                              'also_as': spec.get('also_as', []), 'coat_follow': coat, 'layers': layers, 'tracks': tracks}
+        print(f'BAKED {clip} <- {source}: {n} keys, {length:.2f}s, speed {speed}, timing {timing}, layers {layers}', flush=True)
     (a.out / 'clips.json').write_text(json.dumps(out, separators=(',', ':')))
     (a.out / 'summary.json').write_text(json.dumps(
         {k: {kk: vv for kk, vv in v.items() if kk != 'tracks'} for k, v in out['clips'].items()} |
