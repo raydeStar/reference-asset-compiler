@@ -1,0 +1,19 @@
+{
+  "_about": "100STYLE (Mason, Starke, Komura et al. 2022, Zenodo 8127870, CC BY 4.0 - credit the dataset) motion capture onto a UE5 Manny-conformant game rig. Takes per style: FW/FR forward walk/run, BW/BR backward, SW/SR sidestep, ID idle, TR1 transitions; 60 fps BVH, 23 joints, no fingers (use hands: relaxed). --library 100style=<folder of one style, e.g. 100STYLE/Neutral>. Clip `range` [start, end] seconds cuts a window from a long take.",
+  "adapter": "bvh",
+  "license": "CC BY 4.0 (100STYLE, Mason et al. 2022)",
+  "bone_map": {
+    "Hips": "pelvis", "Chest": "spine_01", "Chest2": "spine_02", "Chest3": "spine_03", "Chest4": "spine_05",
+    "Neck": "neck_01", "Head": "head",
+    "LeftCollar": "clavicle_l", "LeftShoulder": "upperarm_l", "LeftElbow": "lowerarm_l", "LeftWrist": "hand_l",
+    "RightCollar": "clavicle_r", "RightShoulder": "upperarm_r", "RightElbow": "lowerarm_r", "RightWrist": "hand_r",
+    "LeftHip": "thigh_l", "LeftKnee": "calf_l", "LeftAnkle": "foot_l", "LeftToe": "ball_l",
+    "RightHip": "thigh_r", "RightKnee": "calf_r", "RightAnkle": "foot_r", "RightToe": "ball_r"
+  },
+  "clips": {
+    "Preview_Walk": {"library": "100style", "action": "Neutral_FW", "range": [20.0, 24.0], "loop": false, "hands": "relaxed"},
+    "Preview_Run": {"library": "100style", "action": "Neutral_FR", "range": [20.0, 23.0], "loop": false, "hands": "relaxed"},
+    "Preview_Idle": {"library": "100style", "action": "Neutral_ID", "range": [5.0, 10.0], "loop": false, "hands": "relaxed"},
+    "Preview_Transitions": {"library": "100style", "action": "Neutral_TR1", "range": [10.0, 18.0], "loop": false, "hands": "relaxed"}
+  }
+}

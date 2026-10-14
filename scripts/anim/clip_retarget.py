@@ -17,6 +17,7 @@ Used by scripts/anim/bake_library_clips.py (UE tracks) and scripts/anim/preview_
 from __future__ import annotations
 
 import math
+from pathlib import Path
 
 import bpy
 import numpy as np
@@ -104,6 +105,51 @@ class UalLibrary:
         return self.world('A_TPose', 0.0, loop=False)
 
 
+class BvhLibrary:
+    """A folder of BVH takes sharing one skeleton (e.g. 100STYLE, CC BY 4.0). Each take imports once into its own
+    armature; the reference is the BVH rest pose (a T-pose for 100STYLE) with the hips at a standing height
+    measured from the data (BVH rests the hips at the origin)."""
+
+    def __init__(self, folder, takes, hips='Hips', fps=None):
+        self.folder, self.hips = Path(folder), hips
+        self.rigs, self.actions, self.fps_of = {}, {}, {}
+        for take in takes:
+            before = set(bpy.data.objects)
+            bpy.ops.import_anim.bvh(filepath=str(self.folder / f'{take}.bvh'), global_scale=0.01, rotate_mode='NATIVE',
+                                    axis_forward='-Z', axis_up='Y', update_scene_fps=False, update_scene_duration=False)
+            rig = next(o for o in set(bpy.data.objects) - before if o.type == 'ARMATURE')
+            rig.hide_render = True
+            self.rigs[take] = rig
+            self.actions[take] = rig.animation_data.action
+            self.fps_of[take] = fps or bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
+        self.rig = next(iter(self.rigs.values()))
+
+    def length(self, take):
+        start, end = self.actions[take].frame_range
+        return (end - start) / self.fps_of[take]
+
+    def world(self, take, t, loop=True):
+        rig, act = self.rigs[take], self.actions[take]
+        start, _ = act.frame_range
+        L = self.length(take)
+        frame = start + ((t % L) if loop else min(t, L)) * self.fps_of[take]
+        bpy.context.scene.frame_set(int(frame), subframe=frame - int(frame))
+        mw = np.array(rig.matrix_world)
+        return {pb.name: mw @ np.array(pb.matrix) for pb in rig.pose.bones}
+
+    def reference(self, take=None):
+        take = take or next(iter(self.rigs))
+        rig = self.rigs[take]
+        mw = np.array(rig.matrix_world)
+        ref = {b.name: mw @ np.array(b.matrix_local) for b in rig.data.bones}
+        # standing hip height: median over the take
+        L = self.length(take)
+        heights = [self.world(take, L * i / 40, loop=False)[self.hips][2, 3] for i in range(41)]
+        ref[self.hips] = ref[self.hips].copy()
+        ref[self.hips][2, 3] = float(np.median(heights))
+        return ref
+
+
 def _fcurves(action):
     """Every F-curve of an action (Blender 5 layered actions and the legacy list)."""
     if getattr(action, 'layers', None):
@@ -116,10 +162,18 @@ def _fcurves(action):
 
 
 class Retarget:
+    @staticmethod
+    def _leg(world, names):
+        p = [world[n][:3, 3] for n in names]
+        return float(np.linalg.norm(p[1] - p[0]) + np.linalg.norm(p[2] - p[1]))
+
     def __init__(self, target: TargetRig, library, bone_map, reference=None):
         self.t, self.lib = target, library
         self.ref = reference or library.reference()
         self.pairs = {target.index[tn]: sn for sn, tn in bone_map.items() if sn in self.ref and tn in target.index}
+        inv = {tn: sn for sn, tn in bone_map.items()}
+        self.leg_names = tuple(inv[n] for n in ('thigh_l', 'calf_l', 'foot_l'))
+        self.src_pelvis = inv['pelvis']
         missing = sorted(set(bone_map.values()) - set(target.names))
         assert not [m for m in missing if not m.startswith(('ball', 'spine_0'))], f'target lacks {missing}'
 
@@ -127,18 +181,19 @@ class Retarget:
             v = world[left][:3, 3] - world[right][:3, 3]
             return math.atan2(v[1], v[0])
         tw = {n: target.rest[i] for i, n in enumerate(target.names)}
-        yaw = heading(tw, 'upperarm_l', 'upperarm_r') - heading(self.ref, 'upperarm_l', 'upperarm_r')
+        self.src_arms = (inv['upperarm_l'], inv['upperarm_r'])
+        yaw = heading(tw, 'upperarm_l', 'upperarm_r') - heading(self.ref, *self.src_arms)
         self.A = np.array(Matrix.Rotation(yaw, 3, 'Z'))
-        self.scale = target.rest[target.index['pelvis'], 2, 3] / self.ref['pelvis'][2, 3]
+        self.scale = self._leg(tw, ('thigh_l', 'calf_l', 'foot_l')) / self._leg(self.ref, self.leg_names)
 
     def _mirror(self, pose):
         """The pose reflected through the source's sagittal plane (left and right swapped)."""
-        u = self.ref['upperarm_l'][:3, 3] - self.ref['upperarm_r'][:3, 3]
+        u = self.ref[self.src_arms[0]][:3, 3] - self.ref[self.src_arms[1]][:3, 3]
         u /= np.linalg.norm(u)
         S = np.eye(4)
         S[:3, :3] -= 2 * np.outer(u, u)
         p0 = np.eye(4)
-        p0[:3, 3] = self.ref['pelvis'][:3, 3]
+        p0[:3, 3] = self.ref[self.src_pelvis][:3, 3]
         R = p0 @ S @ np.linalg.inv(p0)
         def swap(n):
             return n[:-2] + {'_l': '_r', '_r': '_l'}[n[-2:]] if n[-2:] in ('_l', '_r') else n
@@ -372,3 +427,173 @@ def ue_root_track(rig, shift):
     m = np.eye(4)
     m[:3, 3] = np.linalg.inv(rig.mw[:3, :3]) @ shift
     return ue_from_matrix(m)
+
+
+# Relaxed hand: curl per joint (01, 02, 03) in degrees, toward the palm. Index to pinky curl a little more
+# each, as a hand at rest does; the thumb barely flexes.
+RELAXED_CURL = {'index': (18, 30, 18), 'middle': (22, 34, 20), 'ring': (26, 38, 22), 'pinky': (30, 42, 24),
+                'thumb': (12, 16, 12)}
+
+
+class RelaxedHands:
+    """Replace the fingers with a relaxed rest curl, carried by the animated hand. The curl is built on the
+    rig's own rest geometry: each joint bends about the axis across its finger and the palm normal, so it
+    does not depend on bone-axis conventions. The palm faces down in the T-pose (palm = -Z)."""
+
+    def __init__(self, rig: TargetRig, curl=None, palm=(0.0, 0.0, -1.0), spread_keep=0.3, thumb_tuck_deg=18):
+        self.rig, curl = rig, curl or RELAXED_CURL
+        palm = np.array(palm, float)
+        self.local = {}            # finger bone index -> world matrix relative to its hand, relaxed
+        ix = rig.index
+
+        def joint(name):
+            return rig.rest[ix[name]][:3, 3]
+
+        def rotate_chain(world, chain, start, axis, deg, pivot):
+            r = np.eye(4)
+            r[:3, :3] = np.array(Matrix.Rotation(math.radians(deg), 3, Vector((axis / np.linalg.norm(axis)).tolist())))
+            r[:3, 3] = pivot - r[:3, :3] @ pivot
+            for k in chain[start:]:
+                world[k] = r @ world[k]
+        for side in 'lr':
+            hand = ix.get(f'hand_{side}')
+            if hand is None or f'middle_01_{side}' not in ix:
+                continue
+            inv_hand = np.linalg.inv(rig.rest[hand])
+            mid_dir = joint(f'middle_02_{side}') - joint(f'middle_01_{side}')
+            for finger, angles in curl.items():
+                names = [f'{finger}_{k:02d}_{side}' for k in (1, 2, 3)]
+                if any(n not in ix for n in names):
+                    continue
+                chain = [ix[n] for n in names]
+                world = {i: rig.rest[i].copy() for i in chain}
+                # Close the spread: turn the finger about the palm normal toward the middle finger.
+                base = world[chain[0]][:3, 3].copy()
+                d0 = joint(names[1]) - joint(names[0])
+                if finger == 'thumb':
+                    rotate_chain(world, chain, 0, np.cross(d0, palm), thumb_tuck_deg, base)
+                elif finger != 'middle':
+                    flat = lambda v: v - np.dot(v, palm) * palm  # noqa: E731
+                    a, b = flat(d0), flat(mid_dir)
+                    ang = math.degrees(math.atan2(np.dot(np.cross(a, b), palm), np.dot(a, b)))
+                    rotate_chain(world, chain, 0, palm, ang * (1 - spread_keep), base)
+                for j, (i, deg) in enumerate(zip(chain, angles)):
+                    child = world[chain[j + 1]][:3, 3] if j + 1 < len(chain) else None
+                    d = (child - world[i][:3, 3]) if child is not None else world[i][:3, 3] - world[chain[j - 1]][:3, 3]
+                    d = d / np.linalg.norm(d)
+                    axis = np.cross(d, palm)
+                    if np.linalg.norm(axis) < 1e-6:
+                        continue
+                    axis /= np.linalg.norm(axis)
+                    r = np.eye(4)
+                    r[:3, :3] = np.array(Matrix.Rotation(math.radians(deg), 3, Vector(axis.tolist())))
+                    pivot = world[i][:3, 3].copy()
+                    r[:3, 3] = pivot - r[:3, :3] @ pivot
+                    for k in chain[j:]:
+                        world[k] = r @ world[k]
+                for i in chain:
+                    self.local[i] = (hand, inv_hand @ world[i])
+
+    def apply(self, world, weight=1.0):
+        for i, (hand, rel) in self.local.items():
+            relaxed = world[hand] @ rel
+            if weight >= 1:
+                world[i] = relaxed
+            else:
+                q0 = Matrix(world[i].tolist()).to_quaternion()
+                q1 = Matrix(relaxed.tolist()).to_quaternion()
+                m = np.array(q0.slerp(q1, weight).to_matrix().to_4x4())
+                m[:3, 3] = world[i][:3, 3] * (1 - weight) + relaxed[:3, 3] * weight
+                world[i] = m
+        return world
+
+
+def _aim(m, current, wanted):
+    """m turned about its own head by the smallest rotation taking the vector `current` onto `wanted`.
+    Aim by the real vector to the child joint: a rig's bone axes need not point at their children."""
+    q = Vector((current / np.linalg.norm(current)).tolist()).rotation_difference(
+        Vector((wanted / np.linalg.norm(wanted)).tolist()))
+    out = m.copy()
+    out[:3, :3] = np.array(q.to_matrix()) @ m[:3, :3]
+    return out
+
+
+class Stance:
+    """Bring the feet toward a target ankle spacing across the body (and, with max_stagger_m, closer fore and
+    aft) and point the knees forward, by two-bone IK on thigh/calf; each foot keeps its animated world rotation and height. Feet already closer than
+    the target are left alone. lateral is the rig's left-right axis (+X: the character's left, facing -Y)."""
+
+    def __init__(self, rig: TargetRig, feet_apart_m=0.26, knee_forward=1.0, max_stagger_m=None,
+                 lateral=(1.0, 0.0, 0.0), forward=(0.0, -1.0, 0.0)):
+        self.rig, self.width, self.knee_forward, self.stagger = rig, feet_apart_m, knee_forward, max_stagger_m
+        self.lat, self.fwd = np.array(lateral, float), np.array(forward, float)
+        ix = rig.index
+        self.legs = []
+        for s in 'lr':
+            thigh, calf, foot = ix[f'thigh_{s}'], ix[f'calf_{s}'], ix[f'foot_{s}']
+            l1 = np.linalg.norm(rig.rest[calf][:3, 3] - rig.rest[thigh][:3, 3])
+            l2 = np.linalg.norm(rig.rest[foot][:3, 3] - rig.rest[calf][:3, 3])
+            self.legs.append((s, thigh, calf, foot, l1, l2))
+
+    def apply(self, world):
+        rig = self.rig
+        feet = {s: world[foot][:3, 3] for s, _, _, foot, _, _ in self.legs}
+        centre = (feet['l'] + feet['r']) / 2
+        spread = float(np.dot(feet['l'] - feet['r'], self.lat))
+        stagger = float(np.dot(feet['l'] - feet['r'], self.fwd))
+        narrow = spread > self.width
+        unstagger = self.stagger is not None and abs(stagger) > self.stagger
+        if not (narrow or unstagger):
+            return world
+        for s, thigh, calf, foot, l1, l2 in self.legs:
+            sign = 1.0 if s == 'l' else -1.0
+            ankle = feet[s].copy()
+            if narrow:
+                ankle -= self.lat * (np.dot(feet[s] - centre, self.lat) - sign * self.width / 2)
+            if unstagger:
+                # both feet move toward their fore-aft midpoint until they are max_stagger_m apart
+                excess = (abs(stagger) - self.stagger) / 2
+                ankle -= self.fwd * sign * np.sign(stagger) * excess
+            hip = world[thigh][:3, 3]
+            to = ankle - hip
+            dist = min(np.linalg.norm(to), (l1 + l2) * 0.999)
+            u = to / np.linalg.norm(to)
+            # knee in the plane of the leg and the pole (forward, keeping some of the animated knee bend)
+            knee_now = world[calf][:3, 3] - hip
+            pole = self.fwd * self.knee_forward + (knee_now - np.dot(knee_now, u) * u) * (1 - self.knee_forward)
+            pole -= np.dot(pole, u) * u
+            pole /= max(np.linalg.norm(pole), 1e-9)
+            a = (l1 * l1 - l2 * l2 + dist * dist) / (2 * dist)
+            h = math.sqrt(max(l1 * l1 - a * a, 0.0))
+            knee = hip + u * a + pole * h
+            foot_rot = world[foot][:3, :3].copy()
+            old_knee, old_ankle = world[calf][:3, 3].copy(), world[foot][:3, 3].copy()
+            new_thigh = _aim(world[thigh], old_knee - hip, knee - hip)
+            new_calf = _aim(world[calf], old_ankle - old_knee, hip + u * dist - knee)
+            new_calf[:3, 3] = knee
+            delta_t = new_thigh @ np.linalg.inv(world[thigh])
+            delta_c = new_calf @ np.linalg.inv(world[calf])
+            world[thigh] = new_thigh
+            world[calf] = new_calf
+            # every descendant of the calf follows it; the foot then gets its animated rotation back
+            for i, p in enumerate(rig.parents):
+                anc = p
+                while anc not in (-1, calf, thigh):
+                    anc = rig.parents[anc]
+                if anc == calf and i != calf:
+                    world[i] = delta_c @ world[i]
+                elif anc == thigh and i != calf and i != thigh:
+                    world[i] = delta_t @ world[i]
+            fix = np.eye(4)
+            fix[:3, :3] = foot_rot @ np.linalg.inv(world[foot][:3, :3])
+            fix[:3, 3] = world[foot][:3, 3] - fix[:3, :3] @ world[foot][:3, 3]
+            for i, p in enumerate(rig.parents):
+                anc = i
+                while anc not in (-1, foot):
+                    anc = rig.parents[anc]
+                if anc == foot:
+                    world[i] = fix @ world[i]
+        for bone, ik in IK_PINS:
+            if bone in rig.index and ik in rig.index:
+                world[rig.index[ik]] = world[rig.index[bone]]
+        return world

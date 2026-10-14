@@ -54,9 +54,20 @@ def main():
         for seg in segments_of(profile['clips'][clip]):
             name = seg['library']
             if name not in libraries:
-                assert profile['adapter'] == 'ual', profile['adapter']
-                libraries[name] = cr.UalLibrary(paths[name])
+                if profile['adapter'] == 'ual':
+                    libraries[name] = cr.UalLibrary(paths[name])
+                elif profile['adapter'] == 'bvh':
+                    takes = sorted({profile['clips'][c]['action'] for c in wanted
+                                    if profile['clips'][c].get('library') == name})
+                    libraries[name] = cr.BvhLibrary(paths[name], takes)
+                else:
+                    raise SystemExit(f"unknown adapter {profile['adapter']}")
                 retargets[name] = cr.Retarget(rig, libraries[name], profile['bone_map'])
+    def library_hashes(n):
+        lib = libraries[n]
+        if isinstance(lib, cr.BvhLibrary):       # a folder of takes: hash each take used
+            return {t: sha(lib.folder / f'{t}.bvh') for t in lib.rigs}
+        return sha(paths[n])
     forward = np.array([0.0, -1.0, 0.0])         # the rig faces -Y in Blender (UE +X after export)
     coat_follow = None if a.no_coat_follow else cr.CoatFollow(rig)
     default_coat_max = coat_follow.max_deg if coat_follow else None
@@ -64,7 +75,7 @@ def main():
            'provenance': {'profile': str(a.profile), 'profile_sha256': sha(a.profile),
                           'contract': str(a.contract) if a.contract else None,
                           'contract_sha256': sha(a.contract) if a.contract else None,
-                          'libraries': {n: {'path': paths[n], 'sha256': sha(paths[n])} for n in libraries},
+                          'libraries': {n: {'path': paths[n], 'sha256': library_hashes(n)} for n in libraries},
                           'character_blend': bpy.data.filepath, 'character_blend_sha256': sha(bpy.data.filepath),
                           'blender': bpy.app.version_string, 'script_sha256': sha(__file__),
                           'retarget_sha256': sha(cr.__file__)}}
@@ -75,9 +86,10 @@ def main():
         root_track = None
         if len(segs) == 1 and not spec.get('mirror') and not spec.get('retime'):
             rt = retargets[segs[0]['library']]
-            length = rt.lib.length(segs[0]['action'])
+            t0, t1 = spec.get('range') or (0.0, rt.lib.length(segs[0]['action']))
+            length = t1 - t0
             n = max(2, round(length * a.fps) + 1)
-            worlds = [rt.world(segs[0]['action'], length * i / (n - 1), loop=spec['loop']) for i in range(n)]
+            worlds = [rt.world(segs[0]['action'], t0 + length * i / (n - 1), loop=spec['loop']) for i in range(n)]
         else:
             seq = cr.Sequence(retargets, segs, mirror=spec.get('mirror', False))
             keys, length = [], seq.length
