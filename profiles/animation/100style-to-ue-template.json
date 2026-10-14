@@ -3,17 +3,63 @@
   "adapter": "bvh",
   "license": "CC BY 4.0 (100STYLE, Mason et al. 2022)",
   "bone_map": {
-    "Hips": "pelvis", "Chest": "spine_01", "Chest2": "spine_02", "Chest3": "spine_03", "Chest4": "spine_05",
-    "Neck": "neck_01", "Head": "head",
-    "LeftCollar": "clavicle_l", "LeftShoulder": "upperarm_l", "LeftElbow": "lowerarm_l", "LeftWrist": "hand_l",
-    "RightCollar": "clavicle_r", "RightShoulder": "upperarm_r", "RightElbow": "lowerarm_r", "RightWrist": "hand_r",
-    "LeftHip": "thigh_l", "LeftKnee": "calf_l", "LeftAnkle": "foot_l", "LeftToe": "ball_l",
-    "RightHip": "thigh_r", "RightKnee": "calf_r", "RightAnkle": "foot_r", "RightToe": "ball_r"
+    "Hips": "pelvis",
+    "Chest": "spine_01",
+    "Chest2": "spine_02",
+    "Chest3": "spine_03",
+    "Chest4": "spine_05",
+    "Neck": "neck_01",
+    "Head": "head",
+    "LeftCollar": "clavicle_l",
+    "LeftShoulder": "upperarm_l",
+    "LeftElbow": "lowerarm_l",
+    "LeftWrist": "hand_l",
+    "RightCollar": "clavicle_r",
+    "RightShoulder": "upperarm_r",
+    "RightElbow": "lowerarm_r",
+    "RightWrist": "hand_r",
+    "LeftHip": "thigh_l",
+    "LeftKnee": "calf_l",
+    "LeftAnkle": "foot_l",
+    "LeftToe": "ball_l",
+    "RightHip": "thigh_r",
+    "RightKnee": "calf_r",
+    "RightAnkle": "foot_r",
+    "RightToe": "ball_r"
   },
   "clips": {
-    "Preview_Walk": {"library": "100style", "action": "Neutral_FW", "range": [20.0, 24.0], "loop": false, "hands": "relaxed"},
-    "Preview_Run": {"library": "100style", "action": "Neutral_FR", "range": [20.0, 23.0], "loop": false, "hands": "relaxed"},
-    "Preview_Idle": {"library": "100style", "action": "Neutral_ID", "range": [5.0, 10.0], "loop": false, "hands": "relaxed"},
-    "Preview_Transitions": {"library": "100style", "action": "Neutral_TR1", "range": [10.0, 18.0], "loop": false, "hands": "relaxed"}
-  }
+    "MM_Neutral_Walk": {
+      "library": "100style",
+      "loop": false,
+      "hands": "relaxed",
+      "root_motion": "facing",
+      "coat_max_deg": 30,
+      "action": "Neutral_FW"
+    },
+    "MM_Neutral_Run": {
+      "library": "100style",
+      "loop": false,
+      "hands": "relaxed",
+      "root_motion": "facing",
+      "coat_max_deg": 30,
+      "action": "Neutral_FR"
+    },
+    "MM_Neutral_Idle": {
+      "library": "100style",
+      "loop": false,
+      "hands": "relaxed",
+      "root_motion": "facing",
+      "coat_max_deg": 30,
+      "action": "Neutral_ID"
+    },
+    "MM_Neutral_Transitions": {
+      "library": "100style",
+      "loop": false,
+      "hands": "relaxed",
+      "root_motion": "facing",
+      "coat_max_deg": 30,
+      "action": "Neutral_TR1"
+    }
+  },
+  "_clips": "Motion-matching database takes: whole takes, root motion with facing (root_motion: facing) so the database knows each frame's trajectory. With a character that turns to face its movement, forward walk/run, idle and the transitions take (starts, stops, turns) are enough; BW/BR/SW/SR are for strafing."
 }

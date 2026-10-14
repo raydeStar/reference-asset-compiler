@@ -94,3 +94,18 @@ Retained failures: mirroring the second cut (stance pop at the combo jump); root
 (the second cut starts displaced, 88 cm pelvis gap); using bone 0 as the root on a rig with no root bone
 (pelvis frozen across the segment join, torso torn from legs) and shifting only top-level world matrices
 (children left behind, spine 50–230 cm from its pelvis); uncapped coat-follow in lunges (panels flat as a table).
+
+## 100STYLE motion capture and motion matching (2026-10-14)
+
+`clip_retarget.BvhLibrary` reads a folder of BVH takes (100STYLE, CC BY 4.0: credit Mason et al. 2022). Time comes
+from each take's own `Frame Time` (Blender keys one BVH frame per scene frame; reading the scene rate slowed the
+mocap 2.5x), the reference is the BVH rest T-pose with a standing hip height measured from the take, and `Retarget`
+scales by leg length. `facing_root_motion()` (`root_motion: facing` in a profile) puts each frame's ground position
+and heading on UE's root bone, both Gaussian-smoothed so stride sway stays on the pelvis; motion matching reads it.
+Profile `profiles/animation/100style-to-ue-template.json`; packet `work/character-02/anim-100style-20261014/mm-v1/`
+(Neutral FW/FR/ID/TR1, 10.9k frames at 30 fps). The game side is The Aether Wars `Tools/MotionMatching.py`.
+
+Measured limit: 100STYLE is captured in a small room. Neutral runs average 1.1 m/s (p95 ~1.75), and the fastest of
+all 100 styles ("Rushed") reaches ~3 m/s at p95, against the game's 5 m/s jog and 8.4 m/s sprint. Motion matching
+therefore covers idle, walking, starts, stops and turns, crossfading into the speed-matched library cycles above
+~2 m/s; the hunched Neutral jog was dropped from the database after it surfaced at slow analog speeds.

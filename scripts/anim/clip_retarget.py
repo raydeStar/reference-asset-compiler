@@ -105,6 +105,14 @@ class UalLibrary:
         return self.world('A_TPose', 0.0, loop=False)
 
 
+def _bvh_frame_time(path):
+    with open(path, encoding='latin-1') as f:
+        for line in f:
+            if line.strip().startswith('Frame Time:'):
+                return float(line.split(':')[1])
+    raise ValueError(f'{path}: no Frame Time')
+
+
 class BvhLibrary:
     """A folder of BVH takes sharing one skeleton (e.g. 100STYLE, CC BY 4.0). Each take imports once into its own
     armature; the reference is the BVH rest pose (a T-pose for 100STYLE) with the hips at a standing height
@@ -121,7 +129,8 @@ class BvhLibrary:
             rig.hide_render = True
             self.rigs[take] = rig
             self.actions[take] = rig.animation_data.action
-            self.fps_of[take] = fps or bpy.context.scene.render.fps / bpy.context.scene.render.fps_base
+            # The importer keys one BVH frame per scene frame: time comes from the take's own Frame Time.
+            self.fps_of[take] = fps or 1.0 / _bvh_frame_time(self.folder / f'{take}.bvh')
         self.rig = next(iter(self.rigs.values()))
 
     def length(self, take):
@@ -420,6 +429,48 @@ def extract_root_motion(world, rig, start_pelvis):
     else:
         world[:, :3, 3] -= shift       # the whole pose, rigidly: these are world matrices
     return world, shift
+
+
+def facing_root_motion(worlds, rig, smooth_s=0.2, fps=30, forward=(0.0, -1.0, 0.0)):
+    """Root motion with facing for travelling takes (mocap): the root carries the pelvis's ground position and the
+    body's heading (the pelvis's rest-forward axis on the ground), both Gaussian-smoothed so stride sway neither
+    steers nor shoves it (the sway stays on the pelvis). The whole pose is re-expressed relative to that root (this rig's root is the armature
+    object, so the caller keys the returned root matrices as UE's root track). Returns (worlds, roots)."""
+    pelvis = rig.index['pelvis']
+    rest_rot = rig.rest[pelvis][:3, :3]
+    fwd = np.array(forward, float)
+    heads = []
+    for w in worlds:
+        f = w[pelvis][:3, :3] @ np.linalg.inv(rest_rot) @ fwd
+        heads.append(math.atan2(f[1], f[0]))
+    rest_head = math.atan2(fwd[1], fwd[0])
+    yaw = np.unwrap(np.array(heads)) - rest_head
+    sigma = max(smooth_s * fps, 1e-6)
+    k = np.arange(-int(2 * sigma) - 1, int(2 * sigma) + 2)
+    kern = np.exp(-0.5 * (k / sigma) ** 2)
+    kern /= kern.sum()
+    padded = np.concatenate([np.full(len(k) // 2, yaw[0]), yaw, np.full(len(k) // 2, yaw[-1])])
+    yaw = np.convolve(padded, kern, mode='valid')[:len(worlds)]
+    rest_xy = rig.rest[pelvis][:3, 3].copy()
+    rest_xy[2] = 0
+    ground = np.array([[w[pelvis][0, 3], w[pelvis][1, 3]] for w in worlds])
+    pad = len(k) // 2
+    ground = np.stack([np.convolve(np.concatenate([np.full(pad, g[0]), g, np.full(pad, g[-1])]), kern, mode='valid')[:len(worlds)]
+                       for g in ground.T], -1)          # the root's path is smooth; stride sway stays on the pelvis
+    out, roots = [], []
+    for w, a, g in zip(worlds, yaw, ground):
+        R = np.eye(4)
+        R[:3, :3] = np.array(Matrix.Rotation(float(a), 3, 'Z'))
+        R[:3, 3] = np.array([g[0], g[1], 0.0]) - R[:3, :3] @ rest_xy
+        out.append(np.linalg.inv(R) @ w)
+        roots.append(R)
+    return out, roots
+
+
+def ue_root_matrix(rig, root):
+    """UE local transform of the root bone from a world-space root matrix (rotation + translation)."""
+    inv_mw = np.linalg.inv(rig.mw)
+    return ue_from_matrix(inv_mw @ root)
 
 
 def ue_root_track(rig, shift):

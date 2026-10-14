@@ -83,13 +83,20 @@ def main():
         spec = profile['clips'][clip]
         segs = segments_of(spec)
         timing = None
-        root_track = None
+        root_track, speed = None, None
         if len(segs) == 1 and not spec.get('mirror') and not spec.get('retime'):
             rt = retargets[segs[0]['library']]
             t0, t1 = spec.get('range') or (0.0, rt.lib.length(segs[0]['action']))
             length = t1 - t0
             n = max(2, round(length * a.fps) + 1)
             worlds = [rt.world(segs[0]['action'], t0 + length * i / (n - 1), loop=spec['loop']) for i in range(n)]
+            if spec.get('root_motion') == 'facing':
+                # Travelling mocap: ground position and heading onto UE's root bone (motion matching reads it).
+                worlds, roots = cr.facing_root_motion(worlds, rig, fps=a.fps)
+                root_track = [[round(v, 6) for v in cr.ue_root_matrix(rig, m)] for m in roots]
+                ground = np.array([m[:3, 3] for m in roots])
+                travel = float(np.linalg.norm(np.diff(ground[:, :2], axis=0), axis=1).sum())
+                speed = travel / length * 100
         else:
             seq = cr.Sequence(retargets, segs, mirror=spec.get('mirror', False))
             keys, length = [], seq.length
@@ -138,7 +145,8 @@ def main():
                 tracks[b].append([round(v, 6) for v in cr.ue_from_matrix(local[i])])
         if root_track is not None:
             tracks['root'] = root_track
-        speed = None
+        if spec.get('root_motion') != 'facing':
+            speed = None
         if spec.get('measure_speed'):
             speed = cr.planted_speed(retargets[segs[0]['library']], segs[0]['action'], forward) * 100
         source = ' + '.join(f"{g['library']}:{g['action']}" for g in segs) + (' (mirrored)' if spec.get('mirror') else '')
