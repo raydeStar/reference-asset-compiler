@@ -5,7 +5,9 @@ import json
 import sys
 from pathlib import Path
 
-import cv2
+import pytest
+
+cv2 = pytest.importorskip("cv2")  # opencv-python-headless, the `tools` extra
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[1]

@@ -65,6 +65,7 @@ def test_the_reported_count_is_the_count_written_and_a_miss_is_reported(tmp_path
 
 
 def test_a_hair_already_under_the_request_is_left_alone_without_a_warning(tmp_path):
+    pytest.importorskip("fast_simplification")       # the script imports it even when nothing is reduced
     report, stderr, low = run(tmp_path, 1000)
     assert report["triangles"] == 100 and report["duplicates_dropped"] == 100   # only the copies go
     assert "warning" not in report and "WARNING" not in stderr

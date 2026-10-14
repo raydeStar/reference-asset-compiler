@@ -21,6 +21,8 @@ dependencies = ["numpy>=1.26", "Pillow>=10.0", "scipy>=1.11"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8.3", "jsonschema>=4.23", "ruff>=0.9"]
+# Image and mesh tools some stages and their tests use (both open source: Apache-2.0 / MIT).
+tools = ["opencv-python-headless>=4.10", "fast-simplification>=0.1.7"]
 
 [project.scripts]
 rac = "reference_asset_compiler.cli:main"
