@@ -109,3 +109,16 @@ Measured limit: 100STYLE is captured in a small room. Neutral runs average 1.1 m
 all 100 styles ("Rushed") reaches ~3 m/s at p95, against the game's 5 m/s jog and 8.4 m/s sprint. Motion matching
 therefore covers idle, walking, starts, stops and turns, crossfading into the speed-matched library cycles above
 ~2 m/s; the hunched Neutral jog was dropped from the database after it surfaced at slow analog speeds.
+
+**Play-test outcome (2026-10-14):** in game the motion-matched idle surfaced gestures from the ID/TR1 takes (hands
+raised at random) and Mark reported the walk gliding, so motion matching is switched off for character-02; the
+library cycles are back. Most of the glide turned out to be the game's blend space playing the walk at jog speed
+(stale runtime data after Python edits; fixed in The Aether Wars `Tools/LibraryAnims.py`). Retry motion matching only
+with a curated idle and walk takes that cover the stick's speed range. Retained failure: root motion carried the UE IK
+side roots (`ik_foot_root`, `ik_hand_root`) metres away ("feet go flying"); `_rest_side_roots` keeps them at rest.
+
+## Drawn-blades idle (2026-10-14)
+
+`MM_Idle_Swords` in `ual-to-ue-template.json`: UAL 1 `Sword_Idle`, hands gripping (no relaxed-hands layer). Packet
+`work/character-02/anim-ual-20261014/swordidle-v1/` (51 keys, 1.67 s; preview `sheet.jpg`; `work/` is not committed).
+The game switches the Idle state to it while the blades are drawn (The Aether Wars `Tools/BladeIdle.py`).

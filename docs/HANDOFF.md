@@ -4625,4 +4625,13 @@ Epic's Game Animation Sample excluded).
 - Skin: shirt-normalised measurement; v4..v7 in game `Saved/PosedCloseups/skin-v*-20261014*`.
 - Mark (2026-10-14): animations fine, clothing decent; hands look clenched and the
   posture a little weird. Next: relaxed hand pose and a hip-width idle stance, then combat.
-
+- Mark (2026-10-14, play-test): "feet go flying" with motion matching → IK side roots
+  (ik_foot_root / ik_hand_root) were carried off by root motion; `_rest_side_roots` keeps
+  them at rest. Then: idle raised hands at random, walk glided, swords-out idle unchanged.
+  Motion matching switched off (gesture takes in the idle; 100STYLE tops out ~1.7 m/s).
+  Glide root cause measured in PIE: the game's blend space played the walk cycle at
+  500 cm/s (stale runtime triangulation after Python sample edits; jog row snapped to
+  420). Fixed game-side (`UAetherAnimLibrary::RebuildBlendSpace`); slip ~360 → ~20 cm/s.
+  Swords-out idle: profile clip `MM_Idle_Swords` (UAL Sword_Idle), packet
+  `anim-ual-20261014/swordidle-v1`, game step `blade_idle`. Evidence: game
+  `Saved/GameShots/blades-20261014c/`, `slip-20261014/slip.json`.

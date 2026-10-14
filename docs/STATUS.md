@@ -31,6 +31,15 @@ this scan mesh. `scripts/clean_garment_paint.py` filters it on the body surface
 `work/character-02/coat-clean-20261014/build-v6/` is installed texture-only. The user
 called the clothing "decent" and open to more iterations.
 
+Play-test fixes (2026-10-14, evening): 100STYLE motion matching is switched off for
+Character02 (the idle picked up gesture takes and raised his hands; game key
+`_motion_matching_off`, AnimBP restored). The walk "glide" was mostly a game-side bug:
+the blend space's runtime triangulation was never rebuilt after its samples were
+rewritten, so the walk played at jog speed; planted-foot slip at the 500 cm/s jog fell
+from ~360 to ~20 cm/s after the rebuild. Drawn blades now switch the idle to UAL
+`Sword_Idle` (`anim-ual-20261014/swordidle-v1`, game packet `ual-v6`, step `blade_idle`).
+Open: user play acceptance; the sword ready stance is deep and wide.
+
 Skin: the game's skin material gained opt-in look keys (`skin_shading`,
 `skin_saturation`, `skin_tint`); measured with `scripts/measure_skin_tone.py` against
 the portrait, normalised by the shirt. The installed look (v7) is tan, hue 58 deg vs
