@@ -2,7 +2,6 @@
 """Render top-down and elevated angle views of Character02 to verify coat sleeves and shoulders."""
 
 import bpy
-import math
 import os
 import sys
 import time

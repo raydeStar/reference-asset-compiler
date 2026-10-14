@@ -258,7 +258,7 @@ def main():
     t_start_all = time.time()
 
     for shot in shots:
-        print(f"\n==========================================")
+        print("\n==========================================")
         print(f"--- Rendering {shot['name']} ---")
         t_shot_start = time.time()
 

@@ -2,7 +2,6 @@
 """Render clean front and 3/4 review views of Character02 for asset review."""
 
 import bpy
-import math
 import os
 import sys
 import time

@@ -14,9 +14,8 @@ Usage:
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont
 
 WIDTH, HEIGHT = 3840, 2160
 BG_COLOR = (14, 16, 22)

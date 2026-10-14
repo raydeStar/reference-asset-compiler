@@ -90,8 +90,6 @@ def extend_neck(ob, below_z, end_z):
     old_verts = {v for e in ring for v in e.verts}
     if len(old_verts) < 10:
         raise ValueError("The detected neck boundary is too small")
-    y_center = sum(v.co.y for v in old_verts) / len(old_verts)
-    min_y = min(v.co.y for v in old_verts)
     shapes = list(bm.verts.layers.shape.values())
     result = bmesh.ops.extrude_edge_only(bm, edges=ring)
     created = [x for x in result["geom"] if isinstance(x, bmesh.types.BMVert) and x not in old_verts]
