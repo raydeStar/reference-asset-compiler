@@ -65,6 +65,7 @@ def main():
     p.add_argument('--engine', choices=['EEVEE', 'CYCLES'], default='EEVEE',
                    help='CYCLES renders on the CPU (no GPU needed); use few samples')
     p.add_argument('--samples', type=int, default=16)
+    p.add_argument('--follow', action='store_true', help='keep the camera on the root bone (root-motion clips)')
     a = p.parse_args(sys.argv[sys.argv.index('--') + 1:])
     a.out = a.out.resolve()     # Blender would resolve a relative render path against the .blend
     data = json.loads(a.clips.read_text())
@@ -93,10 +94,14 @@ def main():
                               for i, b in enumerate(rig.names)])
             rig.apply(local)
             bpy.context.view_layer.update()
+            centre = Vector((0, 0, 0))
+            if a.follow:
+                root = rig.obj.matrix_world @ rig.obj.pose.bones[rig.names[0]].head
+                centre = Vector((root.x, root.y, 0))
             for v in a.views.split(','):
                 ox, oy = OFFSETS[v]
-                cam.location = Vector((ox, oy, 1.05))
-                cam.rotation_euler = (Vector((0, 0, 0.95)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
+                cam.location = centre + Vector((ox, oy, 1.05))
+                cam.rotation_euler = (centre + Vector((0, 0, 0.95)) - cam.location).to_track_quat('-Z', 'Y').to_euler()
                 scene.render.filepath = str(out / f'{v}_{f:04d}.png')
                 bpy.ops.render.render(write_still=True)
         if ffmpeg and not only:

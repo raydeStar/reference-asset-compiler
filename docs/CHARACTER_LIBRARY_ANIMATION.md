@@ -77,3 +77,20 @@ Limits: the clips are hand-keyed game animation, not mocap; no starts/stops/pivo
 Search is the next step); combat, dash and traversal still use the earlier clips; coat sway physics is off
 (the baked coat-follow clears the legs; in-engine AnimDynamics could add secondary motion on top). User play
 acceptance and cooked-runtime validation are open. Nothing is production-ready.
+
+## Combat (2026-10-14)
+
+`profiles/animation/ual-combat-to-ue-template.json` with `--contract <game combat-contract.json>` (The Aether
+Wars `Tools/CombatContract.py`): Sword_Regular_A + A_Rec, B + B_Rec, C, and UAL 1 Sword_Attack_RM become the
+combo's three cuts and the charged attack. `Sequence` joins a swing to its recovery (pelvis carried across the
+join), `retime()` keeps the game's clip length with the peak sword-hand speed on its hit-trace time, and the
+lunge goes onto UE's root bone (this rig's Blender armature object is that bone, so the whole pose is moved
+back and a `root` track is keyed). The combo jumps to the next section mid-recovery, so the cuts stay
+unmirrored (a mirrored second cut starts in the opposite stance): the pelvis gaps at the jumps are 0.2 and
+2.1 cm. `coat_max_deg` 22 keeps coat-follow from levering the panels out flat in the wide lunges. Packet
+`anim-ual-20261014/combat-v2/`; filmstrip `combat-v2/combat-filmstrip.jpg` (CPU Cycles).
+
+Retained failures: mirroring the second cut (stance pop at the combo jump); root motion measured from frame 0
+(the second cut starts displaced, 88 cm pelvis gap); using bone 0 as the root on a rig with no root bone
+(pelvis frozen across the segment join, torso torn from legs) and shifting only top-level world matrices
+(children left behind, spine 50–230 cm from its pelvis); uncapped coat-follow in lunges (panels flat as a table).

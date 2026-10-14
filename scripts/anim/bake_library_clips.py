@@ -59,6 +59,7 @@ def main():
                 retargets[name] = cr.Retarget(rig, libraries[name], profile['bone_map'])
     forward = np.array([0.0, -1.0, 0.0])         # the rig faces -Y in Blender (UE +X after export)
     coat_follow = None if a.no_coat_follow else cr.CoatFollow(rig)
+    default_coat_max = coat_follow.max_deg if coat_follow else None
     out = {'clips': {}, 'bones': rig.names,
            'provenance': {'profile': str(a.profile), 'profile_sha256': sha(a.profile),
                           'contract': str(a.contract) if a.contract else None,
@@ -71,6 +72,7 @@ def main():
         spec = profile['clips'][clip]
         segs = segments_of(spec)
         timing = None
+        root_track = None
         if len(segs) == 1 and not spec.get('mirror') and not spec.get('retime'):
             rt = retargets[segs[0]['library']]
             length = rt.lib.length(segs[0]['action'])
@@ -88,11 +90,17 @@ def main():
                 timing = {'length_s': length, 'impact_target_s': c['impact_s'], 'impact_source_s': round(impact_src, 3),
                           'source_length_s': round(seq.length, 3)}
             n = max(2, round(length * a.fps) + 1)
+            root_track = None
             _, src_t = cr.retime(length, n, seq.length, keys)
             worlds = [seq.world(t) for t in src_t]
             if spec.get('root_motion'):
-                p0 = worlds[0][rig.index['pelvis']][:3, 3].copy()
-                worlds = [cr.extract_root_motion(w, rig, p0) for w in worlds]
+                # Measured from the rest pelvis, not frame 0: a clip that starts displaced (the second cut
+                # of a combo continues from where the first ended) still has its pelvis over the root.
+                p0 = rig.rest[rig.index['pelvis']][:3, 3].copy()
+                moved = [cr.extract_root_motion(w, rig, p0) for w in worlds]
+                worlds = [w for w, _ in moved]
+                if 'root' not in rig.index:
+                    root_track = [[round(v, 6) for v in cr.ue_root_track(rig, sh)] for _, sh in moved]
         layers = {}
         if spec.get('stance'):
             st = cr.Stance(rig, **spec['stance'])
@@ -107,6 +115,8 @@ def main():
             layers['hands'] = 'relaxed'
         coat = None
         if coat_follow and coat_follow.chains:
+            # A clip may cap the swing (wide sword lunges would lever the panels out flat).
+            coat_follow.max_deg = spec.get('coat_max_deg', default_coat_max)
             coat_follow.apply(worlds, spec['loop'])
             coat = coat_follow.last
         tracks = {b: [] for b in rig.names}
@@ -114,12 +124,15 @@ def main():
             local = rig.world_to_local(world)
             for i, b in enumerate(rig.names):
                 tracks[b].append([round(v, 6) for v in cr.ue_from_matrix(local[i])])
+        if root_track is not None:
+            tracks['root'] = root_track
         speed = None
         if spec.get('measure_speed'):
             speed = cr.planted_speed(retargets[segs[0]['library']], segs[0]['action'], forward) * 100
         source = ' + '.join(f"{g['library']}:{g['action']}" for g in segs) + (' (mirrored)' if spec.get('mirror') else '')
         out['clips'][clip] = {'source': source, 'fps': a.fps, 'frames': n, 'length': length, 'loop': spec['loop'],
                               'speed_cm_s': speed, 'root_motion': bool(spec.get('root_motion')), 'timing': timing,
+                              'trace_bone': spec.get('trace_bone'),
                               'also_as': spec.get('also_as', []), 'coat_follow': coat, 'layers': layers, 'tracks': tracks}
         print(f'BAKED {clip} <- {source}: {n} keys, {length:.2f}s, speed {speed}, timing {timing}, layers {layers}', flush=True)
     (a.out / 'clips.json').write_text(json.dumps(out, separators=(',', ':')))
