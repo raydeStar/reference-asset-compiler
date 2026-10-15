@@ -276,9 +276,9 @@ def build_stop(rig, jog, jog_length, jog_speed, idle, idle_length, side, v0, dec
         t = length * i / (n - 1)
         here = fwd * s(t)                                  # world -> root frame: subtract the travel
         J = jog((phi0 + s(t) / jog_speed) % jog_length)
-        I = idle((t - length) % idle_length)
+        idle_pose = idle((t - length) % idle_length)
         w = smoothstep((t - blend[0]) / (blend[1] - blend[0]))
-        world = fk(rig, blend_local(rig.world_to_local(J), rig.world_to_local(I), w))
+        world = fk(rig, blend_local(rig.world_to_local(J), rig.world_to_local(idle_pose), w))
         dip = dip_m * math.sin(math.pi * min(1.0, max(0.0, t / (close_land + 0.1))))
         drop = np.eye(4)
         drop[2, 3] = -dip
@@ -358,9 +358,9 @@ def build_start(rig, jog, jog_length, jog_speed, idle, idle_length, v0, accel, r
         t = length * i / (n - 1)
         here = fwd * s(t)
         J = jog(phi_of(t))
-        I = idle(t % idle_length)
+        idle_pose = idle(t % idle_length)
         w = smoothstep((t - blend[0]) / (blend[1] - blend[0]))
-        world = fk(rig, blend_local(rig.world_to_local(I), rig.world_to_local(J), w))
+        world = fk(rig, blend_local(rig.world_to_local(idle_pose), rig.world_to_local(J), w))
         for sd in 'lr':
             f = feet[sd]
             lift, join = plan[sd]
