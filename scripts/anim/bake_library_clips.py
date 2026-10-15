@@ -21,6 +21,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import clip_retarget as cr  # noqa: E402
+import transition_clips as tc  # noqa: E402
 
 
 def sha(path):
@@ -48,6 +49,9 @@ def main():
     contract = json.loads(a.contract.read_text())['clips'] if a.contract else {}
 
     def segments_of(spec):
+        if spec.get('transition'):      # built from two other clips of this profile
+            tr = spec['transition']
+            return [seg for c in (tr['from'], tr.get('to', tr['from'])) for seg in segments_of(profile['clips'][c])]
         return spec.get('segments') or [{'library': spec['library'], 'action': spec['action']}]
     libraries, retargets = {}, {}
     for clip in wanted:
@@ -79,12 +83,61 @@ def main():
                           'character_blend': bpy.data.filepath, 'character_blend_sha256': sha(bpy.data.filepath),
                           'blender': bpy.app.version_string, 'script_sha256': sha(__file__),
                           'retarget_sha256': sha(cr.__file__)}}
+    def layered(name):
+        """A single-action clip of this profile as an in-place pose function with its layers, and its length."""
+        spec = profile['clips'][name]
+        rt, act = retargets[spec['library']], spec['action']
+        stance = cr.Stance(rig, **spec['stance']) if spec.get('stance') else None
+        hands = cr.RelaxedHands(rig) if spec.get('hands') == 'relaxed' else None
+        cache = {}
+
+        def pose(t):
+            key = round(t, 5)
+            if key not in cache:
+                w = rt.world(act, t, loop=True)
+                if stance:
+                    w = stance.apply(w)
+                if hands:
+                    w = hands.apply(w)
+                cache[key] = w
+            return cache[key].copy()
+        return pose, rt.lib.length(act), rt, act
+
     for clip in wanted:
         spec = profile['clips'][clip]
         segs = segments_of(spec)
         timing = None
         root_track, speed = None, None
-        if len(segs) == 1 and not spec.get('mirror') and not spec.get('retime'):
+        transition = None
+        if spec.get('transition') and spec['transition']['kind'] == 'backhop':
+            tr = spec['transition']
+            idle, idle_len, _, _ = layered(tr['from'])
+            worlds, transition = tc.build_backhop(rig, idle, idle_len, fps=a.fps)
+            transition['from'] = tr['from']
+            n, length = len(worlds), transition['length_s']
+        elif spec.get('transition'):
+            tr = spec['transition']
+            jog_name, idle_name = (tr['to'], tr['from']) if tr['kind'] == 'start' else (tr['from'], tr['to'])
+            jog, jog_len, jog_rt, jog_act = layered(jog_name)
+            idle, idle_len, _, _ = layered(idle_name)
+            jog_speed = cr.planted_speed(jog_rt, jog_act, forward)
+            if tr['kind'] == 'pivot':
+                worlds, transition = tc.build_pivot(rig, jog, jog_len, jog_speed, tr['turn'], tr['v0_cm_s'] / 100,
+                                                    tr['accel_cm_s2'] / 100, tr['reverse_friction'],
+                                                    yaw_rate_deg=tr.get('yaw_rate_deg_s', 720.0),
+                                                    end_phase=tr.get('end_phase_s'), fps=a.fps)
+            elif tr['kind'] == 'stop':
+                worlds, transition = tc.build_stop(rig, jog, jog_len, jog_speed, idle, idle_len, tr['plant'],
+                                                   tr['v0_cm_s'] / 100, tr['braking_decel_cm_s2'] / 100,
+                                                   tr['braking_friction'], settle_s=tr.get('settle_s', 0.4), fps=a.fps)
+            else:
+                worlds, transition = tc.build_start(rig, jog, jog_len, jog_speed, idle, idle_len, tr['v0_cm_s'] / 100,
+                                                    tr['accel_cm_s2'] / 100, run_s=tr.get('run_s', 0.2), fps=a.fps)
+            if tr.get('runin_s') and tr['kind'] in ('stop', 'pivot'):
+                worlds, transition = tc.with_runin(rig, jog, jog_len, jog_speed, worlds, transition, tr['runin_s'])
+            transition.update({'from': tr['from'], 'to': tr['to'], 'jog_planted_speed_cm_s': round(jog_speed * 100, 1)})
+            n, length = len(worlds), transition['profile'][-1][0]
+        elif len(segs) == 1 and not spec.get('mirror') and not spec.get('retime') and spec.get('root_motion') in (None, False, 'facing'):
             rt = retargets[segs[0]['library']]
             t0, t1 = spec.get('range') or (0.0, rt.lib.length(segs[0]['action']))
             length = t1 - t0
@@ -100,7 +153,12 @@ def main():
         else:
             seq = cr.Sequence(retargets, segs, mirror=spec.get('mirror', False))
             keys, length = [], seq.length
-            if spec.get('retime'):
+            if spec.get('timing'):
+                # explicit retime: the clip's length and (target s, source s) anchors, e.g. a dodge compressed to the game's
+                length = spec['timing']['length']
+                keys = [tuple(k) for k in spec['timing']['keys']]
+                timing = {'length_s': length, 'keys': keys, 'source_length_s': round(seq.length, 3)}
+            elif spec.get('retime'):
                 # The game's timing contract: clip length and the moment the hit lands.
                 c = contract[clip]
                 length = c['length']
@@ -120,7 +178,7 @@ def main():
                 worlds = [w for w, _ in moved]
                 if 'root' not in rig.index:
                     root_track = [[round(v, 6) for v in cr.ue_root_track(rig, sh)] for _, sh in moved]
-        layers = {}
+        layers = {'from_sources': True} if transition else {}
         if spec.get('stance'):
             st = cr.Stance(rig, **spec['stance'])
             lf, rf = rig.index['foot_l'], rig.index['foot_r']
@@ -145,15 +203,19 @@ def main():
                 tracks[b].append([round(v, 6) for v in cr.ue_from_matrix(local[i])])
         if root_track is not None:
             tracks['root'] = root_track
+        if spec.get('in_place'):
+            # travel extracted (the pose stays over the root) but not keyed: the game moves the capsule itself
+            root_track = None
         if spec.get('root_motion') != 'facing':
             speed = None
         if spec.get('measure_speed'):
             speed = cr.planted_speed(retargets[segs[0]['library']], segs[0]['action'], forward) * 100
         source = ' + '.join(f"{g['library']}:{g['action']}" for g in segs) + (' (mirrored)' if spec.get('mirror') else '')
         out['clips'][clip] = {'source': source, 'fps': a.fps, 'frames': n, 'length': length, 'loop': spec['loop'],
-                              'speed_cm_s': speed, 'root_motion': bool(spec.get('root_motion')), 'timing': timing,
+                              'speed_cm_s': speed, 'root_motion': bool(spec.get('root_motion')) and not spec.get('in_place'), 'timing': timing,
                               'trace_bone': spec.get('trace_bone'),
-                              'also_as': spec.get('also_as', []), 'coat_follow': coat, 'layers': layers, 'tracks': tracks}
+                              'also_as': spec.get('also_as', []), 'coat_follow': coat, 'layers': layers,
+                              'transition': transition, 'tracks': tracks}
         print(f'BAKED {clip} <- {source}: {n} keys, {length:.2f}s, speed {speed}, timing {timing}, layers {layers}', flush=True)
     (a.out / 'clips.json').write_text(json.dumps(out, separators=(',', ':')))
     (a.out / 'summary.json').write_text(json.dumps(

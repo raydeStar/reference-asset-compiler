@@ -130,8 +130,113 @@
       "library": "ual1",
       "action": "Sword_Idle",
       "loop": true
+    },
+    "MM_Stop_L": {
+      "loop": false,
+      "coat_max_deg": 30,
+      "transition": {
+        "kind": "stop",
+        "from": "MF_Unarmed_Jog_Fwd",
+        "to": "MM_Idle",
+        "v0_cm_s": 500,
+        "braking_decel_cm_s2": 1000,
+        "braking_friction": 1.0,
+        "settle_s": 0.4,
+        "plant": "l"
+      }
+    },
+    "MM_Stop_R": {
+      "loop": false,
+      "coat_max_deg": 30,
+      "transition": {
+        "kind": "stop",
+        "from": "MF_Unarmed_Jog_Fwd",
+        "to": "MM_Idle",
+        "v0_cm_s": 500,
+        "braking_decel_cm_s2": 1000,
+        "braking_friction": 1.0,
+        "settle_s": 0.4,
+        "plant": "r"
+      }
+    },
+    "MM_Start": {
+      "loop": false,
+      "coat_max_deg": 30,
+      "transition": {
+        "kind": "start",
+        "from": "MM_Idle",
+        "to": "MF_Unarmed_Jog_Fwd",
+        "v0_cm_s": 500,
+        "accel_cm_s2": 1400,
+        "run_s": 0.2
+      }
+    },
+    "MM_Pivot_L": {
+      "loop": false,
+      "coat_max_deg": 55,
+      "transition": {
+        "kind": "pivot",
+        "from": "MF_Unarmed_Jog_Fwd",
+        "to": "MF_Unarmed_Jog_Fwd",
+        "turn": "l",
+        "v0_cm_s": 500,
+        "accel_cm_s2": 1400,
+        "reverse_friction": 16.0,
+        "yaw_rate_deg_s": 720,
+        "end_phase_s": 0.2583
+      }
+    },
+    "MM_Pivot_R": {
+      "loop": false,
+      "coat_max_deg": 55,
+      "transition": {
+        "kind": "pivot",
+        "from": "MF_Unarmed_Jog_Fwd",
+        "to": "MF_Unarmed_Jog_Fwd",
+        "turn": "r",
+        "v0_cm_s": 500,
+        "accel_cm_s2": 1400,
+        "reverse_friction": 16.0,
+        "yaw_rate_deg_s": 720,
+        "end_phase_s": 0.2583
+      }
+    },
+    "MM_Dodge_Fwd": {
+      "segments": [
+        {
+          "library": "ual2",
+          "action": "Sword_Dash_RM"
+        }
+      ],
+      "loop": false,
+      "root_motion": true,
+      "in_place": true,
+      "coat_max_deg": 22,
+      "timing": {
+        "length": 0.62,
+        "keys": [
+          [
+            0.1,
+            0.3
+          ],
+          [
+            0.34,
+            1.0
+          ]
+        ]
+      }
+    },
+    "MM_Dodge_Back": {
+      "loop": false,
+      "coat_max_deg": 22,
+      "transition": {
+        "kind": "backhop",
+        "from": "MM_Idle_Swords"
+      }
     }
   },
   "_layers": "hands: relaxed replaces the library's loose fists with a natural rest curl carried by the hand (clip_retarget.RelaxedHands). stance: two-bone leg IK toward a target ankle spacing with the knees turned forward (clip_retarget.Stance); the library idle is a wide combat-ready stance.",
-  "_idle_swords": "MM_Idle_Swords: the drawn-blades ready stance (UAL Sword_Idle, hands gripping the hilts; no relaxed hands). The game's Idle state switches to it while the blades are out."
+  "_idle_swords": "MM_Idle_Swords: the drawn-blades ready stance (UAL Sword_Idle, hands gripping the hilts; no relaxed hands). The game's Idle state switches to it while the blades are out.",
+  "_transitions": "Jog starts and stops composed from this profile's own jog and idle (scripts/anim/transition_clips.py), on the game's movement curves: The Aether Wars ATheAetherWarsCharacter MaxAcceleration 1400, BrakingDecelerationWalking 1000, BrakingFriction 0.5 x factor 2. Stop_L/Stop_R plant the left/right foot first; the game picks the one already planted. Pivot_L/Pivot_R: 180-degree reversal at the jog turning left/right (inside foot planted); reverse_friction = 2 x GroundFriction 8, yaw 720 deg/s (RotationRate).",
+  "_dodges": "MM_Dodge_Fwd: UAL 2 Sword_Dash_RM in place (the game moves the capsule), retimed so the lunge lands in the game's 0.34 s dodge (source 0.3 s -> 0.1 s, 1.0 s -> 0.34 s, end 1.57 s -> 0.62 s). MM_Dodge_Back: no open library has an evasive back-hop, so transition_clips.build_backhop keys one on the drawn-blades idle."
 }

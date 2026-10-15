@@ -122,3 +122,41 @@ side roots (`ik_foot_root`, `ik_hand_root`) metres away ("feet go flying"); `_re
 `MM_Idle_Swords` in `ual-to-ue-template.json`: UAL 1 `Sword_Idle`, hands gripping (no relaxed-hands layer). Packet
 `work/character-02/anim-ual-20261014/swordidle-v1/` (51 keys, 1.67 s; preview `sheet.jpg`; `work/` is not committed).
 The game switches the Idle state to it while the blades are drawn (The Aether Wars `Tools/BladeIdle.py`).
+
+## Starts and stops (2026-10-14)
+
+The open libraries have no jog starts or stops (100STYLE tops out at walking pace), so `scripts/anim/transition_clips.py`
+composes them from the profile's own accepted jog and idle, on the game's movement curves (profile `transition` clips:
+`MM_Stop_L`, `MM_Stop_R`, `MM_Start`). The jog plays on a time warp (phase advance = distance / planted speed); the pose
+cross-fades jog <-> idle; the feet follow an explicit step plan by two-bone leg IK. A stop is two steps: the foot planted at
+release holds, the other steps through to its idle spot (0.22 s), then the planted foot closes up (lift 7 cm); the clip ends
+on the idle's frame 0. A start steps off with the left foot onto the jog's touchdown (0.28 s); the right holds its idle spot
+until the jog lifts it. `summary.json` records each clip's speed profile and per-frame ball-of-foot positions with the travel
+added back (`slip`: planted median 0 cm/s on both stops). Packet `work/character-02/anim-ual-20261014/startstop-v4/`
+(preview `preview/strip.jpg`). Game side: The Aether Wars `Tools/LocomotionFeel.py` and `UAetherLocomotionFeelComponent`.
+
+Retained failures: v1/v2 planted one foot through the whole ~95 cm stop (out of leg reach: the foot dragged and sank 8 cm
+into the floor) with a 3 cm "closing" lift that read as a slide; turning a planted foot about its ankle to the idle's toe-out
+swung the ball 10 cm sideways (planted feet now keep their rotation until they lift); a start ending on jog frame 0 had no
+touchdown inside the clip (both feet airborne at the join), so the start's phase is now chosen from its first touchdown.
+
+## Pivots (2026-10-14)
+
+`build_pivot` composes a 180-degree running reversal on the game's curves (reverse friction 16 = 2 x GroundFriction, accel
+1400, yaw 720 deg/s), in the actor's frame while the actor turns: the inside foot keeps its ball fixed in the world and yaws
+with the body, the outside foot arcs from behind onto the new direction's touchdown (0.22 s), the planted foot pushes off
+0.04 s later; the clip then runs on until the jog reaches `end_phase_s`. Per-frame feet are reported back in world space
+(`slip`: planted median 0.7-0.9 cm/s). Packet `work/character-02/anim-ual-20261014/pivot-v2/`.
+
+## Dodges (2026-10-15)
+
+`MM_Dodge_Fwd`: UAL 2 `Sword_Dash_RM` with `in_place` (travel extracted, not keyed: the game moves the capsule) and an
+explicit `timing` retime (`length` + `[target s, source s]` anchors: 0.3 -> 0.1, 1.0 -> 0.34, end 1.57 -> 0.62 s).
+`MM_Dodge_Back`: `transition_clips.build_backhop`, keyed offsets on the drawn-blades idle (pelvis crouch/rise/land, feet
+lifted and reaching, spine pitched forward ~24 deg, arms thrown forward), legs by IK; `chest_ahead_of_pelvis_cm` in the
+summary checks the lean sign. Single-segment clips with `root_motion: true` now go through the root-motion path (before,
+their travel stayed in the pose). Candidates rejected: Roll_RM (a dive roll, kept for landing rolls), Hit_Knockback_RM (falls
+flat), Shield_Dash_RM (shoulder charge). Packet `work/character-02/anim-ual-20261014/dodge-v2/`.
+
+Retained failure (2026-10-15): `with_runin` (a plain-jog run-in before a stop/pivot touchdown, profile `runin_s`) made the
+game's mid-stride entries worse (see The Aether Wars Docs/CharacterPipeline.md); kept as an option, unused.
