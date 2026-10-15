@@ -208,14 +208,18 @@ def main():
             root_track = None
         if spec.get('root_motion') != 'facing':
             speed = None
+        contacts = None
         if spec.get('measure_speed'):
             speed = cr.planted_speed(retargets[segs[0]['library']], segs[0]['action'], forward) * 100
+            # foot touchdown times in the loop: the game marks them as sync markers (L / R) for stride-phase reads
+            pose_fn, loop_len, _, _ = layered(clip)
+            contacts = {sd: round(tc.contact_phase(rig, pose_fn, loop_len, sd), 4) for sd in 'lr'}
         source = ' + '.join(f"{g['library']}:{g['action']}" for g in segs) + (' (mirrored)' if spec.get('mirror') else '')
         out['clips'][clip] = {'source': source, 'fps': a.fps, 'frames': n, 'length': length, 'loop': spec['loop'],
                               'speed_cm_s': speed, 'root_motion': bool(spec.get('root_motion')) and not spec.get('in_place'), 'timing': timing,
                               'trace_bone': spec.get('trace_bone'),
                               'also_as': spec.get('also_as', []), 'coat_follow': coat, 'layers': layers,
-                              'transition': transition, 'tracks': tracks}
+                              'transition': transition, 'contacts_s': contacts, 'tracks': tracks}
         print(f'BAKED {clip} <- {source}: {n} keys, {length:.2f}s, speed {speed}, timing {timing}, layers {layers}', flush=True)
     (a.out / 'clips.json').write_text(json.dumps(out, separators=(',', ':')))
     (a.out / 'summary.json').write_text(json.dumps(
