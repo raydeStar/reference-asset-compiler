@@ -588,10 +588,12 @@ class Stance:
     the target are left alone. lateral is the rig's left-right axis (+X: the character's left, facing -Y)."""
 
     def __init__(self, rig: TargetRig, feet_apart_m=0.26, knee_forward=1.0, max_stagger_m=None,
-                 lateral=(1.0, 0.0, 0.0), forward=(0.0, -1.0, 0.0)):
+                 pelvis_lift_m=0.0, lateral=(1.0, 0.0, 0.0), forward=(0.0, -1.0, 0.0)):
         self.rig, self.width, self.knee_forward, self.stagger = rig, feet_apart_m, knee_forward, max_stagger_m
+        self.pelvis_lift = float(pelvis_lift_m)
         self.lat, self.fwd = np.array(lateral, float), np.array(forward, float)
         ix = rig.index
+        self.pelvis = ix.get('pelvis')
         self.legs = []
         for s in 'lr':
             thigh, calf, foot = ix[f'thigh_{s}'], ix[f'calf_{s}'], ix[f'foot_{s}']
@@ -601,14 +603,22 @@ class Stance:
 
     def apply(self, world):
         rig = self.rig
-        feet = {s: world[foot][:3, 3] for s, _, _, foot, _, _ in self.legs}
+        feet = {s: world[foot][:3, 3].copy() for s, _, _, foot, _, _ in self.legs}
         centre = (feet['l'] + feet['r']) / 2
         spread = float(np.dot(feet['l'] - feet['r'], self.lat))
         stagger = float(np.dot(feet['l'] - feet['r'], self.fwd))
         narrow = spread > self.width
         unstagger = self.stagger is not None and abs(stagger) > self.stagger
-        if not (narrow or unstagger):
+        lift = abs(self.pelvis_lift) > 1e-6
+        if not (narrow or unstagger or lift):
             return world
+        if lift and self.pelvis is not None:
+            for i in range(len(rig.parents)):
+                anc = i
+                while anc not in (-1, self.pelvis):
+                    anc = rig.parents[anc]
+                if anc == self.pelvis:
+                    world[i][2, 3] += self.pelvis_lift
         for s, thigh, calf, foot, l1, l2 in self.legs:
             sign = 1.0 if s == 'l' else -1.0
             ankle = feet[s].copy()
@@ -661,3 +671,37 @@ class Stance:
             if bone in rig.index and ik in rig.index:
                 world[rig.index[ik]] = world[rig.index[bone]]
         return world
+
+
+class TwistBones:
+    """Distribute distal joint axial X-twist (hand relative to lowerarm, foot relative to calf) across
+    Manny's sibling twist bones (_twist_02 at 1/3, _twist_01 at 2/3), preventing wrist/cuff candy-wrapping
+    when retargeting from open libraries (UAL) that lack twist bones."""
+
+    def __init__(self, rig: TargetRig, frac_01=0.35, frac_02=0.18):
+        self.rig = rig
+        self.frac_01 = float(frac_01)
+        self.frac_02 = float(frac_02)
+        ix = rig.index
+        self.chains = []
+        for parent_prefix, child_prefix in (('lowerarm', 'hand'), ('calf', 'foot')):
+            for s in 'lr':
+                parent = ix.get(f'{parent_prefix}_{s}')
+                child = ix.get(f'{child_prefix}_{s}')
+                t1 = ix.get(f'{parent_prefix}_twist_01_{s}')
+                t2 = ix.get(f'{parent_prefix}_twist_02_{s}')
+                if None not in (parent, child, t1, t2):
+                    self.chains.append((parent, child, t1, t2))
+
+    def apply(self, world):
+        rig = self.rig
+        for parent, child, t1, t2 in self.chains:
+            anim_rel = np.linalg.inv(world[parent]) @ world[child]
+            basis = np.linalg.inv(rig.local_rest[child]) @ anim_rel
+            _, twist = Matrix(basis[:3, :3].tolist()).to_quaternion().to_swing_twist('X')
+            for ti, frac in ((t1, self.frac_01), (t2, self.frac_02)):
+                rx = np.eye(4)
+                rx[:3, :3] = np.array(Matrix.Rotation(twist * frac, 3, 'X'))
+                world[ti] = world[parent] @ rig.local_rest[ti] @ rx
+        return world
+

@@ -129,7 +129,13 @@
     "MM_Idle_Swords": {
       "library": "ual1",
       "action": "Sword_Idle",
-      "loop": true
+      "loop": true,
+      "stance": {
+        "feet_apart_m": 0.34,
+        "knee_forward": 0.85,
+        "max_stagger_m": 0.24,
+        "pelvis_lift_m": 0.09
+      }
     },
     "MM_Stop_L": {
       "loop": false,

@@ -30,7 +30,7 @@ def sha(path):
 
 def main():
     p = argparse.ArgumentParser()
-    p.add_argument('--profile', type=Path, required=True)
+    p.add_argument('--profile', type=Path, action='append', required=True)
     p.add_argument('--library', action='append', default=[], help='name=path')
     p.add_argument('--out', type=Path, required=True)
     p.add_argument('--clips', default='')
@@ -40,9 +40,15 @@ def main():
                    help='leave coat_* chains at rest (by default they swing clear of the legs)')
     a = p.parse_args(sys.argv[sys.argv.index('--') + 1:])
     a.out.mkdir(parents=True, exist_ok=False)
-    profile = json.loads(a.profile.read_text())
-    if 'bone_map_from' in profile:      # share one bone map between clip profiles
-        profile['bone_map'] = json.loads((a.profile.parent / profile['bone_map_from']).read_text())['bone_map']
+    profile = None
+    for prof_path in a.profile:
+        part = json.loads(prof_path.read_text())
+        if 'bone_map_from' in part:      # share one bone map between clip profiles
+            part['bone_map'] = json.loads((prof_path.parent / part['bone_map_from']).read_text())['bone_map']
+        if profile is None:
+            profile = part
+        else:
+            profile['clips'].update(part['clips'])
     paths = dict(item.split('=', 1) for item in a.library)
     wanted = [c for c in a.clips.split(',') if c] or list(profile['clips'])
     rig = cr.TargetRig(next(o for o in bpy.context.scene.objects if o.type == 'ARMATURE'))
@@ -73,10 +79,12 @@ def main():
             return {t: sha(lib.folder / f'{t}.bvh') for t in lib.rigs}
         return sha(paths[n])
     forward = np.array([0.0, -1.0, 0.0])         # the rig faces -Y in Blender (UE +X after export)
+    twist_bones = cr.TwistBones(rig)
     coat_follow = None if a.no_coat_follow else cr.CoatFollow(rig)
     default_coat_max = coat_follow.max_deg if coat_follow else None
     out = {'clips': {}, 'bones': rig.names,
-           'provenance': {'profile': str(a.profile), 'profile_sha256': sha(a.profile),
+           'provenance': {'profile': [str(p_path) for p_path in a.profile] if len(a.profile) > 1 else str(a.profile[0]),
+                          'profile_sha256': [sha(p_path) for p_path in a.profile] if len(a.profile) > 1 else sha(a.profile[0]),
                           'contract': str(a.contract) if a.contract else None,
                           'contract_sha256': sha(a.contract) if a.contract else None,
                           'libraries': {n: {'path': paths[n], 'sha256': library_hashes(n)} for n in libraries},
@@ -190,6 +198,9 @@ def main():
             hands = cr.RelaxedHands(rig)
             worlds = [hands.apply(w) for w in worlds]
             layers['hands'] = 'relaxed'
+        if twist_bones.chains:
+            worlds = [twist_bones.apply(w) for w in worlds]
+            layers['twist_bones'] = True
         coat = None
         if coat_follow and coat_follow.chains:
             # A clip may cap the swing (wide sword lunges would lever the panels out flat).
