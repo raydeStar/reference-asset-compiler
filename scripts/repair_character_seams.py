@@ -8,6 +8,7 @@ import hashlib
 import json
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -66,6 +67,25 @@ def main():
             save()
             raise RuntimeError(f"Repair stopped: inspect {log}")
 
+    def run_py(name, parameters):
+        script = ROOT / "scripts" / name
+        receipt["script_hashes"][name] = sha(script)
+        shutil.copy2(script, out / "scripts" / name)
+        command = [sys.executable, str(script)] + [str(p) for p in parameters]
+        entry = {"argv": command, "exit_code": None}
+        receipt["commands"].append(entry)
+        save()
+        log = out / f"{len(receipt['commands']):02d}-{Path(name).stem}.log"
+        print(f"Repair: {name}; the evidence travels with the tailoring.", flush=True)
+        with log.open("w", encoding="utf-8") as stream:
+            entry["exit_code"] = subprocess.run(command, cwd=ROOT, stdout=stream,
+                                                stderr=subprocess.STDOUT, check=False).returncode
+        save()
+        if entry["exit_code"]:
+            receipt["state"] = "failed"
+            save()
+            raise RuntimeError(f"Repair stopped: inspect {log}")
+
     # Imported helpers also belong to the reproducibility record.
     for relative in ("src/reference_asset_compiler/template_hands.py",
                      "src/reference_asset_compiler/budgets.py",
@@ -84,6 +104,32 @@ def main():
         "--object", collar["object"], "--box", *collar["box"],
         "--max-displacement-m", collar["max_displacement_m"], "--iterations", collar["iterations"]])
     candidate = out / "collar/Character02_UE5_seams.blend"
+    repack = recipe.get("repack")
+    if repack:
+        helper = ROOT / "scripts/blender/outfit_uv_islands.py"
+        receipt["script_hashes"]["scripts/blender/outfit_uv_islands.py"] = sha(helper)
+        shutil.copy2(helper, out / "scripts" / helper.name)
+        repack_dir = out / "repack"
+        run_py("repack_outfit_coherent.py", [
+            "--blend", candidate, "--object", collar["object"],
+            "--basecolor", inputs["outfit_basecolor"],
+            "--mask", inputs["outfit_mask"],
+            "--head-basecolor", inputs["skin_texture"],
+            "--stage-dir", inputs["outfit_stage_json"].parent,
+            "--scale", repack.get("scale", 2),
+            "--pad", repack.get("pad", 2),
+            "--blender", args.blender.resolve(),
+            "--out", repack_dir,
+        ])
+        candidate = repack_dir / "Character02_UE5_seams.blend"
+        shutil.copytree(repack_dir / "outfit-paint", out / "outfit-paint")
+    if recipe.get("pbr_bake"):
+        run_py("bake_outfit_pbr.py", [
+            "--islands", out / "repack/islands-repacked.npz",
+            "--basecolor", out / "outfit-paint/body_basecolor.png",
+            "--mask", out / "outfit-paint/garment_mask.png",
+            "--out", out / "outfit-paint",
+        ])
     manny = inputs["manny_reference"].parent
     if inputs["manny_poses"].parent != manny:
         raise ValueError("Manny reference and poses must share their source directory")
@@ -93,6 +139,13 @@ def main():
     coat = out / "Character02_UE5_coat.blend"
     run("add_coat_chains.py", [exported, "--profile", inputs["character_profile"],
         "--receipt", out / "coat.json", "--save-blend", coat], blend=candidate)
+    if "skin_texture" in inputs:
+        (out / "hands-paint").mkdir(exist_ok=True)
+        shutil.copy2(inputs["skin_texture"], out / "hands-paint/head_basecolor.png")
+    if "hair_basecolor" in inputs:
+        shutil.copy2(inputs["hair_basecolor"], out / "export/hair-mesh-basecolor.png")
+    if "hair_normal" in inputs:
+        shutil.copy2(inputs["hair_normal"], out / "export/hair-mesh-normal.png")
     run("gate_rig.py", [exported, inputs["skeleton_profile"], out / "gate-rig.json", "--tier", "hero"])
     run("review_character_seams.py", [coat, out / "review", "--manny-dir", manny,
         "--device", args.device, "--samples", "32"])

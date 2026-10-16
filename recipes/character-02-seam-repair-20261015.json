@@ -1,0 +1,82 @@
+{
+  "recipe_id": "character-02-seam-repair-20261015",
+  "description": "Existing acquired Character02; preserve finger axes, trim cuff triangles, topological collar/shoulder fairing with double-walled lining, 2x coherent outfit atlas repack (4x texel area), and deterministic PBR ORM + relief normal bake.",
+  "inputs": {
+    "shoulders": {
+      "path": "work/character-02/rebuild-v23/ue5/fit/Character02_UE5_shoulders.blend",
+      "sha256": "94d6f7a9c217d1f90df4549e2141b9281044527a0831e104898f4645dbf05acf"
+    },
+    "original": {
+      "path": "work/character-02/rebuild-v23/ue5/fit/Character02_UE5_hands.blend",
+      "sha256": "4101f3a29075cc53085021781f88ab494ea902e40b2eda455df11d92975a2c16"
+    },
+    "template": {
+      "path": "work/character-02/rebuild-v23/inputs/template.npz",
+      "sha256": "d559a1902097b11ed5cddcf9d2f2e6a5ea949531f6bf84f6ca6eea0242934c8a"
+    },
+    "skin_texture": {
+      "path": "work/character-02/rebuild-v23/hands-paint/head_basecolor.png",
+      "sha256": "169e2f55e7dca6750ac57f02371d9bc47d77e79d90591767607f333ce55f41ea"
+    },
+    "outfit_basecolor": {
+      "path": "work/character-02/coat-clean-20261014/v6/body_basecolor.png",
+      "sha256": "b9f82e142d8d90cdbab0d8845a859471edf1e48d1496ec0a457642daae98f36c"
+    },
+    "outfit_mask": {
+      "path": "work/character-02/sleeve-repair-20261012-release-v2/outfit-paint/garment_mask.png",
+      "sha256": "d930ef24054c8a1633e67fdb6f5a5db13cd02458e011b99f1bbec5d31c5ae6d8"
+    },
+    "outfit_stage_json": {
+      "path": "work/character-02/sleeve-repair-20261012-release-v2/outfit-paint/outfit-paint.json",
+      "sha256": "3cb9fe0484967a9cbf6bb25d736fc842f24917822bd08ae4de6fdcf5ed88c0a1"
+    },
+    "hair_basecolor": {
+      "path": "work/character-02/rebuild-v23/export/hair-mesh-basecolor.png",
+      "sha256": "002064a7b5652158e98976c018a2708c0837d9c3d4e85171de4c574c664e9d8b"
+    },
+    "hair_normal": {
+      "path": "work/character-02/rebuild-v23/export/hair-mesh-normal.png",
+      "sha256": "70c8cf890b5fd480fda9cabeaaa23a7ff4cbc67b096994bd8accad75f7b2ff0b"
+    },
+    "manny_reference": {
+      "path": "work/ennix-character-v1/rig-ue5/manny_refpose.json",
+      "sha256": "a4f99ea737922809db9a780871ccfe83d4cbcc3febdc210223f674addbc956f9"
+    },
+    "manny_poses": {
+      "path": "work/ennix-character-v1/rig-ue5/manny_anim_poses.json",
+      "sha256": "e314df1d7790024b90269651cb9b96fe08857d8e2743703dd180668c74e1f1c3"
+    },
+    "character_profile": {
+      "path": "profiles/characters/character-02.json",
+      "sha256": "5c9296c966068aa23a561f08ecfbfdd3705902c330b6d3f40b1de2edc37d8154"
+    },
+    "skeleton_profile": {
+      "path": "work/character-02/rebuild-v23/export/skeleton-ue5-coat+waiver.json",
+      "sha256": "8c14855bf9679105f401ec7bb203fa002e0f9399e5e3a09478006bcf4ddd7877"
+    }
+  },
+  "cut_beyond_m": -0.015,
+  "collar": {
+    "object": "Character02_Outfit_And_Hands",
+    "box": [
+      -0.12,
+      0.12,
+      -0.1,
+      0.1,
+      1.46,
+      1.55
+    ],
+    "max_displacement_m": 0.008,
+    "iterations": 20
+  },
+  "repack": {
+    "scale": 2,
+    "pad": 2
+  },
+  "pbr_bake": true,
+  "production_ready": false,
+  "limitations": [
+    "Hands need artistic acceptance",
+    "Interactive Unreal PIE validation requires human playtest"
+  ]
+}
