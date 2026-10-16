@@ -170,6 +170,22 @@ def _fcurves(action):
         yield from getattr(action, 'fcurves', [])
 
 
+def _rot_between(u, v):
+    u = np.asarray(u, float) / max(np.linalg.norm(u), 1e-9)
+    v = np.asarray(v, float) / max(np.linalg.norm(v), 1e-9)
+    return np.array(Vector(u.tolist()).rotation_difference(Vector(v.tolist())).to_matrix())
+
+
+def _rot_axis_deg(axis, deg):
+    return np.array(Matrix.Rotation(math.radians(deg), 3, Vector(axis)))
+
+
+def _slerp_mat(r0, r1, alpha):
+    q0 = Matrix(r0.tolist()).to_quaternion()
+    q1 = Matrix(r1.tolist()).to_quaternion()
+    return np.array(q0.slerp(q1, float(alpha)).to_matrix())
+
+
 class Retarget:
     @staticmethod
     def _leg(world, names):
@@ -180,7 +196,8 @@ class Retarget:
         self.t, self.lib = target, library
         self.ref = reference or library.reference()
         self.pairs = {target.index[tn]: sn for sn, tn in bone_map.items() if sn in self.ref and tn in target.index}
-        inv = {tn: sn for sn, tn in bone_map.items()}
+        self.inv = {tn: sn for sn, tn in bone_map.items()}
+        inv = self.inv
         self.leg_names = tuple(inv[n] for n in ('thigh_l', 'calf_l', 'foot_l'))
         self.src_pelvis = inv['pelvis']
         missing = sorted(set(bone_map.values()) - set(target.names))
@@ -194,6 +211,40 @@ class Retarget:
         yaw = heading(tw, 'upperarm_l', 'upperarm_r') - heading(self.ref, *self.src_arms)
         self.A = np.array(Matrix.Rotation(yaw, 3, 'Z'))
         self.scale = self._leg(tw, ('thigh_l', 'calf_l', 'foot_l')) / self._leg(self.ref, self.leg_names)
+
+        # Build a matched T-pose reference orientation for the target rig so A-stance leg splay,
+        # duck-footed toe-out, drooped upper arms, and UAL's arched-back T-pose do not bias every frame.
+        # Keep sagittal (X) leg pitch untouched so ball-of-foot touchdown phases and transition lengths stay exact.
+        self.tgt_ref = [m[:3, :3].copy() for m in target.rest]
+        ix = target.index
+        for s in ('l', 'r'):
+            sign = 1.0 if s == 'l' else -1.0
+            for leg_bone in (f'thigh_{s}', f'calf_{s}'):
+                if leg_bone in ix:
+                    li = ix[leg_bone]
+                    r_adduct_leg = _rot_axis_deg((0, 1, 0), -sign * 6.5)
+                    r_untwist_leg = _rot_axis_deg((0, 0, 1), -sign * 10.0)
+                    self.tgt_ref[li] = r_untwist_leg @ r_adduct_leg @ self.tgt_ref[li]
+            if f'foot_{s}' in ix:
+                fi = ix[f'foot_{s}']
+                self.tgt_ref[fi] = _rot_axis_deg((0, 0, 1), -sign * 16.0) @ self.tgt_ref[fi]
+            for p_name, c_name in ((f'upperarm_{s}', f'lowerarm_{s}'), (f'lowerarm_{s}', f'hand_{s}')):
+                if p_name in ix and c_name in ix and p_name in inv and c_name in inv:
+                    pi, ci = ix[p_name], ix[c_name]
+                    sp, sc = inv[p_name], inv[c_name]
+                    u_tgt = target.rest[ci][:3, 3] - target.rest[pi][:3, 3]
+                    u_src = self.A @ (self.ref[sc][:3, 3] - self.ref[sp][:3, 3])
+                    r_swing = _rot_between(u_tgt, u_src)
+                    if p_name.startswith('upperarm'):
+                        r_adduct = _rot_axis_deg((0, 1, 0), -sign * 7.5)
+                        self.tgt_ref[pi] = r_adduct @ r_swing @ self.tgt_ref[pi]
+                    else:
+                        self.tgt_ref[pi] = r_swing @ self.tgt_ref[pi]
+        for b_name, pitch_deg in (('spine_02', -3.0), ('spine_03', -6.0), ('spine_04', -9.0),
+                                  ('spine_05', -12.0), ('neck_01', -4.0), ('head', -10.0)):
+            if b_name in ix:
+                bi = ix[b_name]
+                self.tgt_ref[bi] = _rot_axis_deg((1, 0, 0), pitch_deg) @ self.tgt_ref[bi]
 
     def _mirror(self, pose):
         """The pose reflected through the source's sagittal plane (left and right swapped)."""
@@ -217,14 +268,50 @@ class Retarget:
             src, ref = self._mirror(src), self._mirror(self.ref)
         tg, A = self.t, self.A
         world = np.empty_like(tg.rest)
+
+        def src_delta(sn):
+            return A @ (src[sn][:3, :3] @ np.linalg.inv(ref[sn][:3, :3])) @ A.T
+
+        # Smooth 5-bone spine interpolation from UAL's 3 spine bones (prevents kinking at spine_05 collar base)
+        spine_deltas = {}
+        if all(k in self.inv and self.inv[k] in src for k in ('spine_01', 'spine_03', 'spine_05')):
+            d1 = src_delta(self.inv['spine_01'])
+            d2 = src_delta(self.inv['spine_03'])
+            d3 = src_delta(self.inv['spine_05'])
+            spine_deltas = {
+                'spine_01': d1,
+                'spine_02': _slerp_mat(d1, d2, 0.5),
+                'spine_03': d2,
+                'spine_04': _slerp_mat(d2, d3, 0.55),
+                'spine_05': _slerp_mat(d2, d3, 0.85),
+            }
+
         for i, p in enumerate(tg.parents):
             world[i] = (world[p] if p >= 0 else tg.mw) @ tg.local_rest[i]
+            bname = tg.names[i]
+            if bname in spine_deltas:
+                world[i][:3, :3] = spine_deltas[bname] @ self.tgt_ref[i]
+                continue
+            if bname in ('clavicle_l', 'clavicle_r'):
+                # UAL's clavicle vector points backward (+Y) while Character02's points forward (-Y, 54.7 deg apart),
+                # and the coat's shoulder pads were lifted into T-pose for binding. Depress the clavicle naturally
+                # when the arm lowers from T-pose instead of applying UAL's incompatible clavicle roll/yaw delta.
+                s = bname[-1]
+                sign = 1.0 if s == 'l' else -1.0
+                su, sl = self.inv.get(f'upperarm_{s}'), self.inv.get(f'lowerarm_{s}')
+                if su in src and sl in src:
+                    d_arm = A @ (src[sl][:3, 3] - src[su][:3, 3])
+                    d_arm /= max(np.linalg.norm(d_arm), 1e-9)
+                    down_frac = float(np.clip((0.15 - d_arm[2]) / 0.85, 0.0, 1.0))
+                    r_dep = _rot_axis_deg((0, 1, 0), sign * 13.5 * down_frac)
+                    r_fwd = _rot_axis_deg((0, 0, 1), -sign * 3.0 * down_frac)
+                    world[i][:3, :3] = r_fwd @ r_dep @ world[i][:3, :3]
+                continue
             sn = self.pairs.get(i)
             if sn is None:
                 continue
-            delta = src[sn][:3, :3] @ np.linalg.inv(ref[sn][:3, :3])
-            world[i][:3, :3] = A @ delta @ A.T @ tg.rest[i][:3, :3]
-            if tg.names[i] == 'pelvis':
+            world[i][:3, :3] = src_delta(sn) @ self.tgt_ref[i]
+            if bname == 'pelvis':
                 world[i][:3, 3] = tg.rest[i][:3, 3] + A @ (src[sn][:3, 3] - ref[sn][:3, 3]) * self.scale
         for bone, ik in IK_PINS:
             if bone in tg.index and ik in tg.index:
@@ -588,9 +675,12 @@ class Stance:
     the target are left alone. lateral is the rig's left-right axis (+X: the character's left, facing -Y)."""
 
     def __init__(self, rig: TargetRig, feet_apart_m=0.26, knee_forward=1.0, max_stagger_m=None,
-                 pelvis_lift_m=0.0, lateral=(1.0, 0.0, 0.0), forward=(0.0, -1.0, 0.0)):
+                 pelvis_lift_m=0.0, center_under_pelvis=None, untwist_yaw_deg=0.0,
+                 lateral=(1.0, 0.0, 0.0), forward=(0.0, -1.0, 0.0)):
         self.rig, self.width, self.knee_forward, self.stagger = rig, feet_apart_m, knee_forward, max_stagger_m
         self.pelvis_lift = float(pelvis_lift_m)
+        self.center_under_pelvis = (max_stagger_m is not None) if center_under_pelvis is None else bool(center_under_pelvis)
+        self.untwist_yaw_deg = float(untwist_yaw_deg)
         self.lat, self.fwd = np.array(lateral, float), np.array(forward, float)
         ix = rig.index
         self.pelvis = ix.get('pelvis')
@@ -604,30 +694,45 @@ class Stance:
     def apply(self, world):
         rig = self.rig
         feet = {s: world[foot][:3, 3].copy() for s, _, _, foot, _, _ in self.legs}
+        foot_rots = {s: world[foot][:3, :3].copy() for s, _, _, foot, _, _ in self.legs}
         centre = (feet['l'] + feet['r']) / 2
         spread = float(np.dot(feet['l'] - feet['r'], self.lat))
         stagger = float(np.dot(feet['l'] - feet['r'], self.fwd))
-        narrow = spread > self.width
-        unstagger = self.stagger is not None and abs(stagger) > self.stagger
+        narrow = spread > self.width or self.center_under_pelvis
+        unstagger = (self.stagger is not None and abs(stagger) > self.stagger) or self.center_under_pelvis
         lift = abs(self.pelvis_lift) > 1e-6
-        if not (narrow or unstagger or lift):
+        untwist = abs(self.untwist_yaw_deg) > 1e-6
+        if not (narrow or unstagger or lift or untwist):
             return world
-        if lift and self.pelvis is not None:
+        if (lift or untwist) and self.pelvis is not None:
+            pivot = world[self.pelvis][:3, 3].copy()
+            r_yaw = np.eye(4)
+            if untwist:
+                r_yaw[:3, :3] = np.array(Matrix.Rotation(math.radians(self.untwist_yaw_deg), 3, 'Z'))
+                r_yaw[:3, 3] = pivot - r_yaw[:3, :3] @ pivot
             for i in range(len(rig.parents)):
                 anc = i
                 while anc not in (-1, self.pelvis):
                     anc = rig.parents[anc]
                 if anc == self.pelvis:
-                    world[i][2, 3] += self.pelvis_lift
+                    if untwist:
+                        world[i] = r_yaw @ world[i]
+                    if lift:
+                        world[i][2, 3] += self.pelvis_lift
+        if self.center_under_pelvis and self.pelvis is not None:
+            pelvis_pos = world[self.pelvis][:3, 3]
+            # Place horizontal stance center directly under the pelvis (slightly back by 2 cm so shins are vertical)
+            centre = pelvis_pos.copy() - self.fwd * 0.02
+            centre[2] = 0.5 * (feet['l'][2] + feet['r'][2])
+        target_width = min(spread, self.width) if spread > 0 else self.width
+        target_stagger = np.sign(stagger) * min(abs(stagger), self.stagger) if self.stagger is not None else stagger
         for s, thigh, calf, foot, l1, l2 in self.legs:
             sign = 1.0 if s == 'l' else -1.0
             ankle = feet[s].copy()
             if narrow:
-                ankle -= self.lat * (np.dot(feet[s] - centre, self.lat) - sign * self.width / 2)
+                ankle -= self.lat * (np.dot(ankle - centre, self.lat) - sign * target_width / 2)
             if unstagger:
-                # both feet move toward their fore-aft midpoint until they are max_stagger_m apart
-                excess = (abs(stagger) - self.stagger) / 2
-                ankle -= self.fwd * sign * np.sign(stagger) * excess
+                ankle -= self.fwd * (np.dot(ankle - centre, self.fwd) - sign * target_stagger / 2)
             hip = world[thigh][:3, 3]
             to = ankle - hip
             dist = min(np.linalg.norm(to), (l1 + l2) * 0.999)
@@ -640,7 +745,7 @@ class Stance:
             a = (l1 * l1 - l2 * l2 + dist * dist) / (2 * dist)
             h = math.sqrt(max(l1 * l1 - a * a, 0.0))
             knee = hip + u * a + pole * h
-            foot_rot = world[foot][:3, :3].copy()
+            foot_rot = foot_rots[s]
             old_knee, old_ankle = world[calf][:3, 3].copy(), world[foot][:3, 3].copy()
             new_thigh = _aim(world[thigh], old_knee - hip, knee - hip)
             new_calf = _aim(world[calf], old_ankle - old_knee, hip + u * dist - knee)
@@ -674,24 +779,22 @@ class Stance:
 
 
 class TwistBones:
-    """Distribute distal joint axial X-twist (hand relative to lowerarm, foot relative to calf) across
-    Manny's sibling twist bones (_twist_02 at 1/3, _twist_01 at 2/3), preventing wrist/cuff candy-wrapping
-    when retargeting from open libraries (UAL) that lack twist bones."""
+    """Transfer a fraction of distal joint axial X-twist (hand relative to lowerarm) onto the parent
+    limb segment AND its twist bones together so the forearm and coat cuff rotate into wrist turns
+    while keeping lowerarm_twist_01/02 locked to lowerarm (preventing cuff-to-wrist seam separation)."""
 
-    def __init__(self, rig: TargetRig, frac_01=0.35, frac_02=0.18):
+    def __init__(self, rig: TargetRig, forearm_share=0.30):
         self.rig = rig
-        self.frac_01 = float(frac_01)
-        self.frac_02 = float(frac_02)
+        self.forearm_share = float(forearm_share)
         ix = rig.index
         self.chains = []
-        for parent_prefix, child_prefix in (('lowerarm', 'hand'), ('calf', 'foot')):
-            for s in 'lr':
-                parent = ix.get(f'{parent_prefix}_{s}')
-                child = ix.get(f'{child_prefix}_{s}')
-                t1 = ix.get(f'{parent_prefix}_twist_01_{s}')
-                t2 = ix.get(f'{parent_prefix}_twist_02_{s}')
-                if None not in (parent, child, t1, t2):
-                    self.chains.append((parent, child, t1, t2))
+        for s in 'lr':
+            parent = ix.get(f'lowerarm_{s}')
+            child = ix.get(f'hand_{s}')
+            t1 = ix.get(f'lowerarm_twist_01_{s}')
+            t2 = ix.get(f'lowerarm_twist_02_{s}')
+            if None not in (parent, child, t1, t2):
+                self.chains.append((parent, child, t1, t2))
 
     def apply(self, world):
         rig = self.rig
@@ -699,9 +802,13 @@ class TwistBones:
             anim_rel = np.linalg.inv(world[parent]) @ world[child]
             basis = np.linalg.inv(rig.local_rest[child]) @ anim_rel
             _, twist = Matrix(basis[:3, :3].tolist()).to_quaternion().to_swing_twist('X')
-            for ti, frac in ((t1, self.frac_01), (t2, self.frac_02)):
-                rx = np.eye(4)
-                rx[:3, :3] = np.array(Matrix.Rotation(twist * frac, 3, 'X'))
-                world[ti] = world[parent] @ rig.local_rest[ti] @ rx
+            axis = world[child][:3, 3] - world[parent][:3, 3]
+            n = np.linalg.norm(axis)
+            if n > 1e-6 and abs(twist) > 1e-4:
+                axis /= n
+                r_share = _rot_axis_deg(axis, math.degrees(twist) * self.forearm_share)
+                world[parent][:3, :3] = r_share @ world[parent][:3, :3]
+            world[t1] = world[parent] @ rig.local_rest[t1]
+            world[t2] = world[parent] @ rig.local_rest[t2]
         return world
 

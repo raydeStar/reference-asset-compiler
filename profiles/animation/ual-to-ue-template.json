@@ -64,9 +64,12 @@
       "loop": true,
       "hands": "relaxed",
       "stance": {
-        "feet_apart_m": 0.26,
-        "knee_forward": 0.8,
-        "max_stagger_m": 0.14
+        "feet_apart_m": 0.22,
+        "knee_forward": 0.95,
+        "max_stagger_m": 0.05,
+        "pelvis_lift_m": 0.035,
+        "center_under_pelvis": true,
+        "untwist_yaw_deg": 10.5
       }
     },
     "MF_Unarmed_Walk_Fwd": {
@@ -131,10 +134,12 @@
       "action": "Sword_Idle",
       "loop": true,
       "stance": {
-        "feet_apart_m": 0.34,
-        "knee_forward": 0.85,
-        "max_stagger_m": 0.24,
-        "pelvis_lift_m": 0.09
+        "feet_apart_m": 0.30,
+        "knee_forward": 0.9,
+        "max_stagger_m": 0.18,
+        "pelvis_lift_m": 0.095,
+        "center_under_pelvis": true,
+        "untwist_yaw_deg": 8.0
       }
     },
     "MM_Stop_L": {
@@ -189,7 +194,7 @@
         "accel_cm_s2": 1400,
         "reverse_friction": 16.0,
         "yaw_rate_deg_s": 720,
-        "end_phase_s": 0.2583
+        "end_phase_s": 0.305
       }
     },
     "MM_Pivot_R": {
@@ -204,7 +209,7 @@
         "accel_cm_s2": 1400,
         "reverse_friction": 16.0,
         "yaw_rate_deg_s": 720,
-        "end_phase_s": 0.2583
+        "end_phase_s": 0.3142
       }
     },
     "MM_Dodge_Fwd": {
