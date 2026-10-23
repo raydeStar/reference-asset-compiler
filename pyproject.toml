@@ -39,6 +39,9 @@ packages = ["src/reference_asset_compiler"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Test this checkout even when an older wheel is already installed. The separate
+# wheel smoke test deliberately runs outside the checkout with isolated imports.
+pythonpath = ["src"]
 addopts = "-q"
 
 [tool.ruff]
