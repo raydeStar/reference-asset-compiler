@@ -1299,3 +1299,191 @@ the solid. Treat any envelope fallback as a failure.
 - Install absolute local keys and hash-pin the original animation dump, native
   mesh and imported FBX. Reapplying the packet is safe; dumping corrected clips
   as a new baseline would double-apply the posture and must be rejected.
+
+## 2026-10-22 — Animation export correctness and quality need separate receipts
+
+A fresh Character02 packet can pass 19-clip GLB/FBX pose round trips and actual
+baseline locomotion probes while failing its relaxed-standing stance contract
+and sampled hand/coat clearance. Keep pose, skin/surface, technical export and
+human/gameplay decisions separate. A duration edit does not repair a stance;
+compare normalized coverage before treating more intersection samples as a worse
+performance. A source-space floor plane is not a measured in-game floor.
+
+Blender imports may contain both Key|root|Clip and root|root|Clip FBX actions.
+Resolve the correct armature action explicitly. Prefer exact glTF names: matching
+an Idle_ prefix also matches Idle_Swords. Never leave technical_passed true after
+an export/check exception. Retain failed attempts rather than overwriting them.
+
+Preserve synthetic root tracks as armature-object animation when that object is
+the existing export root. Do not add a native bone or discard travel to make an
+export pass. Timing edits must refuse event/transition/root contracts they cannot
+update. A foot-sync marker is not a support interval; moving a limb while leaving
+its existing IK target behind can undo the correction in the game.
+
+## 2026-10-22 — Inspect the final game pose before attributing source collisions
+
+Character02's previous packet had 192 hand/coat contact observations in 575
+source poses, but the runtime clearance layer already removed those in game.
+The repaired source is independently clear; preserve the distinction in before/
+after captions. Source stance/clearance and consumer behavior require separate
+receipts. Moving elbows alone initially worsened thumb/coat contacts: repair the
+resting hand pose and measure the skinned surface, including thumb/finger overlap.
+
+Attack 03's -2.254 cm source-space sole height was not penetration against the
+actual dungeon floor. Real input through all three combo sections and collision
+traces yielded positive sampled sole gaps in baseline and installed repeat runs.
+Do not alter an attack's root, foot contacts or timing to satisfy a hypothetical
+zero plane. Conversely, post-combo resting-foot penetration on uneven tiles and
+brief Attack 01 finger contacts still require their own work; a clean Attack 03
+sample is not universal terrain or combat acceptance.
+
+## 2026-10-22 — Diagnose gait calibration before changing skin weights
+
+The user rejected Character02's walking legs after technical locomotion checks
+passed. The latest arm/idle repair had not changed its lower-body walk matrices.
+The legacy retarget's signed Y-axis leg rotation, intended to adduct this rig,
+instead increased reference ankle width to 60.44 cm. Narrowing that gait to a
+24 cm foot corridor at the old hip height then forced excessive knee bend.
+Source motion was also high-stepping. Correctness of hierarchy, bone lengths,
+weight normalization and export round trips does not establish a good gait.
+
+Calibrate from actual source/target segment directions and inspect the resulting
+reference stance before solving contact. Do not use a foot-width constraint as
+a substitute for reference-pose calibration. A diagnostic candidate recovered
+the source's knee ranges with unchanged model payload, but required an 8.13 cm
+global height offset; that is not a transition-safe finished repair. Review
+source performance and solve support, pelvis and handoff continuity together.
+
+CPU/null-RHI Unreal pose capture must force ALWAYS_TICK_POSE_AND_REFRESH_BONES
+and disable update-rate optimizations on the owned test pawn, otherwise an
+unrendered mesh may supply stale poses. This enables evaluated runtime evidence
+without taking another workload's GPU; it is not rendered gameplay acceptance.
+Retain broad weight-leakage screens as limited evidence, not complete rig approval.
+
+## 2026-10-22 — Solve authored contact and final game contact separately
+
+Character02's corrected walk needs segment-based reference alignment and a
+coupled pelvis/foot solve. A globally lowered or narrowed source pose does not
+repair incorrect calibration. With long strides, a small lift reduction alone
+overextends the leg or adds pelvis bob; a shorter cycle at unchanged movement
+speed permits a moderate 5 cm swing and 12–43 degree source knee range.
+
+Even that clean exported walk penetrated the game's uneven tiles after the
+existing Manny floor rig evaluated. Final contact must inspect the character's
+actual boot skin after that rig. The new game node holds only explicit flat
+support, preserves foot orientation, and solves the existing knee chain. Its
+reach test must include the requested vertical correction, or it releases
+reachable support prematurely. Acquiring blended support at weight 0.65, with
+release below 0.5, reduced the measured start drift from 1.35 cm to 0.08 cm;
+waiting for 0.9 missed part of the contact during the idle blend.
+Airborne movement and action montages release
+the solver; they retain their separate authored contracts and validation gates.
+
+Terrain queries from the previous pose left a 9 mm swing-toe dip at 30 Hz.
+Adding bounded predicted query positions removed that measured dip without
+raising every pose by an arbitrary constant. Keep queries on the game thread
+and use cached planes on animation workers. Current plus predicted centre,
+extrema and lowest-skin queries cost at most 24 traces for this character;
+crowd-scale performance has not been benchmarked.
+
+Low height, low angular velocity and low vertical speed can also describe the
+apex of a swing near raised terrain. Do not report its horizontal movement as
+planted-foot drift. Retain the inferred windows but label which windows are
+confirmed by authored support curves; report transition acquisition separately.
+Fixed-step game probes must use world simulation time, not Slate callback delta.
+The earlier Slate-clock capture and diagnostic instrumentation stall are retained
+rejections. Neither is evidence for the delivered result. Successful final
+30/60 Hz tests still leave human acceptance and cooked coverage open.
+
+## 2026-10-22 — Restore grounding during evaluated attack blend-out
+
+UE's `IsAnyMontagePlaying()` includes instances that are stopped but still
+blending out. Using it to disable contact leaves the recovery ungrounded.
+Checking active montage state during game-thread `PreUpdate` is also one
+animation update too early. Prepare collision there, then use the public
+thread-safe `IsSlotActive` API over current evaluation data to gate correction.
+A direct proxy montage-state accessor is protected and failed compilation;
+use the supported API, not access workarounds.
+
+The existing floor Control Rig's Boolean zero-to-one switch caused a roughly
+6.6 cm pelvis drop at recovery. Blend its alpha with one minus the current
+montage weight after the active strike ends. `CalcSlotMontageLocalWeight`
+reads the current proxy state; the ordinary getter is buffered. Checking
+clearance alone would have missed the resulting body pop.
+
+Discarding the entire horizontal foot-lock correction when its 15 cm/reach
+limit is crossed causes a roughly 13.6 cm one-frame foot jump. Clamp/project
+that correction into its reachable envelope and let normal support release
+finish the handoff. Measure required height again at the horizontally shifted
+boot position on slopes. Preserve active strike motion and compare it separately:
+the recovery change matched all 669 tested active poses and pawn paths exactly.
+
+Exercise the real movement handler when testing attack cancellation. Direct
+`AddMovementInput` misses the gameplay handler's cancellation threshold and
+cannot prove that handoff. Retain small residual errors honestly: this repair
+still has one 0.24 mm recovery penetration sample at 60 Hz, and the expanded
+panel finds separate unchanged active-combo penetration. Fixed simulation
+rates, successful saves and clean scripts do not imply cooked, all-terrain,
+performance or human acceptance.
+
+## 2026-10-23 — Check floor-relative sole clearance across the footprint
+
+The lowest vertex in world Z is not necessarily the deepest penetration into
+uneven terrain. Trace at each retained sole sample for validation and report the
+minimum point-to-local-floor gap. The expanded Character02 panel revealed an
+existing 3.21 cm later-walk dip after Attack 02 that the older lowest-point check
+missed. Preserve ray-hit coverage; a missing floor hit is not a clearance pass.
+
+For the active combo, use a bounded upward-only knee-chain correction, preserve
+foot orientation and disable horizontal support locking. Opt in the exact combo
+montage, rather than changing every action's contract. Paired input runs must
+compare upper-body/weapon-hand motion, pelvis, pawn path and montage timing
+separately from the intentionally changed leg contact. All six attack exits were
+exercised at 30/60 Hz; 856 active frames preserved those unaffected channels.
+
+The original six terrain landmarks per foot missed a raised tile under an
+interior toe vertex. Tracing all 149 runtime points and predicted positions fixed
+it but increased instrumented panel time substantially. Farthest-point sampling
+across each sole, capped at 16 points per foot plus predictions, retained the
+six-case contact result with 64 maximum runtime traces. Keep the independent
+all-vertex probe; do not reduce validation to match the cheaper solver. Panel
+wall time includes Python instrumentation and is not an isolated FPS benchmark.
+
+The expanded turn/reversal check still finds a 2.07 cm intersection. Reconstructing
+the prior pose and tracing its point against the same live game floor gives
+3.78 cm there. Keep this separate limitation visible; passing attack exits does
+not certify all locomotion. A commandlet editor world returned no physics hit;
+the retained failed diagnostic was replaced with a read-only null-RHI game-world
+trace, which matched the measured current floor before comparing the older point.
+
+## 2026-10-23 — Turning terrain coverage and correction limits need separate checks
+
+Do not assume a smaller residual is the same original failing frame. After
+adding backward predictions and a centre guard, the 60 Hz remainder occurred
+at another swing frame: it required 9.31 cm correction and hit the 8 cm cap.
+Raising only the locomotion cap to 10 cm fixed that frame; the exact combat
+montage retained its 3 cm cap. The temporary upper-plane-neighborhood heuristic
+did not solve the defect and was removed.
+
+A passing 60 Hz candidate still had -0.580 cm penetration at 30 Hz when a turn
+started. A centre-only 15 cm query guard is not a guard around the actual foot:
+the toe rotated outside sampled coverage, and its nearest query was 9.62 cm
+away on a lower tile. Expanding only the outer grid then lost inner samples
+and introduced another -0.908 cm result. Preserve both scales. The accepted
+technical candidate combines 16 distributed samples per boot, bidirectional
+predictions, inner and padded-footprint grids, bounded at 192 terrain traces.
+This is a correctness result at the tested location, not a crowd-performance
+claim; retain the independent all-149-vertex probe and two-rate panel.
+
+Paired comparisons must state their intended invariant. The old combat checker
+permits only upward deltas from an already corrected baseline, so its strict
+flag becomes false for a 0.038824 cm reduction in correction after changing
+terrain queries. Keep that raw flag; separately verify positive contact and
+unchanged timing, upper body, path, foot XY and orientation. Never silently
+relabel an implementation-shaped comparator as artistic or physical truth.
+
+The final commandlet audit crashed before Python in RigVM/ControlRigPhysics.
+Retain its failure receipt instead of retrying the same launch. An owned normal
+editor with RHI successfully ran the same read-only saved-asset checks, then
+exited. Record that distinct execution route and bind its actual output; runtime
+success alone does not prove saved markers or graph settings persisted.

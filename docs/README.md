@@ -25,6 +25,8 @@ escalations are retained verbatim so nobody repeats them. Start with
 - [CHARACTER_FRONT_END.md](CHARACTER_FRONT_END.md) — from reference pictures to that frozen input bundle and recipe, step by step, each step marked CPU or GPU.
 - [ENNIX_REBUILD.md](ENNIX_REBUILD.md) — Ennix's case study: each recipe's change, the reviews and the remaining gates.
 - [CHARACTER_ANIMATION.md](CHARACTER_ANIMATION.md) — pose-first authoring, relaxed-idle checks, exported-clip review and rejection handling.
+- [ANIMATION_WORKFLOW.md](ANIMATION_WORKFLOW.md) — open-source motion recipes, bounded edits, calibrated retargeting, round-trip exports, measurements and human review.
+- [ANIMATION_REUSE.md](ANIMATION_REUSE.md) — portable profiles, complete Blender runs, clean-checkout verification and the independent Unreal contact plugin.
 - [REGIONAL_CHARACTER_TEXTURES.md](REGIONAL_CHARACTER_TEXTURES.md) — rig-preserving regional UVs, independent head/clothing paint and seam-normal repair.
 - [CHARACTER_SHOWCASE.md](CHARACTER_SHOWCASE.md) — how the README captures and GIF are reproduced with provenance.
 - [ADAPTERS.md](ADAPTERS.md) — adapter registry policy: capabilities, not quality rankings.

@@ -1,0 +1,173 @@
+{
+  "schema": "rac.character02-idle-contact-review.v1",
+  "date": "2026-10-22",
+  "installed": true,
+  "selected_packet": "Saved/LibraryAnims/Character02/ual-v22-idle-contact-20261022T202926Z",
+  "candidate": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\candidate-v4\\clips.json",
+    "sha256": "e28f6e9a10bcbef72d35c2d900922965f0e83ee083e95f4d7a907c7ccc41b19f"
+  },
+  "installation": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\AnimationContactRepair\\20261022T202926Z\\receipt.json",
+    "sha256": "b22ee12117de6a19d6c1e8ab9cab369a0cc10fff85933092169a97282e20ec33"
+  },
+  "pose": {
+    "before": {
+      "checks_passed": false,
+      "elbow_bend_degrees": [
+        45.98326373780161,
+        48.69086438207912
+      ],
+      "pelvis_drift_cm": 0.976240351958097
+    },
+    "after": {
+      "checks_passed": true,
+      "elbow_bend_degrees": [
+        19.46724086809459,
+        20.165374933874148
+      ],
+      "pelvis_drift_cm": 0.2928714348046473
+    }
+  },
+  "source_skinning": {
+    "baseline_hand_coat_observations": 192,
+    "candidate_hand_coat_observations": 0,
+    "candidate_thumb_finger_observations": 0,
+    "sampled_poses": 575,
+    "per_side_observations": 1150,
+    "receipt": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\surfaces-v4\\clearance.json",
+      "sha256": "8b6cc5fd82da98d66e74f76ff7e5f2377d786f5cdbc1c5b5d0987528abd19aed"
+    }
+  },
+  "runtime": {
+    "runtime-before": {
+      "proof": {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\runtime-before\\probe\\proof.json",
+        "sha256": "4a59274ab1cb968c8d23d6b57460da40c119cc70d02a9f2f46b253de72e41cfb"
+      },
+      "error": null,
+      "sections": [
+        "Melee01",
+        "Melee02",
+        "Melee03"
+      ],
+      "attack03_samples": 34,
+      "attack03_min_sole_gap_cm": {
+        "l": 6.168034733846525,
+        "r": 0.08653060489427844
+      }
+    },
+    "runtime-after": {
+      "proof": {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\runtime-after\\probe\\proof.json",
+        "sha256": "fb62520174de81dc5ffd1ec92d9738939ffaed1983702444eed55a19a0bee17d"
+      },
+      "error": null,
+      "sections": [
+        "Melee01",
+        "Melee02",
+        "Melee03"
+      ],
+      "attack03_samples": 26,
+      "attack03_min_sole_gap_cm": {
+        "l": 6.148515552474009,
+        "r": 1.2422454895222472
+      },
+      "settled_unarmed_idle_min_sole_gap_cm": {
+        "l": 0.04708159931828959,
+        "r": 0.4946935572002076
+      }
+    },
+    "runtime-after-30": {
+      "proof": {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\runtime-after-30\\probe\\proof.json",
+        "sha256": "833902abdb0e66ee91349615bc98bda094b752970ac7e9defd9b03b40471d5a2"
+      },
+      "error": null,
+      "sections": [
+        "Melee01",
+        "Melee02",
+        "Melee03"
+      ],
+      "attack03_samples": 28,
+      "attack03_min_sole_gap_cm": {
+        "l": 6.3322726217043055,
+        "r": 1.1628239615208713
+      }
+    }
+  },
+  "runtime_clearance": {
+    "runtime-before": {
+      "sampled_frames": 151,
+      "hand_contact_samples": 0,
+      "thumb_finger_contact_samples": 1
+    },
+    "runtime-after": {
+      "sampled_frames": 149,
+      "hand_contact_samples": 0,
+      "thumb_finger_contact_samples": 2
+    }
+  },
+  "locomotion": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\locomotion-after-60\\receipt.json",
+    "sha256": "83387c2d6cac224ed7532db5b9da5b8f03978d05eea97b66992567b649a5e956"
+  },
+  "saved_asset_audit": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\installed-audit-after\\receipt.json",
+    "sha256": "c9c3be3183d5feb78697ff3800066ef023ffea8cef8d785602cbae29f4abfa0e"
+  },
+  "model_preservation": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\model-preservation.json",
+    "sha256": "75e7c1c533357e12ea4d659c71bb8f937268816f0314abb9200a0e703a4e5e6e"
+  },
+  "export": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\export-final\\receipt.json",
+    "sha256": "4c491b889b5b9e3e5cd10bfcbb76d176aae14b43c315b435c9cef2eba94c10af"
+  },
+  "idle_pose": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\idle-pose-final.json",
+    "sha256": "fa3243e28e93b76ae2c55043005a18db31025c890578fd278d3ed7e3d5d5977b"
+  },
+  "attack03_unchanged": true,
+  "timing_events_and_root_preserved": true,
+  "verification": {
+    "passed": 788,
+    "skipped": 15,
+    "subtests": 198,
+    "stage_parses": 246,
+    "receipt": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\final-verify.log",
+      "sha256": "e5ab0108347c51cf25d640600ab9f34a9aa0557a750113f81ca15e6a6bee718b"
+    }
+  },
+  "videos": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\presentation\\attack03-in-game.mp4",
+      "sha256": "1ba0aac1a54ca844664e42546afa1a4641dee9bdb87c6c48422fe1a576332a9b"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\presentation\\idle-before-after.mp4",
+      "sha256": "e6e48719c7a960304d81e056c91797c331310112281daae7e50d105f3259c3e3"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\presentation\\idle-side-before-after.mp4",
+      "sha256": "e3833396d9a7adc1089a01ca4e0035068830f0fe6a881d2ec1380cdfce6ee850"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-idle-contact-20261022\\presentation\\walk-before-after.mp4",
+      "sha256": "6429fc4db74b2636653790f08e5af6c7c19d6dc3eba94a79ac1a8aac3d979f3c"
+    }
+  ],
+  "human_approved": false,
+  "production_ready": false,
+  "limits": [
+    "Source comparison shows raw/exported clips; the old game already applied a runtime clearance layer.",
+    "Skinning checks are sampled; sleeve cuff seams are excluded.",
+    "A brief right-thumb/finger overlap at Attack 01 entry exists in both baseline and candidate runtime samples (1 versus 2 observations); different sample times are not a severity comparison.",
+    "Uneven dungeon tile collision produces small post-combo resting-foot penetrations in both runs (about 1.64 cm minimum). The repaired unarmed idle and Attack 03 did not reproduce that issue.",
+    "Grounding checks cover the tested dungeon location and actual combo at 30/60 FPS caps, not all terrain or a cooked build.",
+    "Capture reduces render rate; game-video presentation retains recorded capture-time spacing.",
+    "Artistic weight, feel and final acceptance require the user."
+  ]
+}

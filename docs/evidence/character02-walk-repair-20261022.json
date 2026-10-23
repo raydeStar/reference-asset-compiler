@@ -1,0 +1,490 @@
+{
+  "schema": "rac.character02-walk-repair.v1",
+  "date": "2026-10-22",
+  "installed": true,
+  "technical_walk_panel_passed": true,
+  "human_approved": false,
+  "production_ready": false,
+  "selected_packet": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\LibraryAnims\\Character02\\ual-v23-grounded-walk-20261022T221205Z\\clips.json",
+    "sha256": "f34a02e36eab85caa3274842b2b8a927feb553f96cd88d7238c652fee09668e6"
+  },
+  "configuration": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\Characters\\Character02.json",
+    "sha256": "5410e98a7233491979346dda715ac591005b939dd85667afdec2c1385b5b5103"
+  },
+  "native_character": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\seams-20261015\\release-v16\\Character02_UE5_coat.blend",
+    "sha256": "3c16eccb47cfc33754c96ba77859d355b6975cf9af239e2741d3ee984d339897"
+  },
+  "backups": [
+    "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\WalkRepair\\20261022T221205Z",
+    "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\WalkRepair\\sole-20261022T223517Z"
+  ],
+  "summary": {
+    "before_30": {
+      "minimum_sampled_gap_cm": -2.5903126845544193,
+      "knee_bend_deg": {
+        "l": {
+          "min": 36.50657591079555,
+          "max": 100.12560957673597
+        },
+        "r": {
+          "min": 36.41360202200534,
+          "max": 104.04348976926092
+        }
+      },
+      "transition_windows": {
+        "walk_stop_a": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 1.4270411618944419,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 1.7211013121599976,
+            "observed_max_dt_s": 0.03333333507180214
+          }
+        ],
+        "walk_stop_b": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 1.4416329812600592,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 4.700000245124102,
+            "max_pelvis_step_cm": 1.8266289624370664,
+            "observed_max_dt_s": 0.03333333507180214
+          }
+        ],
+        "speed_changes": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 1.4416329812600592,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 2.8000001460313797,
+            "max_pelvis_step_cm": 5.942480716946394,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 4.2000002190470695,
+            "max_pelvis_step_cm": 2.661937615349467,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 6.000000312924385,
+            "max_pelvis_step_cm": 1.7520984176352494,
+            "observed_max_dt_s": 0.03333333507180214
+          }
+        ],
+        "walk_turns": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 1.5409500204842785,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 2.5000001303851604,
+            "max_pelvis_step_cm": 1.7665545924540162,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 2.0548580323258667,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 5.500000286847353,
+            "max_pelvis_step_cm": 1.9010109252972827,
+            "observed_max_dt_s": 0.03333333507180214
+          }
+        ]
+      }
+    },
+    "after_30": {
+      "minimum_sampled_gap_cm": 0.3690256420263722,
+      "knee_bend_deg": {
+        "l": {
+          "min": 12.044571880315356,
+          "max": 56.706562874587235
+        },
+        "r": {
+          "min": 12.607397352461263,
+          "max": 55.2967414539665
+        }
+      },
+      "transition_windows": {
+        "walk_stop_a": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 1.4020782306521584,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 1.5557585485181502,
+            "observed_max_dt_s": 0.03333333507180214
+          }
+        ],
+        "walk_stop_b": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 1.4164745517179111,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 4.700000245124102,
+            "max_pelvis_step_cm": 1.4447290627336529,
+            "observed_max_dt_s": 0.03333333507180214
+          }
+        ],
+        "speed_changes": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 1.4164745517179111,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 2.8000001460313797,
+            "max_pelvis_step_cm": 3.9919078412883575,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 4.2000002190470695,
+            "max_pelvis_step_cm": 5.091634507548894,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 6.000000312924385,
+            "max_pelvis_step_cm": 1.470110078362928,
+            "observed_max_dt_s": 0.03333333507180214
+          }
+        ],
+        "walk_turns": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 1.5129674693481467,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 2.5000001303851604,
+            "max_pelvis_step_cm": 2.6052366741080304,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 1.9620999101658885,
+            "observed_max_dt_s": 0.03333333507180214
+          },
+          {
+            "input_change_s": 5.500000286847353,
+            "max_pelvis_step_cm": 2.2089431958112176,
+            "observed_max_dt_s": 0.03333333507180214
+          }
+        ]
+      },
+      "measured_declared_support_windows": 18,
+      "maximum_declared_support_drift_cm": 0.07644573456151271
+    },
+    "after_60": {
+      "minimum_sampled_gap_cm": 0.3367511225776525,
+      "knee_bend_deg": {
+        "l": {
+          "min": 12.048241497643527,
+          "max": 57.68867198475451
+        },
+        "r": {
+          "min": 11.896372493315988,
+          "max": 57.62126189274474
+        }
+      },
+      "transition_windows": {
+        "walk_stop_a": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.6986663662168646,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 0.7838399602903637,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ],
+        "walk_stop_b": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.7051788278683874,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.683333577588201,
+            "max_pelvis_step_cm": 0.7413419978436596,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ],
+        "speed_changes": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.7051788278683874,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 2.8000001460313797,
+            "max_pelvis_step_cm": 2.063315395404298,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.2000002190470695,
+            "max_pelvis_step_cm": 2.48032865166212,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 6.000000312924385,
+            "max_pelvis_step_cm": 0.7861666454111931,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ],
+        "walk_turns": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.742837947979633,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 2.5000001303851604,
+            "max_pelvis_step_cm": 1.3778393376869909,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 1.2816596956663673,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 5.500000286847353,
+            "max_pelvis_step_cm": 1.090163563395796,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "measured_declared_support_windows": 19,
+      "maximum_declared_support_drift_cm": 0.09221635564444636
+    }
+  },
+  "sources": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\src\\reference_asset_compiler\\animation_calibration.py",
+      "sha256": "99ea5668428a0e618701a8d053ebca54bcc8317ce4dbcb051b267709b12f8581"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\tests\\test_animation_calibration.py",
+      "sha256": "31d11bcffc034da01dbae0cfe4c67be6f73f7fe524590ac269a4707f125c15ba"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\blender\\repair_character02_walk.py",
+      "sha256": "f53296da60f2ae1ea05d4bae997b1eb886c77ed05048a129be874dc6979a9784"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\install_character02_walk.py",
+      "sha256": "ed9d0a7b197b4ebda6101077a004d3673e58897241511a3e713edb50510e09f2"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\install_character02_sole_contact.py",
+      "sha256": "fd2c6cf69f97fb9c1442384221f2a0f33478d50acec7796655c331cbcfd4f8df"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\character02_walk_runtime.py",
+      "sha256": "824a806b37d1288d3bfdd6c48be370af805d45873b777eca4b79026a3a42c8be"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\audit_character02_sole_contact.py",
+      "sha256": "b63d41e4309ae5ec73527921c1bfb745181744b774cc807e9faaa458d17f7a20"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\analyze_character02_walk.py",
+      "sha256": "0d0b81416ad24aa6c89fd4799a3695020bc1f23f97e4872ddc2e758528547ce3"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AnimNode_AetherSoleContact.h",
+      "sha256": "e73794cf8b87a52e585a214017c9019da8490face1fee181c11cf215387ffe90"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AnimNode_AetherSoleContact.cpp",
+      "sha256": "bc1d73a890ec0a5b337e68a203edfd50b49967de55417a46a32caa8c8a34e4a0"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWarsEditor\\AnimGraphNode_AetherSoleContact.h",
+      "sha256": "e7d62843995e849b715097d461f8a5ce5cb95e640d9aa517cfdd994bedef4c9d"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\SoleContact.py",
+      "sha256": "09235d6cef268044fd668cef1a2d21decbab6aa9410010418e098bed96f50c84"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\LocomotionFeel.py",
+      "sha256": "9ed9fcae5791b868779210d26d46098ab931bc0872bb0d0a29d9f10f7303b574"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Docs\\Character02WalkRepair.md",
+      "sha256": "e8ff0789633b0cddc2e69d2d6926ef76cac2f12cb0afbd172dd3035e84ebe336"
+    }
+  ],
+  "artifacts": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\candidate-v5\\clips.json",
+      "sha256": "f34a02e36eab85caa3274842b2b8a927feb553f96cd88d7238c652fee09668e6"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\candidate-v5\\derivation.json",
+      "sha256": "4f6fbb04026e5b71c4b170d12355ba19d4c4b95515a68d815b7dd37af6ac8787"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\review-v5\\receipt.json",
+      "sha256": "9ce45be20883af0b08989deed78ef51adee7179004f1c136dd7488eb7768fd48"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\review-v5\\animated.blend",
+      "sha256": "55420674211a8415281bd888fca994a8e92df0c5c4bfdec55c2ef1cf07d227d1"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\review-v5\\animated.glb",
+      "sha256": "0a4a554a5d5fabd3eaad39949e190378ebe5db794aa9ffffa1c7e15a0e825874"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\review-v5\\animated.fbx",
+      "sha256": "2760c0fa160b27b074b96295d9d4fb772ed6aeb39ff9d1d695ea340ffb14f602"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\model-preservation-v5.json",
+      "sha256": "a9d1cd4c20f06e7064a0d67d92e628263f76cddc3ecd16682957e64f0f487cdb"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\surfaces-v5\\receipt.json",
+      "sha256": "c2850b82f8613b824ad4428dc862c4d61f1b95f89f8628016289551e9cd220ef"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\surfaces-v5\\clearance.json",
+      "sha256": "3cc8f37a8d8b19212f921475843a0e73b733bd7b28c562b621a6bfde14e64286"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\surfaces-v5\\footing.json",
+      "sha256": "ee15cc76b030b118e42a8506f6b8f2e4c1c3bcd9f4eec2147e14c5e6b13475b9"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\installed-release-snapshot\\recipe.json",
+      "sha256": "5e5f80f4f3a289cf59f99f997f7ddff506832ffec9628e0eb4b7f0e681361b83"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\installed-release-audit\\receipt.json",
+      "sha256": "1cd85fd29289e4e42772b36f267b173eaf74c6de65878fcb8899254eb8f5d9a6"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\saved-sole-audit.json",
+      "sha256": "382bd5c7e8f47c31806cccb0e4d88c35dca49ad756ac42937d18eb59c8fb5253"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\final-audit-processes.json",
+      "sha256": "7589d989915cd7294098332011da906b30d72f0ac3f21710242ef8aab0f36eae"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\final-verify.log",
+      "sha256": "f6551a594b31cbde3a6ced3a402e3747181d0e2e84920459872257d3bfbac5b5"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\sole-final-build.log",
+      "sha256": "40f3f01bf6ab76eddaa8517c5e89ac25a53eca14df7121be8d096a7f31c2f3d6"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\sole-final-build-full.log",
+      "sha256": "acdbf4f5719bf0a9ff0f8f078da17b53181bc5f2e6cb4d3dd6178edaaf5b63f3"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\presentation\\review.html",
+      "sha256": "0d746ff2e367017e30e2c9db6551d16a669833c6d7ce3a538c378c309067cc8b"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\presentation\\game-before-after-delivered.mp4",
+      "sha256": "91902d930edbfe3825a12eb02fa2c19080960f272be3c374aa2e1507a4931a80"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\runtime-before-30-v2\\probe\\proof.json",
+      "sha256": "05b9cc9c96193b29db1a6b7a6aa06d6ea6f023032c92d59eed0b08bc15b48392"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\runtime-before-30-v2\\process-receipt.json",
+      "sha256": "1647a127b699a10c04737cb7c592e9aa37bd55959002886b68fb608227484301"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\runtime-delivery-30\\probe\\proof.json",
+      "sha256": "3d20645be256081b61c0993d3801e4311d5f224e5f3a2563a3499766cc5cfb6b"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\runtime-delivery-30\\process-receipt.json",
+      "sha256": "cb37dee655b8536b394f91cdfd79116ea486097e7e21de15e535e14694359107"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\runtime-delivery-60\\probe\\proof.json",
+      "sha256": "35e63016c8bf1ed0ecb99b4a00ff68fe627906e7f764520a385b78965715e03b"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\runtime-delivery-60\\process-receipt.json",
+      "sha256": "180f40e9818901b4866c392720b54083469a58b32efb4e88113f2c98c5864213"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\runtime-before-30-v2\\metrics.json",
+      "sha256": "ab7325243e8ea4e3d285e256b1e1c383088824409ae652da6ce30319be58c008"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\runtime-delivery-30\\measurements.json",
+      "sha256": "77df6b415160159a6964f0f7b71c20f6359fed1571fa96ee313049bc3bef1f51"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\runtime-delivery-60\\measurements.json",
+      "sha256": "fa0daf339bb700982f04dc46979cf8785fcfbdcb188955d2b9570189ca10aad0"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\presentation\\walk-front-before-after.mp4",
+      "sha256": "746f234e63fcd7e56f6eea443f61f15cf60cc97962e212288cf16961e0a3ac2c"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\presentation\\walk-side-before-after.mp4",
+      "sha256": "5c9416621ece7bc6e7b34b5dcd77ca52dc74687f2b28a1e1e77cb99d752b8a2e"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\presentation\\walk-three-quarter-before-after.mp4",
+      "sha256": "0a7bd2fa0682167174613fc80b8019aadd50b2c519d1c359b52ab0af9f737c79"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-repair-20261022\\presentation\\walk-back-before-after.mp4",
+      "sha256": "1e3aaed39b0adc1eb7a7baf6bb2b42b1aeded3962571c36281c9880530da2d07"
+    }
+  ],
+  "game_module": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Binaries\\Win64\\UnrealEditor-TheAetherWars.dll",
+    "sha256": "55044a1c863e3873803a53c896a5fe6d7c8a6ab769eb3cbd244a19e1c1e3be4b"
+  },
+  "model_preserved": true,
+  "limitations": [
+    "149 sampled sole points, local collision and finite pose coverage; not all-terrain or continuous-mesh proof.",
+    "Flat-support drift refers to inferred near-flat windows confirmed by support curves. Swing apex can resemble flat contact without that annotation.",
+    "The measured 30 Hz initial support-acquisition window drifts about 0.08 cm; finite support windows are not a zero-slide guarantee.",
+    "Jump/landing was exercised at 60 Hz. A brief 1.88 cm attack-recovery right-toe dip remains; active action montage trajectories are unchanged.",
+    "Owned editor -game tests at fixed simulation steps; no cooked-build, performance benchmark or human aesthetic acceptance.",
+    "New authoring code and Blender/Python processing are open source. Existing character provenance and Unreal delivery keep their recorded boundaries."
+  ],
+  "retained_rejections": {
+    "candidate-v1": "Toe-off overextension; rejected before installation.",
+    "candidate-v2": "Receipt serialization failed; not selected.",
+    "candidate-v3": "Longer stride required excessive pelvis bob; shorter-cycle v5 selected.",
+    "candidate-v4": "Incorrect root-track assumption; failed before completion.",
+    "runtime-before-30": "Slate time was not simulation time; excluded from comparison.",
+    "runtime-after-30": "Walk-only installation left floor penetration; final runtime sole correction added.",
+    "runtime-contact-diagnostic-60": "Diagnostic instrumentation stalled the owned process; stopped and log retained. Extra instrumentation removed before the successful final build.",
+    "runtime-final-30": "Previous-pose terrain queries left a 9 mm swing-toe dip; superseded by predicted terrain queries."
+  }
+}

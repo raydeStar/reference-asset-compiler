@@ -1,0 +1,188 @@
+{
+  "schema": "reference-asset-compiler.animation-methodology-checkpoint.v1",
+  "date": "2026-10-22",
+  "artifact_root": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022",
+  "guide": "docs/ANIMATION_WORKFLOW.md",
+  "source": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\seams-20261015\\release-v16\\Character02_UE5_coat.blend",
+    "sha256": "3c16eccb47cfc33754c96ba77859d355b6975cf9af239e2741d3ee984d339897"
+  },
+  "installed_packet": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\LibraryAnims\\Character02\\ual-v21-flow-v7\\clips.json",
+    "sha256": "158e793c96baad87113b41885b2fe231e718cc8e481bd24c381c0dff9f7f9b1c"
+  },
+  "recipe": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\candidate-recipe.json",
+    "sha256": "0d36f49ba626e0310c3cca5734df838016361d9afb2f7db416f32e010559efe4"
+  },
+  "validation": {
+    "tests_passed": 788,
+    "skipped": 15,
+    "subtests_passed": 198,
+    "script_files_parsed": 243,
+    "lint": "passed",
+    "isolated_wheel": "passed",
+    "baseline_export_clips": 19,
+    "candidate_export_clips": 3,
+    "glb_worst_joint_error_cm": 0.003391609039432029,
+    "fbx_worst_joint_error_cm": 0.0005812680171398019,
+    "exported_model_preserved": true,
+    "decoded_review_videos": 16
+  },
+  "runtime": [
+    {
+      "cap": 30,
+      "achieved_mean_fps": 29.574546390202716,
+      "basic_input_probe_passed": true
+    },
+    {
+      "cap": 60,
+      "achieved_mean_fps": 58.03932034856,
+      "basic_input_probe_passed": true
+    },
+    {
+      "cap": 120,
+      "achieved_mean_fps": 77.70380166670355,
+      "basic_input_probe_passed": true
+    }
+  ],
+  "quality": {
+    "relaxed_standing_pose": "failed in baseline and candidate",
+    "hand_coat_clearance": "failed in baseline and candidate",
+    "attack_03_minimum_boot_z_cm": -2.2537694560100783,
+    "floor_scope": "Declared source-space z=0 plane, not measured gameplay terrain",
+    "candidate": "Idle retimed at factor 1.1, quantized to 83 frames; demonstration only",
+    "human_review": "pending",
+    "candidate_installed": false,
+    "production_ready": false
+  },
+  "remaining": [
+    "Review stance and visible hand/coat intersections",
+    "Annotate actual support phases and interaction targets",
+    "Complete turns, reversals, jumping/landing and interrupted-weapon runtime cases",
+    "Install and reload an accepted candidate in a separately authorized asset pass",
+    "Cooked proof and artistic acceptance"
+  ],
+  "receipts": {
+    "snapshot-final/snapshot.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\snapshot-final\\snapshot.json",
+      "sha256": "4bc665811041cfafe47f340dc2607f2d2e11cea93aeaf7b2e43ab5b7d4346ec9"
+    },
+    "inspect/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\inspect\\receipt.json",
+      "sha256": "cfcc06bddd435f8987ec016e505dad69dd372b3ad5b036ce5218588d320a006f"
+    },
+    "baseline-final.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\baseline-final.json",
+      "sha256": "3ecc82b691847fa749a79c1e784699c03cee2e1af3ae67157ce0a3f5360eecee"
+    },
+    "candidate-measurements-final.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\candidate-measurements-final.json",
+      "sha256": "606f2c36ded2146bd2d7e8173dece95e2e5dcf556d377ede3f186a47104c46a0"
+    },
+    "comparison-final.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\comparison-final.json",
+      "sha256": "6399ba380b43c4cd063c15b51ed7a3dc68cb8be00c373b8e6adb8195ec14ccca"
+    },
+    "model-preservation.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\model-preservation.json",
+      "sha256": "a9e9c6e8cd65dc08c3dcb3de878846ddf299b0565ee42a7657c3ca071030a2c5"
+    },
+    "export-v4/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\export-v4\\receipt.json",
+      "sha256": "acc9700be20b8c8f603260af95167ddb1ace6c2bfd50187a1de471d2fe81c4c3"
+    },
+    "candidate-export/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\candidate-export\\receipt.json",
+      "sha256": "2204425f581fe1d8f13c7dfd055e67e89b791a3578f10a3b415fc61c2502782f"
+    },
+    "baseline-idle-review/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\baseline-idle-review\\receipt.json",
+      "sha256": "88b7f1504db1f266a78908a9e255fbe8619495381ec4f26db7f37bc844f28a59"
+    },
+    "baseline-idle-pose.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\baseline-idle-pose.json",
+      "sha256": "38374796c879d891c6980b906baa50857b997a422a1d3ea1833d40f8b294c3bb"
+    },
+    "candidate-idle-pose.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\candidate-idle-pose.json",
+      "sha256": "733b05b9a48642b32c749940a2251f9529d18e4b79e3974d6e58fc79319008bf"
+    },
+    "baseline-surfaces-30/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\baseline-surfaces-30\\receipt.json",
+      "sha256": "5652812696315f001bd1796719d18972cf64ee0cac370315f6a139025f476deb"
+    },
+    "candidate-surfaces-30/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\candidate-surfaces-30\\receipt.json",
+      "sha256": "7357ede582ea4b5359c172836899432a42c42760e9d8b853b2620d6c46d36bca"
+    },
+    "engine-audit/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\engine-audit\\receipt.json",
+      "sha256": "d9849ba13a10bafd517649688736eff03a0e05eadae23e102bb2d183aadd4d50"
+    },
+    "runtime-30/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\runtime-30\\receipt.json",
+      "sha256": "c9b9d6a6d4434b440abee6459cc8afbb1c06c02b474a2c9c3f1197dd096c7a17"
+    },
+    "runtime-60/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\runtime-60\\receipt.json",
+      "sha256": "67d381fc1a7c45367bd8ad4e451c04b652aa8cde3fe45a8b459cf317ec28fa42"
+    },
+    "runtime-120/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\runtime-120\\receipt.json",
+      "sha256": "b6bf3bbfbadae662d62d23cde4fe65ebceba509a0dd9ffdeeb9eb3fa73ec383a"
+    },
+    "library-replay.execution.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\library-replay.execution.json",
+      "sha256": "e9f8b40974299bd8c185819b647b82f45e14f87af43ea0c148222df1944e5866"
+    },
+    "video-validation.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\video-validation.json",
+      "sha256": "f0e46caf65cdfa4b144df3a4559c8e3a987fd21c8cea65c874b9fc9f4e4a6e05"
+    },
+    "candidate-review-v2.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\candidate-review-v2.json",
+      "sha256": "23d27238fb5ead279ec3487d8337276e67afcda2173db8c493ad9472de8e1b25"
+    },
+    "review-summary.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\review-summary.json",
+      "sha256": "2ea6652634e2bd0e5a36b4987bf5fada3f2489ab6859f5fa2605cce0141b2873"
+    },
+    "verify-final.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\verify-final.log",
+      "sha256": "f4262248c88410fd2fc587d1268fa022bdc889a497d814fcab0357b81e410ee8"
+    }
+  },
+  "implementation": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\src\\reference_asset_compiler\\animation_workflow.py",
+      "sha256": "458212bd2171398b9d6f46de333721e629f3f9fd35bd0803e4dc00f104bf432c"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\src\\reference_asset_compiler\\animation_motion.py",
+      "sha256": "193a512f140e310b0e3198ed956e5747db5b5b96472333d06acf6870c55bea15"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\src\\reference_asset_compiler\\animation_export.py",
+      "sha256": "e00d3cd3019671cbeb0e5242c5abc63197171258d6dbfecc6fb30b4ce0f4185b"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\animation_pipeline.py",
+      "sha256": "bcbe8ed649bd135cfaa3ebafb8e2ef14dcffb1c0925c4db4e0a1274e7ae3b0ca"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\blender\\animation_packet.py",
+      "sha256": "fe220b3823de93b95883778ba057185489ce66d9bd67c288d5b0b75d8760f939"
+    }
+  ],
+  "retained_rejections": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\export-v2\\receipt.json",
+      "sha256": "d18c5d04f424cadbd84eef8ca9cc8b48857175ad6802146f6a4f52c2b88634e3"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-methodology-20261022\\export-v3\\receipt.json",
+      "sha256": "7bbaff148db3f8c9a2258adb231b2a3e6bf5d303b9dae204c9259cd128ea968c"
+    }
+  ]
+}

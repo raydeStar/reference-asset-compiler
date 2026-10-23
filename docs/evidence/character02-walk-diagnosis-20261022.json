@@ -1,0 +1,101 @@
+{
+  "date": "2026-10-22",
+  "status": "walk_visually_rejected_diagnosis_complete",
+  "installed_packet": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\LibraryAnims\\Character02\\ual-v22-idle-contact-20261022T202926Z\\clips.json",
+    "sha256": "e28f6e9a10bcbef72d35c2d900922965f0e83ee083e95f4d7a907c7ccc41b19f"
+  },
+  "installed_config": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\Characters\\Character02.json",
+    "sha256": "5edc64557ba14f0d34d5500b7e83f42d6c29a511ceabb3d687d71571e80cb675"
+  },
+  "installed_assets_modified": false,
+  "candidate_installed": false,
+  "human_approved": false,
+  "production_ready": false,
+  "finding": "Reference leg rotation spreads the stance; later narrow-foot IK adds crouch. Original source is also high-stepping.",
+  "evidence": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\summary.json",
+      "sha256": "c32b75fd77930037db1d0340e80d606525e8a4005678825d0fef5a4660c883ed"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\calibration-test\\diagnosis.json",
+      "sha256": "c2339ade63bc647942b37aca088682b22f73d406cb5334747a8a4d0d6573fbc6"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\calibration-test\\diagnostic-candidate.json",
+      "sha256": "7dd13c07cb4b9edf6ba641173e72d1c12f939063cfcf27e01ca1ee6a279342ae"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\calibration-review\\receipt.json",
+      "sha256": "5f3d90276878c188ae555f40c730ce52fdec1914b3d530eeed86874b502d15c7"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\model-preservation.json",
+      "sha256": "1f794e8046f154bedadedb22eb852624fbfadfc00e8af086f6f69452f27d61dd"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\runtime\\probe\\proof.json",
+      "sha256": "341522182b12b2df0eee754c8dbe6fb0b19c05682307acce01b8ea41dd656fee"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\runtime\\knee-metrics.json",
+      "sha256": "b2696b5f4ca06032a0241ebe426ebe5605059ee9b98c6917b9ae58f8d8547262"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\runtime\\process-receipt.json",
+      "sha256": "d965a9c1ed5424e2ff6affcddfc7674de05384c27ea91042ab4f4d02765cffaf"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\presentation\\review.html",
+      "sha256": "3fa91e939bab878378d6cf6cfc6112fd5b246e7b3af03d51d37b2f7ad1ded8b4"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\presentation\\media-receipt.json",
+      "sha256": "4f74a259239febebb2aa70c041cdfbb28036a8d851c50e82e7a393e6e96a7d87"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\presentation\\walk-phase-comparison.png",
+      "sha256": "f414a47aee1ccb14ae0664ff7c33e5f7f779e70be184edf02e26d8dd75b80fa2"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\preflight-verify.log",
+      "sha256": "05abfa6c4ce791aca918e4e41570ac28386101589ae7de2384f4c7e1f6728ebe"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-walk-diagnosis-20261022\\previous-idle-review.html",
+      "sha256": "7009403daa2d94f12bcf00ce8f59d0ae068e1f1af79982b83b7f89bc6a6a8058"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\blender\\diagnose_character02_walk.py",
+      "sha256": "2430e2c3bd331b4c735f43e1d084373e0ce6c94896f7061526314a7a7acb52c9"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\blender\\render_walk_leg_diagnostic.py",
+      "sha256": "80570561a2acd37473ca6260e3718cfc10ed8765471da634afb6f9cc8ce0b1eb"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\probe_character02_walk.py",
+      "sha256": "1429360e88aeab94140ee4d869806ec3fe5e32bbb254cc540fff6c2adc4d3435"
+    }
+  ],
+  "checks": {
+    "preflight_pytest_passed": 788,
+    "skipped": 15,
+    "subtests_passed": 198,
+    "preflight_lint_and_isolated_wheel": "passed",
+    "final_changed_script_lint": "passed",
+    "stage_files_parsed": 249,
+    "export_model_payload_preserved": true,
+    "candidate_glb_roundtrip_passed": true
+  },
+  "next_gate": "Grounded lower-lift walk with correct calibration, contact-aware pelvis, transitions and exported/in-game visual review.",
+  "limitations": [
+    "Preserved source high knee lift",
+    "8.13 cm diagnostic grounding offset is not transition-safe",
+    "Foot contacts, speed matching, hand clearance and engine transitions require fresh checks",
+    "Actual evaluated null-RHI game poses at approximately 89.18 cm/s; no rendered gameplay claim.",
+    "Rest calibration, source/retarget joint motion and broad weight leakage screen; not exhaustive deformation acceptance."
+  ]
+}

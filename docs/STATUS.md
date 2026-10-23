@@ -2,7 +2,7 @@
 
 *Type: reference*
 
-Last updated: 2026-10-14. This file holds the current state only and is
+Last updated: 2026-10-23. This file holds the current state only and is
 rewritten in place. History is in [HANDOFF.md](HANDOFF.md) (append-only,
 dated); failures and retained lessons are in [DECISIONS.md](DECISIONS.md);
 scoped open work is in [AGENT_TASKS.md](AGENT_TASKS.md). The stage names below
@@ -12,6 +12,183 @@ Every `work/`, `out/` and `output/` path here is on the development workstation
 and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
+
+**Open-source animation methodology, 2026-10-22:** implemented the portable
+`rac animation` recipe/edit/measure/review commands and checkout adapters for
+existing calibrated library replay, preserved-rig Blender exports, surface audits,
+and owned Unreal baseline probes. Guide: [ANIMATION_WORKFLOW.md](ANIMATION_WORKFLOW.md).
+Evidence index: `docs/evidence/animation-workflow-20261022.json`; retained artifacts:
+`work/animation-methodology-20261022/`. Verification: 788 tests, 15 skipped,
+198 subtests, lint, 243 script parses and isolated installed-wheel checks passed.
+All 19 baseline clips passed GLB/FBX round trips; baseline/candidate exported model
+payloads match. The source character is unchanged; the installed packet was
+subsequently replaced by the idle/contact repair below.
+Game baseline checks passed at 30/60/120 FPS caps, observed averages 29.6/58.0/77.7.
+This is editor `-game`, not cooked or sustained 120 FPS proof.
+
+**Character02 idle/contact repair installed, 2026-10-22:** seven clips and seven
+walk aliases first used `Saved/LibraryAnims/Character02/ual-v22-idle-contact-20261022T202926Z`
+in TheAetherWars; the walk is now superseded by v23 below. Exact prior assets/configuration are retained under
+`Saved/AnimationContactRepair/20261022T202926Z/`. The relaxed idle now passes its
+exported pose contract: elbow bend 19.5–20.2 degrees (was 46.0–48.7), pelvis drift
+0.293 cm (was 0.976), with planted feet and matching loop endpoints. Source-skin
+hand/coat contacts fell from 192 to zero observations across 575 poses; no sampled
+thumb/finger contacts in that source panel. Timing, root tracks, events, geometry,
+UVs, weights, materials and bind data are preserved. All 19 clips pass GLB/FBX
+round trips; fresh saved-asset audit and installed locomotion runtime pass.
+
+Actual input reached all three combat sections in owned Unreal `-game` tests at
+30/60 FPS caps. Attack 03's sampled soles did not penetrate the tested dungeon
+collision (minimum right-boot gap 0.087 cm before, 1.16–1.24 cm in repeat runs).
+Attack 03 was left unchanged; the earlier -2.254 cm source-plane finding was not
+reproduced as that gameplay defect. These are sampled, location-specific checks.
+The old game already had a runtime arm-clearance layer: both before/after game
+samples have zero hand/coat contacts. A brief Attack 01 thumb/finger overlap and
+small post-combo resting-foot penetration on uneven tiles remain in both versions.
+
+Review: `work/character02-idle-contact-20261022/presentation/` (labeled before/after
+idle and walk, side idle, real game combo capture); four views/two repeats are in
+`review-before/` and `review-after/`. Evidence:
+`docs/evidence/character02-idle-contact-20261022.json`. Final verification: 788
+tests, 15 skipped, 198 subtests, lint, 246 stage parses and isolated wheel checks.
+Rejected repair attempts and the earlier timing demonstration are retained.
+The user subsequently rejected the walking leg motion; see the diagnosis below.
+Complete terrain, interruption and cooked-build coverage remain open. No human
+approval or production promotion.
+
+**Character02 grounded walk installed, 2026-10-22:** selected packet is now
+`Saved/LibraryAnims/Character02/ual-v23-grounded-walk-20261022T221205Z` in both
+library and animation-flow configuration. Corrected source/target segment alignment
+replaces the signed-reference error identified in the rejected walk. A 1.10-second
+cycle at the existing 89.18 cm/s uses moderate 5 cm swing clearance, rolling
+support and a coupled pelvis solve. Source knee bend is 12–43 degrees, previously
+35–99; evaluated 30 Hz game walk is approximately 12–57, previously 36–104.
+The exported geometry, weights, UVs, materials and bind data are exactly preserved.
+Other packet clips, including the earlier idle/coat repair, remain unchanged.
+
+GLB/FBX round trips and all 34 source-pose surface checks pass. Eight saved walk
+aliases have retimed sync markers; idle and walk aliases have explicit flat-support
+curves. A new final game skeletal-control node uses measured boot skin and current/
+predicted collision samples after the existing floor rig. Owned rendered Unreal
+`-game` tests at 30/60 Hz cover starts, two stop phases, walk/jog changes, turns and
+a reversal. Sampled soles remain above tested collision (minimum 0.37 cm at 30 Hz,
+0.34 cm at 60 Hz); measured declared flat-support windows drift at most 0.093 cm.
+Earlier acquisition of blended support reduces the measured 30 Hz start drift to 0.08 cm.
+Jump/landing releases were exercised at 60 Hz. The separate 1.88 cm attack-recovery
+toe dip observed here is addressed by the subsequent recovery repair below.
+These are fixed-step simulation tests, not real-time performance or cooked proof.
+
+Saved assets, markers, support curves and the final node reload correctly. C++ full
+build and RAC verification pass (791 tests, 15 skipped, 198 subtests); final changed
+scripts also pass lint and targeted calibration tests, with all 255 stage files parsed. Review:
+`work/character02-walk-repair-20261022/presentation/review.html`; evidence index:
+`docs/evidence/character02-walk-repair-20261022.json`. Backups are in game
+`Saved/WalkRepair/20261022T221205Z` and the retained `sole-*` install directories.
+Earlier diagnosis and failed candidates remain evidence. Next gate: user judgment
+of the installed walk and transition feel; full terrain/combat/cooked coverage is
+open. No human acceptance or production promotion has been inferred.
+
+**Character02 attack recovery installed, 2026-10-22:** retained the v23 packet,
+native character and earlier idle/coat/walk corrections. The final sole node now
+reads the current evaluated slot state, restores contact in the first blend-out
+frame and accounts for the horizontal lock on sloping ground. The existing floor
+rig ramps in with the montage's remaining weight. A bounded reachable lock
+replaces the hard reset at its correction limit. Active strikes and airborne
+motion retain their authored trajectories. Game configuration and AnimBP wiring
+are installed; fresh saved-asset audits pass. Clips, montage, blend space and
+mesh hashes match the prior installation audit.
+
+Paired rendered `-game` tests at fixed 30/60 Hz cover single attack and all three
+combo sections into idle/walk, plus movement cancellation. At 60 Hz, single-attack
+idle/walk recovery minimum gaps change from -1.88/-6.78 cm to +0.65/+0.64 cm;
+combo idle/walk from -2.88/-2.97 to +0.65/+0.63 cm. Movement cancellation improves
+from -7.94 to -0.024 cm (one 0.24 mm penetration sample); at 30 Hz all five
+recovery cases have positive sampled clearance. Largest 60 Hz pelvis step falls
+from 6.64 to 1.44 cm; combo-to-walk right-foot step from 13.57 to 2.01 cm.
+All 669 compared active-strike frames match exactly; paths and montage states
+match too. A fresh 60 Hz locomotion/jump regression retains positive sampled
+clearance and at most 0.092 cm declared flat-support drift.
+
+Review: `work/character02-attack-recovery-20261022/presentation/review.html`
+with five side-by-side game clips, boot close-ups and four installed views.
+Evidence: `docs/evidence/character02-attack-recovery-20261022.json`.
+Backups: game `Saved/AttackRecoveryRepair/20261022T230601Z` and task `baseline/`.
+C++ build passes; preflight RAC suite passed 791 tests, 15 skipped, 198 subtests,
+lint and wheel checks; final lint and 260 stage parses pass. The active-combo
+penetrations found in this panel are addressed by the subsequent repair below.
+Finite samples on the tested tiles are not all-terrain, performance or cooked
+proof. Next gate: user's visual/feel review; human acceptance and production
+promotion remain false.
+
+**Character02 active-combo contact installed, 2026-10-23:** the configured combo
+now receives upward leg contact correction capped at 3 cm, with active foot
+orientation and horizontal pivoting preserved. Source sequences, native character,
+mesh, weights, montage timing and selected v23 packet remain unchanged. Runtime
+terrain queries use up to 16 spatially distributed points per boot plus predicted
+positions (64 traces maximum), while the independent probe traces all 149 retained
+sole vertices. This also fixes an existing later-walk toe dip after Attack 02
+that the previous lowest-world-Z measurement missed.
+
+Rendered paired 30/60 Hz tests stop after each of the three attacks and return
+to idle or walking: all six complete cases have positive measured clearance,
+minimum 0.559/0.578 cm. Attack 03's 60 Hz walk-exit active minimum improves from
+-1.184 to +0.583 cm; the later Attack 02 walk sample from -3.213 to +0.639 cm.
+Comparison of 856 active frames preserves foot XY/orientation to numerical
+precision; upper body, pelvis, coat, hand targets, pawn path and montage timing
+match across all paired frames. Four-view combo/recovery checks also have
+positive clearance. Straight walking, stops, speed changes and jump/landing pass
+the expanded contact check; declared flat-support drift remains under 0.092 cm.
+
+That installation's separate turn/reversal regression had a 2.072 cm toe intersection.
+Reconstructed earlier toe coordinates give 3.782 cm against the same freshly
+traced floor, so this is a pre-existing limitation, not a passing regression.
+No claim of all-terrain, continuous contact, cooked or performance acceptance.
+Trace misses are retained as unknown clearance rather than counted as passes.
+
+Review: `work/character02-active-combo-20261022/presentation/review.html`;
+evidence: `docs/evidence/character02-active-combo-20261023.json`. The task folder
+retains its start date. Backups: game `Saved/ActiveComboRepair/20261022T233205Z`
+and task `baseline/`. The user-paused run, superseded candidates and diagnostic
+commandlet failure are retained. Final C++ build passes; resumed RAC verification
+passes 791 tests, 15 skipped, 198 subtests, lint, 262 stage parses and isolated
+wheel checks. Saved-asset audit reloads the combo reference and 3 cm limit;
+only the AnimBP changes among audited asset files. Next gate: user's visual/feel
+review of the active attacks and exits; turning contact is repaired below.
+Human acceptance and production promotion remain false.
+
+**Character02 turn/reversal contact repaired and installed, 2026-10-23:**
+After the user's authorized resume, bidirectional terrain prediction plus inner
+and padded-footprint query grids resolved the missing floor coverage. A separate
+frame required 9.31 cm correction: the locomotion limit is now 10 cm, while the
+opted-in combat limit remains 3 cm. The temporary upper-plane heuristic was
+removed. The source character, mesh, weights, clips and selected v23 packet are
+preserved. Runtime terrain traces are bounded at 192 per character, previously
+64; crowd-scale cost is unmeasured.
+
+Seven paired rendered game cases at both 30/60 Hz cover the original sequence
+and left/right/180-degree turns into idle or walking. All exit states pass;
+all sampled clearances are positive, minima 0.148/0.608 cm. The original sequence
+improves from -2.734/-2.072 cm to +0.606/+0.608 cm. Across 3,915 paired frames,
+upper body, pelvis, path, transition state and foot orientation are preserved.
+Six walking/jump cases and six combat exits retain positive contact; declared
+flat-support drift remains below 0.092 cm. The combat comparator's old upward-only
+flag remains false because the changed cache permits 0.038824 cm less vertical
+correction; contact remains positive and unaffected performance channels match.
+
+Four camera views and 33 videos are available at
+`work/character02-turn-contact-20261023/presentation/review.html`; evidence index:
+`docs/evidence/character02-turn-contact-20261023.json`. Saved graph, marker and
+asset-hash checks passed in a fresh normal editor after a commandlet crashed
+during RigVM startup before Python; both receipts are retained. Resumed RAC
+verification passed 791 tests, 15 skipped, 198 subtests, lint and isolated-wheel
+checks; final C++ build and all runtime panels pass. Current DLL SHA:
+`e4029ef320e3e2ce89d0f408fc1b9ddc716c68816dbbe8262ba24b6c5fda12a8`.
+Config/AnimBP backups: game `Saved/TurnContactRepair/20261023T160400Z/`;
+pre-task sources: task `baseline/`. Rejected candidates and the earlier pause
+checkpoint remain historical evidence. Next gate: user review of the animation
+and gameplay feel. Finite collision sampling and fixed-step editor-game tests
+do not establish all-terrain, cooked-build or real-time performance acceptance.
+Human acceptance and production readiness remain false.
 
 ## Character02: open-library animation, cleaned coat paint, measured skin (2026-10-14), not production-ready
 

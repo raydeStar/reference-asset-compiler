@@ -1,0 +1,2280 @@
+{
+  "schema": "rac.character02-attack-recovery-evidence.v1",
+  "date": "2026-10-22",
+  "installed": true,
+  "human_approved": false,
+  "production_ready": false,
+  "scope": "Runtime grounding during attack recovery, floor-rig blending and continuous foot-lock limit handling. v23 clips, native character, mesh, weights, movement and active strike timing preserved.",
+  "baseline": "Previously installed v23 walk and sole-contact implementation, captured before this task changed game code.",
+  "character": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\seams-20261015\\release-v16\\Character02_UE5_coat.blend",
+    "sha256": "3c16eccb47cfc33754c96ba77859d355b6975cf9af239e2741d3ee984d339897"
+  },
+  "packet": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\LibraryAnims\\Character02\\ual-v23-grounded-walk-20261022T221205Z\\clips.json",
+    "sha256": "f34a02e36eab85caa3274842b2b8a927feb553f96cd88d7238c652fee09668e6"
+  },
+  "configuration": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\Characters\\Character02.json",
+    "sha256": "6b98385c98c61e6df449d2680f4b5b3dfd542e47a1961cde74237bc6d6cc8dfb"
+  },
+  "results": {
+    "30_hz": {
+      "before": {
+        "cases": {
+          "walk_attack_idle": {
+            "expected_swings": 1,
+            "resume_walking": false,
+            "samples": 216,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.600000135600567,
+            "montage_gone_s": 2.8000001460313797,
+            "end_speed_cm_s": 0.0,
+            "phases": {
+              "active_attack": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6750482498007386,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 5,
+                "minimum_gap_cm": -0.20731343023430782,
+                "negative_gap_observations": 1,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": -0.20731343023430782,
+                "negative_gap_observations": 1,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6496522569348144,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 3.901048921110638,
+              "foot_l": 9.93745456463261,
+              "foot_r": 5.19813947377881
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          },
+          "walk_attack_walk": {
+            "expected_swings": 1,
+            "resume_walking": true,
+            "samples": 216,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.600000135600567,
+            "montage_gone_s": 2.8000001460313797,
+            "end_speed_cm_s": 89.18049621582547,
+            "phases": {
+              "active_attack": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6750482498007386,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 5,
+                "minimum_gap_cm": -6.3593752296530965,
+                "negative_gap_observations": 2,
+                "below_minus_05cm_observations": 1
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": -6.4305938776581115,
+                "negative_gap_observations": 3,
+                "below_minus_05cm_observations": 2
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.5181196111670943,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 3.9064625654857354,
+              "foot_l": 9.93745456463261,
+              "foot_r": 6.855590108324653
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          },
+          "combo_idle": {
+            "expected_swings": 3,
+            "resume_walking": false,
+            "samples": 216,
+            "sections": [
+              "Melee01",
+              "Melee02",
+              "Melee03"
+            ],
+            "last_active_s": 4.400000229477882,
+            "montage_gone_s": 4.600000239908695,
+            "end_speed_cm_s": 0.0,
+            "phases": {
+              "active_attack": {
+                "samples": 79,
+                "minimum_gap_cm": -1.0152653576676585,
+                "negative_gap_observations": 11,
+                "below_minus_05cm_observations": 9
+              },
+              "blend_out": {
+                "samples": 5,
+                "minimum_gap_cm": -0.963726286480096,
+                "negative_gap_observations": 7,
+                "below_minus_05cm_observations": 1
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": -0.963726286480096,
+                "negative_gap_observations": 9,
+                "below_minus_05cm_observations": 2
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6488341626502461,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 3.8977783337591783,
+              "foot_l": 5.200853605164426,
+              "foot_r": 4.825066689152501
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          },
+          "combo_walk": {
+            "expected_swings": 3,
+            "resume_walking": true,
+            "samples": 216,
+            "sections": [
+              "Melee01",
+              "Melee02",
+              "Melee03"
+            ],
+            "last_active_s": 4.400000229477882,
+            "montage_gone_s": 4.600000239908695,
+            "end_speed_cm_s": 89.18049621582547,
+            "phases": {
+              "active_attack": {
+                "samples": 79,
+                "minimum_gap_cm": -0.9644704808354163,
+                "negative_gap_observations": 11,
+                "below_minus_05cm_observations": 9
+              },
+              "blend_out": {
+                "samples": 5,
+                "minimum_gap_cm": -0.9736871394238733,
+                "negative_gap_observations": 3,
+                "below_minus_05cm_observations": 1
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": -0.9736871394238733,
+                "negative_gap_observations": 4,
+                "below_minus_05cm_observations": 1
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.641773610192331,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 3.9583762611976026,
+              "foot_l": 7.8257034845299085,
+              "foot_r": 10.751751253084464
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          },
+          "cancel_to_walk": {
+            "expected_swings": 1,
+            "resume_walking": true,
+            "samples": 216,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.400000125169754,
+            "montage_gone_s": 2.633333470672369,
+            "end_speed_cm_s": 89.18049621582547,
+            "phases": {
+              "active_attack": {
+                "samples": 19,
+                "minimum_gap_cm": 0.6734751109067929,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 6,
+                "minimum_gap_cm": -7.6911009009029385,
+                "negative_gap_observations": 1,
+                "below_minus_05cm_observations": 1
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": -7.6911009009029385,
+                "negative_gap_observations": 2,
+                "below_minus_05cm_observations": 2
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.5263362217053782,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 4.294513536384044,
+              "foot_l": 10.598982809925673,
+              "foot_r": 7.404996641799968
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          }
+        },
+        "scope": "149 sampled boot vertices, actual map collision and finite frame coverage. Recovery is the 0.6 seconds after the final active attack frame. Not continuous collision, performance or human acceptance proof.",
+        "proof_sha256": "5408dc2c81cffc5091c13e32a868b17f6535c2a1039ed04a9ad117c0031ccf1d"
+      },
+      "after": {
+        "cases": {
+          "walk_attack_idle": {
+            "expected_swings": 1,
+            "resume_walking": false,
+            "samples": 216,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.600000135600567,
+            "montage_gone_s": 2.8000001460313797,
+            "end_speed_cm_s": 0.0,
+            "phases": {
+              "active_attack": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6750482498007386,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 5,
+                "minimum_gap_cm": 0.6499825536602657,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": 0.6497042403193518,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6496522569348144,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 2.3258821898769524,
+              "foot_l": 9.93745456463261,
+              "foot_r": 3.7595602081007424
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          },
+          "walk_attack_walk": {
+            "expected_swings": 1,
+            "resume_walking": true,
+            "samples": 216,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.600000135600567,
+            "montage_gone_s": 2.8000001460313797,
+            "end_speed_cm_s": 89.18049621582547,
+            "phases": {
+              "active_attack": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6750482498007386,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 5,
+                "minimum_gap_cm": 0.9835032265539212,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": 0.639375831775169,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6465042589325094,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 2.3258821898769524,
+              "foot_l": 9.93745456463261,
+              "foot_r": 5.714076168011403
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          },
+          "combo_idle": {
+            "expected_swings": 3,
+            "resume_walking": false,
+            "samples": 216,
+            "sections": [
+              "Melee01",
+              "Melee02",
+              "Melee03"
+            ],
+            "last_active_s": 4.400000229477882,
+            "montage_gone_s": 4.600000239908695,
+            "end_speed_cm_s": 0.0,
+            "phases": {
+              "active_attack": {
+                "samples": 79,
+                "minimum_gap_cm": -1.0152653576676585,
+                "negative_gap_observations": 11,
+                "below_minus_05cm_observations": 9
+              },
+              "blend_out": {
+                "samples": 5,
+                "minimum_gap_cm": 0.649325336650918,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": 0.6489642020628708,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6488341626502461,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 1.4415571820850395,
+              "foot_l": 5.373861242105978,
+              "foot_r": 3.4294224720701507
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          },
+          "combo_walk": {
+            "expected_swings": 3,
+            "resume_walking": true,
+            "samples": 216,
+            "sections": [
+              "Melee01",
+              "Melee02",
+              "Melee03"
+            ],
+            "last_active_s": 4.400000229477882,
+            "montage_gone_s": 4.600000239908695,
+            "end_speed_cm_s": 89.18049621582547,
+            "phases": {
+              "active_attack": {
+                "samples": 79,
+                "minimum_gap_cm": -0.9644704808354163,
+                "negative_gap_observations": 11,
+                "below_minus_05cm_observations": 9
+              },
+              "blend_out": {
+                "samples": 5,
+                "minimum_gap_cm": 0.6497783472734682,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": 0.6337604802056376,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.641773610192331,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 1.2804000874561006,
+              "foot_l": 7.82571868340224,
+              "foot_r": 3.6484691491049754
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          },
+          "cancel_to_walk": {
+            "expected_swings": 1,
+            "resume_walking": true,
+            "samples": 216,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.400000125169754,
+            "montage_gone_s": 2.633333470672369,
+            "end_speed_cm_s": 89.18049621582547,
+            "phases": {
+              "active_attack": {
+                "samples": 19,
+                "minimum_gap_cm": 0.6734751109067929,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 6,
+                "minimum_gap_cm": 0.17490623304979636,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 17,
+                "minimum_gap_cm": 0.09376658849168962,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 25,
+                "minimum_gap_cm": 0.6490919825121182,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 3.0894780576246186,
+              "foot_l": 10.691603322873613,
+              "foot_r": 9.73449020793261
+            },
+            "observed_delta_s_range": [
+              0.03333333507180214,
+              0.03333333507180214
+            ]
+          }
+        },
+        "scope": "149 sampled boot vertices, actual map collision and finite frame coverage. Recovery is the 0.6 seconds after the final active attack frame. Not continuous collision, performance or human acceptance proof.",
+        "proof_sha256": "eba87fd28fad2778bd506ca0a313692f797ca266614b5761d5de8ea734bd9493"
+      },
+      "comparison": {
+        "active_pose_frames_compared": 222,
+        "active_pose_max_position_difference_cm": 0.0,
+        "active_pose_max_rotation_difference_deg": 0.0,
+        "maximum_pawn_path_difference_cm": 0.0,
+        "montage_state_mismatches": [],
+        "active_strikes_preserved": true,
+        "scope": "Paired game runs at identical simulation rate. Active-strike comparison excludes input-onset frames; no timing, movement-path or combat-state change is intended.",
+        "inputs": {
+          "before": {
+            "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\before-30\\probe\\proof.json",
+            "sha256": "5408dc2c81cffc5091c13e32a868b17f6535c2a1039ed04a9ad117c0031ccf1d"
+          },
+          "after": {
+            "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-30\\probe\\proof.json",
+            "sha256": "eba87fd28fad2778bd506ca0a313692f797ca266614b5761d5de8ea734bd9493"
+          }
+        }
+      }
+    },
+    "60_hz": {
+      "before": {
+        "cases": {
+          "walk_attack_idle": {
+            "expected_swings": 1,
+            "resume_walking": false,
+            "samples": 432,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.616666803136468,
+            "montage_gone_s": 2.8000001460313797,
+            "end_speed_cm_s": 0.0,
+            "phases": {
+              "active_attack": {
+                "samples": 50,
+                "minimum_gap_cm": 0.6523110137743515,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 10,
+                "minimum_gap_cm": -1.8815123852314173,
+                "negative_gap_observations": 5,
+                "below_minus_05cm_observations": 2
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": -1.8815123852314173,
+                "negative_gap_observations": 5,
+                "below_minus_05cm_observations": 2
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.6496558993860617,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 5.68236234112989,
+              "foot_l": 5.798507464097119,
+              "foot_r": 6.816073168745549
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          },
+          "walk_attack_walk": {
+            "expected_swings": 1,
+            "resume_walking": true,
+            "samples": 432,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.616666803136468,
+            "montage_gone_s": 2.8000001460313797,
+            "end_speed_cm_s": 89.1804962157709,
+            "phases": {
+              "active_attack": {
+                "samples": 50,
+                "minimum_gap_cm": 0.6523110137743515,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 10,
+                "minimum_gap_cm": -6.783563756854619,
+                "negative_gap_observations": 8,
+                "below_minus_05cm_observations": 7
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": -6.783563756854619,
+                "negative_gap_observations": 9,
+                "below_minus_05cm_observations": 8
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.5110736824824471,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 5.68236234112989,
+              "foot_l": 5.798507464097119,
+              "foot_r": 7.263105873346828
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          },
+          "combo_idle": {
+            "expected_swings": 3,
+            "resume_walking": false,
+            "samples": 432,
+            "sections": [
+              "Melee01",
+              "Melee02",
+              "Melee03"
+            ],
+            "last_active_s": 4.400000229477882,
+            "montage_gone_s": 4.583333572372794,
+            "end_speed_cm_s": 0.0,
+            "phases": {
+              "active_attack": {
+                "samples": 157,
+                "minimum_gap_cm": -0.934274735091094,
+                "negative_gap_observations": 23,
+                "below_minus_05cm_observations": 19
+              },
+              "blend_out": {
+                "samples": 10,
+                "minimum_gap_cm": -2.8840537922037583,
+                "negative_gap_observations": 20,
+                "below_minus_05cm_observations": 14
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": -2.8840537922037583,
+                "negative_gap_observations": 22,
+                "below_minus_05cm_observations": 15
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.6488302624068183,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 6.255865027231036,
+              "foot_l": 5.173094131494838,
+              "foot_r": 6.695979683972959
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          },
+          "combo_walk": {
+            "expected_swings": 3,
+            "resume_walking": true,
+            "samples": 432,
+            "sections": [
+              "Melee01",
+              "Melee02",
+              "Melee03"
+            ],
+            "last_active_s": 4.400000229477882,
+            "montage_gone_s": 4.583333572372794,
+            "end_speed_cm_s": 89.1804962157709,
+            "phases": {
+              "active_attack": {
+                "samples": 157,
+                "minimum_gap_cm": -1.030590179527053,
+                "negative_gap_observations": 23,
+                "below_minus_05cm_observations": 19
+              },
+              "blend_out": {
+                "samples": 10,
+                "minimum_gap_cm": -2.9667774702597853,
+                "negative_gap_observations": 16,
+                "below_minus_05cm_observations": 5
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": -2.9667774702597853,
+                "negative_gap_observations": 17,
+                "below_minus_05cm_observations": 5
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.6432126960644382,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 6.242275790630224,
+              "foot_l": 5.146618649244151,
+              "foot_r": 13.571199576761396
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          },
+          "cancel_to_walk": {
+            "expected_swings": 1,
+            "resume_walking": true,
+            "samples": 432,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.416666792705655,
+            "montage_gone_s": 2.633333470672369,
+            "end_speed_cm_s": 89.1804962157709,
+            "phases": {
+              "active_attack": {
+                "samples": 38,
+                "minimum_gap_cm": 0.6522677545297029,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 12,
+                "minimum_gap_cm": -7.9420783667740125,
+                "negative_gap_observations": 4,
+                "below_minus_05cm_observations": 3
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": -7.9420783667740125,
+                "negative_gap_observations": 5,
+                "below_minus_05cm_observations": 4
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.5121627046084996,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 6.637930199690747,
+              "foot_l": 5.2544202943756835,
+              "foot_r": 8.27845013091332
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          }
+        },
+        "scope": "149 sampled boot vertices, actual map collision and finite frame coverage. Recovery is the 0.6 seconds after the final active attack frame. Not continuous collision, performance or human acceptance proof.",
+        "proof_sha256": "2b64c796e51f1d8f66b1f4d35c9c32547dc09d4f038f6ba7c450985a4cfe6292"
+      },
+      "after": {
+        "cases": {
+          "walk_attack_idle": {
+            "expected_swings": 1,
+            "resume_walking": false,
+            "samples": 432,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.616666803136468,
+            "montage_gone_s": 2.8000001460313797,
+            "end_speed_cm_s": 0.0,
+            "phases": {
+              "active_attack": {
+                "samples": 50,
+                "minimum_gap_cm": 0.6523110137743515,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 10,
+                "minimum_gap_cm": 0.6496988942526514,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": 0.6496064204739014,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.6496558993860617,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 1.1629409186484456,
+              "foot_l": 5.798507464097119,
+              "foot_r": 2.870697750980867
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          },
+          "walk_attack_walk": {
+            "expected_swings": 1,
+            "resume_walking": true,
+            "samples": 432,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.616666803136468,
+            "montage_gone_s": 2.8000001460313797,
+            "end_speed_cm_s": 89.1804962157709,
+            "phases": {
+              "active_attack": {
+                "samples": 50,
+                "minimum_gap_cm": 0.6523110137743515,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 10,
+                "minimum_gap_cm": 0.6398630139974557,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": 0.6387569846740462,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.6461506490068132,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 1.311661175357357,
+              "foot_l": 5.798507464097119,
+              "foot_r": 5.811477385524849
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          },
+          "combo_idle": {
+            "expected_swings": 3,
+            "resume_walking": false,
+            "samples": 432,
+            "sections": [
+              "Melee01",
+              "Melee02",
+              "Melee03"
+            ],
+            "last_active_s": 4.400000229477882,
+            "montage_gone_s": 4.583333572372794,
+            "end_speed_cm_s": 0.0,
+            "phases": {
+              "active_attack": {
+                "samples": 157,
+                "minimum_gap_cm": -0.934274735091094,
+                "negative_gap_observations": 23,
+                "below_minus_05cm_observations": 19
+              },
+              "blend_out": {
+                "samples": 10,
+                "minimum_gap_cm": 0.6490629414010982,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": 0.6489441725404959,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.6488302624068183,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 0.7673664932360573,
+              "foot_l": 2.822299019022271,
+              "foot_r": 1.8865875741933906
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          },
+          "combo_walk": {
+            "expected_swings": 3,
+            "resume_walking": true,
+            "samples": 432,
+            "sections": [
+              "Melee01",
+              "Melee02",
+              "Melee03"
+            ],
+            "last_active_s": 4.400000229477882,
+            "montage_gone_s": 4.583333572372794,
+            "end_speed_cm_s": 89.1804962157709,
+            "phases": {
+              "active_attack": {
+                "samples": 157,
+                "minimum_gap_cm": -1.030590179527053,
+                "negative_gap_observations": 23,
+                "below_minus_05cm_observations": 19
+              },
+              "blend_out": {
+                "samples": 10,
+                "minimum_gap_cm": 0.6495210356849839,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": 0.6340345893040649,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.6432126960644382,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 0.6389990322585359,
+              "foot_l": 3.9231835290897243,
+              "foot_r": 2.0115855341336144
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          },
+          "cancel_to_walk": {
+            "expected_swings": 1,
+            "resume_walking": true,
+            "samples": 432,
+            "sections": [
+              "Melee01"
+            ],
+            "last_active_s": 2.416666792705655,
+            "montage_gone_s": 2.633333470672369,
+            "end_speed_cm_s": 89.1804962157709,
+            "phases": {
+              "active_attack": {
+                "samples": 38,
+                "minimum_gap_cm": 0.6522677545297029,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "blend_out": {
+                "samples": 12,
+                "minimum_gap_cm": 0.015444320512187915,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              },
+              "recovery": {
+                "samples": 35,
+                "minimum_gap_cm": -0.023970818386942483,
+                "negative_gap_observations": 1,
+                "below_minus_05cm_observations": 0
+              },
+              "settled": {
+                "samples": 49,
+                "minimum_gap_cm": 0.6488600574698467,
+                "negative_gap_observations": 0,
+                "below_minus_05cm_observations": 0
+              }
+            },
+            "maximum_recovery_component_step_cm": {
+              "pelvis": 1.441803808663337,
+              "foot_l": 5.332753807070065,
+              "foot_r": 7.227981612049403
+            },
+            "observed_delta_s_range": [
+              0.01666666753590107,
+              0.01666666753590107
+            ]
+          }
+        },
+        "scope": "149 sampled boot vertices, actual map collision and finite frame coverage. Recovery is the 0.6 seconds after the final active attack frame. Not continuous collision, performance or human acceptance proof.",
+        "proof_sha256": "850253b1a3f364f660e2360c824f2080a2da7748f746f55bf5670ff4422edb01"
+      },
+      "comparison": {
+        "active_pose_frames_compared": 447,
+        "active_pose_max_position_difference_cm": 0.0,
+        "active_pose_max_rotation_difference_deg": 0.0,
+        "maximum_pawn_path_difference_cm": 0.0,
+        "montage_state_mismatches": [],
+        "active_strikes_preserved": true,
+        "scope": "Paired game runs at identical simulation rate. Active-strike comparison excludes input-onset frames; no timing, movement-path or combat-state change is intended.",
+        "inputs": {
+          "before": {
+            "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\before-60\\probe\\proof.json",
+            "sha256": "2b64c796e51f1d8f66b1f4d35c9c32547dc09d4f038f6ba7c450985a4cfe6292"
+          },
+          "after": {
+            "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-60\\probe\\proof.json",
+            "sha256": "850253b1a3f364f660e2360c824f2080a2da7748f746f55bf5670ff4422edb01"
+          }
+        }
+      }
+    }
+  },
+  "walking_regression": {
+    "cases": {
+      "walk_stop_a": {
+        "samples": 324,
+        "falling_samples": 0,
+        "max_speed_cm_s": 89.18049621577086,
+        "steady_walk_samples": 144,
+        "knee_bend_deg": {
+          "l": {
+            "min": 12.048241497643527,
+            "max": 57.68867235793371
+          },
+          "r": {
+            "min": 11.901555541079695,
+            "max": 57.62126189274474
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6478771736110502,
+            "max": 6.780603998826109,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.6456673944092017,
+            "max": 7.376658648677676,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "l",
+            "start_s": 2.866666816174984,
+            "end_s": 3.083333494141698,
+            "samples": 14,
+            "max_displacement_cm": 0.015289290429187951,
+            "plant_curve_range": [
+              0.9738796353340149,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3666667379438877,
+            "samples": 11,
+            "max_displacement_cm": 0.07800610943770693,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935828014214,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 2.3333334550261497,
+            "end_s": 2.4833334628492594,
+            "samples": 10,
+            "max_displacement_cm": 0.0014001336788472224,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 2.5000001303851604,
+            "end_s": 2.666666805744171,
+            "samples": 11,
+            "max_displacement_cm": 0.017623911387699632,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 3.4833335150033236,
+            "end_s": 3.7333335280418396,
+            "samples": 16,
+            "max_displacement_cm": 0.013345751295012602,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.6986663662168646,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 0.7838399602903637,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "walk_stop_b": {
+        "samples": 365,
+        "falling_samples": 0,
+        "max_speed_cm_s": 89.18049621577086,
+        "steady_walk_samples": 144,
+        "knee_bend_deg": {
+          "l": {
+            "min": 12.048241497643527,
+            "max": 57.68935936936135
+          },
+          "r": {
+            "min": 11.901556670860739,
+            "max": 57.62126189274474
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6478771736110502,
+            "max": 6.421199157429783,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.6456673935874733,
+            "max": 7.376658648677676,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "l",
+            "start_s": 2.866666816174984,
+            "end_s": 3.083333494141698,
+            "samples": 14,
+            "max_displacement_cm": 0.015289290429187951,
+            "plant_curve_range": [
+              0.9738796353340149,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "l",
+            "start_s": 3.9666668735444546,
+            "end_s": 4.333333559334278,
+            "samples": 23,
+            "max_displacement_cm": 0.0510213203899357,
+            "plant_curve_range": [
+              0.9705764651298523,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3666667379438877,
+            "samples": 11,
+            "max_displacement_cm": 0.0780061065374322,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935586044284,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 2.3333334550261497,
+            "end_s": 2.4833334628492594,
+            "samples": 10,
+            "max_displacement_cm": 0.0014001336788472224,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 2.5000001303851604,
+            "end_s": 2.666666805744171,
+            "samples": 11,
+            "max_displacement_cm": 0.017623911387699632,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 3.4833335150033236,
+            "end_s": 3.7333335280418396,
+            "samples": 16,
+            "max_displacement_cm": 0.013345751295012602,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 4.533333569765091,
+            "end_s": 4.633333574980497,
+            "samples": 7,
+            "max_displacement_cm": 0.001031953845597892,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.7051788278683874,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.683333577588201,
+            "max_pelvis_step_cm": 0.7413419978436596,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "speed_changes": {
+        "samples": 420,
+        "falling_samples": 0,
+        "max_speed_cm_s": 500.0,
+        "steady_walk_samples": 82,
+        "knee_bend_deg": {
+          "l": {
+            "min": 12.048241497643527,
+            "max": 57.68935936936135
+          },
+          "r": {
+            "min": 11.901556670860739,
+            "max": 48.26355191203801
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6478771736110502,
+            "max": 18.980521304569038,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.6456673935874733,
+            "max": 19.860242861371717,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "l",
+            "start_s": 4.766666915267706,
+            "end_s": 5.1333336010575294,
+            "samples": 23,
+            "max_displacement_cm": 0.0300123579853109,
+            "plant_curve_range": [
+              0.9246151447296143,
+              1.0
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "l",
+            "start_s": 5.8666669726371765,
+            "end_s": 6.000000312924385,
+            "samples": 9,
+            "max_displacement_cm": 0.016057087616131435,
+            "plant_curve_range": [
+              0.9246287941932678,
+              1.0
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3666667379438877,
+            "samples": 11,
+            "max_displacement_cm": 0.0780061065374322,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935586044284,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 2.3333334550261497,
+            "end_s": 2.4833334628492594,
+            "samples": 10,
+            "max_displacement_cm": 0.0014001336788472224,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 2.5000001303851604,
+            "end_s": 2.666666805744171,
+            "samples": 11,
+            "max_displacement_cm": 0.017623911387699632,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 4.4333335645496845,
+            "end_s": 4.566666904836893,
+            "samples": 9,
+            "max_displacement_cm": 0.09183148816476513,
+            "plant_curve_range": [
+              0.9703959822654724,
+              0.9987432360649109
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 5.433333616703749,
+            "end_s": 5.6333336271345615,
+            "samples": 13,
+            "max_displacement_cm": 0.011052893643816035,
+            "plant_curve_range": [
+              1.0,
+              1.0
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.7051788278683874,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 2.8000001460313797,
+            "max_pelvis_step_cm": 2.063315395404298,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.2000002190470695,
+            "max_pelvis_step_cm": 2.48032865166212,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 6.000000312924385,
+            "max_pelvis_step_cm": 0.7861666454111931,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "walk_turns": {
+        "samples": 390,
+        "falling_samples": 0,
+        "max_speed_cm_s": 120.00000000002362,
+        "steady_walk_samples": 0,
+        "knee_bend_deg": {
+          "l": null,
+          "r": null
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6477956104122313,
+            "max": 9.193648934377734,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.5560201573484846,
+            "max": 45.29406621660269,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.742837947979633,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 2.5000001303851604,
+            "max_pelvis_step_cm": 1.3778393376869909,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 1.2816596956663673,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 5.500000286847353,
+            "max_pelvis_step_cm": 1.090163563395796,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "walk_jump": {
+        "samples": 300,
+        "falling_samples": 77,
+        "max_speed_cm_s": 867.6951718077448,
+        "steady_walk_samples": 68,
+        "knee_bend_deg": {
+          "l": {
+            "min": 15.051670869475059,
+            "max": 97.46360352598862
+          },
+          "r": {
+            "min": 11.901556670860739,
+            "max": 92.43419291877336
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6478771736110502,
+            "max": 179.7195743579632,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.5051400679462859,
+            "max": 174.34115541416827,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "l",
+            "start_s": 3.6500001903623343,
+            "end_s": 3.7500001955777407,
+            "samples": 7,
+            "max_displacement_cm": 12.849825753731412,
+            "plant_curve_range": [
+              0.0,
+              0.0
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "l",
+            "start_s": 3.850000200793147,
+            "end_s": 4.000000208616257,
+            "samples": 10,
+            "max_displacement_cm": 0.014791319245319824,
+            "plant_curve_range": [
+              0.9738738536834717,
+              1.0
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3666667379438877,
+            "samples": 11,
+            "max_displacement_cm": 0.07800610124441108,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935586044284,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.6902873673658436,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 0.8094856004999441,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "walk_attack": {
+        "samples": 240,
+        "falling_samples": 0,
+        "max_speed_cm_s": 299.10187589476476,
+        "steady_walk_samples": 21,
+        "knee_bend_deg": {
+          "l": {
+            "min": 28.21939556962961,
+            "max": 57.6889983366312
+          },
+          "r": {
+            "min": 11.901556670860739,
+            "max": 42.970464650809284
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6478771736110502,
+            "max": 40.161808759090945,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.6456673935874733,
+            "max": 7.850475123461365,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3666667379438877,
+            "samples": 11,
+            "max_displacement_cm": 0.07800610136058117,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935586044284,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.6909420533932563,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 1.8000000938773155,
+            "max_pelvis_step_cm": 8.447960059911782,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      }
+    },
+    "support_window_definition": {
+      "angular_speed_max_deg_s": 18,
+      "ankle_vertical_speed_max_cm_s": 8,
+      "sole_gap_range_cm": [
+        -0.5,
+        2.5
+      ],
+      "minimum_window_s": 0.1,
+      "minimum_samples": 4,
+      "same_sampled_surface_vertex": true
+    },
+    "scope": "Sampled evaluated game poses and collision at this map location. Flat-support windows are inferred subsets, not continuous or all-terrain proof.",
+    "proof_sha256": "fb071efc5eb9907faacb7780627ac9d767867805fca35b868b5713f60381a577"
+  },
+  "validation": {
+    "preflight": "791 passed, 15 skipped, 198 subtests; lint, stage parse and isolated wheel passed.",
+    "final": "C++ build, saved graph/assets reload, paired 30/60 Hz runtime, four views, walk/jump regression, lint and 260 stage parses passed.",
+    "visual_inspection": "Matched recovery frames, front/back/three-quarter game images and encoded video metadata inspected. Browser automation rejected file URL; no browser interaction claim.",
+    "current_module_bound_to_all_final_runs": true
+  },
+  "rejected_attempts": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\candidate-60",
+      "reason": "Game-thread active-montage gate still missed first blend-out frame."
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\evaluated-recovery-build-rejected-full.log",
+      "reason": "Direct proxy montage-state accessor is protected; compilation failed. Replaced with public thread-safe API."
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\candidate-v2-60",
+      "reason": "Current slot gate corrected contact but exposed abrupt floor-rig pelvis drop."
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\blended-60",
+      "reason": "Weighted floor-rig candidate retained hard foot-lock reset; superseded by reachable projection."
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\after-30",
+      "reason": "Pre-projection recorded candidate; final videos use final-30 instead."
+    }
+  ],
+  "limits": [
+    "Finite 149-sample sole checks at one map location, not continuous collision or all-terrain coverage.",
+    "One movement-cancellation recovery sample is -0.0239708 cm at 60 Hz; all ordinary recovery minima are positive.",
+    "Existing active-combo penetration around 1 cm remains in the expanded panel; strike poses were preserved.",
+    "Fixed simulation rates in rendered UnrealEditor -game are not real-time performance or cooked-build proof.",
+    "Human artistic and gameplay-feel acceptance remains open."
+  ],
+  "artifacts": {
+    "before-30": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\before-30\\process.json",
+        "sha256": "a5204b2e74ec41f71b05352c76fe34d7562e5953a4db5cc2b2b2e9dc6d6c716d",
+        "bytes": 1610
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\before-30\\probe\\proof.json",
+        "sha256": "5408dc2c81cffc5091c13e32a868b17f6535c2a1039ed04a9ad117c0031ccf1d",
+        "bytes": 19114640
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\before-30\\measurements.json",
+        "sha256": "34f3db021caf60a14557541306bf032a9ef20197f824062d2e1309c118a6dae6",
+        "bytes": 7387
+      }
+    ],
+    "before-60": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\before-60\\process.json",
+        "sha256": "f25f783b4c0338713dbf3a0367dcbb3f1d1267f48e7c73b195494a764ec32a17",
+        "bytes": 1609
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\before-60\\probe\\proof.json",
+        "sha256": "2b64c796e51f1d8f66b1f4d35c9c32547dc09d4f038f6ba7c450985a4cfe6292",
+        "bytes": 37887719
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\before-60\\measurements.json",
+        "sha256": "fc697fbb8e436ff0c691dba559c7060a6a6b6b04139d41fe87852bbe4ee0184e",
+        "bytes": 7392
+      }
+    ],
+    "final-30": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-30\\process.json",
+        "sha256": "17bfd33d719df6a8b6273597afe6801861bea1cc158e6b66befc2dbfaf893b86",
+        "bytes": 1609
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-30\\probe\\proof.json",
+        "sha256": "eba87fd28fad2778bd506ca0a313692f797ca266614b5761d5de8ea734bd9493",
+        "bytes": 19137560
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-30\\measurements.json",
+        "sha256": "74fdd50b3d6091ae613196175ed2448a4003a7b12d6d54cbbc6df649bee7ddcf",
+        "bytes": 7379
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-30\\comparison.json",
+        "sha256": "607e9a92d33979a2f10665ae0f4b2264a51957106cffc24c2058b828c6a7027a",
+        "bytes": 971
+      }
+    ],
+    "final-60": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-60\\process.json",
+        "sha256": "641a935f7ae4b96c37ddfc21507d9a90b83322149a8683b63c9d05c8af95baa3",
+        "bytes": 1608
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-60\\probe\\proof.json",
+        "sha256": "850253b1a3f364f660e2360c824f2080a2da7748f746f55bf5670ff4422edb01",
+        "bytes": 37936017
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-60\\measurements.json",
+        "sha256": "8b80a793b45834a85e615accc471ab1487e6f25cb91da670cf64a9cc706ec0ca",
+        "bytes": 7390
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-60\\comparison.json",
+        "sha256": "24ec05a42b903948cbc4f4e3ff7ec6d64284b5a89b3c9b7bc3c254056890633d",
+        "bytes": 971
+      }
+    ],
+    "walk-regression-60": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\walk-regression-60\\process.json",
+        "sha256": "433ff0925ec07c88a4ac44b1b8083dec49e5d596eccfc1ccb89d4512a2a5977b",
+        "bytes": 1614
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\walk-regression-60\\probe\\proof.json",
+        "sha256": "fb071efc5eb9907faacb7780627ac9d767867805fca35b868b5713f60381a577",
+        "bytes": 35657164
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\walk-regression-60\\measurements.json",
+        "sha256": "a072728ee4104dcc7949f1f0269195b86c15f98dab86a9a7022073dc06d77ef6",
+        "bytes": 18495
+      }
+    ],
+    "final-four-views": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-four-views\\process.json",
+        "sha256": "7f42a8b3feaa3998e452261606ae9c30d326d17b7b3343ff0f2a5b540c33fd1c",
+        "bytes": 1617
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-four-views\\probe\\proof.json",
+        "sha256": "a3fc15c1e89b2b59f878b217004ca3366c6b798e717ef7c940a070ffa2ccfa1f",
+        "bytes": 15327804
+      }
+    ],
+    "baseline/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\baseline\\receipt.json",
+      "sha256": "2818471016fb1a81c5d3e52368a95240a55bbb1ce2f518dd74b12ec3f0dbad2e",
+      "bytes": 1550
+    },
+    "baseline/additional-receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\baseline\\additional-receipt.json",
+      "sha256": "588791c9e0feca1faa7eac24e2c01592a460cb8e338522f92c0fffb3ac7ba8a5",
+      "bytes": 1079
+    },
+    "preflight-verify.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\preflight-verify.log",
+      "sha256": "c863d43eb4283faffe559e318f62c487e0320afc3331fbf6f416155d86a1a79b",
+      "bytes": 2946
+    },
+    "install/process.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\install\\process.json",
+      "sha256": "136786da72a264239ca138d778fb7a237d77e1e5daec5b3104d67e10143574a6",
+      "bytes": 448
+    },
+    "installed-snapshot/recipe.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\installed-snapshot\\recipe.json",
+      "sha256": "b842fc65b21921191eb26addf522d81c48a03eaf92d5b5d176140b33f0f4a70f",
+      "bytes": 8832
+    },
+    "installed-audit/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\installed-audit\\receipt.json",
+      "sha256": "f89dcc3372e9423f1d65037b59246334561571cd50ba0a710f4eec59254316ba",
+      "bytes": 1098
+    },
+    "saved-recovery-audit.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\saved-recovery-audit.json",
+      "sha256": "f0333e5be4bf7ae09d4df575387b199ff5e61c4854f15b8efe645145224eedf7",
+      "bytes": 7356
+    },
+    "reachable-recovery-build.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\reachable-recovery-build.log",
+      "sha256": "799a563413f2c6253c6208d799e69bfcb2238315fa4812e32f6df905807f62c6",
+      "bytes": 301
+    },
+    "reachable-recovery-build-full.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\reachable-recovery-build-full.log",
+      "sha256": "2dc8e89e486107e80192c490bd0c6e5560d5fbb55e3561b597810360c7257e2c",
+      "bytes": 4048
+    },
+    "final-checks.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\final-checks.json",
+      "sha256": "62e02d5d67f45f316f68b1a49d9385266cacdc9624077b81ceba20c08f1f8f0e",
+      "bytes": 1685
+    },
+    "capture-manifest.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\capture-manifest.json",
+      "sha256": "8a6a968e77b5912d3a0de317091a7c5ddcf53ae5e39e9bdd63e27e3fc7de8bb5",
+      "bytes": 834375
+    },
+    "presentation/review.html": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\review.html",
+      "sha256": "470b3bed68f7c6942aa48a1bdbc733b98b814d767a311692d4cf990a29acee39",
+      "bytes": 9485
+    },
+    "installation_receipt": {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\AttackRecoveryRepair\\20261022T230601Z\\receipt.json",
+      "sha256": "a8830619baef1061d7e80cd99b1746377ac6208de03ac22227b286d5dc75ceaf",
+      "bytes": 579
+    },
+    "backed_up_assets": [
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\AttackRecoveryRepair\\20261022T230601Z\\AnimBP.before.uasset",
+        "sha256": "f207a3c213dea937064e4735b27a9e06fb7d98351acb8d328d9153abe0244334",
+        "bytes": 1201299
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\AttackRecoveryRepair\\20261022T230601Z\\Character02.before.json",
+        "sha256": "5410e98a7233491979346dda715ac591005b939dd85667afdec2c1385b5b5103",
+        "bytes": 14715
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\AttackRecoveryRepair\\20261022T230601Z\\receipt.json",
+        "sha256": "a8830619baef1061d7e80cd99b1746377ac6208de03ac22227b286d5dc75ceaf",
+        "bytes": 579
+      }
+    ],
+    "fresh_engine_audit": {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\AnimationAudit\\20261022T231749Z\\audit.json",
+      "sha256": "2307f96a58c0a8357043f5d42950b9fad235a763ee8bbd5b65223244f4813b8f",
+      "bytes": 2608666
+    },
+    "module": {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Binaries\\Win64\\UnrealEditor-TheAetherWars.dll",
+      "sha256": "07baaf3e6e9f75fb9f43311e6f55110d19efd6f56e927392518fc10aaf27a736",
+      "bytes": 7175168
+    },
+    "implementation": [
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AnimNode_AetherSoleContact.cpp",
+        "sha256": "710ebd3288351edf67e5afb4ead76c4ef2682aec51d05a4302a4ea94301afe9e",
+        "bytes": 10969
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AnimNode_AetherSoleContact.h",
+        "sha256": "e73794cf8b87a52e585a214017c9019da8490face1fee181c11cf215387ffe90",
+        "bytes": 2749
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AetherAnimLibrary.cpp",
+        "sha256": "5fdd8d841a6deb309c8be1b4ac2544e8845c1e4408a30d35231791baefc3e2fc",
+        "bytes": 5056
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AetherAnimLibrary.h",
+        "sha256": "8764e107a4198d99fc54f3a02f6588ad1c6a07e00558b0e2155894628d97dca4",
+        "bytes": 4948
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\SoleContact.py",
+        "sha256": "8d8fa3b78a822c1ad05afb42973eb08389836fa9887c7afe924c0ca75c8d6b47",
+        "bytes": 5064
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\LocomotionFeel.py",
+        "sha256": "9ed9fcae5791b868779210d26d46098ab931bc0872bb0d0a29d9f10f7303b574",
+        "bytes": 28686
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\Characters\\Character02.json",
+        "sha256": "6b98385c98c61e6df449d2680f4b5b3dfd542e47a1961cde74237bc6d6cc8dfb",
+        "bytes": 15038
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Docs\\Character02AttackRecovery.md",
+        "sha256": "1bb14e33dd7c37d3ebba7b9f1e682bf0fbcdb583936a125d28ef4bed0c110526",
+        "bytes": 2961
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\character02_recovery_runtime.py",
+        "sha256": "58a491933bf0d5431c967e798dce7bd1c647340ff324b23b3b59703e93e61757",
+        "bytes": 8659
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\install_character02_recovery.py",
+        "sha256": "77b6bf83d89840d35360612305f02a4181d905b9d848064e39401338521b1fcf",
+        "bytes": 2542
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\audit_character02_recovery.py",
+        "sha256": "d9a9abf335cf67bf5570e2fefc3d1474536c8e5e271f8314144681dd26b1f7fb",
+        "bytes": 2389
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\analyze_character02_recovery.py",
+        "sha256": "1787fa0b86c1acc1833fad9dc589f014f9f1c3256d95649391ebd54f3ce50a7c",
+        "bytes": 2827
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\compare_character02_recovery.py",
+        "sha256": "97d725e1ce5b97256410af39439d92c2f25b57bdec84384949a6d3e54c3bb49c",
+        "bytes": 2814
+      }
+    ],
+    "task_helpers": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\build_review.py",
+        "sha256": "d3b0669cce5696bc5bcc994d663bfb8252e778f5ff9cb53ef0a4244b47eaefbb",
+        "bytes": 11110
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\finalize_evidence.py",
+        "sha256": "5f7d75bffbcad807db36c9d31559d47cac1f48ef2ac38ec281f885c954b6171f",
+        "bytes": 9972
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\make_presentation.py",
+        "sha256": "40facfe57204de008c817050754a3d9ba3b56ff7f9399d7ad178e00fb796a10c",
+        "bytes": 1919
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\run_audits.py",
+        "sha256": "49076ca37adcbddc82c759cbb728d819783c3210552dbf13ee2e8a85a05e0ef5",
+        "bytes": 1422
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\run_install.py",
+        "sha256": "4540884452813ec0d5cb3d6920de1ab33ec26cd306e921e521a4e4ffd249cd63",
+        "bytes": 786
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\run_runtime.py",
+        "sha256": "e627b3dbce11f0bdf18de1590a00e3e657534f15e3e4ed3db31be1468dff3415",
+        "bytes": 2530
+      }
+    ]
+  },
+  "media": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\recovery-before-after.mp4",
+      "sha256": "90ba155e47b278c88d01a04e95bc59b7a78576c2342bba2f69e5f7fca502958b",
+      "bytes": 7918941,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "16.800000",
+        "nb_frames": "504"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\recovery_front.mp4",
+      "sha256": "81b6a69cf0005556aa8f296984da13284d86c750dd11ddb994da21e3db375374",
+      "bytes": 847821,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\recovery_side.mp4",
+      "sha256": "0d962fe9d89f2f5d424b86fa4a46e31efcd10651bcc94e37857a0f59cf992ea4",
+      "bytes": 1032723,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\recovery_back.mp4",
+      "sha256": "09a56f32a4a9c6d2ccf869acdf5ddb914747793ceab1e49c574c200382e1a23e",
+      "bytes": 1536171,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\recovery_three_quarter.mp4",
+      "sha256": "016b6478c266b5d00eb7895265fe327fd9409c4a888cbb5137448be8fccd9d11",
+      "bytes": 1093389,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\before-30-walk_attack_idle.mp4",
+      "sha256": "d3d34c2043ed228a3ed54a71a38a5e35bf30cb66a6057cc07dd05fc879f0e161",
+      "bytes": 984719,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\final-30-walk_attack_idle.mp4",
+      "sha256": "aa72720876e6946bb0b081a4d11927efff4ea8b4b9ed1534b0aa73928d2df369",
+      "bytes": 978809,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\walk_attack_idle-before-after.mp4",
+      "sha256": "1f4c36df222df5a7a548648aceffb5e48477cd78d59ab67b3ca1247d26989394",
+      "bytes": 1778038,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\walk_attack_idle-feet-before-after.mp4",
+      "sha256": "b2fbbcd0852643e7660906c43a4a12e2c5855de40262efb492fd041e6200537a",
+      "bytes": 1733046,
+      "video": {
+        "width": 1440,
+        "height": 762,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\before-30-walk_attack_walk.mp4",
+      "sha256": "d92271bdd00427531369d9f119cc120e7916c383e34b7d7e36619ec632baa798",
+      "bytes": 1976147,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\final-30-walk_attack_walk.mp4",
+      "sha256": "f8d765d6b87e8c3b8b3e03465ad1c843d45e8aa42e815bc28b408a348bfa517b",
+      "bytes": 1973397,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\walk_attack_walk-before-after.mp4",
+      "sha256": "f7fae3b4b90ba3dde03b50fe46b9a127ac48955316a3b68869c44e16257ce003",
+      "bytes": 3380327,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\walk_attack_walk-feet-before-after.mp4",
+      "sha256": "2cb9bd82aadda0f4b692782d2c75451089e156239cb4c56a79e260b55213c1cf",
+      "bytes": 3414526,
+      "video": {
+        "width": 1440,
+        "height": 762,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\before-30-combo_idle.mp4",
+      "sha256": "9c5f2d31dfad6c055ff1c6e3176ec088b56ee7df0b092d5a9673f6b678e03022",
+      "bytes": 1493597,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\final-30-combo_idle.mp4",
+      "sha256": "2e704a3f420582d466c705b3e555a856ff90ddb2c578a4a5dca9569707308038",
+      "bytes": 1497085,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\combo_idle-before-after.mp4",
+      "sha256": "f4c94a2ac7733f36bec180435c8470d06936dc0270b62d0cd44c632e41a61197",
+      "bytes": 2575648,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\combo_idle-feet-before-after.mp4",
+      "sha256": "df52f0cd8540b04903d69b60cf0d2bfc992eb2a1b21e510b351dc021921ac880",
+      "bytes": 2614738,
+      "video": {
+        "width": 1440,
+        "height": 762,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\before-30-combo_walk.mp4",
+      "sha256": "9b8ac51ca50e60bcc675464be0f3ad7917932f11ca3de8f825621785f4e2aa89",
+      "bytes": 1956876,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\final-30-combo_walk.mp4",
+      "sha256": "f1f6cd2a0b7114fb94b4e3a018dc34a4c1673ea59df6496ff7890308064ecafd",
+      "bytes": 1947195,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\combo_walk-before-after.mp4",
+      "sha256": "6b132712191873be0613a48537518a0ff1a49d13e0015cd075c3858a6288d9fe",
+      "bytes": 3313819,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\combo_walk-feet-before-after.mp4",
+      "sha256": "07c152fc2f1b03154e9045155db8ad90c31ad63755e205352aea64f4a7d5d473",
+      "bytes": 3372062,
+      "video": {
+        "width": 1440,
+        "height": 762,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\before-30-cancel_to_walk.mp4",
+      "sha256": "3c8ea2eaa737803cc359500d007b69515c43779be3f3533acf71d67076390bb8",
+      "bytes": 1961824,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\final-30-cancel_to_walk.mp4",
+      "sha256": "2848f05e5e9c0b241b9f11ecf335ba13df7858745a9c35e7d7ca7e2888c8fbbb",
+      "bytes": 1965315,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\cancel_to_walk-before-after.mp4",
+      "sha256": "2d3810e353c5c481578c91dfadb608f34af773e5b6e571517d63336541adde25",
+      "bytes": 3361264,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-attack-recovery-20261022\\presentation\\cancel_to_walk-feet-before-after.mp4",
+      "sha256": "30f054783d0ccab075800369fcc2069a5474fd0a1f9241b7ba7d41f9a981b28f",
+      "bytes": 3423666,
+      "video": {
+        "width": 1440,
+        "height": 762,
+        "r_frame_rate": "30/1",
+        "duration": "5.600000",
+        "nb_frames": "168"
+      }
+    }
+  ]
+}

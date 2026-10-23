@@ -6,6 +6,10 @@ A playable clip is not necessarily a usable animation. Start with the character'
 intended stance, then add movement. Read this document before authoring, retargeting,
 or delivering character clips, including browser-only demos outside the UE ledger.
 
+For hash-bound motion recipes, calibrated source replay, contact solving, exports,
+measurements and clip-level review records, use [ANIMATION_WORKFLOW.md](ANIMATION_WORKFLOW.md).
+It extends this pose-first procedure; technical receipts do not replace acceptance.
+
 ## Pose first
 
 1. State the intended action in plain language. A relaxed standing idle has arms

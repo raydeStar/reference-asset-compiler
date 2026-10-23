@@ -1,0 +1,4298 @@
+{
+  "schema": "rac.character02-turn-contact-evidence.v1",
+  "date": "2026-10-23",
+  "installed": true,
+  "technical_panel_passed": true,
+  "human_approved": false,
+  "production_ready": false,
+  "scope": "Runtime contact for turn/reversal transitions into idle and walking. Source animation and accepted character preserved.",
+  "character": {
+    "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\seams-20261015\\release-v16\\Character02_UE5_coat.blend",
+    "sha256": "3c16eccb47cfc33754c96ba77859d355b6975cf9af239e2741d3ee984d339897"
+  },
+  "packet": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\LibraryAnims\\Character02\\ual-v23-grounded-walk-20261022T221205Z\\clips.json",
+    "sha256": "f34a02e36eab85caa3274842b2b8a927feb553f96cd88d7238c652fee09668e6"
+  },
+  "configuration": {
+    "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\Characters\\Character02.json",
+    "sha256": "016eebf72413a86df88a1a5cbe4651f6139abc31963a83a63c722c1939acacf7"
+  },
+  "results": {
+    "30_hz": {
+      "before": {
+        "cases": {
+          "turn_sequence_idle": {
+            "samples": 225,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000088,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.4280287765191133,
+                "max": 6.7403327167239695,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": -2.7343133477586434,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 3
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5312504462344878,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.6052363843837036,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.9621050131697955,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 5.500000286847353,
+                "max_pelvis_step_cm": 2.0936835539707745,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": -2.7343133477586434,
+              "negative_foot_observations": 6,
+              "minimum_trace_coverage": 0.72,
+              "valid_ground_hits": 31225,
+              "traced_vertices": 33525
+            },
+            "exit_start_s": 5.5,
+            "exit_minimum_gap_cm": -2.7343133477586434,
+            "exit_maximum_foot_step_cm": {
+              "l": 4.395107272455987,
+              "r": 11.829191455618908
+            }
+          },
+          "turn_left_idle": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000088,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.4280287765191133,
+                "max": 6.608087622435505,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6417549535376565,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5047551905382286,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.6052363843837036,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.8283074714061707,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.4280287765191133,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.72,
+              "valid_ground_hits": 25032,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6335581434623236,
+            "exit_maximum_foot_step_cm": {
+              "l": 4.505502400994188,
+              "r": 11.686080398227658
+            }
+          },
+          "turn_left_walk": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000088,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.4280287765191133,
+                "max": 6.608087622435505,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6417549535376565,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 4.733333580195904,
+                "end_s": 4.933333590626717,
+                "samples": 7,
+                "max_displacement_cm": 0.019740044097814255,
+                "plant_curve_range": [
+                  0.9738916158676147,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.333333559334278,
+                "end_s": 4.4333335645496845,
+                "samples": 4,
+                "max_displacement_cm": 0.0009619432040134786,
+                "plant_curve_range": [
+                  1.0,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.266666941344738,
+                "end_s": 5.566666956990957,
+                "samples": 10,
+                "max_displacement_cm": 0.0102008876411281,
+                "plant_curve_range": [
+                  0.6306658983230591,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": false
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5047551905382286,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.6052363843837036,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.8283074714061707,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 88.67129802525477,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.4280287765191133,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.72,
+              "valid_ground_hits": 24959,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6480586277173188,
+            "exit_maximum_foot_step_cm": {
+              "l": 7.908000319653965,
+              "r": 11.686080398227658
+            }
+          },
+          "turn_right_idle": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000115,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6174002936950274,
+                "max": 6.301545033332104,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": -1.6386634244022389,
+                "max": 8.762267623580101,
+                "below_minus_05cm_samples": 1
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.7406925342175126,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.425808335408931,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 2.0862461999349367,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": -1.6386634244022389,
+              "negative_foot_observations": 1,
+              "minimum_trace_coverage": 0.8108108108108109,
+              "valid_ground_hits": 25512,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6259295830075189,
+            "exit_maximum_foot_step_cm": {
+              "l": 4.386545093173091,
+              "r": 11.637426737545162
+            }
+          },
+          "turn_right_walk": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000115,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6117423905561736,
+                "max": 6.297319722546263,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.5436905907195069,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 4.500000234693289,
+                "end_s": 4.633333574980497,
+                "samples": 5,
+                "max_displacement_cm": 22.137630347597295,
+                "plant_curve_range": [
+                  0.0,
+                  0.0
+                ],
+                "entire_window_declared_flat_support": false
+              },
+              {
+                "side": "l",
+                "start_s": 4.733333580195904,
+                "end_s": 5.066666930913925,
+                "samples": 11,
+                "max_displacement_cm": 0.016373077668296744,
+                "plant_curve_range": [
+                  0.9738916158676147,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.166666883975267,
+                "end_s": 4.400000229477882,
+                "samples": 8,
+                "max_displacement_cm": 0.055340384578660765,
+                "plant_curve_range": [
+                  0.6306627988815308,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": false
+              },
+              {
+                "side": "r",
+                "start_s": 4.4333335645496845,
+                "end_s": 4.533333569765091,
+                "samples": 4,
+                "max_displacement_cm": 0.02359196936608305,
+                "plant_curve_range": [
+                  0.9999945759773254,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.266666941344738,
+                "end_s": 5.533333621919155,
+                "samples": 9,
+                "max_displacement_cm": 0.09455878186380465,
+                "plant_curve_range": [
+                  0.6306658983230591,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": false
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5047551905382286,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.4520281384588745,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 2.5778161761137692,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 87.50630770869813,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.5436905907195069,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7702702702702703,
+              "valid_ground_hits": 25189,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.5436905907195069,
+            "exit_maximum_foot_step_cm": {
+              "l": 7.85255293528571,
+              "r": 11.639406788851968
+            }
+          },
+          "turn_reverse_idle": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.0000000000001,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6473848400742099,
+                "max": 6.286061897611717,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.642012397562894,
+                "max": 8.695885046944113,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.4950786351049754,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.9319519575173343,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 2.0202936388323827,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.642012397562894,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7866666666666666,
+              "valid_ground_hits": 26625,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6470531356189895,
+            "exit_maximum_foot_step_cm": {
+              "l": 4.380174874590559,
+              "r": 11.788536091693812
+            }
+          },
+          "turn_reverse_walk": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.0000000000001,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.634129187387316,
+                "max": 6.316886089122363,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": -0.22857480138395658,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 5.033333595842123,
+                "end_s": 5.1333336010575294,
+                "samples": 4,
+                "max_displacement_cm": 0.008811884814462554,
+                "plant_curve_range": [
+                  1.0,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.266666889190674,
+                "end_s": 4.566666904836893,
+                "samples": 10,
+                "max_displacement_cm": 0.012019773983849846,
+                "plant_curve_range": [
+                  0.9999945759773254,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.366666946560144,
+                "end_s": 5.700000297278166,
+                "samples": 11,
+                "max_displacement_cm": 0.029688569381160042,
+                "plant_curve_range": [
+                  1.0,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5047551905382286,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.9316785973678516,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 2.086329336886254,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 89.18049621582547,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": -0.22857480138395658,
+              "negative_foot_observations": 1,
+              "minimum_trace_coverage": 0.8133333333333334,
+              "valid_ground_hits": 26169,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.634129187387316,
+            "exit_maximum_foot_step_cm": {
+              "l": 7.8363736814002705,
+              "r": 11.790748527364565
+            }
+          }
+        },
+        "support_window_definition": {
+          "angular_speed_max_deg_s": 18,
+          "ankle_vertical_speed_max_cm_s": 8,
+          "sole_gap_range_cm": [
+            -0.5,
+            2.5
+          ],
+          "minimum_window_s": 0.1,
+          "minimum_samples": 4,
+          "same_sampled_surface_vertex": true
+        },
+        "scope": "All retained sole vertices independently traced on tested terrain; finite samples and ray misses do not establish continuous contact.",
+        "proof": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-30\\probe\\proof.json",
+          "sha256": "a0f96b50f33276f81460c4fc5c240e88c81b16c521291e5237ded8496d9d562c"
+        }
+      },
+      "after": {
+        "cases": {
+          "turn_sequence_idle": {
+            "samples": 225,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000088,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6329470598866465,
+                "max": 6.7403327167239695,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6062348072703116,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5312504462344878,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.6052363843837036,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.9621050131697955,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 5.500000286847353,
+                "max_pelvis_step_cm": 2.0936835539707745,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6062348072703116,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.72,
+              "valid_ground_hits": 31225,
+              "traced_vertices": 33525
+            },
+            "exit_start_s": 5.5,
+            "exit_minimum_gap_cm": 0.6483006964231208,
+            "exit_maximum_foot_step_cm": {
+              "l": 4.395107272455987,
+              "r": 11.842205708190084
+            }
+          },
+          "turn_left_idle": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000088,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6329470598866465,
+                "max": 7.485419229580202,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6417549535376565,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5047551905382286,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.6052363843837036,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.8283074714061707,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6329470598866465,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.72,
+              "valid_ground_hits": 25032,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6451853509254306,
+            "exit_maximum_foot_step_cm": {
+              "l": 4.422219679917134,
+              "r": 11.686080398227658
+            }
+          },
+          "turn_left_walk": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000088,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6329470598866465,
+                "max": 6.608087622435505,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6417549535376565,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 4.733333580195904,
+                "end_s": 4.933333590626717,
+                "samples": 7,
+                "max_displacement_cm": 0.019740044097814255,
+                "plant_curve_range": [
+                  0.9738916158676147,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.333333559334278,
+                "end_s": 4.4333335645496845,
+                "samples": 4,
+                "max_displacement_cm": 0.0009619432040134786,
+                "plant_curve_range": [
+                  1.0,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.266666941344738,
+                "end_s": 5.566666956990957,
+                "samples": 10,
+                "max_displacement_cm": 0.0102008876411281,
+                "plant_curve_range": [
+                  0.6306658983230591,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": false
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5047551905382286,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.6052363843837036,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.8283074714061707,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 88.67129802525477,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6329470598866465,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.72,
+              "valid_ground_hits": 24959,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6480586277173188,
+            "exit_maximum_foot_step_cm": {
+              "l": 7.908000319653965,
+              "r": 11.686080398227658
+            }
+          },
+          "turn_right_idle": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000115,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6475468628900671,
+                "max": 6.30121911286119,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.14820642674089868,
+                "max": 8.762267623580101,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.7406925342175126,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.425808335408931,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 2.0862461999349367,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.14820642674089868,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.8108108108108109,
+              "valid_ground_hits": 25513,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6490491949280113,
+            "exit_maximum_foot_step_cm": {
+              "l": 4.386545093173091,
+              "r": 11.748919403860237
+            }
+          },
+          "turn_right_walk": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000115,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6468619481188398,
+                "max": 6.297319722546263,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6157351571073377,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 4.500000234693289,
+                "end_s": 4.633333574980497,
+                "samples": 5,
+                "max_displacement_cm": 22.137630347597295,
+                "plant_curve_range": [
+                  0.0,
+                  0.0
+                ],
+                "entire_window_declared_flat_support": false
+              },
+              {
+                "side": "l",
+                "start_s": 4.733333580195904,
+                "end_s": 5.066666930913925,
+                "samples": 11,
+                "max_displacement_cm": 0.016371405613541865,
+                "plant_curve_range": [
+                  0.9738916158676147,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.166666883975267,
+                "end_s": 4.400000229477882,
+                "samples": 8,
+                "max_displacement_cm": 0.055340384578660765,
+                "plant_curve_range": [
+                  0.6306627988815308,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": false
+              },
+              {
+                "side": "r",
+                "start_s": 4.4333335645496845,
+                "end_s": 4.533333569765091,
+                "samples": 4,
+                "max_displacement_cm": 0.02359196936608305,
+                "plant_curve_range": [
+                  0.9999945759773254,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.266666941344738,
+                "end_s": 5.533333621919155,
+                "samples": 9,
+                "max_displacement_cm": 0.09455878186380465,
+                "plant_curve_range": [
+                  0.6306658983230591,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": false
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5047551905382286,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 2.4520281384588745,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 2.5778161761137692,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 87.50630770869813,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6157351571073377,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7702702702702703,
+              "valid_ground_hits": 25189,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6157351571073377,
+            "exit_maximum_foot_step_cm": {
+              "l": 7.85255293528571,
+              "r": 11.75326042629705
+            }
+          },
+          "turn_reverse_idle": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.0000000000001,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6473848400742099,
+                "max": 6.285899120686963,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.48076938607255215,
+                "max": 8.695885046944113,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.4950786351049754,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.9319519575173343,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 2.0202936388323827,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.48076938607255215,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7866666666666666,
+              "valid_ground_hits": 26625,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6470531356189895,
+            "exit_maximum_foot_step_cm": {
+              "l": 4.380174874590559,
+              "r": 11.788536091693812
+            }
+          },
+          "turn_reverse_walk": {
+            "samples": 180,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.0000000000001,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.634129187387316,
+                "max": 6.316886089122363,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6404811982060892,
+                "max": 8.72907079000015,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 5.033333595842123,
+                "end_s": 5.1333336010575294,
+                "samples": 4,
+                "max_displacement_cm": 0.008811884814462554,
+                "plant_curve_range": [
+                  1.0,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.266666889190674,
+                "end_s": 4.566666904836893,
+                "samples": 10,
+                "max_displacement_cm": 0.012043365684817037,
+                "plant_curve_range": [
+                  0.9999945759773254,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.366666946560144,
+                "end_s": 5.700000297278166,
+                "samples": 11,
+                "max_displacement_cm": 0.029688569381160042,
+                "plant_curve_range": [
+                  1.0,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 1.5047551905382286,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.9316785973678516,
+                "observed_max_dt_s": 0.03333333507180214
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 2.086329336886254,
+                "observed_max_dt_s": 0.03333333507180214
+              }
+            ],
+            "end_speed_cm_s": 89.18049621582547,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.634129187387316,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.8133333333333334,
+              "valid_ground_hits": 26169,
+              "traced_vertices": 26820
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.634129187387316,
+            "exit_maximum_foot_step_cm": {
+              "l": 7.8363697959737815,
+              "r": 11.790748527364565
+            }
+          }
+        },
+        "support_window_definition": {
+          "angular_speed_max_deg_s": 18,
+          "ankle_vertical_speed_max_cm_s": 8,
+          "sole_gap_range_cm": [
+            -0.5,
+            2.5
+          ],
+          "minimum_window_s": 0.1,
+          "minimum_samples": 4,
+          "same_sampled_surface_vertex": true
+        },
+        "scope": "All retained sole vertices independently traced on tested terrain; finite samples and ray misses do not establish continuous contact.",
+        "proof": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\final-30\\probe\\proof.json",
+          "sha256": "147604a2140abea3b64c21308ec0d2e32434fee2bd148fc2c4ec4a2429a86dd0"
+        },
+        "comparison": {
+          "frames_compared": 1305,
+          "maxima": {
+            "unaffected_position_cm": 0.0,
+            "unaffected_rotation_deg": 0.0,
+            "pawn_position_cm": 0.0,
+            "foot_rotation_deg": 7.664947068470856e-14
+          },
+          "state_mismatches": [],
+          "unaffected_performance_preserved": true
+        },
+        "before": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-30\\probe\\proof.json",
+          "sha256": "a0f96b50f33276f81460c4fc5c240e88c81b16c521291e5237ded8496d9d562c"
+        }
+      }
+    },
+    "60_hz": {
+      "before": {
+        "cases": {
+          "turn_sequence_idle": {
+            "samples": 450,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000962,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.14084462199730297,
+                "max": 7.116869626662492,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": -2.0717797353904643,
+                "max": 8.654343500679943,
+                "below_minus_05cm_samples": 2
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7539193694116306,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3778409313045432,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.2816549487965465,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 5.500000286847353,
+                "max_pelvis_step_cm": 1.090163563395796,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": -2.0717797353904643,
+              "negative_foot_observations": 12,
+              "minimum_trace_coverage": 0.7066666666666667,
+              "valid_ground_hits": 63108,
+              "traced_vertices": 67050
+            },
+            "exit_start_s": 5.5,
+            "exit_minimum_gap_cm": -2.0717797353904643,
+            "exit_maximum_foot_step_cm": {
+              "l": 2.3736818558707093,
+              "r": 6.199537450298817
+            }
+          },
+          "turn_left_idle": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000962,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.14084462199730297,
+                "max": 6.435875553791675,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6397008780475062,
+                "max": 8.654343500679943,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7402274777754387,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3778409313045432,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 0.9739362152028105,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.14084462199730297,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7066666666666667,
+              "valid_ground_hits": 50723,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6429952060773303,
+            "exit_maximum_foot_step_cm": {
+              "l": 2.555454552312682,
+              "r": 6.369339852629919
+            }
+          },
+          "turn_left_walk": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000962,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.14084462199730297,
+                "max": 6.435875553791675,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6397008780475062,
+                "max": 8.654343500679943,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "r",
+                "start_s": 5.283333608880639,
+                "end_s": 5.583333624526858,
+                "samples": 19,
+                "max_displacement_cm": 0.037194017788515575,
+                "plant_curve_range": [
+                  0.9738695621490479,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7402274777754387,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3778409313045432,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 0.91851712612963,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 88.94315996157242,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.14084462199730297,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7066666666666667,
+              "valid_ground_hits": 50481,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6468174230190016,
+            "exit_maximum_foot_step_cm": {
+              "l": 3.9721119976959973,
+              "r": 5.9159480927575
+            }
+          },
+          "turn_right_idle": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000001356,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.5827516034457858,
+                "max": 6.439302467465723,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": -1.7059827766556737,
+                "max": 8.662636462895989,
+                "below_minus_05cm_samples": 1
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7352276628273717,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3685108280976195,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.069633924978754,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": -1.7059827766556737,
+              "negative_foot_observations": 1,
+              "minimum_trace_coverage": 0.8243243243243243,
+              "valid_ground_hits": 51226,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6491091747470819,
+            "exit_maximum_foot_step_cm": {
+              "l": 2.5133140106777914,
+              "r": 6.415664007322787
+            }
+          },
+          "turn_right_walk": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000001356,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.5812558103311858,
+                "max": 6.435875553791675,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6144570738263155,
+                "max": 8.654343500679943,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 4.733333580195904,
+                "end_s": 5.033333595842123,
+                "samples": 19,
+                "max_displacement_cm": 0.016623651745459954,
+                "plant_curve_range": [
+                  0.973868191242218,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.1833335515111685,
+                "end_s": 4.383333561941981,
+                "samples": 13,
+                "max_displacement_cm": 0.041775933740985226,
+                "plant_curve_range": [
+                  0.9738735556602478,
+                  1.0000001192092896
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.4333335645496845,
+                "end_s": 4.550000237300992,
+                "samples": 8,
+                "max_displacement_cm": 0.05916142568612039,
+                "plant_curve_range": [
+                  0.9705768823623657,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.283333608880639,
+                "end_s": 5.533333621919155,
+                "samples": 16,
+                "max_displacement_cm": 0.03897369557417699,
+                "plant_curve_range": [
+                  0.9738695621490479,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7402274777754387,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3652416237355993,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.3818285863933715,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 88.8330402498003,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.5812558103311858,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7702702702702703,
+              "valid_ground_hits": 50369,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6144570738263155,
+            "exit_maximum_foot_step_cm": {
+              "l": 3.927973248635436,
+              "r": 5.933829574519814
+            }
+          },
+          "turn_reverse_idle": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.0000000000001,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.5814077453271693,
+                "max": 6.432461314112061,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6417882262715011,
+                "max": 8.646050682717487,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.745473532898188,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.0606868948110537,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.1220654019941325,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.5814077453271693,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.8378378378378378,
+              "valid_ground_hits": 53560,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6467183075894809,
+            "exit_maximum_foot_step_cm": {
+              "l": 2.137146867992387,
+              "r": 5.954944612958598
+            }
+          },
+          "turn_reverse_walk": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.0000000000001,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.5829015688611889,
+                "max": 6.435875553791675,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": -0.032430661404987404,
+                "max": 8.830049949124032,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 5.016666928306222,
+                "end_s": 5.1333336010575294,
+                "samples": 8,
+                "max_displacement_cm": 0.00963823174746448,
+                "plant_curve_range": [
+                  0.9999999403953552,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.283333556726575,
+                "end_s": 4.566666904836893,
+                "samples": 18,
+                "max_displacement_cm": 0.011831489680912652,
+                "plant_curve_range": [
+                  0.9999916553497314,
+                  1.0000001192092896
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.366666946560144,
+                "end_s": 5.700000297278166,
+                "samples": 21,
+                "max_displacement_cm": 0.029394975530160895,
+                "plant_curve_range": [
+                  0.9974373579025269,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7402274777754387,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.0651374356759191,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.1220048345646598,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 89.1804962157709,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": -0.032430661404987404,
+              "negative_foot_observations": 1,
+              "minimum_trace_coverage": 0.8108108108108109,
+              "valid_ground_hits": 52316,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6329899060722255,
+            "exit_maximum_foot_step_cm": {
+              "l": 3.9197513900681997,
+              "r": 5.954888369320614
+            }
+          }
+        },
+        "support_window_definition": {
+          "angular_speed_max_deg_s": 18,
+          "ankle_vertical_speed_max_cm_s": 8,
+          "sole_gap_range_cm": [
+            -0.5,
+            2.5
+          ],
+          "minimum_window_s": 0.1,
+          "minimum_samples": 4,
+          "same_sampled_surface_vertex": true
+        },
+        "scope": "All retained sole vertices independently traced on tested terrain; finite samples and ray misses do not establish continuous contact.",
+        "proof": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-60\\probe\\proof.json",
+          "sha256": "7815e32d521ff664a93e59b6ef38bdb91ccc722c18c295494881bd5c6c58a52c"
+        }
+      },
+      "after": {
+        "cases": {
+          "turn_sequence_idle": {
+            "samples": 450,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000962,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6477771348893384,
+                "max": 7.882148279717967,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.607635120624991,
+                "max": 8.654343500679943,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7539193694116306,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3778409313045432,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.2816549487965465,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 5.500000286847353,
+                "max_pelvis_step_cm": 1.090163563395796,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.607635120624991,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7066666666666667,
+              "valid_ground_hits": 63109,
+              "traced_vertices": 67050
+            },
+            "exit_start_s": 5.5,
+            "exit_minimum_gap_cm": 0.6477771348893384,
+            "exit_maximum_foot_step_cm": {
+              "l": 2.3736818558707093,
+              "r": 6.046122781978127
+            }
+          },
+          "turn_left_idle": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000962,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6486686665150501,
+                "max": 7.232582710184715,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6397008780475062,
+                "max": 8.654343500679943,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7402274777754387,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3778409313045432,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 0.9739362152028105,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6397008780475062,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7066666666666667,
+              "valid_ground_hits": 50724,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6429952060773303,
+            "exit_maximum_foot_step_cm": {
+              "l": 2.5796677174395657,
+              "r": 6.369339852629919
+            }
+          },
+          "turn_left_walk": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000000962,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6483793370052808,
+                "max": 6.435831889702058,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6397008780475062,
+                "max": 8.654343500679943,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "r",
+                "start_s": 5.283333608880639,
+                "end_s": 5.583333624526858,
+                "samples": 19,
+                "max_displacement_cm": 0.037194017788515575,
+                "plant_curve_range": [
+                  0.9738695621490479,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7402274777754387,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3778409313045432,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 0.91851712612963,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 88.94315996157242,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6397008780475062,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7066666666666667,
+              "valid_ground_hits": 50482,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6468174230190016,
+            "exit_maximum_foot_step_cm": {
+              "l": 3.973102779408566,
+              "r": 5.9159480927575
+            }
+          },
+          "turn_right_idle": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000001356,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6475456764301271,
+                "max": 6.439296847025616,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6228084204062725,
+                "max": 8.662636462895989,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7352276628273717,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3685108280976195,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.069633924978754,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6228084204062725,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.8243243243243243,
+              "valid_ground_hits": 51226,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6491091747470819,
+            "exit_maximum_foot_step_cm": {
+              "l": 2.5133140106777914,
+              "r": 6.415664007322787
+            }
+          },
+          "turn_right_walk": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.00000000001356,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6467157681136086,
+                "max": 6.435831889702058,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6144570738263155,
+                "max": 8.654343500679943,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 4.733333580195904,
+                "end_s": 5.033333595842123,
+                "samples": 19,
+                "max_displacement_cm": 0.016623651745459954,
+                "plant_curve_range": [
+                  0.973868191242218,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.1833335515111685,
+                "end_s": 4.383333561941981,
+                "samples": 13,
+                "max_displacement_cm": 0.041775933740985226,
+                "plant_curve_range": [
+                  0.9738735556602478,
+                  1.0000001192092896
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.4333335645496845,
+                "end_s": 4.550000237300992,
+                "samples": 8,
+                "max_displacement_cm": 0.05916142568612039,
+                "plant_curve_range": [
+                  0.9705768823623657,
+                  1.0
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.283333608880639,
+                "end_s": 5.533333621919155,
+                "samples": 16,
+                "max_displacement_cm": 0.03897369557417699,
+                "plant_curve_range": [
+                  0.9738695621490479,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7402274777754387,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.3652416237355993,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.3818285863933715,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 88.8330402498003,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6144570738263155,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.7702702702702703,
+              "valid_ground_hits": 50369,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6144570738263155,
+            "exit_maximum_foot_step_cm": {
+              "l": 3.927973241049639,
+              "r": 5.948921734437947
+            }
+          },
+          "turn_reverse_idle": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.0000000000001,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6472813534758188,
+                "max": 6.432380084778515,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6417882262715011,
+                "max": 8.646050682717487,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.745473532898188,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.0606868948110537,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.1220654019941325,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 0.0,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6417882262715011,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.8378378378378378,
+              "valid_ground_hits": 53559,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6467183075894809,
+            "exit_maximum_foot_step_cm": {
+              "l": 2.137146867992387,
+              "r": 5.954944612958598
+            }
+          },
+          "turn_reverse_walk": {
+            "samples": 360,
+            "falling_samples": 0,
+            "max_speed_cm_s": 120.0000000000001,
+            "steady_walk_samples": 0,
+            "knee_bend_deg": {
+              "l": null,
+              "r": null
+            },
+            "sole_gap_cm": {
+              "l": {
+                "min": 0.6329899060722255,
+                "max": 6.435831889702058,
+                "below_minus_05cm_samples": 0
+              },
+              "r": {
+                "min": 0.6404531520761338,
+                "max": 8.830049949124032,
+                "below_minus_05cm_samples": 0
+              }
+            },
+            "near_flat_support_windows": [
+              {
+                "side": "l",
+                "start_s": 5.016666928306222,
+                "end_s": 5.1333336010575294,
+                "samples": 8,
+                "max_displacement_cm": 0.00963823174746448,
+                "plant_curve_range": [
+                  0.9999999403953552,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 4.283333556726575,
+                "end_s": 4.566666904836893,
+                "samples": 18,
+                "max_displacement_cm": 0.011831489680912652,
+                "plant_curve_range": [
+                  0.9999916553497314,
+                  1.0000001192092896
+                ],
+                "entire_window_declared_flat_support": true
+              },
+              {
+                "side": "r",
+                "start_s": 5.366666946560144,
+                "end_s": 5.700000297278166,
+                "samples": 21,
+                "max_displacement_cm": 0.029394975530160895,
+                "plant_curve_range": [
+                  0.9974373579025269,
+                  0.9999999403953552
+                ],
+                "entire_window_declared_flat_support": true
+              }
+            ],
+            "transition_windows": [
+              {
+                "input_change_s": 1.0000000521540642,
+                "max_pelvis_step_cm": 0.7402274777754387,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 2.5000001303851604,
+                "max_pelvis_step_cm": 1.0651374356759191,
+                "observed_max_dt_s": 0.01666666753590107
+              },
+              {
+                "input_change_s": 4.000000208616257,
+                "max_pelvis_step_cm": 1.1220048345646598,
+                "observed_max_dt_s": 0.01666666753590107
+              }
+            ],
+            "end_speed_cm_s": 89.1804962157709,
+            "exit_state_passed": true,
+            "whole_case": {
+              "minimum_gap_cm": 0.6329899060722255,
+              "negative_foot_observations": 0,
+              "minimum_trace_coverage": 0.8108108108108109,
+              "valid_ground_hits": 52316,
+              "traced_vertices": 53640
+            },
+            "exit_start_s": 4.0,
+            "exit_minimum_gap_cm": 0.6329899060722255,
+            "exit_maximum_foot_step_cm": {
+              "l": 3.9197513900681997,
+              "r": 5.954888369320614
+            }
+          }
+        },
+        "support_window_definition": {
+          "angular_speed_max_deg_s": 18,
+          "ankle_vertical_speed_max_cm_s": 8,
+          "sole_gap_range_cm": [
+            -0.5,
+            2.5
+          ],
+          "minimum_window_s": 0.1,
+          "minimum_samples": 4,
+          "same_sampled_surface_vertex": true
+        },
+        "scope": "All retained sole vertices independently traced on tested terrain; finite samples and ray misses do not establish continuous contact.",
+        "proof": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\final-60\\probe\\proof.json",
+          "sha256": "341a532e3f8d2f61dd2a2c4597148d87d329817cd361ea034c47ff0a2606cdd7"
+        },
+        "comparison": {
+          "frames_compared": 2610,
+          "maxima": {
+            "unaffected_position_cm": 0.0,
+            "unaffected_rotation_deg": 0.0,
+            "pawn_position_cm": 0.0,
+            "foot_rotation_deg": 7.121349740209571e-14
+          },
+          "state_mismatches": [],
+          "unaffected_performance_preserved": true
+        },
+        "before": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-60\\probe\\proof.json",
+          "sha256": "7815e32d521ff664a93e59b6ef38bdb91ccc722c18c295494881bd5c6c58a52c"
+        }
+      }
+    }
+  },
+  "walking_regression": {
+    "cases": {
+      "walk_stop_a": {
+        "samples": 324,
+        "falling_samples": 0,
+        "max_speed_cm_s": 89.18049621577086,
+        "steady_walk_samples": 144,
+        "knee_bend_deg": {
+          "l": {
+            "min": 12.048241497643527,
+            "max": 57.68867235793371
+          },
+          "r": {
+            "min": 11.901555541079695,
+            "max": 56.277314861972435
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6478771736110502,
+            "max": 7.882148279717967,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.6448775043818387,
+            "max": 8.523689998105283,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "l",
+            "start_s": 2.866666816174984,
+            "end_s": 3.083333494141698,
+            "samples": 14,
+            "max_displacement_cm": 0.015289290429187951,
+            "plant_curve_range": [
+              0.9738796353340149,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3833334054797888,
+            "samples": 12,
+            "max_displacement_cm": 0.08017866956454303,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935828014214,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 2.3333334550261497,
+            "end_s": 2.666666805744171,
+            "samples": 21,
+            "max_displacement_cm": 0.023610933151875096,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 3.4833335150033236,
+            "end_s": 3.7333335280418396,
+            "samples": 16,
+            "max_displacement_cm": 0.031720821487352724,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.6986663662168646,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 0.7838399602903637,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "walk_stop_b": {
+        "samples": 365,
+        "falling_samples": 0,
+        "max_speed_cm_s": 89.18049621577086,
+        "steady_walk_samples": 144,
+        "knee_bend_deg": {
+          "l": {
+            "min": 12.048241497643527,
+            "max": 57.68916360307303
+          },
+          "r": {
+            "min": 11.901556670860739,
+            "max": 56.277314861972435
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6478771736110502,
+            "max": 6.421199157429783,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.6447031520156088,
+            "max": 7.742996696871387,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "l",
+            "start_s": 2.866666816174984,
+            "end_s": 3.083333494141698,
+            "samples": 14,
+            "max_displacement_cm": 0.015289290429187951,
+            "plant_curve_range": [
+              0.9738796353340149,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "l",
+            "start_s": 3.9666668735444546,
+            "end_s": 4.333333559334278,
+            "samples": 23,
+            "max_displacement_cm": 0.0510213203899357,
+            "plant_curve_range": [
+              0.9705764651298523,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3833334054797888,
+            "samples": 12,
+            "max_displacement_cm": 0.08017865660375997,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935586044284,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 2.3333334550261497,
+            "end_s": 2.666666805744171,
+            "samples": 21,
+            "max_displacement_cm": 0.023610933151875096,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 3.4833335150033236,
+            "end_s": 3.7333335280418396,
+            "samples": 16,
+            "max_displacement_cm": 0.031720821487352724,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 4.533333569765091,
+            "end_s": 4.683333577588201,
+            "samples": 10,
+            "max_displacement_cm": 0.006360546979993312,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.7051788278683874,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.683333577588201,
+            "max_pelvis_step_cm": 0.7413419978436596,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "speed_changes": {
+        "samples": 420,
+        "falling_samples": 0,
+        "max_speed_cm_s": 500.0,
+        "steady_walk_samples": 82,
+        "knee_bend_deg": {
+          "l": {
+            "min": 12.048241497643527,
+            "max": 57.68916360307303
+          },
+          "r": {
+            "min": 11.901556670860739,
+            "max": 48.26355191203801
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.647517772980791,
+            "max": 17.827439143158927,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.638894291251745,
+            "max": 19.860242861371717,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "l",
+            "start_s": 4.766666915267706,
+            "end_s": 5.1333336010575294,
+            "samples": 23,
+            "max_displacement_cm": 0.0300123579853109,
+            "plant_curve_range": [
+              0.9246151447296143,
+              1.0
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "l",
+            "start_s": 5.8666669726371765,
+            "end_s": 6.000000312924385,
+            "samples": 9,
+            "max_displacement_cm": 0.01605708958448878,
+            "plant_curve_range": [
+              0.9246287941932678,
+              1.0
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3833334054797888,
+            "samples": 12,
+            "max_displacement_cm": 0.08017865660375997,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935586044284,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 2.3333334550261497,
+            "end_s": 2.666666805744171,
+            "samples": 21,
+            "max_displacement_cm": 0.023610933151875096,
+            "plant_curve_range": [
+              0.9999999403953552,
+              0.9999999403953552
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 4.4333335645496845,
+            "end_s": 4.566666904836893,
+            "samples": 9,
+            "max_displacement_cm": 0.09186837055125395,
+            "plant_curve_range": [
+              0.9703959822654724,
+              0.9987432360649109
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 5.333333611488342,
+            "end_s": 5.6333336271345615,
+            "samples": 19,
+            "max_displacement_cm": 0.01575059689503298,
+            "plant_curve_range": [
+              1.0,
+              1.0
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.7051788278683874,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 2.8000001460313797,
+            "max_pelvis_step_cm": 2.063315395404298,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.2000002190470695,
+            "max_pelvis_step_cm": 2.48032865166212,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 6.000000312924385,
+            "max_pelvis_step_cm": 0.7861666454111931,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "walk_turns": {
+        "samples": 390,
+        "falling_samples": 0,
+        "max_speed_cm_s": 120.00000000002362,
+        "steady_walk_samples": 0,
+        "knee_bend_deg": {
+          "l": null,
+          "r": null
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6477956104122313,
+            "max": 7.1143754210045245,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.6076333572475505,
+            "max": 8.65434355106845,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.742837947979633,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 2.5000001303851604,
+            "max_pelvis_step_cm": 1.3778393376869909,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 1.2816596956663673,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 5.500000286847353,
+            "max_pelvis_step_cm": 1.090163563395796,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "walk_jump": {
+        "samples": 300,
+        "falling_samples": 77,
+        "max_speed_cm_s": 867.6951718077448,
+        "steady_walk_samples": 68,
+        "knee_bend_deg": {
+          "l": {
+            "min": 14.900015024709793,
+            "max": 97.46360352598862
+          },
+          "r": {
+            "min": 11.901556670860739,
+            "max": 92.43419291877336
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6478771736110502,
+            "max": 179.7195743579632,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.6406389784337989,
+            "max": 174.34115541416827,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "l",
+            "start_s": 3.6500001903623343,
+            "end_s": 3.7500001955777407,
+            "samples": 7,
+            "max_displacement_cm": 12.849821827809906,
+            "plant_curve_range": [
+              0.0,
+              0.0
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "l",
+            "start_s": 3.850000200793147,
+            "end_s": 4.000000208616257,
+            "samples": 10,
+            "max_displacement_cm": 0.014791319245319824,
+            "plant_curve_range": [
+              0.9738738536834717,
+              1.0
+            ],
+            "entire_window_declared_flat_support": true
+          },
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3833334054797888,
+            "samples": 12,
+            "max_displacement_cm": 0.08017863315809827,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935586044284,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.6902873673658436,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 4.000000208616257,
+            "max_pelvis_step_cm": 0.8094856004999441,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      },
+      "walk_attack": {
+        "samples": 240,
+        "falling_samples": 0,
+        "max_speed_cm_s": 299.10187589476476,
+        "steady_walk_samples": 21,
+        "knee_bend_deg": {
+          "l": {
+            "min": 28.21939556962961,
+            "max": 57.68880238182532
+          },
+          "r": {
+            "min": 11.901556670860739,
+            "max": 42.970464650809284
+          }
+        },
+        "sole_gap_cm": {
+          "l": {
+            "min": 0.6478771736110502,
+            "max": 9.556752790449764,
+            "below_minus_05cm_samples": 0
+          },
+          "r": {
+            "min": 0.6424820700362943,
+            "max": 8.490000220362845,
+            "below_minus_05cm_samples": 0
+          }
+        },
+        "near_flat_support_windows": [
+          {
+            "side": "r",
+            "start_s": 1.200000062584877,
+            "end_s": 1.3833334054797888,
+            "samples": 12,
+            "max_displacement_cm": 0.08017863367336246,
+            "plant_curve_range": [
+              0.6752047538757324,
+              1.0000063180923462
+            ],
+            "entire_window_declared_flat_support": false
+          },
+          {
+            "side": "r",
+            "start_s": 1.4000000730156898,
+            "end_s": 1.5833334159106016,
+            "samples": 12,
+            "max_displacement_cm": 0.049124935586044284,
+            "plant_curve_range": [
+              0.9705815315246582,
+              1.000000238418579
+            ],
+            "entire_window_declared_flat_support": true
+          }
+        ],
+        "transition_windows": [
+          {
+            "input_change_s": 1.0000000521540642,
+            "max_pelvis_step_cm": 0.6909420533932563,
+            "observed_max_dt_s": 0.01666666753590107
+          },
+          {
+            "input_change_s": 1.8000000938773155,
+            "max_pelvis_step_cm": 8.447960059911782,
+            "observed_max_dt_s": 0.01666666753590107
+          }
+        ]
+      }
+    },
+    "support_window_definition": {
+      "angular_speed_max_deg_s": 18,
+      "ankle_vertical_speed_max_cm_s": 8,
+      "sole_gap_range_cm": [
+        -0.5,
+        2.5
+      ],
+      "minimum_window_s": 0.1,
+      "minimum_samples": 4,
+      "same_sampled_surface_vertex": true
+    },
+    "scope": "Sampled evaluated game poses and collision at this map location. Flat-support windows are inferred subsets, not continuous or all-terrain proof.",
+    "proof_sha256": "b5eaaeb7e668d676c1dc56d332d7b046ecf9b72af80104d762ad794dbff66405"
+  },
+  "combat_regression": {
+    "cases": {
+      "attack_01_idle": {
+        "expected_swings": 1,
+        "resume_walking": false,
+        "samples": 432,
+        "sections": [
+          "Melee01"
+        ],
+        "last_active_s": 2.616666803136468,
+        "montage_gone_s": 2.8000001460313797,
+        "end_speed_cm_s": 0.0,
+        "phases": {
+          "active_attack": {
+            "samples": 50,
+            "minimum_gap_cm": 0.6523110137743515,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "blend_out": {
+            "samples": 10,
+            "minimum_gap_cm": 0.6424830346672934,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "recovery": {
+            "samples": 35,
+            "minimum_gap_cm": 0.6424830346672934,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "settled": {
+            "samples": 49,
+            "minimum_gap_cm": 0.6492820827770629,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          }
+        },
+        "maximum_recovery_component_step_cm": {
+          "pelvis": 1.1629409186484456,
+          "foot_l": 5.798507464097132,
+          "foot_r": 2.870697750980867
+        },
+        "observed_delta_s_range": [
+          0.01666666753590107,
+          0.01666666753590107
+        ],
+        "whole_case": {
+          "minimum_gap_cm": 0.6424830346672934,
+          "negative_foot_observations": 0,
+          "traced_vertices": 64368,
+          "valid_ground_hits": 64357,
+          "minimum_trace_coverage": 0.92
+        },
+        "strikes": {
+          "Melee01": {
+            "frames": 49,
+            "minimum_gap_cm": 3.031435359424904,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 0.96
+          }
+        }
+      },
+      "attack_01_walk": {
+        "expected_swings": 1,
+        "resume_walking": true,
+        "samples": 432,
+        "sections": [
+          "Melee01"
+        ],
+        "last_active_s": 2.616666803136468,
+        "montage_gone_s": 2.8000001460313797,
+        "end_speed_cm_s": 89.1804962157709,
+        "phases": {
+          "active_attack": {
+            "samples": 50,
+            "minimum_gap_cm": 0.6523110137743515,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "blend_out": {
+            "samples": 10,
+            "minimum_gap_cm": 0.6387531890816263,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "recovery": {
+            "samples": 35,
+            "minimum_gap_cm": 0.6387531890816263,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "settled": {
+            "samples": 49,
+            "minimum_gap_cm": 0.6461506490068132,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          }
+        },
+        "maximum_recovery_component_step_cm": {
+          "pelvis": 1.311661175357357,
+          "foot_l": 5.798507464097132,
+          "foot_r": 5.811477385524849
+        },
+        "observed_delta_s_range": [
+          0.01666666753590107,
+          0.01666666753590107
+        ],
+        "whole_case": {
+          "minimum_gap_cm": 0.6387531890816263,
+          "negative_foot_observations": 0,
+          "traced_vertices": 64368,
+          "valid_ground_hits": 63912,
+          "minimum_trace_coverage": 0.8378378378378378
+        },
+        "strikes": {
+          "Melee01": {
+            "frames": 49,
+            "minimum_gap_cm": 3.031435359424904,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 0.96
+          }
+        }
+      },
+      "attack_02_idle": {
+        "expected_swings": 2,
+        "resume_walking": false,
+        "samples": 432,
+        "sections": [
+          "Melee01",
+          "Melee02"
+        ],
+        "last_active_s": 3.150000164285302,
+        "montage_gone_s": 3.333333507180214,
+        "end_speed_cm_s": 0.0,
+        "phases": {
+          "active_attack": {
+            "samples": 82,
+            "minimum_gap_cm": 0.6528131226689311,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "blend_out": {
+            "samples": 10,
+            "minimum_gap_cm": 0.6497961504881005,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "recovery": {
+            "samples": 35,
+            "minimum_gap_cm": 0.6493253223814008,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "settled": {
+            "samples": 49,
+            "minimum_gap_cm": 0.6492662301266137,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          }
+        },
+        "maximum_recovery_component_step_cm": {
+          "pelvis": 1.7040077471830162,
+          "foot_l": 5.827102920983152,
+          "foot_r": 4.227814555047826
+        },
+        "observed_delta_s_range": [
+          0.01666666753590107,
+          0.01666666753590107
+        ],
+        "whole_case": {
+          "minimum_gap_cm": 0.6389551182974174,
+          "negative_foot_observations": 0,
+          "traced_vertices": 64368,
+          "valid_ground_hits": 61917,
+          "minimum_trace_coverage": 0.8243243243243243
+        },
+        "strikes": {
+          "Melee01": {
+            "frames": 31,
+            "minimum_gap_cm": 3.017013300669305,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 1.0
+          },
+          "Melee02": {
+            "frames": 50,
+            "minimum_gap_cm": 4.97831904084137,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 0.9333333333333333
+          }
+        }
+      },
+      "attack_02_walk": {
+        "expected_swings": 2,
+        "resume_walking": true,
+        "samples": 432,
+        "sections": [
+          "Melee01",
+          "Melee02"
+        ],
+        "last_active_s": 3.150000164285302,
+        "montage_gone_s": 3.333333507180214,
+        "end_speed_cm_s": 89.1804962157709,
+        "phases": {
+          "active_attack": {
+            "samples": 82,
+            "minimum_gap_cm": 0.6523110137743515,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "blend_out": {
+            "samples": 10,
+            "minimum_gap_cm": 0.6498025078674345,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "recovery": {
+            "samples": 35,
+            "minimum_gap_cm": 0.6474864165099916,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "settled": {
+            "samples": 49,
+            "minimum_gap_cm": 0.6391423187965302,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          }
+        },
+        "maximum_recovery_component_step_cm": {
+          "pelvis": 1.703620434867094,
+          "foot_l": 5.82727005134425,
+          "foot_r": 4.228496915799161
+        },
+        "observed_delta_s_range": [
+          0.01666666753590107,
+          0.01666666753590107
+        ],
+        "whole_case": {
+          "minimum_gap_cm": 0.6391423187965302,
+          "negative_foot_observations": 0,
+          "traced_vertices": 64368,
+          "valid_ground_hits": 63215,
+          "minimum_trace_coverage": 0.6486486486486487
+        },
+        "strikes": {
+          "Melee01": {
+            "frames": 31,
+            "minimum_gap_cm": 3.031435359424904,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 1.0
+          },
+          "Melee02": {
+            "frames": 50,
+            "minimum_gap_cm": 4.993319083298502,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 0.9333333333333333
+          }
+        }
+      },
+      "attack_03_idle": {
+        "expected_swings": 3,
+        "resume_walking": false,
+        "samples": 432,
+        "sections": [
+          "Melee01",
+          "Melee02",
+          "Melee03"
+        ],
+        "last_active_s": 4.400000229477882,
+        "montage_gone_s": 4.583333572372794,
+        "end_speed_cm_s": 0.0,
+        "phases": {
+          "active_attack": {
+            "samples": 157,
+            "minimum_gap_cm": 0.5780981970037828,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "blend_out": {
+            "samples": 10,
+            "minimum_gap_cm": 0.6481758348636504,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "recovery": {
+            "samples": 35,
+            "minimum_gap_cm": 0.6481758348636504,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "settled": {
+            "samples": 49,
+            "minimum_gap_cm": 0.6480784445366226,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          }
+        },
+        "maximum_recovery_component_step_cm": {
+          "pelvis": 0.767400131728859,
+          "foot_l": 2.822280120065401,
+          "foot_r": 1.886554907398329
+        },
+        "observed_delta_s_range": [
+          0.01666666753590107,
+          0.01666666753590107
+        ],
+        "whole_case": {
+          "minimum_gap_cm": 0.5780981970037828,
+          "negative_foot_observations": 0,
+          "traced_vertices": 64368,
+          "valid_ground_hits": 64221,
+          "minimum_trace_coverage": 0.84
+        },
+        "strikes": {
+          "Melee01": {
+            "frames": 31,
+            "minimum_gap_cm": 3.017002701697038,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 1.0
+          },
+          "Melee02": {
+            "frames": 35,
+            "minimum_gap_cm": 4.9783251552612455,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 0.9333333333333333
+          },
+          "Melee03": {
+            "frames": 90,
+            "minimum_gap_cm": 0.5780981970037828,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 0.84
+          }
+        }
+      },
+      "attack_03_walk": {
+        "expected_swings": 3,
+        "resume_walking": true,
+        "samples": 432,
+        "sections": [
+          "Melee01",
+          "Melee02",
+          "Melee03"
+        ],
+        "last_active_s": 4.400000229477882,
+        "montage_gone_s": 4.583333572372794,
+        "end_speed_cm_s": 89.1804962157709,
+        "phases": {
+          "active_attack": {
+            "samples": 157,
+            "minimum_gap_cm": 0.5828626041277403,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "blend_out": {
+            "samples": 10,
+            "minimum_gap_cm": 0.6489926690580887,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "recovery": {
+            "samples": 35,
+            "minimum_gap_cm": 0.6340345893040649,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          },
+          "settled": {
+            "samples": 49,
+            "minimum_gap_cm": 0.6403516733971628,
+            "negative_gap_observations": 0,
+            "below_minus_05cm_observations": 0
+          }
+        },
+        "maximum_recovery_component_step_cm": {
+          "pelvis": 0.6389990322585359,
+          "foot_l": 3.9231835290897243,
+          "foot_r": 2.0115855341336144
+        },
+        "observed_delta_s_range": [
+          0.01666666753590107,
+          0.01666666753590107
+        ],
+        "whole_case": {
+          "minimum_gap_cm": 0.5828626041277403,
+          "negative_foot_observations": 0,
+          "traced_vertices": 64368,
+          "valid_ground_hits": 64220,
+          "minimum_trace_coverage": 0.84
+        },
+        "strikes": {
+          "Melee01": {
+            "frames": 31,
+            "minimum_gap_cm": 3.031435359424904,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 1.0
+          },
+          "Melee02": {
+            "frames": 35,
+            "minimum_gap_cm": 4.993319083298502,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 0.9333333333333333
+          },
+          "Melee03": {
+            "frames": 90,
+            "minimum_gap_cm": 0.5828626041277403,
+            "negative_foot_observations": 0,
+            "minimum_trace_coverage": 0.84
+          }
+        }
+      }
+    },
+    "scope": "149 sampled boot vertices, actual map collision and finite frame coverage. Recovery is the 0.6 seconds after the final active attack frame. Not continuous collision, performance or human acceptance proof.",
+    "sole_measurement": "all sampled vertices against individual collision traces",
+    "proof": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\combat-regression-60\\probe\\proof.json",
+      "sha256": "932bbbc900904c872fcf99af12cee9b0734637ae2b71685ee01d426ec8e63c49"
+    },
+    "comparison": {
+      "maxima": {
+        "unaffected_position_cm": 0.0,
+        "unaffected_rotation_deg": 0.0,
+        "pawn_position_cm": 0.0,
+        "active_foot_xy_cm": 1.826264164463077e-12,
+        "active_foot_rotation_deg": 5.974802140715818e-14,
+        "active_foot_lift_cm": 0.0,
+        "active_foot_lowering_cm": -0.03882408142089844,
+        "montage_time_s": 0.0
+      },
+      "state_mismatches": [],
+      "active_frames_compared": 572,
+      "per_case_frames": {
+        "attack_01_idle": 49,
+        "attack_01_walk": 49,
+        "attack_02_idle": 81,
+        "attack_02_walk": 81,
+        "attack_03_idle": 156,
+        "attack_03_walk": 156
+      },
+      "performance_preserved_except_vertical_leg_contact": false,
+      "scope": "Paired fixed-step game poses. Upper body, pelvis, coat, hand targets, path and timing are preserved; active feet may rise but must retain horizontal trajectory and orientation. Input-onset frames are excluded from active-foot comparison."
+    },
+    "before": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-active-combo-20261022\\distributed-60\\probe\\proof.json",
+      "sha256": "83533f0e3eecf546ee21dca31c0dbe69b6e63b555086511bb405ba04eb08099b"
+    }
+  },
+  "combat_comparison_interpretation": "The previous upward-only candidate comparison flags a maximum 0.038824 cm downward difference from the earlier corrected boot position. This terrain-cache repair permits vertical correction changes; all six cases retain positive clearance and unchanged upper body, path, timing, active foot XY and orientation. The original strict flag is retained unmodified.",
+  "validation": {
+    "resumed_preflight": "791 passed, 15 skipped, 198 subtests; lint, 263 stage parses, isolated-wheel checks passed.",
+    "final": "Full C++ build, seven paired cases at 30/60 Hz, six walking/jump cases, six combat exits, four views, saved-asset reload and final source/media checks.",
+    "visual_inspection": "Matched gameplay frames and four-view frames inspected; encoded video metadata checked. No browser interaction claim.",
+    "saved_reload": "Commandlet exited 3 during RigVM/ControlRigPhysics startup before Python. Retained failure; separate normal editor with RHI completed both read-only audits, exited 0, and reloaded the 10 cm locomotion/3 cm combat limits and markers.",
+    "current_module_bound_to_all_final_runs": true
+  },
+  "rejected_attempts": [
+    "Symmetric prediction alone retained -0.635 cm and missed an initial turn-to-walk toe position.",
+    "Centre-only guard fixed other cases but missed a 9.31 cm correction requirement at the old 8 cm cap.",
+    "Local upper-plane neighborhood did not fix absent spatial coverage; removed.",
+    "10 cm cap with centre-only guard passed 60 Hz but retained -0.580 cm at 30 Hz.",
+    "Outer footprint guard alone removed useful inner samples and retained -0.908 cm at 30 Hz; final retains both scales.",
+    "Diagnostic builds and the user-paused candidate are not delivery evidence."
+  ],
+  "limits": [
+    "Finite 149-vertex sampling at the tested map location; collision-ray misses have unknown clearance.",
+    "Fixed simulation rates in rendered UnrealEditor -game do not establish cooked-build or real-time performance.",
+    "At most 192 runtime terrain queries per character, previously 64; crowd-scale cost is unmeasured.",
+    "Human visual and gameplay-feel acceptance remains open."
+  ],
+  "artifacts": {
+    "before-30": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-30\\process.json",
+        "sha256": "9e0bd86bb76a3e8c381097c97d7679692f704cc0ededa55bfd554a41bd133791",
+        "bytes": 1603
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-30\\probe\\proof.json",
+        "sha256": "a0f96b50f33276f81460c4fc5c240e88c81b16c521291e5237ded8496d9d562c",
+        "bytes": 23309695
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-30\\contact-report.json",
+        "sha256": "dc8f21d7201a11b710062049fe90b758ec27a0851afb8934cd5e808186ba0b68",
+        "bytes": 16520
+      }
+    ],
+    "before-60": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-60\\process.json",
+        "sha256": "a41d86aa440c4c97e43715eec1ec06c7b5a86e9c606b4ba796d71e81b0ef9559",
+        "bytes": 1602
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-60\\probe\\proof.json",
+        "sha256": "7815e32d521ff664a93e59b6ef38bdb91ccc722c18c295494881bd5c6c58a52c",
+        "bytes": 46142578
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-60\\contact-report.json",
+        "sha256": "142108861bd2674597fdf3a5fa2422488e0a1544c903eab82f00332d25863a7c",
+        "bytes": 15649
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\before-60\\measurements.json",
+        "sha256": "f70288a8822a728409b6e5489b87cb2630d9a703298030d76ee9b1dc67dd5bcc",
+        "bytes": 11928
+      }
+    ],
+    "final-30": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\final-30\\process.json",
+        "sha256": "93e09fb1bc2e1bad7ef1b06dbfcd1ce82f12e2df44b7ad27af72a63aafd204ad",
+        "bytes": 1602
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\final-30\\probe\\proof.json",
+        "sha256": "147604a2140abea3b64c21308ec0d2e32434fee2bd148fc2c4ec4a2429a86dd0",
+        "bytes": 23308446
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\final-30\\contact-report.json",
+        "sha256": "8a9346834adfb2884792197b7c856f0218e0afb13fe1d3180ff41ab21d2451f6",
+        "bytes": 17075
+      }
+    ],
+    "final-60": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\final-60\\process.json",
+        "sha256": "2a036c91a28adf42e27347c15fcfb7ffec44f603a552d5491beb9b7415f3a857",
+        "bytes": 1601
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\final-60\\probe\\proof.json",
+        "sha256": "341a532e3f8d2f61dd2a2c4597148d87d329817cd361ea034c47ff0a2606cdd7",
+        "bytes": 46142607
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\final-60\\contact-report.json",
+        "sha256": "d54bf244f20930ba63a453d178d332bd1797a0ec171d5c1d1b18a10b0e25b5da",
+        "bytes": 16191
+      }
+    ],
+    "walk-regression-60": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\walk-regression-60\\process.json",
+        "sha256": "8e9f615007429472857f3256850c2d56ad8ecf10fef6d25dd8dc1c3e84587683",
+        "bytes": 1612
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\walk-regression-60\\probe\\proof.json",
+        "sha256": "b5eaaeb7e668d676c1dc56d332d7b046ecf9b72af80104d762ad794dbff66405",
+        "bytes": 35933437
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\walk-regression-60\\measurements.json",
+        "sha256": "d575ad2542bc2f20fa9a55cb968534c55085575814ee88048837aac9e7a3a183",
+        "bytes": 17356
+      }
+    ],
+    "combat-regression-60": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\combat-regression-60\\process.json",
+        "sha256": "b99474140b008c3f2563816ce6ec09d06ed0974f70e0c4b357b3ce98593d3dd7",
+        "bytes": 1618
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\combat-regression-60\\probe\\proof.json",
+        "sha256": "932bbbc900904c872fcf99af12cee9b0734637ae2b71685ee01d426ec8e63c49",
+        "bytes": 45882573
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\combat-regression-60\\contact-report.json",
+        "sha256": "ea73e7d907b408397587461637fdb30ff2eb8e9ed7287e4ed4e10c2df091e8cf",
+        "bytes": 14287
+      }
+    ],
+    "view-front": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\view-front\\process.json",
+        "sha256": "8971a1bd3988b4f199247bc3b903f6a115f2ccbfd82cc4468f1d95e91b2f2e02",
+        "bytes": 1603
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\view-front\\probe\\proof.json",
+        "sha256": "95a5b8fb07492509dd2cdc8384a6398664fdc624365ee0c76c2e3c94bcbd1d8c",
+        "bytes": 4023871
+      }
+    ],
+    "view-side": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\view-side\\process.json",
+        "sha256": "1c366454b3a735977ca2c111c708170743815a93f97a15c8aa11228d1798eba5",
+        "bytes": 1602
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\view-side\\probe\\proof.json",
+        "sha256": "19e0ec39156d2d451291d2093de4dec2e3ba7374dff3362475345bf41fbb074a",
+        "bytes": 4023732
+      }
+    ],
+    "view-back": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\view-back\\process.json",
+        "sha256": "f0f59a25f986464097a6eda5851a8f72957ec40d2bc001ff33f42e2071af8b94",
+        "bytes": 1602
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\view-back\\probe\\proof.json",
+        "sha256": "5f06af43b23f924e7e4a534c0266d6de06141cd6922e1fbbdcdf4b812407a1c2",
+        "bytes": 4023662
+      }
+    ],
+    "view-three-quarter": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\view-three-quarter\\process.json",
+        "sha256": "9a7d78c1bbd683a609564061be7c53ce2e0ac8f07a8eb1be79c67438bef1c84b",
+        "bytes": 1611
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\view-three-quarter\\probe\\proof.json",
+        "sha256": "d4d4cbb841a7d8564c212d9308360a0291661066bb8edde7154c5af696e97a35",
+        "bytes": 4025971
+      }
+    ],
+    "preflight-verify.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\preflight-verify.log",
+      "sha256": "823ba8f5472fa31256e4d56aff159d4af9d58bcd83a14790cbd2d77031ac9fb1",
+      "bytes": 2946
+    },
+    "resume-verify.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\resume-verify.log",
+      "sha256": "11e7c828bab4067f63eb81eca1e2bc40be5cbf9a651c030d290bb8e1700a1048",
+      "bytes": 2946
+    },
+    "paused-checkpoint.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\paused-checkpoint.json",
+      "sha256": "17ef653b47d6be1a81360b41ffe2a262d09ffccb15df0319f8f9ac4939ccd5e1",
+      "bytes": 15815
+    },
+    "resume.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\resume.json",
+      "sha256": "ae50410c1d7ad8be34f072f6274c65ccf1cb9f8c799166c9efd2b84e0aa170dc",
+      "bytes": 132
+    },
+    "coverage-build.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\coverage-build.log",
+      "sha256": "711ddac2a30f1de586556a169bbcdbdc3ac515f65f76f16069d6075a8d8c7f11",
+      "bytes": 301
+    },
+    "coverage-build-full.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\coverage-build-full.log",
+      "sha256": "93b54738a00dc7a727dccdf9702306a091afc7101e798582d1b34a28f2ec417c",
+      "bytes": 4048
+    },
+    "installed-snapshot/recipe.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\installed-snapshot\\recipe.json",
+      "sha256": "cba1177417127c04ba0e5fc1035baa29a81fda8beac2115a4034668eb1f5af61",
+      "bytes": 9118
+    },
+    "resumed-installed-audit/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\resumed-installed-audit\\receipt.json",
+      "sha256": "862227103e0fbf0a19938c41c89b7859219a0a8b3c4cf2545247f11e29fa995b",
+      "bytes": 886
+    },
+    "resumed-installed-audit/engine.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\resumed-installed-audit\\engine.log",
+      "sha256": "54952451286cf06465959d015f5f940541573a081fb41c0b00c668966cf0ee2c",
+      "bytes": 18836
+    },
+    "resumed-saved-audit.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\resumed-saved-audit.json",
+      "sha256": "6fe31f3ff9620e4d922ff63e41708ff544af08d9488499e76573ef014ec97c21",
+      "bytes": 7642
+    },
+    "resumed-audit-processes.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\resumed-audit-processes.json",
+      "sha256": "99594b02ccdbb398dd67475a8dd1f983e662ab441757a5d87a41ee613f2a8e63",
+      "bytes": 666
+    },
+    "editor-installed-audit/receipt.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\editor-installed-audit\\receipt.json",
+      "sha256": "35df5bda8294b2db708d744222bf0fa58dd9de90c47c25b7a1112dea638395b2",
+      "bytes": 1169
+    },
+    "editor-installed-audit/script-result.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\editor-installed-audit\\script-result.json",
+      "sha256": "f520b454f64485e861e267cd4b66e3392b029c6070a47bd29db3e5d6e87b02f1",
+      "bytes": 121
+    },
+    "editor-installed-audit/engine.log": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\editor-installed-audit\\engine.log",
+      "sha256": "7615a8b8355c3cd49adfecfaff694249487fd3cb0bf500725fb0e1cc7b919183",
+      "bytes": 286429
+    },
+    "install/process.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\install\\process.json",
+      "sha256": "137db0d13a42439eb2ac59714fbb8ffe32590dd433960430909c6b62beaa3a42",
+      "bytes": 452
+    },
+    "final-checks.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\final-checks.json",
+      "sha256": "2f19610933ba7a02be38fdf4ca5fa315073150685fad351e6c8eb90bea0e985a",
+      "bytes": 1928
+    },
+    "capture-manifest.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\capture-manifest.json",
+      "sha256": "a710010443f05938650a231166412017c20fb6a2cda1f4e051c7a467fbc7947a",
+      "bytes": 1192497
+    },
+    "presentation/review.html": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\review.html",
+      "sha256": "23e8c32d6d22af4172e3734567d63ea37c12352b22f855f1522a50e468691e38",
+      "bytes": 9099
+    },
+    "presentation/turn-comparison.jpg": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn-comparison.jpg",
+      "sha256": "d0c58983b86b8f7fbeba53cb3bac7fde3308aec480f889eaf323e045036762b9",
+      "bytes": 296956
+    },
+    "baseline": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\baseline\\AnimNode_AetherSoleContact.cpp",
+        "sha256": "91713318c92b8b2e2ad51a6e0b08939d3e54198a624580b653e21341e4de640f",
+        "bytes": 11947
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\baseline\\AnimNode_AetherSoleContact.h",
+        "sha256": "073d24fcfdc14a605efcc69a8a2c9d75e75547b8bfb35af0860859b57a3e6e8c",
+        "bytes": 3102
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\baseline\\Character02.json",
+        "sha256": "b5ad4dc000ace1feea8d7a9a697577372937f9cfbcfce38b115b09960181270c",
+        "bytes": 15477
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\baseline\\character02_walk_runtime.py",
+        "sha256": "f496257227d2d822c4ad9da77a8ef31d5bf83d0a1d859a6dcbde6223e22c32d2",
+        "bytes": 8468
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\baseline\\receipt.json",
+        "sha256": "9e57d9b9d197cf15b10dc30d90d37fb4f4854aead09a7cddc392fd20b7a990d1",
+        "bytes": 1817
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\baseline\\recipe.json",
+        "sha256": "c79aeec28076e66c4154586baa6c19d6fbbdef44999af6d7eba36076dd959ad6",
+        "bytes": 8832
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\baseline\\saved-assets.json",
+        "sha256": "1e96e1d5a4a217050bd12cf38270a94694b9bcdb39ea563c8fba3a09279fba03",
+        "bytes": 7533
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\baseline\\SoleContact.py",
+        "sha256": "5f68d8a426d2d9aafbeb18cf1df69497e6beed27c681868183244547acbcf703",
+        "bytes": 5435
+      }
+    ],
+    "rejected_sources_and_receipts": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\bidirectional-source.cpp",
+        "sha256": "dddf39b465801dabcf830bbcb1065e67e3d9214c0c9c9ef0ba979fa554aff20b",
+        "bytes": 12169
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\diagnostic-source.cpp",
+        "sha256": "367c0a3ae79bdff81991d4b7cd86f7e6589fd54974d027bc1f26315ccd5dc4cd",
+        "bytes": 13772
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\edge-diagnostic-source.cpp",
+        "sha256": "9dc58bff9956de68a3463421a5075fc64ede7d44e48dc199bcdcd44301974dc7",
+        "bytes": 15307
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\envelope-source.cpp",
+        "sha256": "bfa026c6cde56f2665bbc1d73a0619f64899838229cb8590227c8848a3a4ab2e",
+        "bytes": 12481
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\footprint-source.cpp",
+        "sha256": "9432b51e8ccca7b9b0e54e598f96c8a8319e7f31ae2192966ac4e524b5ba4352",
+        "bytes": 13023
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\local-surface-source.cpp",
+        "sha256": "8adb43b9e9dc62fa7fa8ab63562c45aedb34cda7e632d5a239518d19fa98f803",
+        "bytes": 13051
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\neighborhood-limit-source.cpp",
+        "sha256": "8adb43b9e9dc62fa7fa8ab63562c45aedb34cda7e632d5a239518d19fa98f803",
+        "bytes": 13051
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\residual-diagnostic-source.cpp",
+        "sha256": "47dbc3743181a612ad7b2a9caf61b7171f2d25602ef82cfba708bcda11eca3ab",
+        "bytes": 14565
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\after-rejection.json",
+        "sha256": "7b191461bb217599fb59bd08f39af924ecc7ca1e8b7b9bd8a59ea3bc4a6ad0b4",
+        "bytes": 240
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\bidirectional-rejection.json",
+        "sha256": "199f85b02c76d5cbd1261c4601227ac25daf6c4d8d2119029dbffd499d3c4fdc",
+        "bytes": 155
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\envelope-rejection.json",
+        "sha256": "bcd870939b4b43d6fd9147789714591166efc3152b0d75c516871d1ce95821db",
+        "bytes": 136
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\footprint-rejection.json",
+        "sha256": "79134d9ef7de197d615e7e084c265d25d25be572944e4620a5a0d61d26ed6483",
+        "bytes": 211
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\neighborhood-limit-rejection.json",
+        "sha256": "5a91b8a74c8a6557b59b4bfd83d2e323a34b530c219ab947852fd221f074468c",
+        "bytes": 247
+      }
+    ],
+    "superseded_runs": {
+      "diagnostic-60": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\diagnostic-60\\process.json",
+          "sha256": "5eb8ea107b9feb06566643ccbc7d06bdc579c586d8e3dc3b899af6c44c2008f1",
+          "bytes": 1633
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\diagnostic-60\\probe\\proof.json",
+          "sha256": "231e771a8b5ead8886d7c12bbc7f1bca194df6831c58b7c00e519aa193109bac",
+          "bytes": 7961072
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\diagnostic-60\\engine.log",
+          "sha256": "c91b8b595c6f66a6208d6c7b570cc7afece3933fa2c2cf86ff2c7a2a1bace126",
+          "bytes": 370706
+        }
+      ],
+      "diagnostic-panel-60": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\diagnostic-panel-60\\process.json",
+          "sha256": "74034f4f8b4c9f36a663fdaf8eadd5b831580c826a6a0904a7450f35ab858744",
+          "bytes": 1638
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\diagnostic-panel-60\\probe\\proof.json",
+          "sha256": "07fb36df4088d6900ea86df8748c3a3b3950dfd173d14305074b61ffc0d53446",
+          "bytes": 46142520
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\diagnostic-panel-60\\engine.log",
+          "sha256": "68ce899c2c535e916cb72d1e412b39775bfba6da15346570a705c28a0ccf13e8",
+          "bytes": 1025774
+        }
+      ],
+      "bidirectional-60": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\bidirectional-60\\process.json",
+          "sha256": "8e195eb5c695eee0c2f07ca6bd08a4ce30b892475c2798e4cd1afcd5647c46c2",
+          "bytes": 1609
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\bidirectional-60\\probe\\proof.json",
+          "sha256": "bff1503245b5b8a6f67faa786e031377648a367a2f11eabdce488e50c9450bf6",
+          "bytes": 46142499
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\bidirectional-60\\contact-report.json",
+          "sha256": "15f9b26992cc19181b2ba6ce141948a03883503f0b694325cbea9ef4ddad5226",
+          "bytes": 16212
+        }
+      ],
+      "envelope-60": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\envelope-60\\process.json",
+          "sha256": "2f9bff3ee8c4184b075d278bf311d81b6a5f30691893a3c7b4538cd71e70a1ba",
+          "bytes": 1605
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\envelope-60\\probe\\proof.json",
+          "sha256": "1c1b4fa8ce65ef542e6c20ec5b030b0616488adc66b1565298efc5e21719010d",
+          "bytes": 46142349
+        }
+      ],
+      "local-surface-60": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\local-surface-60\\process.json",
+          "sha256": "849648c0242e6ae2a3d206ae6d50278342290044f64fe02fd72d06739c17e2ba",
+          "bytes": 1597
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\local-surface-60\\probe\\proof.json",
+          "sha256": "c5ef533aa774a88fde8883d20afea88f217276a75ad3b50206c33feb9cc9cf27",
+          "bytes": 46142326
+        }
+      ],
+      "residual-diagnostic-60": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\residual-diagnostic-60\\process.json",
+          "sha256": "4bfac1ec458aefbe68c6bac953573b0db75acb1893902ea2e9e47c8db7b9124d",
+          "bytes": 1642
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\residual-diagnostic-60\\probe\\proof.json",
+          "sha256": "27c06b520da38409af33c5368d599ba2b55da8310035a6d45b30cc76f061e90b",
+          "bytes": 7961070
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\residual-diagnostic-60\\engine.log",
+          "sha256": "456c5a8c7e65b8a4497ba69636c839ba6df2248a0ff9f473706acac419d2154a",
+          "bytes": 370728
+        }
+      ],
+      "after-60": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\after-60\\process.json",
+          "sha256": "671709cd1bc21b806da43343a730feacaf256bb9d1dd0170f6e52d685fe1f0bf",
+          "bytes": 1601
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\after-60\\probe\\proof.json",
+          "sha256": "d6e6eaf0e9342045bb9b7ea60f06eb596a8b09b12c29bab8ab46c79861380d4e",
+          "bytes": 46142519
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\after-60\\contact-report.json",
+          "sha256": "2bbe882b0968be6d90ca8a0cf3688c703f71e8ab7b6125a1dcfef4593b678d4c",
+          "bytes": 16193
+        }
+      ],
+      "after-30": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\after-30\\process.json",
+          "sha256": "a775111c73cf575fee079c2b869423f139c29788c3e27756b7592dd8f077faa5",
+          "bytes": 1601
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\after-30\\probe\\proof.json",
+          "sha256": "cee3225816c560d87525a26b594fd2afc446cdc234394184ffb4887fab7c8679",
+          "bytes": 23308620
+        }
+      ],
+      "neighborhood-limit-30": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\neighborhood-limit-30\\process.json",
+          "sha256": "4e53743ce7b3ca49d2eca3fb90bef5a62b9f1e111575772d394abf244e721d12",
+          "bytes": 1615
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\neighborhood-limit-30\\probe\\proof.json",
+          "sha256": "ff940294a71fabd35a3e68fc906af2c55ad843cc33c09e78bfd0d3755acc896f",
+          "bytes": 23067814
+        }
+      ],
+      "edge-diagnostic-30": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\edge-diagnostic-30\\process.json",
+          "sha256": "4edc9e186b34d3838d447518bc8a75850022b626a7b1db9c0116de1d66d6b587",
+          "bytes": 1637
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\edge-diagnostic-30\\probe\\proof.json",
+          "sha256": "b53f493aaa44fa89d1b1eeb2e0ebbd0acb36233fa9620cb8a10fbfeac11d6bc0",
+          "bytes": 23067829
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\edge-diagnostic-30\\engine.log",
+          "sha256": "37a9c4350c2a8d2c200564bd096acc495d2b78a04d458e7d04680bf24c66a643",
+          "bytes": 2543627
+        }
+      ],
+      "footprint-30": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\footprint-30\\process.json",
+          "sha256": "2e1e11756569d06ef5a134c853b4b762d77d78728c87da37d00a197a7fd02474",
+          "bytes": 1606
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\footprint-30\\probe\\proof.json",
+          "sha256": "250839063867c5d582af89792e6c38f5bbe83142405bd5e2f7289b8671ec362b",
+          "bytes": 23067879
+        }
+      ],
+      "coverage-30": [
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\coverage-30\\process.json",
+          "sha256": "e2a4f912741349773cf2dd8326109cba8b8c3b9a28aea5bd63dad5c9d7875f7f",
+          "bytes": 1605
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\coverage-30\\probe\\proof.json",
+          "sha256": "f98c44571f8658908cd284d25c65e20b69ce2664c4031e0e25895929da1b8df2",
+          "bytes": 23067852
+        }
+      ]
+    },
+    "installation_backup": [
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\TurnContactRepair\\20261023T160400Z\\AnimBP.before.uasset",
+        "sha256": "73679af86482e0832f19e4574d9dfb56dfdd7fd26e313a6036264fc77a110119",
+        "bytes": 1204988
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\TurnContactRepair\\20261023T160400Z\\Character02.before.json",
+        "sha256": "b5ad4dc000ace1feea8d7a9a697577372937f9cfbcfce38b115b09960181270c",
+        "bytes": 15477
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\TurnContactRepair\\20261023T160400Z\\receipt.json",
+        "sha256": "c20be0c6c0a85a9a1a7d218224e27d8b706027bdbb7291a13f4438841af4c4ce",
+        "bytes": 579
+      }
+    ],
+    "fresh_engine_audit": {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\AnimationAudit\\20261023T163229Z\\audit.json",
+      "sha256": "545e0a39c711e978f78c837e9d70a8e6ef9610c38774649394c08590346daa72",
+      "bytes": 2608666
+    },
+    "module": {
+      "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Binaries\\Win64\\UnrealEditor-TheAetherWars.dll",
+      "sha256": "e4029ef320e3e2ce89d0f408fc1b9ddc716c68816dbbe8262ba24b6c5fda12a8",
+      "bytes": 7176704
+    },
+    "implementation": [
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AnimNode_AetherSoleContact.cpp",
+        "sha256": "5963e4ecc0c143d524f61a484d667f9dfc3edcb08025d4782f14cd50e0bb5901",
+        "bytes": 13248
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AnimNode_AetherSoleContact.h",
+        "sha256": "073d24fcfdc14a605efcc69a8a2c9d75e75547b8bfb35af0860859b57a3e6e8c",
+        "bytes": 3102
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\SoleContact.py",
+        "sha256": "69c7629baed35f6ae11d62e6587e76837fa16b8732be314f67014621cdb78056",
+        "bytes": 5543
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\Characters\\Character02.json",
+        "sha256": "016eebf72413a86df88a1a5cbe4651f6139abc31963a83a63c722c1939acacf7",
+        "bytes": 15807
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Docs\\Character02TurnContact.md",
+        "sha256": "db3d6dca4e7e5b1fcfc2052d7ed095669e13aea854b847bfe9f260ad0c64d167",
+        "bytes": 5114
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\character02_walk_runtime.py",
+        "sha256": "f06b697e18240cdee06241301aea612e722f3b92c2fc9f61c1503bac930e0474",
+        "bytes": 9670
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\install_character02_turn_contact.py",
+        "sha256": "dba02db5a5ce02a46d9865275a99f84bc17613eae3e4cc25ff076b6cfd2bcc79",
+        "bytes": 2743
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\audit_character02_recovery.py",
+        "sha256": "de2e7228d9b6ec3191bb1ffedc9463aaa701acc854f715ef713567a82d8802fd",
+        "bytes": 3346
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\analyze_character02_turns.py",
+        "sha256": "2d44bdcd3eee9bf41e07edad7354d5ed6b2d851b7b20de45f6843e8b07dce14e",
+        "bytes": 4576
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\analyze_character02_walk.py",
+        "sha256": "0d0b81416ad24aa6c89fd4799a3695020bc1f23f97e4872ddc2e758528547ce3",
+        "bytes": 5176
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\analyze_character02_combat.py",
+        "sha256": "a7a31b10dd9e25e197b052db003a113b4de37ae29042dbcb0f0dfe0163a2e159",
+        "bytes": 5710
+      }
+    ],
+    "task_helpers": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\build_review.py",
+        "sha256": "fcec50121542b081f5dde67efc8b3c2b69ac35a7013817f26dd425be6ebff4c6",
+        "bytes": 10192
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\editor_audit.py",
+        "sha256": "5989a9d763d7b3c4ccc2227b2cf600358eafc0b5d26403a840a4d88f88d615a5",
+        "bytes": 1286
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\finalize_evidence.py",
+        "sha256": "c602b522e568fffe530923a01d600989b410658e4a7ea597eec2035dcf52323a",
+        "bytes": 12169
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\make_presentation.py",
+        "sha256": "13703da334ac0ffbaf587c49e582f034b28e58c9545ef0f0393901febacbc758",
+        "bytes": 2002
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\run_audits.py",
+        "sha256": "cfb43f651832bd9dece3dd564b0bacf6c557abebaf541cc860a0f4e9d2681f28",
+        "bytes": 1506
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\run_editor_audit.py",
+        "sha256": "920f2d2d2dd454ee354d30937a99bc0e1b51e784368f9d52466e55f6e989ce53",
+        "bytes": 2057
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\run_final_matrix.py",
+        "sha256": "7cd456d2155ff61b771973b7a66a7f01989baef3834b32bf7ee9ae10614ae45a",
+        "bytes": 2073
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\run_install.py",
+        "sha256": "21114d9f6ed4b9303a8de1199299f79d9a83199b445eff24ff1c66e1a7ff9f26",
+        "bytes": 809
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\run_runtime.py",
+        "sha256": "6ee2b94f613ac511ec6c6c621cb9531d9175f65bdb28f5522d7ea4bfa0a6899c",
+        "bytes": 3015
+      }
+    ],
+    "documentation": [
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\docs\\STATUS.md",
+        "sha256": "737e548232ef229ee57fe26f8593b22e6a44bf43c9dd1473ef105f899351ca85",
+        "bytes": 141229
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\docs\\HANDOFF.md",
+        "sha256": "1319eef4bef44a0ce895094b2e2ba70033ddba14af41a417fb8201e9c1a22e9b",
+        "bytes": 531171
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\docs\\DECISIONS.md",
+        "sha256": "851f1d66e2741918c44d98e250c3c7edcc4f76a9968c7cd1452efb4e1d83ac0d",
+        "bytes": 155350
+      }
+    ]
+  },
+  "media": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\before-30-turn_left_idle.mp4",
+      "sha256": "b14583c77822466c2b04feaccdfc4290f07023c25447f96ae46c4d72fdd578c7",
+      "bytes": 1387470,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\before-30-turn_left_walk.mp4",
+      "sha256": "7c8ea6a5b58f8d8089e32276598827c2629485dd0359bc1031ff0761387e0b93",
+      "bytes": 1700609,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\before-30-turn_reverse_idle.mp4",
+      "sha256": "28bf982ed80749fb14b123b3dd2294f31893bd99d7625e3e30183b59831d4355",
+      "bytes": 1636633,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\before-30-turn_reverse_walk.mp4",
+      "sha256": "75e09f49d91af3cafd85e8e1e8e0edf791472512931c3cfc467add3682015fdd",
+      "bytes": 1782730,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\before-30-turn_right_idle.mp4",
+      "sha256": "a4aa90bab07e62e0b061ed7073d3e8f22c12413e05d436dafbce0a92d17a7605",
+      "bytes": 1440074,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\before-30-turn_right_walk.mp4",
+      "sha256": "a0c17ba258ace3bd82736bb4386ac6a6f6ff482d988e58c1537b484201b72dca",
+      "bytes": 1907285,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\before-30-turn_sequence_idle.mp4",
+      "sha256": "6330ce99b9130a1f85fbba601cbc8f8a364aa66c99f013e7166663cdfb3f2f97",
+      "bytes": 1822612,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "6.800000",
+        "nb_frames": "204"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\final-30-turn_left_idle.mp4",
+      "sha256": "7ca2874ba9010c3a7243bcfc10c07f487513e54fd57a0697bc4cd78644bad988",
+      "bytes": 1393388,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\final-30-turn_left_walk.mp4",
+      "sha256": "4e2551cc0a10ebc2b26b16ab794be9852c4617f4865e2dd82635bb606a10b3fa",
+      "bytes": 1700307,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\final-30-turn_reverse_idle.mp4",
+      "sha256": "a3f0b8bf99bf55dbd3c6a1f1d43f3121f1d213c8d66d11e0c86db99827c08e88",
+      "bytes": 1638045,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\final-30-turn_reverse_walk.mp4",
+      "sha256": "1dd0fe0940a2a1e492ea3b1a8f31d6b285d73c8f84842359c6161ee88b73ed18",
+      "bytes": 1785825,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\final-30-turn_right_idle.mp4",
+      "sha256": "9752b3f2fea1abfc66a71dc82b53746a5a79e65e0dc8b2a5e4307776bc87920b",
+      "bytes": 1431599,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\final-30-turn_right_walk.mp4",
+      "sha256": "5841f0dd5280533b0c539061370a864f23688cd5a51317f912208cf1616cdc30",
+      "bytes": 1907195,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\final-30-turn_sequence_idle.mp4",
+      "sha256": "37977e8f8b0a4a2bbe28b31f4753a4a731958b4d7c3666978b93b252a9c2a1e0",
+      "bytes": 1815235,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "6.800000",
+        "nb_frames": "204"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_left_idle-before-after.mp4",
+      "sha256": "c6eaaf3cec934348ff36754a4524de6ee611ea98efb905aa228bafd310cec796",
+      "bytes": 2455231,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_left_idle-feet-before-after.mp4",
+      "sha256": "a29754367dcb75eb77db45ade23d5e451d2a8074827513bc7f2d29fa0e8da344",
+      "bytes": 2046443,
+      "video": {
+        "width": 1440,
+        "height": 642,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_left_walk-before-after.mp4",
+      "sha256": "309f0a1430f651a0cc98b4c44beec42d179b4ad934810021f7ce5f00a1efda91",
+      "bytes": 2922858,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_left_walk-feet-before-after.mp4",
+      "sha256": "ec16e7ab48688102c7bb48acde7db1bdbf6c21cd71a1e9d4fc413e2c5f237f58",
+      "bytes": 2608182,
+      "video": {
+        "width": 1440,
+        "height": 642,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_reverse_idle-before-after.mp4",
+      "sha256": "aba0f2a7c4b8ca0bd12564c0c30c9c8e44421f1aa8f4170e432f9ebb52c655db",
+      "bytes": 2853854,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_reverse_idle-feet-before-after.mp4",
+      "sha256": "9d10a3f17c1debba06c641ced9659f9118ee77412f4e4ecd2a0cffc40411ad58",
+      "bytes": 2063779,
+      "video": {
+        "width": 1440,
+        "height": 642,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_reverse_walk-before-after.mp4",
+      "sha256": "d1c75ba80687e124fc1a4e22a4d84e0dc9717f87ff0e8eb06220a55ee741535c",
+      "bytes": 3012201,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_reverse_walk-feet-before-after.mp4",
+      "sha256": "87ab517842e166090a0dfe18057d686d54e1c73b392772c890e96199224279d7",
+      "bytes": 2336263,
+      "video": {
+        "width": 1440,
+        "height": 642,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_right_idle-before-after.mp4",
+      "sha256": "6e54a252f75a8920a7ebd77d58d17481268135bf6ce0dbf9a0fb4089599feaa0",
+      "bytes": 2490504,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_right_idle-feet-before-after.mp4",
+      "sha256": "21d4a5af60a060c78c89a648ec47c73be59bc396c7cf63b8538d90832c4addac",
+      "bytes": 2061742,
+      "video": {
+        "width": 1440,
+        "height": 642,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_right_walk-before-after.mp4",
+      "sha256": "f26f696dc1d4dac4d95a7d502b5180f6cc7067744991c3ef83e65e9c29b9fb09",
+      "bytes": 3155278,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_right_walk-feet-before-after.mp4",
+      "sha256": "68a978af7df0b40ddb57ab4443eb5202cae4589c60f6aaacbf1fea6f874f8e77",
+      "bytes": 2585437,
+      "video": {
+        "width": 1440,
+        "height": 642,
+        "r_frame_rate": "30/1",
+        "duration": "5.300000",
+        "nb_frames": "159"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_sequence_idle-before-after.mp4",
+      "sha256": "c9eab04e431772aa1788aba8104ece8cea6fd0cd64c855ee2ee8fe37d9c4763c",
+      "bytes": 3162711,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "6.800000",
+        "nb_frames": "204"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turn_sequence_idle-feet-before-after.mp4",
+      "sha256": "4647b79058e38db50ea186873746a946ed9477a7c8ba8cba2310a088180d92c4",
+      "bytes": 2777485,
+      "video": {
+        "width": 1440,
+        "height": 642,
+        "r_frame_rate": "30/1",
+        "duration": "6.800000",
+        "nb_frames": "204"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\turns-before-after.mp4",
+      "sha256": "28c43203913d532719bb626276d17c81f30fbf7ac0537ef1356d62359b4a473e",
+      "bytes": 18973237,
+      "video": {
+        "width": 1536,
+        "height": 618,
+        "r_frame_rate": "30/1",
+        "duration": "38.600000",
+        "nb_frames": "1158"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\view-back.mp4",
+      "sha256": "af5e423de4993e50f3a2e8e3d4cc90cac66f8f79192104d067a61f7b700d8125",
+      "bytes": 2861464,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "6.800000",
+        "nb_frames": "204"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\view-front.mp4",
+      "sha256": "23fd2b42cc26449c130012a17180d8b3f6480f06337e647ba71753ff2d7be4f7",
+      "bytes": 1778786,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "6.800000",
+        "nb_frames": "204"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\view-side.mp4",
+      "sha256": "b41d4ebaed5f99d7902f42a766a36d41ad0df8ed854dcece409b9357c41cecd7",
+      "bytes": 1987168,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "6.800000",
+        "nb_frames": "204"
+      }
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\character02-turn-contact-20261023\\presentation\\view-three-quarter.mp4",
+      "sha256": "103bf590678e7991d84c30f187bcffb66009c3615eb22de290de421aec017304",
+      "bytes": 2056968,
+      "video": {
+        "width": 768,
+        "height": 576,
+        "r_frame_rate": "30/1",
+        "duration": "6.800000",
+        "nb_frames": "204"
+      }
+    }
+  ]
+}

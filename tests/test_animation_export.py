@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
-from reference_asset_compiler.animation_export import select_animations
+from reference_asset_compiler.animation_export import select_animations, model_payload_fingerprint
 
 
 def model_with_two_clips():
@@ -52,3 +52,39 @@ def test_clip_selection_rejects_missing_or_duplicate_names():
     # command refuses it instead of leaving an export that looks successful.
     with pytest.raises(ValueError):
         select_animations(malformed, ["Idle"])
+
+
+def embedded_model(*, x=1., image=b'RGBA', sparse=False, clip='Idle'):
+    positions = struct.pack('<3f', x, 0, 0)
+    document = {'asset': {'version': '2.0'}, 'animations': [{'name': clip}],
+                'nodes': [{'mesh': 0}], 'meshes': [{'primitives': [{'attributes': {'POSITION': 0}}]}],
+                'accessors': [{'componentType': 5126, 'count': 1, 'type': 'VEC3'}]}
+    if sparse:
+        binary = b'\x00\x00\x00\x00' + positions + image
+        document['bufferViews'] = [{'byteLength': 1}, {'byteOffset': 4, 'byteLength': 12}, {'byteOffset': 16, 'byteLength': 4}]
+        document['accessors'][0]['sparse'] = {'count': 1, 'indices': {'bufferView': 0, 'componentType': 5121}, 'values': {'bufferView': 1}}
+        image_view = 2
+    else:
+        binary = positions + image
+        document['bufferViews'] = [{'byteLength': 12}, {'byteOffset': 12, 'byteLength': 4}]
+        document['accessors'][0]['bufferView'] = 0
+        image_view = 1
+    document['buffers'] = [{'byteLength': len(binary)}]
+    document['images'] = [{'mimeType': 'image/png', 'bufferView': image_view}]
+    encoded = json.dumps(document).encode()
+    encoded += b' ' * (-len(encoded) % 4)
+    return (struct.pack('<III', 0x46546C67, 2, 28 + len(encoded) + len(binary))
+            + struct.pack('<II', len(encoded), 0x4E4F534A) + encoded
+            + struct.pack('<II', len(binary), 0x004E4942) + binary)
+
+
+def test_model_lock_ignores_clip_changes_and_sparse_storage():
+    expected = model_payload_fingerprint(embedded_model())
+    assert model_payload_fingerprint(embedded_model(clip='Different')) == expected
+    assert model_payload_fingerprint(embedded_model(sparse=True)) == expected
+
+
+def test_model_lock_detects_geometry_and_texture_changes():
+    expected = model_payload_fingerprint(embedded_model())
+    assert model_payload_fingerprint(embedded_model(x=1.01)) != expected
+    assert model_payload_fingerprint(embedded_model(image=b'RGBX')) != expected

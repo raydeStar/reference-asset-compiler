@@ -4635,3 +4635,439 @@ Epic's Game Animation Sample excluded).
   Swords-out idle: profile clip `MM_Idle_Swords` (UAL Sword_Idle), packet
   `anim-ual-20261014/swordidle-v1`, game step `blade_idle`. Evidence: game
   `Saved/GameShots/blades-20261014c/`, `slip-20261014/slip.json`.
+
+## 2026-10-22 — Open-source animation methodology implemented and exercised
+
+Added `rac animation` preflight/derive/measure/compare/compare-models/review/summary/
+package commands, strict declared-license evidence and source bindings, bounded
+selection/rotation/retiming/contact solving, explicit IK-target synchronization,
+clip-level acceptance/cleanup accounting and immutable attempt receipts.
+The workstation adapter reuses pinned MIT retarget code and existing CC0 motion
+libraries. It supports native inspection, library replay, GLB/FBX export/reimport,
+CPU four-view/two-repeat rendering, native skinning surface audits, saved-asset
+reload checks and owned offscreen Unreal game probes. No new AI dependency,
+inference, source-library copy or game-asset installation was performed.
+
+Artifacts are under `work/animation-methodology-20261022/`; compact index is
+`docs/evidence/animation-workflow-20261022.json`. Guide: `docs/ANIMATION_WORKFLOW.md`.
+The 17-case baseline has separate measurements and 19 exported source clips.
+All 19 GLB/FBX round trips passed (worst joint-position error 0.003392 cm GLB,
+0.000582 cm FBX). Baseline/candidate GLB model payload fingerprints match, including
+geometry, UV, images, materials, weights, sparse morphs and skin bind data. Native
+source SHA remains 3c16eccb47cfc33754c96ba77859d355b6975cf9af239e2741d3ee984d339897;
+installed packet remains 158e793c96baad87113b41885b2fe231e718cc8e481bd24c381c0dff9f7f9b1c.
+Existing library idle/walk replay succeeded. Baseline game probes passed at caps
+30/60/120, achieved means 29.6/58.0/77.7 FPS; no sustained-120 or cooked-build claim.
+
+Candidate changes only idle duration by the requested 1.1 factor (quantized to
+83 frames at 30 Hz). It is uninstalled and unapproved. All 16 review videos decode
+and contain two repeats at 24 FPS. Baseline and candidate both FAIL the existing
+relaxed-standing pose gate (elbow bend about 47 degrees and pelvis drift) and
+sampled hand/coat clearance. Full-rate surface checks cover 575 baseline frames
+and 582 candidate frames; 192 and 201 hand/coat side-frame observations intersect.
+Counts differ partly because duration/sample counts differ. Both show an Attack 03
+sole minimum of -2.254 cm against the explicitly declared source-space zero plane.
+These are offline source-skinning findings, not verified gameplay defects.
+
+Export v2/v3 failures are retained. v2 found shape-key/skeleton action ambiguity;
+v3 exposed an Idle prefix matching Idle_Swords. Exact imported clip selection is
+now used, and export exceptions force technical_passed false. No crash was retried
+without a diagnosed code correction and a fresh output directory.
+
+Final validation: `verify-final.log`: 788 passed, 15 skipped, 198 subtests; Ruff,
+243 stage parses, wheel build and isolated installed CLI/import checks passed.
+Review remains pending. Next is visual pose/clearance assessment, then explicit
+support annotations and complete turn/jump/interrupt/weapon/candidate-runtime
+coverage. Preserve existing dirty docs and three unrelated review JPGs. No commit
+or push, human acceptance, model promotion or production-ready claim.
+
+## 2026-10-22 — Character02 relaxed idle and coat repair; real Attack 03 floor check
+
+User authorized fixing idle/hand-coat clipping, testing Attack 03 in-game, and
+showing before/after animations. Preserved all unrelated dirty files and open-app
+state; no linked worktree, AI inference, new dependency, publication or commit.
+Preflight and final verify passed: 788 tests, 15 skipped, 198 subtests, lint,
+246 final stage parses and isolated installed-wheel checks.
+
+Added `scripts/anim/repair_character02_idle.py`: bounded, immutable-source CPU
+pose authoring, pelvis-drift reduction, planted-foot IK, relaxed arms/thumbs,
+small clearance changes and compatible start/stop/jump/land arm handoffs. Versions
+v1/v2 failed skin clearance; v3 cleared idle but retained six walk contacts; v4
+passed all 575 benchmark poses with zero hand/coat or thumb/finger observations.
+Rejections remain under `work/character02-idle-contact-20261022/`. Final exported
+idle passes the original relaxed-standing contract (elbows 19.5–20.2 degrees,
+pelvis drift 0.293 cm). Native and exported model fingerprints are unchanged.
+All 19 clip round trips pass; frame counts, timing, root tracks and events remain.
+
+`scripts/ue5/install_character02_contact.py` installed seven clips plus seven walk
+aliases, retaining exact uasset/config backups. Selected project packet is
+`Saved/LibraryAnims/Character02/ual-v22-idle-contact-20261022T202926Z`; installation
+receipt/backups are `Saved/AnimationContactRepair/20261022T202926Z/`. Runtime graph,
+mesh, montages, attack clips and old packet were not modified. Fresh saved audit
+and installed idle/walk/jog/sprint/stop probe pass (observed mean 58.54 FPS at 60 cap).
+
+`scripts/ue5/character02_contact_probe.py` drives actual combo input in an owned
+Unreal `-game` process, records evaluated bone poses and skinned low-boot vertices,
+and traces actual visible dungeon collision. All three montage sections ran.
+Attack 03 minimum right sole gaps: baseline 0.0865 cm; installed repeats 1.242 cm
+at 60 cap and 1.163 cm at 30 cap. This did not reproduce the source-plane -2.254 cm
+finding as an Attack 03 gameplay defect; no attack correction was applied.
+Settled unarmed idle in the new game run also stayed above the sampled floor.
+Both versions already have zero runtime hand/coat intersections; runtime arm
+clearance previously compensated for the defective raw source. Small thumb/finger
+overlaps at Attack 01 entry and post-combo resting-foot penetration on uneven tiles
+remain (about 1.64 cm); do not present this as complete combat/terrain acceptance.
+
+Delivery: `work/character02-idle-contact-20261022/presentation/review.html`, labeled
+idle/walk/side before-after MP4s, actual game combo MP4, four-view two-repeat exported
+clip videos, editable `export-final/animated.blend` plus FBX/GLB. Video capture
+reduces render rate and preserves recorded capture spacing. Evidence index:
+`docs/evidence/character02-idle-contact-20261022.json`. Review is pending human
+acceptance; no production-ready claim. User's next useful action is viewing the
+comparisons and judging the installed movement in play.
+
+## 2026-10-22 — Character02 walking-leg diagnosis after user rejection
+
+User reported strange walking legs and suspected the rig. Investigated the exact
+installed v22 walk and compared its history, native rig/weights, original CC0
+UAL Walk_Loop and evaluated Unreal poses. GPU was occupied by an existing
+llama-server workload (23,000 MiB used); all diagnostics and Blender renders ran
+on CPU. Preserved unrelated dirty files, creative apps, native character and
+installed game assets/configuration. No commit, push, inference or worktree.
+
+Cause: legacy `rac-character/scripts/anim/clip_retarget.py` applies a signed leg
+reference rotation that spreads this target's reference ankles to 60.44 cm.
+`TheAetherWars/Tools/BuildLocomotionFooting.py` later narrows the walk to 24 cm
+without recalibrating hip height, increasing knee bend. Original library knees
+range 13.9–88.0 degrees left / 9.2–87.9 right; installed knees range 36.2–98.6
+left / 35.5–98.6 right. Original performance already has high knee lift. Lower-body
+walk matrices match v21 before the idle/coat repair within 9.24e-14. Bone lengths
+remain constant. The 4,937-vertex broad weight screen found no normalization
+failure or opposite-leg flags outside the central exclusion region; this is not
+an exhaustive knee-deformation approval.
+
+Added three CPU diagnostics: `scripts/blender/diagnose_character02_walk.py`,
+`scripts/blender/render_walk_leg_diagnostic.py`, and
+`scripts/ue5/probe_character02_walk.py`. Owned Unreal `-game -nullrhi` input at
+89.18 cm/s captured 208 poses; 99 steady-speed samples reproduce excessive knee
+bend (left 36.5–100.5 / right 40.8–102.2 degrees). The process exited normally,
+without saving assets. Evaluated poses are valid evidence; no rendered gameplay
+review occurred while the GPU was occupied.
+
+The isolated segment-alignment diagnostic candidate has a 19.56 cm reference
+ankle width and recovers source knee ranges on the identical exported model
+payload. GLB round trip passes (maximum position error 0.00260 cm). It uses an
+8.13 cm diagnostic grounding offset and retains high stepping, so do not install
+it as a finished repair. Contact, speed matching, clearance and idle/transition
+continuity need a fresh coordinated solution. No existing walk was replaced.
+
+Artifacts: `work/character02-walk-diagnosis-20261022/`; `summary.json` retains
+history measurements, source bindings, user rejection and scope. Four-view,
+two-repeat labeled current/calibration videos and a matched-phase contact sheet
+are in `presentation/review.html`; editable diagnostic Blend/GLB/FBX are in
+`calibration-review/`. Evidence index:
+`docs/evidence/character02-walk-diagnosis-20261022.json`. Prior idle/coat review
+links to this follow-up and marks the walk rejected. Preflight: 788 passed,
+15 skipped, 198 subtests, lint and isolated-wheel checks; final targeted lint
+passed and all 249 stage files parsed. Next gate: author a grounded, less
+exaggerated walk from correct calibration, then review contacts, deformations,
+transitions and real rendered gameplay. Human acceptance remains open.
+
+## 2026-10-22 — Character02 grounded walk installed and compared in game
+
+Implemented the user's requested retarget, high-step, contact and transition
+repair. Preserved native character SHA `3c16eccb47cfc33754c96ba77859d355b6975cf9af239e2741d3ee984d339897`
+and exactly matching exported model payloads. New MIT segment-alignment helper
+and CPU Blender script replace the leg-reference error, then solve rolling
+support, 5 cm swing and reachable pelvis height together. Selected candidate-v5
+is 34 frames at 30 Hz (1.10 s), same 89.18 cm/s movement speed; source knee bend
+12–43 degrees instead of 35–99. Only `MF_Unarmed_Walk_Fwd` changes in the packet;
+eight installed aliases, their markers and blend-space timing were updated.
+Other packet clips and the previous idle/coat correction remain unchanged.
+
+Installed packet: game `Saved/LibraryAnims/Character02/ual-v23-grounded-walk-20261022T221205Z`,
+SHA `f34a02e36eab85caa3274842b2b8a927feb553f96cd88d7238c652fee09668e6`.
+Initial backups: `Saved/WalkRepair/20261022T221205Z`; final contact/curve installer
+receipt and previous assets: `Saved/WalkRepair/sole-20261022T223517Z`. Earlier
+`sole-*` backups are retained. Configuration binds both animation consumers to
+v23, records those receipts and keeps `human_approved` false.
+
+Added game `FAnimNode_AetherSoleContact`, its editor wrapper and `Tools/SoleContact.py`;
+`LocomotionFeel.py` reinstalls this optional stage from Character02 configuration.
+The node runs after the existing floor rig, uses 149 sampled boot vertices,
+current/predicted floor traces (at most 24), an 8 cm upward correction bound,
+0.65 cm clearance and 0.06 s release. Explicit `SolePlantL/R` curves exist on
+idle and all walk aliases. Lock reach includes vertical correction. Montage and
+airborne motion release the node. Game guide: `Docs/Character02WalkRepair.md`.
+
+Evidence under `work/character02-walk-repair-20261022/`: `review-v5/` is the
+editable Blend/GLB/FBX plus four views and multiple-cycle videos; GLB position
+round-trip error 0.002861 cm, FBX 0.000234 cm. All 34 source-pose skin checks
+have zero measured hand/coat, thumb/finger and boot/boot intersections. Saved
+asset audit and a separate fresh-process audit of 121 keys per support curve,
+149 node samples and final graph placement pass. Final C++ full build passes.
+RAC suite: 791 passed, 15 skipped, 198 subtests, lint and isolated-wheel checks;
+new calibration tests and changed-script lint pass after final edits.
+
+Actual rendered game input tests: `runtime-delivery-30` and
+`runtime-delivery-60` (the latter also jump/attack release). Starts, different
+stop phases, walk/jog changes, turns and reversal have positive sampled sole
+clearance: minimum 0.37 cm / 0.34 cm at 30/60 Hz. Declared flat-support drift
+is at most 0.077 / 0.093 cm in the measured windows. Evaluated 30 Hz walk knee
+bend is approximately 12–57 degrees, previously 36–104. Acquiring blended support
+at curve weight 0.65 instead of 0.9 reduces the measured 30 Hz start drift from
+1.35 cm to 0.08 cm. Jump/landing release was observed; a
+brief 1.88 cm right-toe dip during separate attack recovery remains. Do not
+claim all actions, surfaces, continuous skin contact or cooked acceptance.
+These are fixed-step simulation tests, not real-time FPS benchmarks.
+
+Before recording: `runtime-before-30-v2`, bound to the real installed v22 packet.
+Final review: `presentation/review.html`, with actual game before/after and four
+exported-motion views. Source/capture/export/build/installation hashes and
+retained rejection reasons are in `docs/evidence/character02-walk-repair-20261022.json`.
+Previous-pose terrain queries, a Slate-clock capture, failed source candidates
+and an instrumentation-stalled owned process are retained and excluded from
+final validation. No inference, source remeshing, worktree, commit or push.
+Next gate is the user's visual/feel judgment of this installed walk; no
+production promotion has been inferred from successful checks.
+
+## 2026-10-22 — Character02 attack recovery grounded and compared in game
+
+Implemented the requested recovery toe-dip and return-to-idle/walk correction
+in TheAetherWars. The selected v23 packet SHA remains
+`f34a02e36eab85caa3274842b2b8a927feb553f96cd88d7238c652fee09668e6`;
+native character SHA remains
+`3c16eccb47cfc33754c96ba77859d355b6975cf9af239e2741d3ee984d339897`.
+No clip, mesh, weight, bind, equipment, movement or montage timing changes.
+
+`FAnimNode_AetherSoleContact` now prepares floor collision during grounded
+strikes and reads `IsSlotActive(DefaultSlot)` during evaluation. Contact can
+therefore resume in the first blend-out frame. Horizontal lock displacement
+also participates in the sampled slope-height correction. Lock displacement
+is projected onto its 15 cm/reachable envelope instead of resetting abruptly.
+The new `UAetherAnimLibrary::GetRecoveryGroundingAlpha` drives the existing
+floor Control Rig: zero for active strikes, then one minus current montage
+weight. `Tools/SoleContact.py` installs that connection from the new configuration
+flag; the existing `LocomotionFeel.py` call keeps it repeatable.
+
+Task artifacts are in `work/character02-attack-recovery-20261022/`.
+`baseline/` preserves pre-task source/config hashes and copies, including existing
+dirty code. Game `Saved/AttackRecoveryRepair/20261022T230601Z` preserves the
+pre-install configuration/AnimBP and installation receipt. Final full C++ build
+is `reachable-recovery-build-full.log`. The first pre-update-only attempt missed
+the first blend-out frame; a direct protected proxy call failed compilation;
+the pre-projection candidate retained a large lock-release pop. Their artifacts
+remain retained rejections, not final evidence.
+
+`before-30`/`before-60` and `final-30`/`final-60` use actual `DoComboAttack` and
+`DoMove` entry points in rendered owned Unreal `-game` processes. Each panel
+contains single attack to idle/walk, all three combo sections to idle/walk, and
+movement cancellation. Tests assert expected sections and settled states.
+At 60 Hz recovery sole gaps change from -1.88/-6.78/-2.88/-2.97/-7.94 cm to
++0.65/+0.64/+0.65/+0.63/-0.024 cm respectively. The last value is one 0.24 mm
+negative sample. All five 30 Hz recovery minima are positive. Largest pelvis
+step falls 6.64→1.44 cm/frame at 60 Hz; combo-to-walk right-foot step falls
+13.57→2.01 cm/frame. Active-pose comparisons exclude input-onset frames and find
+zero position/rotation differences across 222+447 frames, with identical pawn
+paths and montage state. The expanded combo panel also exposes unchanged active
+strike sole penetration of about 1 cm; do not confuse recovery proof with all
+combat contact acceptance.
+
+`walk-regression-60` covers starts, two stop phases, speed changes, turns,
+reversal, jump/landing and attack release. Locomotion retains positive sampled
+clearance and at most 0.09184 cm declared flat-support drift. `final-four-views`
+contains front/side/back/three-quarter rendered recovery captures.
+`installed-audit/receipt.json` and `saved-recovery-audit.json` are fresh-process
+reads. The graph has the new alpha function and one 149-sample sole node;
+only the AnimBP differs among assets hashed in the previous walk audit.
+
+New maintained RAC probes/analyzers/install/audit scripts are in `scripts/ue5`
+and `scripts/anim`. Evidence index:
+`docs/evidence/character02-attack-recovery-20261022.json`. Final review:
+`presentation/review.html`, five paired full-body/boot clips plus four views;
+`recovery-before-after.mp4` is the concise gameplay comparison. The browser
+automation tool rejected the local file URL; videos/frames were verified as
+local artifacts and delivered directly. No alternative browser-policy bypass.
+Preflight RAC verification passed 791 tests, 15 skipped, 198 subtests, lint,
+stage parse and isolated-wheel checks. Final lint and all 260 stage parses pass.
+
+Tests use fixed world simulation time, not real-time performance measurement.
+Coverage is finite, uses 149 retained boot skin samples and one map location,
+and does not establish cooked or all-terrain acceptance. No inference, source
+reconstruction, commit, push or worktree. Next gate: user's visual/feel verdict
+on the installed recovery; human acceptance and production-ready remain false.
+
+## 2026-10-23 — Character02 active-combo toes corrected and six exits compared
+
+Resumed after the user's GPU pause and implemented the remaining active-combo
+contact repair in TheAetherWars. The selected v23 packet SHA remains
+`f34a02e36eab85caa3274842b2b8a927feb553f96cd88d7238c652fee09668e6`;
+native character SHA remains
+`3c16eccb47cfc33754c96ba77859d355b6975cf9af239e2741d3ee984d339897`.
+Mesh, weights, clips, montage timing and character movement settings are preserved.
+
+`FAnimNode_AetherSoleContact` opts the configured combo montage into upward-only
+leg contact correction, capped at 3 cm. Active strikes retain foot orientation
+and horizontal movement; horizontal locking is disabled during the strike.
+The earlier gradual recovery grounding remains. `Tools/SoleContact.py` installs
+the explicit montage and cap from Character02.json. The independent probe now
+traces all 149 retained sole vertices against the floor at their own locations;
+the prior lowest-world-Z test could miss a higher toe above raised floor tiles.
+This exposed an existing later-walk dip after Attack 02. Runtime queries now
+sample each footprint spatially (16 points per boot plus bounded predictions,
+at most 64 traces). A dense 302-query candidate passed but was rejected for
+greater instrumented runtime cost. Crowd-scale cost remains unmeasured.
+
+Task artifacts remain in `work/character02-active-combo-20261022/`, preserving
+the task's start date. `baseline/` preserves pre-task dirty source/config;
+game `Saved/ActiveComboRepair/20261022T233205Z/` preserves the configuration and
+AnimBP before installation. The user-paused `candidate-60`, first active-contact
+candidate (`resumed-60`/`final-30`), and dense-query runs (`coverage-60`/
+`coverage-30`) remain retained and excluded from final validation. The final
+runtime evidence is **distributed-30, distributed-60, four-views and
+walk-regression-60**, all bound to DLL SHA
+`26e9b74f5a789b99251e7ad6fe52aa89cad7190da2ad2c84f957937cec33e6d6`.
+
+Real `DoComboAttack`/`DoMove` tests stop after each of the three attacks and
+return to idle or walking. All six complete 7.2-second cases have positive
+sampled clearance at 30/60 Hz (minimum +0.559/+0.578 cm). Attack 03's walk-exit
+strike minimum changes from -1.184 to +0.583 cm at 60 Hz; the later walking
+sample after Attack 02 changes from -3.213 to +0.639 cm. Comparisons preserve
+upper body, pelvis, coat, hand targets, pawn path and montage timing across
+paired frames. The 856 active frames preserve foot XY/orientation to numerical
+precision while allowing at most 3 cm upward correction. Four-view rendered
+combo/recovery checks also have positive measured clearance.
+
+Straight walk, both stop phases, speed changes, jump/landing and single attack
+release pass the expanded regression, with declared flat-support drift under
+0.092 cm. **Turning/reversal remains open:** the new probe finds a 2.072 cm
+right-toe intersection. Reconstructing the earlier saved pose and tracing its
+toe against the same runtime floor gives 3.782 cm penetration. See
+`turn-regression-diagnosis.json` and `turn-game-collision.json`. The first
+commandlet diagnostic lacked initialized collision and failed; its log is
+retained. The succeeding owned null-RHI game trace verifies the same tile face.
+This is a pre-existing separate limitation, not a passing regression.
+
+Fresh saved-asset audits passed, confirming the montage, 3 cm limit, prior
+recovery wiring and 149 sole samples. Only the AnimBP differs among audited
+assets. Final full C++ build passed. Resumed RAC verification passed 791 tests,
+15 skipped and 198 subtests, lint, 262 stage parses and isolated-wheel checks.
+Final evidence index: `docs/evidence/character02-active-combo-20261023.json`.
+Review: `presentation/review.html`, six full-body/boot comparisons and four
+views; `all-attacks-before-after.mp4` combines all six requested exits.
+
+These are rendered fixed-step editor-game checks, not cooked-build or real-time
+performance proof. Ray misses are unknown clearance; sampling is finite at
+the tested map location. No new authoring dependency, inference, source
+reconstruction, commit, push or worktree. Human visual/gameplay acceptance and
+production readiness remain false; the separate turn/reversal defect is recorded.
+
+## 2026-10-23 — Turn/reversal contact repair paused for user diagnostics
+
+User authorized repair of the remaining toe dip and in-game idle/walk exit
+comparisons, then explicitly paused for diagnostics. No owned Unreal process
+remained at pause. Do not resume until the user requests it.
+
+Checkpoint: `work/character02-turn-contact-20261023/paused-checkpoint.json`.
+Preflight passed 791 tests, 15 skipped, 198 subtests, lint, stage parse and
+isolated wheel. `baseline/` preserves preceding dirty C++/header/config/tool
+sources and the source recipe/saved-asset audit. Current source clips, character,
+mesh, weights, config and saved AnimBP are unchanged. C++ candidate code and its
+DLL **are installed but unfinished**, SHA
+`f06f4f0ba935330926642ea25d34f6fc6937431b0c4854e867c358101cb12cf9`.
+Restoring the prior implementation requires the baseline C++ and a full build
+with owned engine processes closed; no automatic rollback was performed.
+
+The maintained walk probe has opt-in `RAC_TURN_PANEL=1`: original combined
+turn/reversal-to-idle trajectory plus left/right/180-degree turns each ending
+idle or walking, using real `DoMove`. New analyzer:
+`scripts/anim/analyze_character02_turns.py`. `before-30/60` complete with fresh
+source/module bindings; 30 Hz has 1158 captured PNGs. Original reversal minimum
+is -2.734 cm at 30 Hz and -2.072 cm at 60 Hz. Additional transition dips appear
+in the expanded panel, so do not narrow acceptance to the original single frame.
+
+Instrumented C++ diagnostics (`diagnostic-source.cpp`, `diagnostic-60` and
+`diagnostic-panel-60`) show zero post-solve penetration against cached floor
+planes at the failing frame while the independent floor ray sees penetration:
+terrain sampling, not insufficient IK correction, is the immediate defect.
+Symmetric predictions reduce the original dip to -0.635 cm but leave a separate
+-1.706 cm start sample. A 15 cm guard query grid fixes the latter and leaves
+-0.519 cm in the original reversal. The latest 2.5 cm local upper-surface
+neighborhood also leaves -0.519 cm. These are retained non-final candidates:
+`bidirectional-60`, `envelope-60`, `local-surface-60`; all completed without crash.
+The bidirectional candidate preserves upper body/pelvis/path and foot rotations
+across 2610 paired frames. Newest candidate comparison is still pending.
+
+On authorized resume: inspect checkpoint and live GPU/process state; resolve
+the cached terrain underestimate, then complete 30/60 Hz paired validation,
+regressions, saved-asset reload, four views and before/after media. The helper
+`make_presentation.py` is prepared but no final comparison has been delivered.
+No commit, push, worktree or memory write. No human approval or promotion.
+
+## 2026-10-23 — Turn/reversal contact completed after authorized resume
+
+The user completed workstation diagnostics and explicitly resumed the repair.
+Fresh preflight found no open Unreal/Blender process and 22,380 MiB free VRAM.
+Resumed verification passed 791 tests, 15 skipped, 198 subtests, lint, 263 stage
+parses and isolated-wheel checks. Earlier pause and rejection records remain
+intact; the unfinished DLL described above is superseded by this installation.
+
+Final game implementation: `Source/TheAetherWars/AnimNode_AetherSoleContact.cpp`
+retains 16 distributed boot queries, adds both directions of motion prediction,
+and retains both inner 15 cm and measured-footprint-plus-15 cm guard grids. The
+upper-plane-neighborhood experiment is removed. Maximum terrain queries are
+192 per character (previously 64), with collision queries on the game thread
+and cached planes consumed by animation workers. Crowd-scale cost is unmeasured.
+The remaining 60 Hz frame needed about 9.31 cm correction, so the guarded
+installer raised Character02's locomotion limit from 8 to 10 cm; combat remains
+3 cm. `Tools/SoleContact.py` documents the query budget for ordinary installs.
+
+Full C++ build passed (`coverage-build.log` / `coverage-build-full.log`). Final
+DLL SHA: `e4029ef320e3e2ce89d0f408fc1b9ddc716c68816dbbe8262ba24b6c5fda12a8`.
+Config SHA: `016eebf72413a86df88a1a5cbe4651f6139abc31963a83a63c722c1939acacf7`.
+All final runtime receipts bind these exact inputs. Native character and packet
+hashes remain unchanged. Config/AnimBP rollback copies are in game
+`Saved/TurnContactRepair/20261023T160400Z/`; task `baseline/` contains pre-task
+C++/header/tool/config sources. Do not mix old sources with the current DLL.
+
+Task root: `work/character02-turn-contact-20261023/`. `final-30` and `final-60`
+complete seven cases: original combined turn/reversal-to-idle path and isolated
+left/right/180-degree turns into idle or walking. All exit-state checks pass,
+with no negative measured clearance. Original sequence: -2.734 to +0.606 cm at
+30 Hz; -2.072 to +0.608 cm at 60 Hz. Whole-panel minima: +0.148/+0.608 cm.
+Across 3,915 paired frames, upper body, pelvis, pawn path, transition state and
+foot rotations match to numerical precision. `walk-regression-60` passes all
+six cases including jump/landing; declared flat-support drift <0.092 cm.
+`combat-regression-60` passes all six attack exits, minimum +0.578 cm, preserving
+upper body, path, montage timing, active foot XY and orientation. Its retained
+old upward-only comparison flag is false because the new cache produces up to
+0.038824 cm less vertical correction than the earlier corrected pose. This is
+explicitly interpreted in the evidence index, not silently turned into a pass.
+
+`view-front`, `view-side`, `view-back` and `view-three-quarter` each capture the
+combined turn/reversal sequence and have positive contact. Presentation includes
+33 MP4s: seven full-body pairs, seven boot pairs, seven individual before and
+after clips, four camera views and a 38.6-second seven-case overview. The raw
+capture manifest binds 3,132 PNG frames. Matched frames and all four views were
+visually inspected; media streams and review-page links/scripts were checked.
+Review: `presentation/review.html`; overview: `presentation/turns-before-after.mp4`.
+Evidence index: `docs/evidence/character02-turn-contact-20261023.json`.
+
+Saved-audit commandlet exited 3 during RigVM/ControlRigPhysics startup before
+Python; retain `resumed-installed-audit/receipt.json` and `engine.log`. No blind
+retry: a separate owned normal editor with RHI ran both read-only audits, exited
+0 and confirmed saved graph wiring, 149 samples, 10/3 cm limits and marker phase.
+Receipt: `editor-installed-audit/receipt.json`; details: `resumed-saved-audit.json`.
+Only the AnimBP differs among the audited source assets. Game documentation:
+`Docs/Character02TurnContact.md`. Final source/media checks are retained in
+`final-checks.json`. All owned engine processes exited.
+
+30 Hz testing exposed a -0.580 cm first-movement sample missed by a passing 60 Hz
+candidate. Outer-footprint sampling alone then lost useful inner coverage and
+retained -0.908 cm. Both rejections and instrumented sources are retained. Final
+delivery uses the union of both grids and the measured correction limit.
+No new authoring dependency, inference, source reconstruction, commit, push,
+worktree or memory write. Fixed-step rendered editor-game tests and finite
+149-vertex sampling do not establish cooked-build, all-terrain, continuous
+collision or real-time performance acceptance. Human visual/gameplay review
+and production readiness remain open.

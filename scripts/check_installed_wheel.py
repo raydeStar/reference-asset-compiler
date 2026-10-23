@@ -43,6 +43,14 @@ def check_wheel(wheel: Path) -> dict:
         if not Path(location).resolve().is_relative_to(environment.resolve()):
             raise RuntimeError("Wheel check imported from outside its isolated environment")
         run([rac, "--help"])
+        run([rac, 'animation', '--help'])
+        motion = run([python, '-I', '-c',
+                      'from reference_asset_compiler.animation_motion import validate_packet; '
+                      'from reference_asset_compiler.animation_workflow import SCHEMA; print(SCHEMA)'])
+        if motion.stdout.strip() != 'reference-asset-compiler.animation-recipe.v1':
+            raise RuntimeError('Installed animation workflow is missing')
+        run([python, Path(__file__).with_name('check_animation_workflow.py'), '--python', python,
+             '--output', root/'animation-workflow'], timeout=180)
         manifest = root / "intake.json"
         manifest.write_text(json.dumps({"asset_id": "wheel-canary", "asset_kind": "static_prop",
                                         "articulation": "static"}), encoding="utf-8")
@@ -60,7 +68,8 @@ def check_wheel(wheel: Path) -> dict:
         if "--repo-root" not in missing_checkout.stderr:
             raise RuntimeError("Installed geometry preflight did not explain its checkout requirement")
         return {"ok": True, "wheel": wheel.name, "isolated_install": True,
-                "checks": ["help", "plan", "new", "audit", "checkout-required-error"]}
+                "checks": ["help", "animation-help-and-import", "animation-recipe-edit-measure-review-package",
+                           "plan", "new", "audit", "checkout-required-error"]}
 
 
 def main(argv=None):

@@ -10,6 +10,7 @@ from pathlib import Path
 from .cohort import audit_cohort
 from .cleanup import record_cleanup_receipt, validate_cleanup_input
 from .animation_export import select_animations
+from . import animation_workflow
 from .budgets import decide as decide_budget
 from .contracts import ARTICULATION_MODES, ASSET_KINDS
 from .geometry_request import validate_geometry_request
@@ -37,6 +38,7 @@ def _budget_argument(value: str) -> int | str:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="rac", description="Reference-image to 3D gate ledger")
     subcommands = parser.add_subparsers(dest="command", required=True)
+    animation_workflow.add_cli(subcommands)
 
     animation_export = subcommands.add_parser(
         "export-animations", help="Export selected named GLB clips without changing model data"
@@ -273,6 +275,9 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "animation":
+            print_payload(animation_workflow.dispatch(args))
+            return 0
         if args.command == "export-animations":
             source, output = args.source.resolve(), args.output.resolve()
             if source == output or output.exists():

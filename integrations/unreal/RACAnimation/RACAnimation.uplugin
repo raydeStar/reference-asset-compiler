@@ -1,0 +1,14 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "0.1.0",
+  "FriendlyName": "RAC Animation Contact",
+  "Description": "Measured skeletal sole contact with bounded terrain queries. Requires declared support curves and measured skin samples.",
+  "Category": "Animation",
+  "CreatedBy": "Reference Asset Compiler contributors",
+  "CanContainContent": false,
+  "Modules": [
+    {"Name": "RACAnimationRuntime", "Type": "Runtime", "LoadingPhase": "Default"},
+    {"Name": "RACAnimationEditor", "Type": "UncookedOnly", "LoadingPhase": "Default"}
+  ]
+}

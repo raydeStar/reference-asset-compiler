@@ -1,0 +1,73 @@
+{
+  "schema": "reference-asset-compiler.animation-profile.v1",
+  "asset": "Ennix",
+  "pose_intent": "Preserve the supplied stance and native rig; compare a bounded head-pose alternative. Technical demonstration, pending human review.",
+  "character": "${CHARACTER}",
+  "packet": "${PACKET}",
+  "provider": {
+    "kind": "licensed-library",
+    "dependencies_complete": true,
+    "components": [
+      {
+        "name": "ual1",
+        "role": "motion",
+        "license": "CC0-1.0",
+        "artifact": "${UAL1}",
+        "license_evidence": "${UAL1_LICENSE}"
+      },
+      {
+        "name": "clip_retarget.py",
+        "role": "code",
+        "license": "MIT",
+        "artifact": "../../../scripts/anim/clip_retarget.py",
+        "license_evidence": "../../../LICENSE"
+      },
+      {
+        "name": "transition_clips.py",
+        "role": "code",
+        "license": "MIT",
+        "artifact": "../../../scripts/anim/transition_clips.py",
+        "license_evidence": "../../../LICENSE"
+      },
+      {
+        "name": "bake_library_clips.py",
+        "role": "code",
+        "license": "MIT",
+        "artifact": "../../../scripts/anim/bake_library_clips.py",
+        "license_evidence": "../../../LICENSE"
+      }
+    ]
+  },
+  "mapping": [
+    "../ual-to-ue-template.json"
+  ],
+  "benchmark": {
+    "MM_Idle": {
+      "contacts": [],
+      "joins": []
+    },
+    "MF_Unarmed_Walk_Fwd": {
+      "contacts": [],
+      "joins": []
+    }
+  },
+  "operations": [
+    {
+      "op": "select",
+      "clips": [
+        "MM_Idle",
+        "MF_Unarmed_Walk_Fwd"
+      ]
+    },
+    {
+      "op": "rotation_offset",
+      "clip": "MM_Idle",
+      "bone": "head",
+      "degrees_xyz": [
+        0,
+        0,
+        1
+      ]
+    }
+  ]
+}
