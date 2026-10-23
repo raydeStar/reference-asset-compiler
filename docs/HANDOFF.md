@@ -5071,3 +5071,47 @@ worktree or memory write. Fixed-step rendered editor-game tests and finite
 149-vertex sampling do not establish cooked-build, all-terrain, continuous
 collision or real-time performance acceptance. Human visual/gameplay review
 and production readiness remain open.
+
+## 2026-10-23 — Reusable animation workflow and clean-checkout verification
+
+The user authorized bringing RAC current, making the workflow reusable, verifying
+an independent clone and a second character, then committing/pushing while
+preserving the game. Preserved 48 dirty RAC files and a binary patch, retained a
+stash, integrated 66 upstream commits through `3b54047`, and reconciled status/log
+conflicts without discarding either history. Only animation-related history was
+staged; unrelated commission records and review images remain local.
+
+Added explicit input-bound profiles, `rac animation init`, a complete retained
+Blender runner, generic sole sampling, and optional standalone MIT Unreal runtime/
+editor modules with a backed-up, repeatable graph installer. The wheel supports
+portable recipe/edit/measure/review/package commands; Blender and UE integrations
+use the checkout. Native characters and licensed libraries remain explicit
+external inputs. Historical Character02 migrations are retained as scoped case
+studies, not default generic installers. See `ANIMATION_REUSE.md`.
+
+An ordinary independent clone and new Python 3.12 environment verified the
+implementation (`e892a24`) plus the test-path correction (`a11bdcb`): 929 tests,
+39 optional skips, 198 subtests, Ruff, 318 script parses, built wheel and isolated
+installed-wheel authoring/solve/measure/review/package/tamper-refusal flow passed.
+Real Character02 and Ennix idle/walk profiles passed both export formats at every
+source frame, exact baseline/candidate model fingerprints and four-view renders.
+The bounded example changes only idle head rotation by one degree. Ennix was
+freshly retargeted from UAL1 using clean RAC code; its bones and complete motion
+match the earlier independent bake. No quality improvement is claimed for that
+example. The optional plugin built in a clean UE 5.8 host and imported/configured
+Ennix, repeated installation without duplicate nodes, and reloaded the saved
+AnimBP in a new process with all 191 measured sole samples.
+
+Retained and fixed failures: equivalent quaternions were incorrectly measured as
+360 degrees; animated static attachment transforms caused exact model comparison
+to fail; checkout tests imported an installed wheel; the UE fixture required a
+reflected property setter. Rejected runs/logs remain intact. The clean import
+reported bind-pose/smoothing warnings, so graph installation is not mesh or
+runtime certification. Groom curves retain their separate export contract.
+
+Evidence: `docs/evidence/animation-reuse-20261023.json`; local work:
+`work/animation-reusable-20261023/`. All 13 checked game source/configuration/
+AnimBP/DLL hashes and native character inputs remain unchanged. The renamed
+plugin has no gameplay/cooked/crowd-cost acceptance; the existing Character02
+gameplay receipts still apply only to its installed Aether implementation.
+Human acceptance and production readiness remain false.

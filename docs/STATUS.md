@@ -13,6 +13,32 @@ and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
 
+**Reusable animation workflow verified, 2026-10-23:** integrated upstream through
+`3b54047`, retained the Character02 repair history, and added explicit portable
+profiles plus `rac animation init`. The complete Blender runner inspects,
+derives, measures, exports/reimports FBX and GLB, checks exact model preservation
+and packages evidence. Optional MIT Unreal contact modules build independently
+of TheAetherWars and accept measured samples and character-specific bone chains.
+Guide: [ANIMATION_REUSE.md](ANIMATION_REUSE.md); generated evidence index:
+`docs/evidence/animation-reuse-20261023.json`.
+
+An independent clean clone at code revision `a11bdcb` passes 929 tests,
+39 optional skips, 198 subtests, lint, 318 script parses and an isolated-wheel
+end-to-end animation contract run. Real Character02 and Ennix idle/walk profiles
+pass baseline/candidate exports, all-frame reimports, exact model comparison and
+four-view rendering. Two independent Ennix library bakes have identical motion.
+The examples use a one-degree head alternative; they are not artistic upgrades.
+Clean UE 5.8 host build, repeated installation and fresh-process saved-graph
+reload pass with 191 Ennix sole samples. Imported-mesh warnings remain recorded;
+this is not runtime acceptance of the renamed plugin.
+
+All 48 original dirty RAC files have hash-verified backups; unrelated local
+commission history and review images remain outside these commits. The 13 checked
+game source/configuration/AnimBP/DLL files are unchanged. Work and failed attempts
+are retained at `work/animation-reusable-20261023/`. Next gates: per-character
+visual/contact tuning, destination runtime/cooked tests and contact-node cost.
+No human approval or production promotion; no model downloads or inference.
+
 **Open-source animation methodology, 2026-10-22:** implemented the portable
 `rac animation` recipe/edit/measure/review commands and checkout adapters for
 existing calibrated library replay, preserved-rig Blender exports, surface audits,

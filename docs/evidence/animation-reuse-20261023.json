@@ -1,0 +1,444 @@
+{
+  "schema": "rac.animation-reuse-verification.v1",
+  "date": "2026-10-23",
+  "upstream_integrated": "3b54047bc01b39ce95fcc6ce2ed6373e8285df15",
+  "implementation_revision": "e892a24d6b899811c1faddbe3dbbaad89e7ba9f7",
+  "clean_verification_revision": "a11bdcb58508d7300223261acc7cfae624a023d0",
+  "revision_difference": "Only pytest import-path configuration changed during the real-character panel; animation code and profiles are identical.",
+  "clean_checkout": true,
+  "clone_kind": "ordinary independent clone; no linked worktree or copied work directory",
+  "environment": {
+    "python": "3.12.7",
+    "numpy": "2.5.4",
+    "scipy": "1.18.1",
+    "Pillow": "13.0.0",
+    "pytest": "9.1.1",
+    "ruff": "0.17.2"
+  },
+  "verification": {
+    "tests_passed": 929,
+    "skipped": 39,
+    "subtests_passed": 198,
+    "stage_files_parsed": 318,
+    "lint_passed": true,
+    "isolated_wheel_workflow_passed": true,
+    "log": {
+      "path": "work/animation-reusable-20261023/clean-verify-v2.log",
+      "sha256": "7a71d38277f41b9d9fb3b0a7ea3cf3d77de24a97ba1c2aea91d3e56063c921ec"
+    },
+    "wheel": {
+      "path": "work/animation-reusable-20261023/clean-wheel/reference_asset_compiler-0.1.2-py3-none-any.whl",
+      "sha256": "94d35e0b58610247cc606ddda92a2a40fe26afb22bde8c478edc753e41489028"
+    }
+  },
+  "characters": {
+    "character02": {
+      "inputs": {
+        "CHARACTER": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\character-02\\seams-20261015\\release-v16\\Character02_UE5_coat.blend",
+          "sha256": "3c16eccb47cfc33754c96ba77859d355b6975cf9af239e2741d3ee984d339897"
+        },
+        "PACKET": {
+          "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Saved\\LibraryAnims\\Character02\\ual-v23-grounded-walk-20261022T221205Z\\clips.json",
+          "sha256": "f34a02e36eab85caa3274842b2b8a927feb553f96cd88d7238c652fee09668e6"
+        },
+        "UAL2": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\anim-sources\\ual2\\x\\Universal Animation Library 2 [Standard]\\Unreal-Godot\\UAL2_Standard.glb",
+          "sha256": "0815dd05531cae9bc313fc9c0ba81330bc72f8e19ec45f73738e74ddc5796a43"
+        },
+        "UAL2_LICENSE": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\anim-sources\\ual2\\x\\Universal Animation Library 2 [Standard]\\License.txt",
+          "sha256": "f9b1de4e8feff135555ac1c7d2eec65035a05fd74e4d632a3f826ac985c3f22c"
+        },
+        "UAL1": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\anim-sources\\ual1\\x\\Animation Library[Standard]\\Unreal Engine\\AL_Standard.fbx",
+          "sha256": "c836c5d47de2a414818f7644632ac43aa84475df6709f4514b9410d232800fd9"
+        },
+        "UAL1_LICENSE": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\anim-sources\\ual1\\x\\Animation Library[Standard]\\License.txt",
+          "sha256": "11eac7504a28077e9d8dbac8ddfca2566510efba7eef46e11f21cdd2bc96d4d5"
+        }
+      },
+      "workflow": {
+        "path": "work/animation-reusable-20261023/clean-character02-review/workflow.json",
+        "sha256": "fcfa2fe5d520cf1ace78c680f5b45b426e896431f6572448e5832ed15efa11c5"
+      },
+      "technical_passed": true,
+      "exports": {
+        "baseline": {
+          "receipt": {
+            "path": "work/animation-reusable-20261023/clean-character02-review/baseline-export/receipt.json",
+            "sha256": "830f962919fd918e9d55cb0736d2b1c8ec0376411702bba136ae0382b93fd965"
+          },
+          "glb_roundtrip": {
+            "MM_Idle": {
+              "position_error_cm": 0.002708701587377021,
+              "orientation_error_deg": 0.0005287857950967323,
+              "samples": 76,
+              "passed": true
+            },
+            "MF_Unarmed_Walk_Fwd": {
+              "position_error_cm": 0.0028610990062180666,
+              "orientation_error_deg": 0.0004020720967551331,
+              "samples": 34,
+              "passed": true
+            }
+          },
+          "fbx_roundtrip": {
+            "MM_Idle": {
+              "position_error_cm": 0.0002060497263108941,
+              "orientation_error_deg": 0.0015790132159770138,
+              "samples": 76,
+              "passed": true
+            },
+            "MF_Unarmed_Walk_Fwd": {
+              "position_error_cm": 0.0002345978457894826,
+              "orientation_error_deg": 0.0015892872016286417,
+              "samples": 34,
+              "passed": true
+            }
+          },
+          "views": 24,
+          "files": [
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-character02-review\\baseline-export\\animated.blend",
+              "sha256": "d2e3bf2027a0587aa32964a8a67b27936ff6eefe2ac19b8c304f14081d6eb609"
+            },
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-character02-review\\baseline-export\\animated.glb",
+              "sha256": "d72e325457c6081e836c7d096a0974938352cfa32637367b4047df63cda5b667"
+            },
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-character02-review\\baseline-export\\animated.fbx",
+              "sha256": "cd05efa63c379c3c5380a7e64599dcd4422823dbc3753221c6bf42d446992e60"
+            }
+          ]
+        },
+        "candidate": {
+          "receipt": {
+            "path": "work/animation-reusable-20261023/clean-character02-review/candidate-export/receipt.json",
+            "sha256": "e5fa0407a662f9ddde5e618b52eb5f49efabb4a972882b9e0147be16e2aff5e0"
+          },
+          "glb_roundtrip": {
+            "MM_Idle": {
+              "position_error_cm": 0.002708701587377021,
+              "orientation_error_deg": 0.0005287857950967323,
+              "samples": 76,
+              "passed": true
+            },
+            "MF_Unarmed_Walk_Fwd": {
+              "position_error_cm": 0.0028610990062180666,
+              "orientation_error_deg": 0.0004020720967551331,
+              "samples": 34,
+              "passed": true
+            }
+          },
+          "fbx_roundtrip": {
+            "MM_Idle": {
+              "position_error_cm": 0.0002060497263108941,
+              "orientation_error_deg": 0.0015790132159770138,
+              "samples": 76,
+              "passed": true
+            },
+            "MF_Unarmed_Walk_Fwd": {
+              "position_error_cm": 0.0002345978457894826,
+              "orientation_error_deg": 0.0015892872016286417,
+              "samples": 34,
+              "passed": true
+            }
+          },
+          "views": 24,
+          "files": [
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-character02-review\\candidate-export\\animated.blend",
+              "sha256": "aa0716e9a2102cebe47aef742e5b7039b7ac14118ee382e8c58ca078bf5e6a8e"
+            },
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-character02-review\\candidate-export\\animated.glb",
+              "sha256": "0b40e3fe6a28f66be1aed63c9c7f8a0e0fde01a1eff7746ad6080f70304a9ee3"
+            },
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-character02-review\\candidate-export\\animated.fbx",
+              "sha256": "58284a69c53b2917288e48905aa8d0b4a85b7223b9169a2d7752e6d026deaa56"
+            }
+          ]
+        }
+      },
+      "model_fingerprint": "6e95cf7bd70e94736418a8e45f6fe5615f246274deeaa56f09f3a91db8dcf38e",
+      "model_preserved": true,
+      "candidate_change": "One-degree idle head rotation; walk unchanged. Demonstration only."
+    },
+    "ennix": {
+      "inputs": {
+        "CHARACTER": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\ennix-character-v1\\rebuild-v10\\ue5\\fit\\Ennix_UE5_Skin.blend",
+          "sha256": "742639767050a409ce7a7966df194d3a7a7bcafaa821a00b4f1bc918f1ef3ff7"
+        },
+        "PACKET": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-ennix-bake\\clips.json",
+          "sha256": "d23c7e8c3923a568510dae6a87283e82940989747b89e2499d9265bdf7abec8c"
+        },
+        "UAL1": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\anim-sources\\ual1\\x\\Animation Library[Standard]\\Unreal Engine\\AL_Standard.fbx",
+          "sha256": "c836c5d47de2a414818f7644632ac43aa84475df6709f4514b9410d232800fd9"
+        },
+        "UAL1_LICENSE": {
+          "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-character\\work\\anim-sources\\ual1\\x\\Animation Library[Standard]\\License.txt",
+          "sha256": "11eac7504a28077e9d8dbac8ddfca2566510efba7eef46e11f21cdd2bc96d4d5"
+        }
+      },
+      "workflow": {
+        "path": "work/animation-reusable-20261023/clean-ennix-review/workflow.json",
+        "sha256": "cc2a30873535d25d79cb072b892e5ced2555dfe75976aaf79518b9b7d97579dc"
+      },
+      "technical_passed": true,
+      "exports": {
+        "baseline": {
+          "receipt": {
+            "path": "work/animation-reusable-20261023/clean-ennix-review/baseline-export/receipt.json",
+            "sha256": "ea8d534e7dba2b33193331881c61d2ab612bc03225ed152e6e8966814db518c5"
+          },
+          "glb_roundtrip": {
+            "MM_Idle": {
+              "position_error_cm": 0.00024829108745862323,
+              "orientation_error_deg": 0.0003847934239201406,
+              "samples": 76,
+              "passed": true
+            },
+            "MF_Unarmed_Walk_Fwd": {
+              "position_error_cm": 0.0002993019802990863,
+              "orientation_error_deg": 0.00040248161087869973,
+              "samples": 41,
+              "passed": true
+            }
+          },
+          "fbx_roundtrip": {
+            "MM_Idle": {
+              "position_error_cm": 0.0001682973850190103,
+              "orientation_error_deg": 0.0032081487417999926,
+              "samples": 76,
+              "passed": true
+            },
+            "MF_Unarmed_Walk_Fwd": {
+              "position_error_cm": 0.00017202937233044876,
+              "orientation_error_deg": 0.0032048056223192723,
+              "samples": 41,
+              "passed": true
+            }
+          },
+          "views": 24,
+          "files": [
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-ennix-review\\baseline-export\\animated.blend",
+              "sha256": "237e62f42967e01499afcb31e9f3c1bd8602b124cd3c1bfdb013b01efaae5168"
+            },
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-ennix-review\\baseline-export\\animated.glb",
+              "sha256": "f26f63887d29c73658ffd6d76a1d9bc03ecdb4dd2295d2751b109ca714147a42"
+            },
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-ennix-review\\baseline-export\\animated.fbx",
+              "sha256": "3dbb560a5499b848228c3cc15dc62a952525ce6c56ec926eaee4f39c5a86fc0d"
+            }
+          ]
+        },
+        "candidate": {
+          "receipt": {
+            "path": "work/animation-reusable-20261023/clean-ennix-review/candidate-export/receipt.json",
+            "sha256": "7f0bc33f9aa48d56f1b034edca517f2417c9fd9ed9e30152d0fe7e9487534501"
+          },
+          "glb_roundtrip": {
+            "MM_Idle": {
+              "position_error_cm": 0.00024829108745862323,
+              "orientation_error_deg": 0.0003847934239201406,
+              "samples": 76,
+              "passed": true
+            },
+            "MF_Unarmed_Walk_Fwd": {
+              "position_error_cm": 0.0002993019802990863,
+              "orientation_error_deg": 0.00040248161087869973,
+              "samples": 41,
+              "passed": true
+            }
+          },
+          "fbx_roundtrip": {
+            "MM_Idle": {
+              "position_error_cm": 0.0001682973850190103,
+              "orientation_error_deg": 0.0032081487417999926,
+              "samples": 76,
+              "passed": true
+            },
+            "MF_Unarmed_Walk_Fwd": {
+              "position_error_cm": 0.00017202937233044876,
+              "orientation_error_deg": 0.0032048056223192723,
+              "samples": 41,
+              "passed": true
+            }
+          },
+          "views": 24,
+          "files": [
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-ennix-review\\candidate-export\\animated.blend",
+              "sha256": "4a1c0c1864c8ca637eb9477f6c3932ed53161485304d9db4944fdbbdbb486b3a"
+            },
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-ennix-review\\candidate-export\\animated.glb",
+              "sha256": "e3ac64470dfa7f684f2f3c417cb7e106007cc7f4004b0fb3375548fdd4f4eeb5"
+            },
+            {
+              "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\animation-reusable-20261023\\clean-ennix-review\\candidate-export\\animated.fbx",
+              "sha256": "b5ccc4262c635f4e6e60f557047470739c161f690e158695c1a87e2b7a5e2a22"
+            }
+          ]
+        }
+      },
+      "model_fingerprint": "5e23d7d11e82172387a04aa8166b7cadc720df73bafab3f78220e056894baf5e",
+      "model_preserved": true,
+      "candidate_change": "One-degree idle head rotation; walk unchanged. Demonstration only."
+    }
+  },
+  "unreal_plugin": {
+    "engine": "5.8",
+    "clean_host_build": {
+      "path": "work/animation-reusable-20261023/clean-plugin-build/receipt.json",
+      "sha256": "9c7a01d96510ed33d9556010219e33c89cb0ace67ce33dc7e9f0dfe5ed55e21e"
+    },
+    "install": {
+      "path": "work/animation-reusable-20261023/clean-plugin-smoke/install.json",
+      "sha256": "8fca6c71a56405e564303aa8b913f6bd9d88626fbfa4f91346d7b9f2bb4e0d1e"
+    },
+    "reload": {
+      "path": "work/animation-reusable-20261023/clean-plugin-smoke/reload.json",
+      "sha256": "ae25eee74b4d01d806d1c193867df97626dccdbc6cd46f18299a7c261a92cf27"
+    },
+    "sole_samples": 191,
+    "sample_receipt": {
+      "path": "work/animation-reusable-20261023/clean-ennix-sole-samples.json",
+      "sha256": "15a13507ebc84b768c4783c43542c89a1e78cd70db2baab3268cb74f4c354ea7"
+    },
+    "destination": "isolated RACAnimationHost project",
+    "gameplay_tested": false,
+    "warnings": [
+      "Ennix import: FBX bind-pose matrix discrepancy and missing smoothing-group warnings retained in clean-plugin-smoke.log."
+    ],
+    "max_terrain_traces_per_character": 192
+  },
+  "preservation": {
+    "original_rac_files_backed_up": 48,
+    "game_files_unchanged": 13,
+    "audit": {
+      "path": "work/animation-reusable-20261023/preservation-audit.json",
+      "sha256": "548a177aa0573320e918f47ebaa619ae4be28229f3a74e6ba8eb6d30b6a92fd1"
+    },
+    "game_bindings": [
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AnimNode_AetherSoleContact.cpp",
+        "sha256": "5963e4ecc0c143d524f61a484d667f9dfc3edcb08025d4782f14cd50e0bb5901"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AnimNode_AetherSoleContact.h",
+        "sha256": "073d24fcfdc14a605efcc69a8a2c9d75e75547b8bfb35af0860859b57a3e6e8c"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWarsEditor\\AnimGraphNode_AetherSoleContact.h",
+        "sha256": "e7d62843995e849b715097d461f8a5ce5cb95e640d9aa517cfdd994bedef4c9d"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\SoleContact.py",
+        "sha256": "69c7629baed35f6ae11d62e6587e76837fa16b8732be314f67014621cdb78056"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\Characters\\Character02.json",
+        "sha256": "016eebf72413a86df88a1a5cbe4651f6139abc31963a83a63c722c1939acacf7"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Docs\\Character02TurnContact.md",
+        "sha256": "db3d6dca4e7e5b1fcfc2052d7ed095669e13aea854b847bfe9f260ad0c64d167"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\CharacterInstall.py",
+        "sha256": "65b02339f35769091346acda4604a84bfdfdbd976bd5d20c3e46ff058c10897f"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\LocomotionFeel.py",
+        "sha256": "9ed9fcae5791b868779210d26d46098ab931bc0872bb0d0a29d9f10f7303b574"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Tools\\LibraryAnims.py",
+        "sha256": "ffa23922618cffd99985e881d0bad9c102ac9110e4c5c3b72381b36be8e12af4"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AetherAnimLibrary.cpp",
+        "sha256": "5fdd8d841a6deb309c8be1b4ac2544e8845c1e4408a30d35231791baefc3e2fc"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Source\\TheAetherWars\\AetherAnimLibrary.h",
+        "sha256": "8764e107a4198d99fc54f3a02f6588ad1c6a07e00558b0e2155894628d97dca4"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Binaries\\Win64\\UnrealEditor-TheAetherWars.dll",
+        "sha256": "e4029ef320e3e2ce89d0f408fc1b9ddc716c68816dbbe8262ba24b6c5fda12a8"
+      },
+      {
+        "path": "C:\\Users\\Ayric\\Documents\\Unreal Projects\\TheAetherWars\\Content\\Character02\\Hero\\Animations\\Character02_ABP_Manny_Combat.uasset",
+        "sha256": "2894a6f2422152d7b583f244002f410e7b6d05d1e004bd958a64c82ac7a9ae59"
+      }
+    ],
+    "unrelated_local_history_and_review_images_retained": true
+  },
+  "retained_failures": [
+    {
+      "attempt": {
+        "path": "work/animation-reusable-20261023/ennix-pilot/workflow.json",
+        "sha256": "0aa672fd272b67a63c9d7ba85e3ff8343387c1a4429e472fdde88f3e89248b8f"
+      },
+      "cause": "Quaternion sign equivalence falsely reported 360 degrees; corrected shortest-arc metric."
+    },
+    {
+      "attempt": {
+        "path": "work/animation-reusable-20261023/ennix-pilot-v2/workflow.json",
+        "sha256": "e12e34bbdaf9c278f6a3d2aa4f649f97ad035a9d782200b4b27d5ae1f12da212"
+      },
+      "cause": "Static groom attachment nodes exported from animated pose; fixed neutral export setup without weakening fingerprints."
+    },
+    {
+      "attempt": {
+        "path": "work/animation-reusable-20261023/clean-verify.log",
+        "sha256": "239023574d6791e9214b2d211bbf0829e724cd4d6135f57a6a209a2ad7a4295c"
+      },
+      "cause": "Tests imported installed package before checkout source; pytest now explicitly uses src. 20 failed including subtests."
+    },
+    {
+      "attempt": {
+        "path": "work/animation-reusable-20261023/plugin-smoke.log",
+        "sha256": "bb9c81d0ed0a172303f48da9a704bee1ae89023bd3d6d6830bd7c6e8c2b1793a"
+      },
+      "cause": "UE target_skeleton requires set_editor_property; fixed fixture API call before retry."
+    }
+  ],
+  "visual_evidence": {
+    "path": "work/animation-reusable-20261023/clean-character-views.jpg",
+    "sha256": "cc1177bbab60ee73d6eca0994e97e28e765ce34f9c384697b51a027ddb7035b6"
+  },
+  "scope": "Reusable authoring and integration contracts on two existing Manny-compatible bipeds; not universal artistic or gameplay acceptance.",
+  "human_approved": false,
+  "production_ready": false,
+  "remaining": [
+    "Per-character pose/contact approval and tuning",
+    "Plugin runtime/controller/terrain and cooked-platform acceptance",
+    "Crowd performance at up to 192 traces per character",
+    "Separate groom-curve/Alembic verification"
+  ],
+  "ennix_retarget_repeat": {
+    "identical_bones_and_motion": true,
+    "earlier_bake": {
+      "path": "work/animation-reusable-20261023/ennix-bake/clips.json",
+      "sha256": "df06c6bbbb21f61f09261f2a771aa2046313bd05643f993aa203af4f00f8f210"
+    },
+    "clean_bake": {
+      "path": "work/animation-reusable-20261023/clean-ennix-bake/clips.json",
+      "sha256": "d23c7e8c3923a568510dae6a87283e82940989747b89e2499d9265bdf7abec8c"
+    },
+    "scope": "Exact packet bone order and all motion/clip fields; provenance paths differ."
+  }
+}

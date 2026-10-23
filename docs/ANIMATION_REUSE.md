@@ -128,3 +128,19 @@ This creates its own small host project. It does not edit or rebuild an existing
 game. `scripts/ue5/check_rac_contact_plugin.py` additionally exercises import,
 configuration, repeat installation and a separate saved-graph reload in that
 host using the explicitly supplied FBX and sole samples.
+
+Set `RAC_PLUGIN_SMOKE_FBX` to an exported character FBX,
+`RAC_PLUGIN_SMOKE_PROBE` to its measured sole-sample JSON, and
+`RAC_PLUGIN_SMOKE_OUTPUT` to a fresh receipt directory. Launch
+`UnrealEditor-Cmd` on the generated `RACAnimationHost.uproject` with
+`-run=pythonscript -script=<checkout>/scripts/ue5/check_rac_contact_plugin.py
+-unattended -nullrhi -nosound -nop4`. After it succeeds, run a separate process
+with the same inputs and `RAC_PLUGIN_SMOKE_RELOAD=1`. This fixture deliberately
+refuses other project names; use the explicit installer for a real destination.
+
+The 2026-10-23 verification is indexed in
+[`evidence/animation-reuse-20261023.json`](evidence/animation-reuse-20261023.json).
+It includes a clean Python environment and installed-wheel run, real Character02
+and Ennix exports, a second independent Ennix bake, and an isolated UE plugin
+build/install/reload. The engine imported Ennix with bind-pose/smoothing warnings;
+the graph check is not certification of the imported mesh or its gameplay.

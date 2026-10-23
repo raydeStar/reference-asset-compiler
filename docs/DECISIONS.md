@@ -1487,3 +1487,26 @@ Retain its failure receipt instead of retrying the same launch. An owned normal
 editor with RHI successfully ran the same read-only saved-asset checks, then
 exited. Record that distinct execution route and bind its actual output; runtime
 success alone does not prove saved markers or graph settings persisted.
+
+## 2026-10-23 — Portability needs installed-package and real-character checks
+
+A green source checkout does not prove portability. An ordinary independent clone,
+fresh dependency environment and explicit external inputs exposed tests importing
+the installed package before the checkout. Set pytest's `pythonpath` to `src` for
+source tests, then independently test a built wheel with isolated imports outside
+the checkout. Do not confuse a mathematical limb fixture with a second character.
+
+Ennix exposed two export-validation errors hidden by Character02: q and -q encode
+the same orientation, so compare normalized quaternions using the absolute dot
+product and shortest angle. Neutralize animation before exporting static attached
+nodes so their default transforms do not depend on the selected action frame.
+Keep exact geometry/material/skin fingerprints strict; do not relax them to turn
+numerical attachment drift into a pass. Both rejected attempts remain recorded.
+
+An engine plugin is reusable only when its modules build without the originating
+game and its configuration uses supplied bones, measured skin and explicit asset
+paths. Independent build/install/reload checks establish that boundary. They do
+not inherit the source game's runtime acceptance or prove the imported mesh free
+of warnings. The contact implementation still costs up to 192 terrain traces per
+character and targets human-scale bipeds; destination performance and gameplay
+need their own evidence.
