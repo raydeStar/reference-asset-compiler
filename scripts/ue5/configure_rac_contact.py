@@ -21,8 +21,8 @@ def read_spec(path):
     if hashlib.sha256(probe_path.read_bytes()).hexdigest() != spec['probe']['sha256']:
         raise ValueError('sole sample hash changed')
     probe = json.loads(probe_path.read_text(encoding='utf-8'))
-    if probe['source_sha256'] != spec['native_character_sha256']:
-        raise ValueError('samples belong to another native character')
+    if probe['source_sha256'] != spec.get('sample_source_sha256', spec.get('native_character_sha256')):
+        raise ValueError('samples belong to another declared source mesh')
     for side in ('l','r'):
         chain = spec['chains'][side]
         if len(chain)!=4 or len(set(chain))!=4 or not all(isinstance(n,str) and n for n in chain):
@@ -37,7 +37,10 @@ def read_spec(path):
                 if not item['bone'] or len(item['point_cm'])!=3 or item['weight']<0 or not all(
                         math.isfinite(v) for v in [item['weight'],*item['point_cm']]):
                     raise ValueError('invalid sole influence')
-    for field,minimum,maximum in [('clearance_cm',0,1),('max_correction_cm',0,10),
+    spec.setdefault('maximum_plant_offset_cm',15)
+    spec.setdefault('maximum_pelvis_drop_cm',0)
+    for field,minimum,maximum in [('clearance_cm',0,1),('max_correction_cm',0,30),
+                                   ('maximum_plant_offset_cm',0,50),('maximum_pelvis_drop_cm',0,8),
                                    ('combat_max_correction_cm',0,10),('release_time_s',.01,1)]:
         value=spec[field]
         if not isinstance(value,(int,float)) or not math.isfinite(value) or not minimum<=value<=maximum:
@@ -67,9 +70,14 @@ def configure(node,spec,probe):
                       'action_slot':spec.get('action_slot','DefaultSlot'),
                       'left_plant_curve':spec['plant_curves']['l'],'right_plant_curve':spec['plant_curves']['r'],
                       'clearance':spec['clearance_cm'],'max_correction':spec['max_correction_cm'],
+                      'maximum_plant_offset':spec['maximum_plant_offset_cm'],
+                      'maximum_pelvis_drop':spec['maximum_pelvis_drop_cm'],
                       'max_combat_correction':spec['combat_max_correction_cm'],
                       'release_time':spec['release_time_s']}.items():
         inner.set_editor_property(key,value)
+    pelvis=unreal.BoneReference()
+    pelvis.set_editor_property('bone_name',spec.get('pelvis_bone','pelvis'))
+    inner.set_editor_property('pelvis_bone',pelvis)
     montage=unreal.load_asset(spec['grounded_combat_montage']) if spec.get('grounded_combat_montage') else None
     if spec.get('grounded_combat_montage') and not isinstance(montage,unreal.AnimMontage):
         raise ValueError('the explicitly selected montage is missing')

@@ -23,7 +23,16 @@ an `ACharacter`. It is not a quadruped, arbitrary control-rig or vehicle solver.
    `anim_blueprint`, `native_character_sha256`, a `probe` path/SHA-256 binding,
    `chains` (four names for each of `l` and `r`), `plant_curves` (`l`/`r`),
    `clearance_cm`, `max_correction_cm`, `combat_max_correction_cm` and
-   `release_time_s`. `grounded_combat_montage` and `action_slot` are optional.
+   `release_time_s`. For an installed-mesh export, bind `sample_source_sha256`
+   instead of `native_character_sha256` and use `extract_engine_sole_samples.py`
+   with the actual destination SkeletalMesh bind frames. Do not interchange
+   differently framed native and engine probes.
+   `grounded_combat_montage` and `action_slot` are optional.
+   `maximum_plant_offset_cm` defaults to 15; `maximum_pelvis_drop_cm` defaults to
+   zero (disabled). An explicit nonzero drop allows a bounded downward pelvis
+   adjustment to retain leg reach during planted turns. `pelvis_bone` defaults
+   to `pelvis` and must be the ancestor of both leg chains. Calibrate these
+   values per character and test body motion, knee bending and skin clearance.
    The isolated-host smoke test produces a complete working example profile.
 3. In Unreal Python, import RAC's `scripts/ue5/configure_rac_contact.py` and call
    `install(profile_path, fresh_receipt_directory)`. It validates the sample
@@ -44,7 +53,8 @@ rig's recovery blending remains the destination's responsibility.
 
 Terrain traces run on the game thread; worker animation evaluation reads cached
 planes. Queries cover distributed sole points, both directions of travel and
-inner/outer footprint guards: at most 192 per character. The 15 cm query envelope,
+inner/outer footprint guards: at most 192 per character. The query envelope follows
+the configured plant offset (15 cm by default), retaining dense inner coverage. The
 45 cm upward / 180 cm downward rays and visibility collision channel currently
 target human-scale characters in centimetres. Crowd cost, extreme scales, network
 prediction and cooked/platform behavior need destination-specific measurement.
@@ -53,7 +63,15 @@ The shipped game continues using its existing Aether node. Creating/testing this
 plugin does not migrate that saved AnimBP or alter the accepted game fixes.
 Plugin compilation and configuration/reload checks are separate from runtime
 animation acceptance; Character02's earlier gameplay receipts concern the
-installed Aether implementation, not an in-game trial of this renamed plugin.
+installed Aether implementation. Ennix's separate turn candidate exercises this
+plugin in owned 30/60 Hz game runs; see `docs/evidence/ennix-turn-20261023.json`
+in the repository. This does not confer human, cooked or performance acceptance.
+
+For a local review without modifying a project's saved plugin settings, the
+installed UE 5.8 editor supports `-EnablePlugins=RACAnimation`. Keep the compiled
+plugin in that project's `Plugins/RACAnimation` and verify its engine build ID.
+This is a review launch route, not a substitute for explicitly enabling and
+building the plugin for a packaged destination.
 
 Run `scripts/check_unreal_animation_plugin.py` from the repository for a clean
 minimal-host build. The `scripts/ue5/check_rac_contact_plugin.py` fixture imports

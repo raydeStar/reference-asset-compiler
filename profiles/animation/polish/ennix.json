@@ -1,0 +1,43 @@
+{
+  "schema": "rac.locomotion-polish.v1",
+  "asset": "Ennix",
+  "intent": "Quiet alert idle, relaxed arms, moderate natural walk. Human review required.",
+  "idle": {
+    "pelvis_motion_scale": 0.2,
+    "stance_width_cm": 23,
+    "toe_out_degrees": 8,
+    "upperarm_direction": [
+      0.18,
+      0.04,
+      -0.98285
+    ],
+    "forearm_direction": [
+      0.19,
+      -0.2,
+      -0.9612
+    ],
+    "upperarm_direction_l": [
+      0.22,
+      0.22,
+      -0.95079
+    ],
+    "forearm_direction_l": [
+      0.24,
+      0,
+      -0.97077
+    ],
+    "arm_motion_scale": 0.25,
+    "thumb_adduction_degrees": 25,
+    "sole_clearance_cm": 0.2
+  },
+  "walk": {
+    "speed_cm_s": 105,
+    "lift_cm": 4,
+    "support_fraction": 0.6,
+    "cadence_steps_s": 1.8,
+    "arm_clearance_degrees": {
+      "upperarm": 3,
+      "lowerarm": 3
+    }
+  }
+}

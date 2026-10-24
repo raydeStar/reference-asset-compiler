@@ -2,6 +2,22 @@
 import numpy as np
 
 
+def transport_skin_pose(world, source_bind, target_bind):
+    """Carry the same skin deformation between two explicitly measured bind frames.
+
+    Bone names, weights and model coordinates must correspond. This transports
+    a frame convention, not an unrelated character's body proportions. Local
+    keys must be rebuilt from the resulting world frames and target hierarchy.
+    """
+    world, source_bind, target_bind = [np.asarray(v, dtype=float) for v in (world, source_bind, target_bind)]
+    if any(v.shape[-2:] != (4, 4) or not np.isfinite(v).all() for v in (world, source_bind, target_bind)):
+        raise ValueError('Expected finite homogeneous 4x4 transforms')
+    for value in (source_bind, target_bind):
+        if not np.allclose(value[..., 3, :], [0, 0, 0, 1]) or np.any(np.abs(np.linalg.det(value[..., :3, :3])) < 1e-8):
+            raise ValueError('Bind transforms must be invertible homogeneous frames')
+    return world @ np.linalg.inv(source_bind) @ target_bind
+
+
 def align_segment_rotation(rotation, target_direction, source_direction):
     """Swing a target's world reference onto its mapped source segment.
 

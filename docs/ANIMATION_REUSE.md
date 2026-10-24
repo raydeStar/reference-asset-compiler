@@ -5,6 +5,10 @@ new candidates and evidence; they do not acquire a character, replace bind data,
 install game assets, or grant artistic approval. The initial coordinate contract
 is UE-local centimetres, Z-up, xyzw rotations. Other conventions need an adapter.
 
+The [Ennix polish case](ENNIX_ANIMATION_POLISH.md) adds a character-specific idle
+and walk profile, actual mesh-bind transport, installed-mesh sole sampling and
+isolated in-game transition review while preserving Character02.
+
 ## Three ways to use the workflow
 
 1. **Installed CLI / Python:** `rac animation init`, `preflight`, `derive`,

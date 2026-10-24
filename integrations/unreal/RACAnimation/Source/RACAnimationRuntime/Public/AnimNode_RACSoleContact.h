@@ -44,11 +44,19 @@ struct RACANIMATIONRUNTIME_API FAnimNode_RACSoleContact : public FAnimNode_Skele
 	FName ActionSlot = TEXT("DefaultSlot");
 	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0"))
 	float MaximumLockSpeed = 180.f;
+	/** Character-calibrated horizontal plant envelope, in component centimetres. */
+	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="50"))
+	float MaximumPlantOffset = 15.f;
+	/** Optional downward pelvis reach reserve. Zero preserves the original solver. */
+	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="8"))
+	float MaximumPelvisDrop = 0.f;
+	UPROPERTY(EditAnywhere, Category=Skeleton)
+	FBoneReference PelvisBone;
 	UPROPERTY(EditAnywhere, Category=Contact)
 	TArray<FRACSoleSample> Samples;
 	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="1"))
 	float Clearance = 0.15f;
-	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="10"))
+	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="30"))
 	float MaxCorrection = 6.f;
 	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0.01"))
 	float ReleaseTime = 0.06f;
@@ -88,6 +96,7 @@ private:
 	bool bLocked[2] = {false, false};
 	bool bAllowLock = false;
 	float DeltaTime = 0.f;
+	float PelvisDrop = 0.f;
 	bool bGroundedLocomotion = false;
 	bool bGroundedCombat = false;
 };
