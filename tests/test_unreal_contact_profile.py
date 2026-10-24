@@ -53,3 +53,32 @@ def test_reach_limits_are_finite_and_bounded(adapter, tmp_path, field, value):
 def test_samples_from_another_mesh_are_rejected(adapter, tmp_path):
     with pytest.raises(ValueError, match='another declared source mesh'):
         adapter.read_spec(profile(tmp_path, sample_source_sha256='different-mesh'))
+
+
+def test_defaults_reproduce_the_original_constants(adapter, tmp_path):
+    spec, _ = adapter.read_spec(profile(tmp_path))
+    assert (spec['action_slot'], spec['pelvis_bone'], spec['maximum_lock_speed_cm_s']) == ('DefaultSlot', 'pelvis', 180)
+    assert (spec['lock_acquire_weight'], spec['lock_release_weight']) == (.65, .5)
+    assert spec['terrain'] == {'channel': 'ECC_VISIBILITY', 'trace_up_cm': 45, 'trace_down_cm': 180,
+                               'minimum_ground_normal_z': .5, 'inner_grid_spacing_cm': 7.5,
+                               'maximum_predicted_travel_cm': 15}
+
+
+def test_every_runtime_constant_is_data(adapter, tmp_path):
+    spec, _ = adapter.read_spec(profile(tmp_path, action_slot='UpperBody', pelvis_bone='hips',
+        maximum_lock_speed_cm_s=240, lock_acquire_weight=.8, lock_release_weight=.4,
+        terrain={'channel': 'ECC_WORLD_STATIC', 'trace_down_cm': 90}))
+    assert spec['action_slot'] == 'UpperBody' and spec['pelvis_bone'] == 'hips'
+    assert spec['terrain']['channel'] == 'ECC_WORLD_STATIC' and spec['terrain']['trace_down_cm'] == 90
+    assert spec['terrain']['trace_up_cm'] == 45
+
+
+@pytest.mark.parametrize('changes,message', [
+    ({'lock_acquire_weight': .4, 'lock_release_weight': .6}, 'must not exceed'),
+    ({'maximum_lock_speed_cm_s': True}, 'out of range'),
+    ({'terrain': {'trace_down_cm': -1}}, 'out of range'),
+    ({'terrain': {'traceDown': 10}}, 'unknown terrain field'),
+    ({'action_slot': ''}, 'must be names')])
+def test_invalid_runtime_fields_fail(adapter, tmp_path, changes, message):
+    with pytest.raises(ValueError, match=message):
+        adapter.read_spec(profile(tmp_path, **changes))

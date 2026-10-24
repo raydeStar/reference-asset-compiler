@@ -109,7 +109,7 @@ void FAnimNode_RACSoleContact::PreUpdate(const UAnimInstance* AnimInstance)
 		}
 		if (bHasPreviousCentre[Side])
 		{
-			FVector Travel = (Centre - PreviousCentre[Side]).GetClampedToMaxSize(15.f);
+			FVector Travel = (Centre - PreviousCentre[Side]).GetClampedToMaxSize(MaximumPredictedTravel);
 			Travel.Z = 0;
 			if (!Travel.IsNearlyZero(0.1f))
 			{
@@ -137,15 +137,15 @@ void FAnimNode_RACSoleContact::PreUpdate(const UAnimInstance* AnimInstance)
 		// Retain dense inner coverage as well as the padded outer footprint.
 		for (int32 X = -2; X <= 2; ++X)
 			for (int32 Y = -2; Y <= 2; ++Y)
-				if (X != 0 || Y != 0) Queries.Add(Centre + FVector(X * 7.5f, Y * 7.5f, 0));
+				if (X != 0 || Y != 0) Queries.Add(Centre + FVector(X * InnerGridSpacing, Y * InnerGridSpacing, 0));
 		for (int32 X = -2; X <= 2; ++X)
 			for (int32 Y = -2; Y <= 2; ++Y)
 				if (X != 0 || Y != 0) Queries.Add(Centre + FVector(X * Extent.X * 0.5, Y * Extent.Y * 0.5, 0));
 		for (const FVector& Query : Queries)
 		{
 			FHitResult Hit;
-			if (Character->GetWorld()->LineTraceSingleByChannel(Hit, Query + FVector(0, 0, 45),
-				Query - FVector(0, 0, 180), ECC_Visibility, Params) && Hit.ImpactNormal.Z > 0.5)
+			if (Character->GetWorld()->LineTraceSingleByChannel(Hit, Query + FVector(0, 0, TraceUp),
+				Query - FVector(0, 0, TraceDown), TraceChannel, Params) && Hit.ImpactNormal.Z > MinimumGroundNormalZ)
 				Ground[Side].Add({Hit.ImpactPoint, Hit.ImpactNormal, Query});
 		}
 	}
@@ -208,8 +208,8 @@ void FAnimNode_RACSoleContact::EvaluateSkeletalControl_AnyThread(FComponentSpace
 			1.f - FMath::Exp(-DeltaTime / FMath::Max(ReleaseTime, 0.01f)));
 		const FTransform& FootCS = Output.Pose.GetComponentSpaceTransform(Chains[Side][2].GetCompactPoseIndex(Bones));
 		const float Contact = Output.Curve.Get(Side == 0 ? LeftPlantCurve : RightPlantCurve);
-		if (!bPermitLock || Contact < 0.5f) bLocked[Side] = false;
-		if (bPermitLock && !bLocked[Side] && Contact > 0.65f)
+		if (!bPermitLock || Contact < LockReleaseWeight) bLocked[Side] = false;
+		if (bPermitLock && !bLocked[Side] && Contact > LockAcquireWeight)
 		{
 			LockedWorld[Side] = World.TransformPosition(FootCS.GetLocation());
 			bLocked[Side] = true;

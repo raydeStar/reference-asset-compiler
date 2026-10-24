@@ -1,0 +1,13 @@
+{
+  "schema": "rac.runtime-contact-criteria.v1",
+  "asset": "Character02",
+  "note": "Measurement windows used for the 2026-10-22/23 Character02 walk, turn, recovery and combo evidence. The probe walks at 89.180502 cm/s (input 89.18/500 of a 500 cm/s maximum).",
+  "walk_speed_cm_s": 89.180502,
+  "steady_speed_tolerance_cm_s": 1.0,
+  "steady_window_s": [1.45, 3.85],
+  "support_speed_range_cm_s": [85, 94],
+  "walk_exit_speed_range_cm_s": [80, 100],
+  "idle_exit_speed_max_cm_s": 1.0,
+  "recovery_window_s": 0.6,
+  "settled_after_s": 6.4
+}

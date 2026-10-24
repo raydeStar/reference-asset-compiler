@@ -33,6 +33,13 @@ an `ACharacter`. It is not a quadruped, arbitrary control-rig or vehicle solver.
    adjustment to retain leg reach during planted turns. `pelvis_bone` defaults
    to `pelvis` and must be the ancestor of both leg chains. Calibrate these
    values per character and test body motion, knee bending and skin clearance.
+   Every other runtime constant is optional profile data with the original
+   human-scale default: `maximum_lock_speed_cm_s` (180), `lock_acquire_weight`
+   (0.65) and `lock_release_weight` (0.5) for the plant curves, and a `terrain`
+   object with `channel` (`ECC_VISIBILITY`, any `unreal.CollisionChannel` name),
+   `trace_up_cm` (45), `trace_down_cm` (180), `minimum_ground_normal_z` (0.5),
+   `inner_grid_spacing_cm` (7.5) and `maximum_predicted_travel_cm` (15).
+   Unknown terrain fields fail rather than being ignored.
    The isolated-host smoke test produces a complete working example profile.
 3. In Unreal Python, import RAC's `scripts/ue5/configure_rac_contact.py` and call
    `install(profile_path, fresh_receipt_directory)`. It validates the sample
@@ -55,8 +62,8 @@ Terrain traces run on the game thread; worker animation evaluation reads cached
 planes. Queries cover distributed sole points, both directions of travel and
 inner/outer footprint guards: at most 192 per character. The query envelope follows
 the configured plant offset (15 cm by default), retaining dense inner coverage. The
-45 cm upward / 180 cm downward rays and visibility collision channel currently
-target human-scale characters in centimetres. Crowd cost, extreme scales, network
+default 45 cm upward / 180 cm downward rays on the visibility channel target
+human-scale characters in centimetres; set `terrain` for other scales or collision setups. Crowd cost, extreme scales, network
 prediction and cooked/platform behavior need destination-specific measurement.
 
 The shipped game continues using its existing Aether node. Creating/testing this

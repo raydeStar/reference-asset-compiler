@@ -73,7 +73,8 @@ triangles, save, and inspect every clip reference and speed row in a fresh edito
 Mutating a struct yielded by reflected-array iteration can silently leave the
 saved asset unchanged. Confirm support curves during actual walking as well.
 
-`scripts/ue5/character02_walk_runtime.py` also accepts `RAC_WALK_REVIEW_PROFILE`,
+The game's owned locomotion runtime probe (moved to The Aether Wars' `Tools/`;
+last RAC copy `scripts/ue5/character02_walk_runtime.py` at `d84f119`) also accepts `RAC_WALK_REVIEW_PROFILE`,
 a JSON path specifying `mesh`, `anim_class`, `groom`, optional `hair_material`
 and `walk_speed_cm_s`. This changes only the owned runtime pawn; it never saves
 or replaces the default player Blueprint. `RAC_BOOT_PROBE` must match the
