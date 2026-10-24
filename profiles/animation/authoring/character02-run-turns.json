@@ -1,0 +1,25 @@
+{
+  "schema": "rac.locomotion-authoring.v1",
+  "asset": "Character02",
+  "note": "2026-10-24: a ~500 cm/s run between the UAL jog (298) and sprint (560) cycles, and four idle-to-idle turns on the spot whose root carries the yaw. 100STYLE has no forward run faster than about 220 cm/s (all 100 styles measured), so it cannot supply this speed. Turn steps: the order is chosen for footprint clearance (first_step auto); in a 180 each foot steps twice, landing first at an intermediate share of the turn, because each foot's final spot overlaps the other foot's starting spot.",
+  "stand_clip": "MM_Idle",
+  "cycles": [
+    {
+      "name": "MF_Unarmed_Run_Fwd",
+      "sources": ["MF_Unarmed_Jog_Fwd", "MF_Unarmed_Sprint_Fwd"],
+      "speed_cm_s": 500,
+      "fps": 30,
+      "upper_weight": 0.45,
+      "phase_origin": 0.12,
+      "stance_threshold_cm": 1.5,
+      "plant_blend_frames": 1,
+      "also_as": ["MF_Unarmed_Run_Fwd_Left", "MF_Unarmed_Run_Fwd_Right", "MF_Unarmed_Run_Left", "MF_Unarmed_Run_Right", "MF_Unarmed_Run_Bwd", "MF_Unarmed_Run_Bwd_Left", "MF_Unarmed_Run_Bwd_Right"]
+    }
+  ],
+  "turns": [
+    {"name": "MM_TurnInPlace_L90", "degrees": 90, "duration_s": 1.0, "fps": 30, "steps": [["lead", 0.12, 0.47], ["trail", 0.47, 0.84]], "yaw_window": [0.1, 0.86], "lift_cm": 6, "pelvis_dip_cm": 1.5, "pelvis_shift_cm": 2.5, "look_ahead_deg": 20},
+    {"name": "MM_TurnInPlace_R90", "degrees": -90, "duration_s": 1.0, "fps": 30, "steps": [["lead", 0.12, 0.47], ["trail", 0.47, 0.84]], "yaw_window": [0.1, 0.86], "lift_cm": 6, "pelvis_dip_cm": 1.5, "pelvis_shift_cm": 2.5, "look_ahead_deg": 20},
+    {"name": "MM_TurnInPlace_L180", "degrees": 180, "duration_s": 1.3, "fps": 30, "steps": [["lead", 0.06, 0.28], ["trail", 0.28, 0.5], ["lead", 0.5, 0.72], ["trail", 0.72, 0.92]], "yaw_window": [0.05, 0.9], "lift_cm": 7, "pelvis_dip_cm": 2.0, "pelvis_shift_cm": 2.5, "look_ahead_deg": 30},
+    {"name": "MM_TurnInPlace_R180", "degrees": -180, "duration_s": 1.3, "fps": 30, "steps": [["lead", 0.06, 0.28], ["trail", 0.28, 0.5], ["lead", 0.5, 0.72], ["trail", 0.72, 0.92]], "yaw_window": [0.05, 0.9], "lift_cm": 7, "pelvis_dip_cm": 2.0, "pelvis_shift_cm": 2.5, "look_ahead_deg": 30}
+  ]
+}

@@ -70,3 +70,44 @@ fields fail. Library code: `reference_asset_compiler.animation_runtime_contact`.
 
 Leg chains (`thigh_`, `calf_`, `foot_`, `ball_`, `ik_foot_l/r`) are the only bones a
 contact fix may move in a paired comparison; everything else must stay put.
+
+## Author run cycles and turn-in-place clips (CPU)
+
+```powershell
+python scripts/anim/author_locomotion_clips.py --packet <clips.json> --skeleton <skeleton.json> `
+  --profile profiles/animation/authoring/<name>.json --out <fresh dir>
+```
+
+Writes a new packet: every existing clip unchanged plus the profile's new clips,
+`measurements.json` and `authoring-derivation.json` (input, profile and code hashes).
+Library code: `reference_asset_compiler.animation_authoring`.
+
+- **Cycles** (`cycles`): a phase-synchronised blend of two looped in-place cycles,
+  aligned on their left touchdowns (`contacts_s`). The lower body takes the weight
+  whose unplanted stance already moves nearest `speed_cm_s`, and the upper body
+  takes `upper_weight`. Support is detected from the ball of the foot (low and
+  moving backward). Each support is then planted at the declared speed with
+  `solve_contact`: the ball is the effector and the foot holds its mid-stance
+  orientation, so ankle and ball both stay put. Heel/toe roll returns in the ramp
+  frames. The clip carries `speed_cm_s`, `contacts_s` and loop `support_intervals`.
+- **Turns** (`turns`): idle-to-idle turns on the spot. The root track carries the
+  yaw (exact, no translation; `root_motion: true`). Planted feet stay fixed in
+  the world. Each step moves the midfoot to the foot's standing spot under the
+  turn, bowing away from the planted foot. The step order (`first_step: auto`)
+  and, for a foot that steps twice, the intermediate landing share are chosen for
+  footprint clearance. The hips stay over the support, and the pelvis lowers
+  only as far as leg reach needs. Head and chest lead the turn, and the clip
+  starts and ends on the stand clip's first frame. Positive `degrees` turn toward
+  the character's left, whatever the rig's axes. `support_intervals` lists each
+  foot's planted intervals in clip seconds.
+- **Measurements:** slide of the foot and the ball during declared support (world
+  speed, including the declared travel for in-place cycles); the loop seam (pose
+  difference and seam acceleration relative to the cycle's own); root yaw error
+  and translation; start/end distance from the stand pose; closest approach of
+  the two footprints (ankle-to-ball segments); and knee bend.
+
+`profiles/animation/authoring/character02-run-turns.json` makes a 500 cm/s run
+from the UAL jog and sprint, plus four turns (L/R 90 in 1.0 s, L/R 180 in 1.3 s).
+100STYLE has no forward run faster than about 220 cm/s: its runs circle a small
+capture floor. So it cannot supply a ~500 cm/s run without warping the stride
+by more than 2x.
