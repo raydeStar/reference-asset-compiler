@@ -12,12 +12,14 @@ param(
     [ValidateSet('legacy', 'studio')][string] $RunnerKind = 'legacy',
     [ValidateSet(2048, 4096)][int] $Atlas = 2048,
     [switch] $SmoothConditioningNormals,
-    # Studio runner only: decode the generated views one at a time and move the
+    # The studio runner decodes the generated views one at a time and moves the
     # diffusion weights off the GPU before upscaling and baking. Measured on
     # 2026-10-30 at 12 views x 768: reserved VRAM 35.5 -> 16.1 GiB, no spill
-    # into shared memory, 30% faster. Not byte-identical: 0.04% of atlas pixels
-    # move by more than 16/255, at UV island edges; the visual gate decides.
-    [switch] $ReleaseStages,
+    # into shared memory, 30% faster. Not byte-identical (0.04% of atlas
+    # pixels move by more than 16/255, at UV island edges); the user judged the
+    # four-view renders identical and made it the default. This switch restores
+    # the resident behaviour, e.g. to reproduce an attempt painted before it.
+    [switch] $KeepStagesResident,
     [string] $DiagnosticsDir,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D-Paint runner, upstream checkout and models.' }),
     # 0 selects the measured floor: 21504 resident, 14336 released at
@@ -54,11 +56,10 @@ if ($RunnerKind -eq 'studio') {
 if ($SmoothConditioningNormals -and $RunnerKind -ne 'studio') {
     throw 'SmoothConditioningNormals requires RunnerKind studio.'
 }
-if ($ReleaseStages -and $RunnerKind -ne 'studio') {
-    throw 'ReleaseStages requires RunnerKind studio; the legacy runner keeps its own 21 GiB check.'
-}
+# The legacy runner keeps every stage resident and its own 21 GiB check.
+$releaseStages = $RunnerKind -eq 'studio' -and -not $KeepStagesResident
 if ($MinimumFreeVramMiB -le 0) {
-    $MinimumFreeVramMiB = if (-not $ReleaseStages) { 21504 } elseif ($Views -le 6 -and $Resolution -eq 512) { 14336 } else { 18944 }
+    $MinimumFreeVramMiB = if (-not $releaseStages) { 21504 } elseif ($Views -le 6 -and $Resolution -eq 512) { 14336 } else { 18944 }
 }
 $upstream = Join-Path $LegacyRoot 'upstream\Hunyuan3D-2.1'
 $models = Join-Path $LegacyRoot 'models\hy3d21\Hunyuan3D-2.1'
@@ -106,7 +107,7 @@ $runnerArgs = @($runner, $meshPath, $referencePath, $outputPath, '--views', $Vie
 if ($RunnerKind -eq 'studio') {
     $runnerArgs += @('--atlas', $Atlas, '--legacy-root', $LegacyRoot)
     if ($SmoothConditioningNormals) { $runnerArgs += '--smooth-conditioning-normals' }
-    if ($ReleaseStages) { $runnerArgs += '--release-stages' }
+    if ($releaseStages) { $runnerArgs += '--release-stages' }
     # The runner rechecks the same floor after CUDA initialises.
     $runnerArgs += @('--min-free-gib', ([double]$MinimumFreeVramMiB / 1024).ToString([Globalization.CultureInfo]::InvariantCulture))
 }
@@ -139,7 +140,7 @@ $execution = [ordered]@{
     runner_kind = $RunnerKind
     atlas = $Atlas
     conditioning_normals = $(if ($SmoothConditioningNormals) { 'seam_independent_vertex' } else { 'face' })
-    release_stages = [bool]$ReleaseStages
+    release_stages = $releaseStages
     required_free_vram_mib = $MinimumFreeVramMiB
     initial_free_vram_mib = $freeMiB
     gpu_utilization_percent = $utilization

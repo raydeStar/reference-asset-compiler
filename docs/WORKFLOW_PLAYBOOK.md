@@ -209,9 +209,10 @@ directories in the legacy studio. Do not invoke the bundled provenance copy
 directly or edit its path logic ad hoc mid-experiment.
 
 It requires at least 21 GiB free VRAM and refuses face-order, geometry, or UV
-drift beyond `1e-6`. The studio runner with `-ReleaseStages` needs 14–18.5 GiB
-and does not spill at 12 views × 768. Its maps differ slightly from a resident
-run; see "Painting with less VRAM" in `AI_STAGES_SETUP.md`. A validation JSON is required even if upstream teardown
+drift beyond `1e-6`. The studio runner releases stages by default, needs
+14–18.5 GiB and does not spill at 12 views × 768. Its maps differ invisibly
+from a resident run; `-KeepStagesResident` reproduces older attempts. See
+"Painting with less VRAM" in `AI_STAGES_SETUP.md`. A validation JSON is required even if upstream teardown
 returns an error. Never auto-retry.
 
 For a new, specifically justified diagnostic attempt, pass

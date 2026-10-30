@@ -19,7 +19,7 @@ when a required component is missing.
 
 | | Requirement |
 |---|---|
-| GPU | NVIDIA, 24 GB card (verified on an RTX 4090). The launchers measure free VRAM in MiB: texturing refuses to start under 21 GiB (21,504 MiB) free, or 14–18.5 GiB on the studio runner with `-ReleaseStages` (see [Painting with less VRAM](#painting-with-less-vram)); geometry, either mode, under 8 GiB (8,192 MiB) with the default `release_stages`, or 10 GiB (10,240 MiB) resident. These are measured; see [Running geometry with less VRAM](#running-geometry-with-less-vram). |
+| GPU | NVIDIA, 24 GB card (verified on an RTX 4090). The launchers measure free VRAM in MiB: texturing refuses to start under 21 GiB (21,504 MiB) free, or 14–18.5 GiB on the studio runner, which releases stages by default (see [Painting with less VRAM](#painting-with-less-vram)); geometry, either mode, under 8 GiB (8,192 MiB) with the default `release_stages`, or 10 GiB (10,240 MiB) resident. These are measured; see [Running geometry with less VRAM](#running-geometry-with-less-vram). |
 | CUDA | 12.4 toolchain for the Hunyuan3D-Paint rasterizer build, plus Visual Studio Build Tools with the C++ workload. |
 | Python | 3.11 for the paint environment (`.venv-hy3d21`); the geometry environment (`.venv-hy3d`) follows the upstream Hunyuan3D-2 requirements. |
 | Disk | 34,665,936,452 bytes (32.285 GiB) for a fresh one-image stack; 39,594,089,622 bytes (36.875 GiB) with both pinned shape models. Keep 45/50 GiB free respectively, or 60 GiB with room for attempts. |
@@ -241,9 +241,10 @@ multiview generation, when the VAE decodes every albedo and metal-rough view in
 one batch. At 12 views × 768 the PyTorch pool reached 35.5 GiB, so about 11 GiB
 spilled into Windows shared memory. That spill is the slowdown recorded earlier.
 
-The studio runner's `-ReleaseStages` (`run_hy3d21_texture.ps1 -RunnerKind studio
--ReleaseStages`) decodes the views one at a time, then moves the diffusion
-pipeline and DINO to the CPU before the upscale and bake:
+The studio runner (`run_hy3d21_texture.ps1 -RunnerKind studio`) now decodes the
+views one at a time by default, then moves the diffusion pipeline and DINO to
+the CPU before the upscale and bake. `-KeepStagesResident` restores the old
+behaviour:
 
 | Views × resolution | Stages | Peak reserved | Peak allocated | Paint time |
 | --- | --- | --- | --- | --- |
@@ -263,9 +264,13 @@ amplify it in places. At 12 × 768, 1.2% of base-colour pixels moved by more tha
 4/255 and 0.04% by more than 16/255, almost all of them single pixels on UV
 island edges ([side by side and ×4 difference](evidence/paint-release-compare-20261030.jpg)).
 Moving the weights alone kept the maps byte-identical but did not lower the
-peak, and slicing the reference encode as well moved more pixels. That is why
-it is opt-in: an accepted texture stays reproducible with its original setting,
-and the visual gate decides for new attempts. The legacy runner is unchanged.
+peak, and slicing the reference encode as well moved more pixels. On the model
+the difference is invisible: in four-view renders of both paints
+([on-model comparison](evidence/paint-release-on-model-20261030.jpg)) no pixel
+of the front view differs by more than 16/255, and the user judged them
+identical on 2026-10-30, so release is the studio default. Reproduce a texture
+painted before that date with `-KeepStagesResident`. The legacy runner is
+unchanged.
 
 ## Optional historical geometry through ComfyUI
 

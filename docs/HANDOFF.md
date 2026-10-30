@@ -5148,3 +5148,13 @@ peak. Released floors are 14,336 and 18,944 MiB; resident and legacy stay at
 Evidence is in `docs/evidence/paint-vram-calibration-20261030.json` and
 `paint-release-compare-20261030.jpg`. Calibration outputs stayed in a scratch
 directory. No texture candidate was made or judged.
+
+## 2026-10-30 — Paint stage release made the studio default
+
+The user reviewed four-view renders of the CH-03 guard painted resident and
+released at 12×768 (`docs/evidence/paint-release-on-model-20261030.jpg`) and
+judged them identical. The studio runner route of `run_hy3d21_texture.ps1` now
+releases stages by default; `-KeepStagesResident` restores the old behaviour for
+reproducing earlier attempts. The legacy route is unchanged. This was a
+judgement of the memory change only, not of the guard texture, which remains a
+calibration input.
