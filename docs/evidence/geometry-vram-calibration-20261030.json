@@ -1,0 +1,128 @@
+{
+  "schema": "reference-asset-compiler.geometry-vram-calibration.v1",
+  "date": "2026-10-30",
+  "purpose": "Measure geometry VRAM peaks resident vs release_stages and confirm identical meshes; calibration only, not modeling candidates.",
+  "runner_sha256": {
+    "multiview": "29d40619e591955ac717bd1f2d8190fdf7f9c3b124217b12dbd551dff5df1eea",
+    "single_view": "a3ccdb3f971245d5e0a68eadef53cd4221f6e8bd848adb62c905508fa1a9b796"
+  },
+  "comparison": {
+    "single": {
+      "vertices_and_faces_bit_identical": true,
+      "max_abs_vertex_delta": 0.0,
+      "glb_bytes_identical": true
+    },
+    "mv": {
+      "vertices_and_faces_bit_identical": true,
+      "max_abs_vertex_delta": 0.0,
+      "glb_bytes_identical": true
+    }
+  },
+  "floors_mib": {
+    "resident": 10240,
+    "released": 8192,
+    "basis": "max peak_reserved (7.94 / 5.18 GiB) plus ~2.5 GiB for the CUDA context and other inputs"
+  },
+  "runs": {
+    "mv-released": {
+      "schema": "reference-studio.hunyuan3d-multiview.v2",
+      "model": "tencent/Hunyuan3D-2mv:hunyuan3d-dit-v2-mv",
+      "model_revision": "3a761b539b29fe4ff64714813aa9560fd66f5de0",
+      "sources": {
+        "front": "C:\\Comfy\\blender-reference-studio\\references\\fox-mascot-v1\\front-authority.png",
+        "left": "C:\\Comfy\\blender-reference-studio\\references\\fox-mascot-v2\\turnaround-v1\\left.png",
+        "back": "C:\\Comfy\\blender-reference-studio\\references\\fox-mascot-v2\\turnaround-v1\\back.png"
+      },
+      "seed": 137,
+      "steps": 40,
+      "octree_resolution": 512,
+      "chunks": 20000,
+      "release_stages": true,
+      "vertices": 536108,
+      "faces": 1072238,
+      "seconds": 67.78,
+      "load_seconds": 35.88,
+      "vram": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5385965568,
+        "peak_reserved_bytes": 5559549952
+      },
+      "candidate_sha256": "f99d57dcfeee5e41623eec2f78b9498fcac5109e31d80f5c6ebea532852e4159"
+    },
+    "mv-resident": {
+      "schema": "reference-studio.hunyuan3d-multiview.v2",
+      "model": "tencent/Hunyuan3D-2mv:hunyuan3d-dit-v2-mv",
+      "model_revision": "3a761b539b29fe4ff64714813aa9560fd66f5de0",
+      "sources": {
+        "front": "C:\\Comfy\\blender-reference-studio\\references\\fox-mascot-v1\\front-authority.png",
+        "left": "C:\\Comfy\\blender-reference-studio\\references\\fox-mascot-v2\\turnaround-v1\\left.png",
+        "back": "C:\\Comfy\\blender-reference-studio\\references\\fox-mascot-v2\\turnaround-v1\\back.png"
+      },
+      "seed": 137,
+      "steps": 40,
+      "octree_resolution": 512,
+      "chunks": 20000,
+      "release_stages": false,
+      "vertices": 536108,
+      "faces": 1072238,
+      "seconds": 63.66,
+      "load_seconds": 17.11,
+      "vram": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 7094557184,
+        "peak_reserved_bytes": 8527020032
+      },
+      "candidate_sha256": "f99d57dcfeee5e41623eec2f78b9498fcac5109e31d80f5c6ebea532852e4159"
+    },
+    "single-released": {
+      "schema": "reference-studio.hunyuan3d-single-view.v1",
+      "model": "tencent/Hunyuan3D-2:hunyuan3d-dit-v2-0",
+      "model_revision": "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf",
+      "sources": {
+        "primary": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\caped-adventurer-ai-v1\\references\\primary.png"
+      },
+      "seed": 42,
+      "steps": 40,
+      "octree_resolution": 512,
+      "chunks": 20000,
+      "release_stages": true,
+      "vertices": 522387,
+      "faces": 1044868,
+      "seconds": 55.02,
+      "load_seconds": 16.32,
+      "vram": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "candidate_sha256": "2ef27da49b5c43817a9cc48ddfe3985efc0a3dddd0967179ff5865ab5bd34d0d"
+    },
+    "single-resident": {
+      "schema": "reference-studio.hunyuan3d-single-view.v1",
+      "model": "tencent/Hunyuan3D-2:hunyuan3d-dit-v2-0",
+      "model_revision": "9cd649ba6913f7a852e3286bad86bfa9a2d83dcf",
+      "sources": {
+        "primary": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\caped-adventurer-ai-v1\\references\\primary.png"
+      },
+      "seed": 42,
+      "steps": 40,
+      "octree_resolution": 512,
+      "chunks": 20000,
+      "release_stages": false,
+      "vertices": 522387,
+      "faces": 1044868,
+      "seconds": 57.17,
+      "load_seconds": 16.66,
+      "vram": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 7077722624,
+        "peak_reserved_bytes": 8218738688
+      },
+      "candidate_sha256": "2ef27da49b5c43817a9cc48ddfe3985efc0a3dddd0967179ff5865ab5bd34d0d"
+    }
+  }
+}

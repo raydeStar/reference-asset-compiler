@@ -19,7 +19,7 @@ when a required component is missing.
 
 | | Requirement |
 |---|---|
-| GPU | NVIDIA, 24 GB card (verified on an RTX 4090). The launchers measure free VRAM in MiB: texturing refuses to start under 21 GiB (21,504 MiB) free, multiview geometry under 18 GiB (18,432 MiB), single-view geometry under 12 GiB (12,288 MiB). Geometry with `release_stages` needs 2 GiB less; see [Running geometry with less VRAM](#running-geometry-with-less-vram). |
+| GPU | NVIDIA, 24 GB card (verified on an RTX 4090). The launchers measure free VRAM in MiB: texturing refuses to start under 21 GiB (21,504 MiB) free; geometry, either mode, under 8 GiB (8,192 MiB) with the default `release_stages`, or 10 GiB (10,240 MiB) resident. These are measured; see [Running geometry with less VRAM](#running-geometry-with-less-vram). |
 | CUDA | 12.4 toolchain for the Hunyuan3D-Paint rasterizer build, plus Visual Studio Build Tools with the C++ workload. |
 | Python | 3.11 for the paint environment (`.venv-hy3d21`); the geometry environment (`.venv-hy3d`) follows the upstream Hunyuan3D-2 requirements. |
 | Disk | 34,665,936,452 bytes (32.285 GiB) for a fresh one-image stack; 39,594,089,622 bytes (36.875 GiB) with both pinned shape models. Keep 45/50 GiB free respectively, or 60 GiB with room for attempts. |
@@ -179,38 +179,52 @@ are found by passing the same `--workspace-root <dir>` to the preflight.
 
 The preflight refuses a single-view request whose input is not the immutable
 source itself, and refuses a derivation report on it; the receipt is bound by
-the source image hash. Single view needs 12 GiB (12,288 MiB) of free VRAM,
-multiview 18 GiB (18,432 MiB).
+the source image hash. Either mode needs 8 GiB (8,192 MiB) of free VRAM by
+default, or 10 GiB (10,240 MiB) with `"release_stages": false`.
 
 ## Running geometry with less VRAM
 
-Both geometry floors are upstream-era estimates, not peaks measured here. The
-fp16 checkpoint holds three models, read from its safetensors header: the image
-conditioner (DINOv2, 2.117 GiB), the diffusion model (2.074 GiB) and the shape
-VAE (0.399 GiB). By default all three stay on the GPU for the whole run.
+The fp16 checkpoint holds three models, read from its safetensors header: the
+image conditioner (DINOv2, 2.117 GiB), the diffusion model (2.074 GiB) and the
+shape VAE (0.399 GiB). `release_stages` (default `true`) moves the conditioner
+to the CPU once it has encoded the views, and the diffusion model once
+sampling ends, before volume decoding. Each stage still runs on the GPU with
+its original weights and dtype. Nothing upstream is patched. Set
+`"release_stages": false` in a request's `parameters` to keep all three
+resident.
 
-Add `"release_stages": true` to a request's `parameters` to move the
-conditioner to the CPU once it has encoded the views, and the diffusion model
-once sampling ends, before volume decoding. Each stage still runs on the GPU
-with its original weights and dtype, so the mesh should match a resident run.
-Nothing upstream is patched. The launcher lowers the floor by the 2 GiB this
-certainly frees: single view 10 GiB (10,240 MiB), multiview 16 GiB
-(16,384 MiB). `-MinimumFreeVramMiB` still overrides either floor, and the
-runner rechecks the same floor after CUDA initialises.
+Calibrated on 2026-10-30 on the RTX 4090
+([evidence](evidence/geometry-vram-calibration-20261030.json)), 40 steps,
+octree 512, 20000 chunks, one asset per mode:
+
+| Mode | Stages | Peak reserved | Peak allocated | Generation | GLB |
+| --- | --- | --- | --- | --- | --- |
+| single view | resident | 7.65 GiB | 6.59 GiB | 57.2 s | identical |
+| single view | released | 4.99 GiB | 4.88 GiB | 55.0 s | identical |
+| multiview | resident | 7.94 GiB | 6.61 GiB | 63.7 s | identical |
+| multiview | released | 5.18 GiB | 5.02 GiB | 67.8 s | identical |
+
+The released and resident GLBs were byte-identical in both modes, so the
+release changes only memory. The old 12 and 18 GiB floors were estimates more
+than twice the real peak. The launcher's floors are now the measured reserved
+peak plus about 2.5 GiB for the CUDA context and other inputs: 8 GiB
+(8,192 MiB) released and 10 GiB (10,240 MiB) resident, for either mode.
+`-MinimumFreeVramMiB` still overrides, and the runner rechecks the floor after
+CUDA initialises. A geometry job therefore fits beside a 12 GB paint or
+ComfyUI workload on a 24 GB card, or alone on a 10–12 GB card (untested off
+the 4090).
 
 `chunks` is the other memory control. It sets how many grid points the VAE
 decodes at once; fewer chunks lower the decoding peak and add time. Unlike
-`octree_resolution` or `steps`, it does not change what is computed.
+`octree_resolution` or `steps`, it does not change what is computed. Higher
+chunk counts or octree resolutions than the calibrated ones need their own
+measurement.
 
-Every generation report now carries `load_seconds`, `release_stages` and a
-`vram` block with the device, free memory at start and
+Every generation report carries `load_seconds`, `release_stages` and a `vram`
+block with the device, free memory at start and
 `torch.cuda.max_memory_allocated`/`max_memory_reserved`. A run that raises,
 including an out-of-memory error, writes `generation-failure.json` with the
-same block before the launcher records the failed attempt. The next job is to
-calibrate: run one fixed request resident and released, confirm that the
-meshes match (equal vertex and face counts, then a fixed-view comparison), and
-set each floor to its measured reserved peak plus headroom. Until then, the
-floors above stand.
+same block before the launcher records the failed attempt.
 
 Two larger levers are not wired up because they change the output and need a
 modeling gate: upstream's FlashVDM turbo decoder (a different VAE checkpoint,

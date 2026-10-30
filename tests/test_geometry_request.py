@@ -91,13 +91,13 @@ class GeometryRequestTests(unittest.TestCase):
         self.assertFalse(result["inference_launched"])
         self.assertEqual(["front", "left", "back"], [row["view"] for row in result["inputs"]])
 
-    def test_stage_release_defaults_off_and_must_be_boolean(self) -> None:
-        self.assertIs(False, validate_geometry_request(self.request, self.legacy, self.repo)
+    def test_stage_release_defaults_on_and_must_be_boolean(self) -> None:
+        self.assertIs(True, validate_geometry_request(self.request, self.legacy, self.repo)
                       ["parameters"]["release_stages"])
         payload = json.loads(self.request.read_text(encoding="utf-8"))
-        payload["parameters"]["release_stages"] = True
+        payload["parameters"]["release_stages"] = False
         self.request.write_text(json.dumps(payload), encoding="utf-8")
-        self.assertIs(True, validate_geometry_request(self.request, self.legacy, self.repo)
+        self.assertIs(False, validate_geometry_request(self.request, self.legacy, self.repo)
                       ["parameters"]["release_stages"])
         payload["parameters"]["release_stages"] = "yes"
         self.request.write_text(json.dumps(payload), encoding="utf-8")

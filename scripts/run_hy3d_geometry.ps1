@@ -74,17 +74,17 @@ if (-not $runnerNames.ContainsKey($mode)) { throw "Unsupported geometry request 
 $runner = Join-Path $runnerRoot $runnerNames[$mode]
 $expectedRunnerHash = $expectedRunnerHashes[$mode]
 $releaseStages = [bool]$preflight.parameters.release_stages
-# Resident floors are upstream-era estimates, not measured peaks. Releasing
-# stages frees the 2.12 GiB conditioner before sampling and the 2.07 GiB
-# diffusion model before decoding, so its floors drop by the 2 GiB that is
-# certain. Replace both with a measured peak (generation.json "vram") plus
-# headroom once one is recorded on this workstation.
+# Floors are measured peaks plus headroom (docs/evidence/
+# geometry-vram-calibration-20261030.json, octree 512, 20000 chunks): the
+# allocator reserved at most 7.94 GiB resident and 5.18 GiB released in either
+# mode, and released runs were bit-identical. About 2.5 GiB above the peak
+# covers the CUDA context and other inputs.
 $requiredFreeVramMiB = if ($MinimumFreeVramMiB -gt 0) {
     $MinimumFreeVramMiB
-} elseif ($mode -eq 'single_view') {
-    if ($releaseStages) { 10240 } else { 12288 }
+} elseif ($releaseStages) {
+    8192
 } else {
-    if ($releaseStages) { 16384 } else { 18432 }
+    10240
 }
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     throw "Required versioned Hunyuan3D runner is missing: $runner"

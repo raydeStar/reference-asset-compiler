@@ -5115,3 +5115,18 @@ AnimBP/DLL hashes and native character inputs remain unchanged. The renamed
 plugin has no gameplay/cooked/crowd-cost acceptance; the existing Character02
 gameplay receipts still apply only to its installed Aether implementation.
 Human acceptance and production readiness remain false.
+
+## 2026-10-30 — Geometry VRAM calibration and stage release by default
+
+Branch `gpu-efficiency`. Ran each geometry runner twice on the RTX 4090, with
+the conditioner and diffusion model resident and with them released between
+stages. Caped adventurer single view seed 42 and fox mascot v3 multiview seed
+137, both at 40 steps, octree 512 and 20000 chunks. The released and resident
+GLBs were byte-identical in both modes. Peak reserved VRAM was 7.65/7.94 GiB
+resident and 4.99/5.18 GiB released (single view/multiview), against the old
+12/18 GiB estimated floors. Generation time was unchanged within noise.
+`release_stages` now defaults to true. Both modes' launcher floors are now
+8,192 MiB released and 10,240 MiB resident. Evidence is in
+`docs/evidence/geometry-vram-calibration-20261030.json`. These were
+calibration runs, not modeling candidates; their outputs stayed in a scratch
+directory. Paint's 21 GiB floor is still unmeasured.

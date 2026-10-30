@@ -161,7 +161,7 @@ def validate_geometry_request(
     if not isinstance(chunks, int) or not 1000 <= chunks <= 50000:
         raise ValueError("Geometry chunks must be within 1000..50000")
     # Optional: free each model's VRAM after its stage. Absent means resident.
-    release_stages = parameters.get("release_stages", False)
+    release_stages = parameters.get("release_stages", True)
     if not isinstance(release_stages, bool):
         raise ValueError("Geometry release_stages must be true or false")
 

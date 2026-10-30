@@ -85,7 +85,7 @@ block's `_comment`, which still describes the copied profile.
 
 Hunyuan3D-2mv, multiview, one request each. The request format and the
 derivation report it needs are in [AI_STAGES_SETUP.md](AI_STAGES_SETUP.md),
-"Geometry from one image, or from three". Multiview needs 18 GiB of free VRAM.
+"Geometry from one image, or from three". Either mode needs 8 GiB of free VRAM (10 GiB with stage release off).
 
 ```powershell
 ./scripts/run_hy3d_geometry.ps1 -Request configs/generation/$C-body-attempt001.json
