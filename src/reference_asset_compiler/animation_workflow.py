@@ -296,6 +296,13 @@ def add_cli(subcommands):
     p.add_argument("--output", type=Path, required=True)
     p = commands.add_parser("summary")
     p.add_argument("reviews", nargs="+", type=Path)
+    p = commands.add_parser("skin-sweep", help="Measure splits and exposed back faces in render_skin_sweep.py output")
+    p.add_argument("renders", type=Path)
+    p.add_argument("--output", type=Path, required=True)
+    p.add_argument("--baseline", type=Path, help="Earlier skin-sweep report.json; any regression exits 1")
+    p.add_argument("--split-width-m", type=float, default=0.02)
+    p.add_argument("--tolerance-px", type=int, default=16)
+    p.add_argument("--tolerance-ratio", type=float, default=0.1)
 
 
 def dispatch(args):
@@ -318,6 +325,10 @@ def dispatch(args):
                              args.cleanup_minutes, args.output, args.clip)
     if name == "summary":
         return review_summary(args.reviews)
+    if name == "skin-sweep":
+        from .skin_integrity import analyse
+        return analyse(args.renders, args.output, args.baseline, args.split_width_m,
+                       args.tolerance_px, args.tolerance_ratio)
     if name == "package":
         return package(args.recipe, args.file, args.output)
     raise ValueError(f"unknown animation command: {name}")

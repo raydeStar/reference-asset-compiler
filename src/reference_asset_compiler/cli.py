@@ -276,8 +276,10 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
         if args.command == "animation":
-            print_payload(animation_workflow.dispatch(args))
-            return 0
+            payload = animation_workflow.dispatch(args)
+            print_payload(payload)
+            # A measurement with no baseline is None, not a failure.
+            return 1 if isinstance(payload, dict) and payload.get("checks_passed") is False else 0
         if args.command == "export-animations":
             source, output = args.source.resolve(), args.output.resolve()
             if source == output or output.exists():

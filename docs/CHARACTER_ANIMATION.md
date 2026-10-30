@@ -72,6 +72,34 @@ hand orientation, deformation quality, continuous collision freedom, naturalness
 or complete ground contact. Fixed-view and consumer review remain necessary.
 This is an opt-in authoring check, not yet a mandatory gate on arbitrary studio imports.
 
+## Skin-integrity sweep
+
+Before the four-view review, sweep the exported clips for places the skin opens.
+`render_skin_sweep.py` reimports the GLB and renders the bind pose plus evenly
+spaced times of each clip from front, three-quarter, side and back, using an
+orthographic camera, a transparent background and back faces in flat magenta.
+`rac animation skin-sweep` then counts three things per frame: **splits** (narrow
+background seen through the figure, at most 2 cm wide by default), **openings**
+(wider enclosed background) and **exposed back faces**. It writes overlays with
+splits in red, openings in yellow and back faces in magenta.
+
+```text
+blender -b --factory-startup --python-exit-code 1 --python scripts/blender/render_skin_sweep.py -- candidate.glb work/<case>/sweep-candidate --clips MM_Idle,MF_Unarmed_Walk_Fwd
+rac animation skin-sweep work/<case>/sweep-candidate --output work/<case>/sweep-candidate-report --baseline work/<case>/sweep-baseline-report/report.json
+```
+
+A single sweep is a map, not a verdict. Sleeves that sit close to a coat, a hand
+on a hip, garment interiors and single-sided cards all count. The gate is the
+comparison: sweep the accepted export first, then the candidate with the same
+clips, samples and resolution. Any frame that grows past the tolerance (16 px or
+10%) or is missing from the baseline exits 1. Without a baseline, `checks_passed`
+is null. Use `--exclude-mesh` for hair cards, and read `unbound_meshes` in
+`sweep.json`, since a mesh that is not skinned to the rig is itself a finding.
+`RAC_RENDER_DEVICE=CPU` renders with Cycles when the GPU is busy. The method
+follows img2threejs's G10 sweep (Apache-2.0). Creases, stretching and
+intersections that stay closed are not measured, and a clean sweep is not
+artistic acceptance.
+
 ## Reproducing the innkeeper's held pose
 
 `scripts/blender/author_held_pose.py` applies a hash-bound recipe to an existing
