@@ -22,8 +22,8 @@ function Write-Utf8NoBom {
 # Two hash-pinned runners: multiview (three guidance views) and single view
 # (the reference image alone). The request's mode selects one after preflight.
 $expectedRunnerHashes = @{
-    multiview   = 'EBE3900B671A1A32416CFB650AA57967150ACEB8AE2994FC252DA9C61356C207'
-    single_view = '119B41DD0DF2AB4E1C9F75A6159F3F8A2C7D47DFC7A20309AC7FBF0519A2AF6C'
+    multiview   = '29D40619E591955AC717BD1F2D8190FDF7F9C3B124217B12DBD551DFF5DF1EEA'
+    single_view = 'A3CCDB3F971245D5E0A68EADEF53CD4221F6E8BD848ADB62C905508FA1A9B796'
 }
 $runnerNames = @{ multiview = 'run_hy3d_multiview.py'; single_view = 'run_hy3d_single_view.py' }
 $generationSchemas = @{ multiview = 'reference-studio.hunyuan3d-multiview.v2'; single_view = 'reference-studio.hunyuan3d-single-view.v1' }
@@ -73,12 +73,18 @@ if (-not $runnerNames.ContainsKey($mode)) { throw "Unsupported geometry request 
 # and upstream install, not a second mutable copy of our spellbook.
 $runner = Join-Path $runnerRoot $runnerNames[$mode]
 $expectedRunnerHash = $expectedRunnerHashes[$mode]
+$releaseStages = [bool]$preflight.parameters.release_stages
+# Resident floors are upstream-era estimates, not measured peaks. Releasing
+# stages frees the 2.12 GiB conditioner before sampling and the 2.07 GiB
+# diffusion model before decoding, so its floors drop by the 2 GiB that is
+# certain. Replace both with a measured peak (generation.json "vram") plus
+# headroom once one is recorded on this workstation.
 $requiredFreeVramMiB = if ($MinimumFreeVramMiB -gt 0) {
     $MinimumFreeVramMiB
 } elseif ($mode -eq 'single_view') {
-    12288
+    if ($releaseStages) { 10240 } else { 12288 }
 } else {
-    18432
+    if ($releaseStages) { 16384 } else { 18432 }
 }
 if (-not (Test-Path -LiteralPath $runner -PathType Leaf)) {
     throw "Required versioned Hunyuan3D runner is missing: $runner"
@@ -117,6 +123,8 @@ $attempt = [ordered]@{
     runner = $runner
     runner_sha256 = $actualRunnerHash.ToLowerInvariant()
     free_vram_mib = $freeMiB
+    required_free_vram_mib = $requiredFreeVramMiB
+    release_stages = $releaseStages
     gpu_utilization_percent = $utilization
     gpu_compute_owners = $computeApps
     comfy_process_count = $comfyProcessCount
@@ -142,6 +150,9 @@ try {
     # the GPU. Relax only around the call; the exit code is the verdict.
     $previousPreference = $ErrorActionPreference
     $ErrorActionPreference = 'Continue'
+    # The runner rechecks the same floor after CUDA initialises.
+    $viewArguments += @('--min-free-gib', ([double]$requiredFreeVramMiB / 1024).ToString([Globalization.CultureInfo]::InvariantCulture))
+    if ($releaseStages) { $viewArguments += '--release-stages' }
     try {
         & $hyPython $runner @viewArguments `
             --output $candidate `

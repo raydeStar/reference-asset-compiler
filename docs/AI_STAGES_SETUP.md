@@ -19,7 +19,7 @@ when a required component is missing.
 
 | | Requirement |
 |---|---|
-| GPU | NVIDIA, 24 GB card (verified on an RTX 4090). The launchers measure free VRAM in MiB: texturing refuses to start under 21 GiB (21,504 MiB) free, multiview geometry under 18 GiB (18,432 MiB), single-view geometry under 12 GiB (12,288 MiB). |
+| GPU | NVIDIA, 24 GB card (verified on an RTX 4090). The launchers measure free VRAM in MiB: texturing refuses to start under 21 GiB (21,504 MiB) free, multiview geometry under 18 GiB (18,432 MiB), single-view geometry under 12 GiB (12,288 MiB). Geometry with `release_stages` needs 2 GiB less; see [Running geometry with less VRAM](#running-geometry-with-less-vram). |
 | CUDA | 12.4 toolchain for the Hunyuan3D-Paint rasterizer build, plus Visual Studio Build Tools with the C++ workload. |
 | Python | 3.11 for the paint environment (`.venv-hy3d21`); the geometry environment (`.venv-hy3d`) follows the upstream Hunyuan3D-2 requirements. |
 | Disk | 34,665,936,452 bytes (32.285 GiB) for a fresh one-image stack; 39,594,089,622 bytes (36.875 GiB) with both pinned shape models. Keep 45/50 GiB free respectively, or 60 GiB with room for attempts. |
@@ -182,6 +182,41 @@ source itself, and refuses a derivation report on it; the receipt is bound by
 the source image hash. Single view needs 12 GiB (12,288 MiB) of free VRAM,
 multiview 18 GiB (18,432 MiB).
 
+## Running geometry with less VRAM
+
+Both geometry floors are upstream-era estimates, not peaks measured here. The
+fp16 checkpoint holds three models, read from its safetensors header: the image
+conditioner (DINOv2, 2.117 GiB), the diffusion model (2.074 GiB) and the shape
+VAE (0.399 GiB). By default all three stay on the GPU for the whole run.
+
+Add `"release_stages": true` to a request's `parameters` to move the
+conditioner to the CPU once it has encoded the views, and the diffusion model
+once sampling ends, before volume decoding. Each stage still runs on the GPU
+with its original weights and dtype, so the mesh should match a resident run.
+Nothing upstream is patched. The launcher lowers the floor by the 2 GiB this
+certainly frees: single view 10 GiB (10,240 MiB), multiview 16 GiB
+(16,384 MiB). `-MinimumFreeVramMiB` still overrides either floor, and the
+runner rechecks the same floor after CUDA initialises.
+
+`chunks` is the other memory control. It sets how many grid points the VAE
+decodes at once; fewer chunks lower the decoding peak and add time. Unlike
+`octree_resolution` or `steps`, it does not change what is computed.
+
+Every generation report now carries `load_seconds`, `release_stages` and a
+`vram` block with the device, free memory at start and
+`torch.cuda.max_memory_allocated`/`max_memory_reserved`. A run that raises,
+including an out-of-memory error, writes `generation-failure.json` with the
+same block before the launcher records the failed attempt. The next job is to
+calibrate: run one fixed request resident and released, confirm that the
+meshes match (equal vertex and face counts, then a fixed-view comparison), and
+set each floor to its measured reserved peak plus headroom. Until then, the
+floors above stand.
+
+Two larger levers are not wired up because they change the output and need a
+modeling gate: upstream's FlashVDM turbo decoder (a different VAE checkpoint,
+much faster decoding) and its hierarchical volume decoding (refines only near
+the surface instead of decoding a dense 513-cubed grid).
+
 ## Optional historical geometry through ComfyUI
 
 Earlier geometry work on the development workstation ran through the preserved
@@ -204,6 +239,15 @@ it is not required for the single-view route and is not silently implied here.
 - That the rasterizer extension built; the paint runner fails at import if not.
 - That another process owns the GPU. The wrappers read `nvidia-smi` and refuse
   to launch under their MiB floors (21 GiB for paint); they never kill anything.
+
+## Review renders while the GPU is busy
+
+EEVEE needs the GPU even in background Blender, and a review render on the same
+card slows a running paint or geometry job. Set `RAC_RENDER_DEVICE=CPU` to
+render with Cycles on the CPU instead. The turnaround, closeup, material-ID, UV
+debug, landmark overlay, deformation, pose test, orthographic view and skin
+sweep renderers honour it; label renders (material ID, UV debug) turn
+denoising off so their colours stay exact.
 
 ## Known limits
 

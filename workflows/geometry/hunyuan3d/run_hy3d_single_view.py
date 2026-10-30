@@ -15,7 +15,8 @@ decided by the same code either way.
 Usage (inside the studio tree's .venv-hy3d):
   python run_hy3d_single_view.py --image <reference.png> --output <candidate.glb>
       --report <generation.json> [--prepared-dir <dir>] [--steps 30]
-      [--octree-resolution 512] [--chunks 20000] [--seed 42] [--prepare-only]
+      [--octree-resolution 512] [--chunks 20000] [--seed 42] [--release-stages]
+      [--min-free-gib 12] [--prepare-only]
 """
 
 from __future__ import annotations
@@ -106,6 +107,42 @@ def keep_authority_alpha_component(image: Image.Image) -> Image.Image:
     return Image.fromarray(rgba, "RGBA")
 
 
+def release_between_stages(pipeline) -> None:
+    """Free each model's VRAM once its stage is over.
+
+    The conditioner runs once, before sampling; the diffusion model is idle
+    during volume decoding. Each stage still computes on the GPU with its
+    original weights and dtype, so the mesh is expected to match a resident
+    run while the peak drops by the released weights. Upstream's
+    ``enable_model_cpu_offload`` is not used: its ``__call__`` builds latents
+    on ``self.device``, which offload turns into the CPU.
+    """
+    encode_cond, export = pipeline.encode_cond, pipeline._export
+
+    def encode_then_release(*args, **kwargs):
+        cond = encode_cond(*args, **kwargs)
+        pipeline.conditioner.to("cpu")
+        torch.cuda.empty_cache()
+        return cond
+
+    def release_then_export(*args, **kwargs):
+        pipeline.model.to("cpu")
+        torch.cuda.empty_cache()
+        return export(*args, **kwargs)
+
+    pipeline.encode_cond, pipeline._export = encode_then_release, release_then_export
+
+
+def vram_record(free_at_start: int) -> dict:
+    """Peak usage since the counters were reset, for calibrating launch floors."""
+    return {
+        "device": torch.cuda.get_device_name(0),
+        "free_bytes_at_start": int(free_at_start),
+        "peak_allocated_bytes": int(torch.cuda.max_memory_allocated()),
+        "peak_reserved_bytes": int(torch.cuda.max_memory_reserved()),
+    }
+
+
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--image", type=Path, required=True)
@@ -116,6 +153,10 @@ def parse_args():
     parser.add_argument("--octree-resolution", type=int, choices=(256, 384, 512), default=512)
     parser.add_argument("--chunks", type=int, default=20000)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--release-stages", action="store_true",
+                        help="Move the conditioner and diffusion model off the GPU once each is done.")
+    parser.add_argument("--min-free-gib", type=float, default=12,
+                        help="Refuse to load the model with less free VRAM than this.")
     parser.add_argument("--prepare-only", action="store_true",
                         help="Validate and save the subject-only mask without loading the diffusion model.")
     args = parser.parse_args()
@@ -163,22 +204,37 @@ def main() -> None:
         return
 
     free_vram = torch.cuda.mem_get_info()[0]
-    if free_vram < 12 * 1024**3:
-        raise RuntimeError(f"Hunyuan3D-2 single view requires 12 GiB free VRAM; found {free_vram / 1024**3:.1f}")
+    if free_vram < args.min_free_gib * 1024**3:
+        raise RuntimeError(f"Hunyuan3D-2 single view requires {args.min_free_gib:g} GiB free VRAM; "
+                           f"found {free_vram / 1024**3:.1f}")
+    torch.cuda.reset_peak_memory_stats()
 
+    load_started = time.perf_counter()
     model_snapshot = minimal_model_snapshot()
     print(f"Loading official {MODEL_PATH}:{MODEL_SUBFOLDER}...", flush=True)
     pipeline = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(
         model_snapshot, subfolder=MODEL_SUBFOLDER, variant="fp16")
+    load_seconds = time.perf_counter() - load_started
+    if args.release_stages:
+        release_between_stages(pipeline)
     started = time.perf_counter()
-    mesh = pipeline(
-        image=image,
-        num_inference_steps=args.steps,
-        octree_resolution=args.octree_resolution,
-        num_chunks=args.chunks,
-        generator=torch.Generator(device="cuda").manual_seed(args.seed),
-        output_type="trimesh",
-    )[0]
+    try:
+        mesh = pipeline(
+            image=image,
+            num_inference_steps=args.steps,
+            octree_resolution=args.octree_resolution,
+            num_chunks=args.chunks,
+            generator=torch.Generator(device="cuda").manual_seed(args.seed),
+            output_type="trimesh",
+        )[0]
+    except Exception as error:
+        # Retain what a failed attempt used; an OOM is calibration evidence.
+        failure = {"status": "failed", "error": f"{type(error).__name__}: {error}",
+                   "release_stages": args.release_stages, "seconds": time.perf_counter() - started,
+                   "vram": vram_record(free_vram)}
+        report.with_name(report.stem + "-failure.json").write_text(
+            json.dumps(failure, indent=2) + "\n", encoding="utf-8")
+        raise
     elapsed = time.perf_counter() - started
     mesh.export(output)
     payload = {
@@ -196,6 +252,9 @@ def main() -> None:
         "vertices": int(len(mesh.vertices)),
         "faces": int(len(mesh.faces)),
         "seconds": elapsed,
+        "load_seconds": load_seconds,
+        "release_stages": args.release_stages,
+        "vram": vram_record(free_vram),
     }
     report.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(f"HY3D_GENERATION_OK {json.dumps(payload, sort_keys=True)}", flush=True)

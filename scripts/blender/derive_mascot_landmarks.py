@@ -26,6 +26,8 @@ from pathlib import Path
 import bpy
 import numpy as np
 from mathutils import Vector
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from render_device import use_render_device  # noqa: E402
 
 
 def sha256(path: Path) -> str:
@@ -246,10 +248,7 @@ def main() -> int:
 
     # Overlay renders: translucent body, emissive joints and bones.
     scene = bpy.context.scene
-    for c in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "CYCLES"):
-        if c in scene.render.bl_rna.properties["engine"].enum_items.keys():
-            scene.render.engine = c
-            break
+    use_render_device(scene)
     ghost = bpy.data.materials.new("Ghost")
     ghost.use_nodes = True
     g = ghost.node_tree.nodes["Principled BSDF"]

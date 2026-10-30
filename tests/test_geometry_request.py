@@ -91,6 +91,19 @@ class GeometryRequestTests(unittest.TestCase):
         self.assertFalse(result["inference_launched"])
         self.assertEqual(["front", "left", "back"], [row["view"] for row in result["inputs"]])
 
+    def test_stage_release_defaults_off_and_must_be_boolean(self) -> None:
+        self.assertIs(False, validate_geometry_request(self.request, self.legacy, self.repo)
+                      ["parameters"]["release_stages"])
+        payload = json.loads(self.request.read_text(encoding="utf-8"))
+        payload["parameters"]["release_stages"] = True
+        self.request.write_text(json.dumps(payload), encoding="utf-8")
+        self.assertIs(True, validate_geometry_request(self.request, self.legacy, self.repo)
+                      ["parameters"]["release_stages"])
+        payload["parameters"]["release_stages"] = "yes"
+        self.request.write_text(json.dumps(payload), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "release_stages"):
+            validate_geometry_request(self.request, self.legacy, self.repo)
+
     def test_source_hash_drift_fails(self) -> None:
         self.authority.write_bytes(b"changed")
         with self.assertRaisesRegex(ValueError, "source authority hash changed"):

@@ -32,6 +32,8 @@ from pathlib import Path
 
 import bpy
 from mathutils import Vector
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from render_device import use_render_device  # noqa: E402
 
 VIEWS = {
     "front": 0.0,
@@ -256,13 +258,7 @@ def main() -> int:
     radius = extent * 0.5
 
     scene = bpy.context.scene
-    # EEVEE Next was renamed back to BLENDER_EEVEE in Blender 4.2+. Pick from
-    # whatever this build actually offers rather than hardcoding either spelling.
-    engines = scene.render.bl_rna.properties["engine"].enum_items.keys()
-    for candidate in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "CYCLES"):
-        if candidate in engines:
-            scene.render.engine = candidate
-            break
+    use_render_device(scene)
     scene.render.resolution_x = resolution
     scene.render.resolution_y = resolution
     scene.render.film_transparent = False

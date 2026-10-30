@@ -16,6 +16,8 @@ from pathlib import Path
 
 import bpy
 from mathutils import Vector
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from render_device import use_render_device  # noqa: E402
 
 
 def main() -> int:
@@ -47,11 +49,7 @@ def main() -> int:
     bpy.context.scene.view_layers[0].material_override = mat
 
     scene = bpy.context.scene
-    engines = scene.render.bl_rna.properties["engine"].enum_items.keys()
-    for candidate in ("BLENDER_EEVEE_NEXT", "BLENDER_EEVEE", "CYCLES"):
-        if candidate in engines:
-            scene.render.engine = candidate
-            break
+    use_render_device(scene, cpu_denoise=False)
     scene.render.resolution_x = 1000
     scene.render.resolution_y = 1000
     scene.render.image_settings.file_format = "PNG"

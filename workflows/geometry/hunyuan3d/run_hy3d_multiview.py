@@ -93,6 +93,42 @@ def keep_authority_alpha_component(image: Image.Image) -> Image.Image:
     return Image.fromarray(rgba, "RGBA")
 
 
+def release_between_stages(pipeline) -> None:
+    """Free each model's VRAM once its stage is over.
+
+    The conditioner runs once, before sampling; the diffusion model is idle
+    during volume decoding. Each stage still computes on the GPU with its
+    original weights and dtype, so the mesh is expected to match a resident
+    run while the peak drops by the released weights. Upstream's
+    ``enable_model_cpu_offload`` is not used: its ``__call__`` builds latents
+    on ``self.device``, which offload turns into the CPU.
+    """
+    encode_cond, export = pipeline.encode_cond, pipeline._export
+
+    def encode_then_release(*args, **kwargs):
+        cond = encode_cond(*args, **kwargs)
+        pipeline.conditioner.to("cpu")
+        torch.cuda.empty_cache()
+        return cond
+
+    def release_then_export(*args, **kwargs):
+        pipeline.model.to("cpu")
+        torch.cuda.empty_cache()
+        return export(*args, **kwargs)
+
+    pipeline.encode_cond, pipeline._export = encode_then_release, release_then_export
+
+
+def vram_record(free_at_start: int) -> dict:
+    """Peak usage since the counters were reset, for calibrating launch floors."""
+    return {
+        "device": torch.cuda.get_device_name(0),
+        "free_bytes_at_start": int(free_at_start),
+        "peak_allocated_bytes": int(torch.cuda.max_memory_allocated()),
+        "peak_reserved_bytes": int(torch.cuda.max_memory_reserved()),
+    }
+
+
 def parse_args():
     parser = ArgumentParser()
     parser.add_argument("--front", type=Path, required=True)
@@ -105,6 +141,10 @@ def parse_args():
     parser.add_argument("--octree-resolution", type=int, choices=(256, 384, 512), default=512)
     parser.add_argument("--chunks", type=int, default=20000)
     parser.add_argument("--seed", type=int, default=42)
+    parser.add_argument("--release-stages", action="store_true",
+                        help="Move the conditioner and diffusion model off the GPU once each is done.")
+    parser.add_argument("--min-free-gib", type=float, default=18,
+                        help="Refuse to load the model with less free VRAM than this.")
     parser.add_argument(
         "--prepare-only",
         action="store_true",
@@ -130,7 +170,8 @@ def main() -> None:
     report.parent.mkdir(parents=True, exist_ok=True)
     prepared_dir.mkdir(parents=True, exist_ok=True)
 
-    remover = BackgroundRemover()
+    # rembg loads its own network; studio turnarounds never need it.
+    remover = None
     source_paths = {"front": args.front, "left": args.left, "back": args.back}
     images = {}
     prepared_paths = {}
@@ -138,6 +179,7 @@ def main() -> None:
         source_image = Image.open(path.resolve()).convert("RGBA")
         image = remove_uniform_studio_background(source_image)
         if image is None:
+            remover = remover or BackgroundRemover()
             image = remover(source_image)
         image = keep_authority_alpha_component(image)
         prepared_path = prepared_dir / f"{view}.png"
@@ -161,9 +203,12 @@ def main() -> None:
         return
 
     free_vram = torch.cuda.mem_get_info()[0]
-    if free_vram < 18 * 1024**3:
-        raise RuntimeError(f"Hunyuan3D-2mv requires 18 GiB free VRAM; found {free_vram / 1024**3:.1f}")
+    if free_vram < args.min_free_gib * 1024**3:
+        raise RuntimeError(f"Hunyuan3D-2mv requires {args.min_free_gib:g} GiB free VRAM; "
+                           f"found {free_vram / 1024**3:.1f}")
+    torch.cuda.reset_peak_memory_stats()
 
+    load_started = time.perf_counter()
     model_snapshot = minimal_model_snapshot()
     print("Loading official Hunyuan3D-2mv model...", flush=True)
     pipeline = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained(
@@ -171,15 +216,27 @@ def main() -> None:
         subfolder=MODEL_SUBFOLDER,
         variant="fp16",
     )
+    load_seconds = time.perf_counter() - load_started
+    if args.release_stages:
+        release_between_stages(pipeline)
     started = time.perf_counter()
-    mesh = pipeline(
-        image=images,
-        num_inference_steps=args.steps,
-        octree_resolution=args.octree_resolution,
-        num_chunks=args.chunks,
-        generator=torch.Generator(device="cuda").manual_seed(args.seed),
-        output_type="trimesh",
-    )[0]
+    try:
+        mesh = pipeline(
+            image=images,
+            num_inference_steps=args.steps,
+            octree_resolution=args.octree_resolution,
+            num_chunks=args.chunks,
+            generator=torch.Generator(device="cuda").manual_seed(args.seed),
+            output_type="trimesh",
+        )[0]
+    except Exception as error:
+        # Retain what a failed attempt used; an OOM is calibration evidence.
+        failure = {"status": "failed", "error": f"{type(error).__name__}: {error}",
+                   "release_stages": args.release_stages, "seconds": time.perf_counter() - started,
+                   "vram": vram_record(free_vram)}
+        report.with_name(report.stem + "-failure.json").write_text(
+            json.dumps(failure, indent=2) + "\n", encoding="utf-8")
+        raise
     elapsed = time.perf_counter() - started
     mesh.export(output)
     payload = {
@@ -196,6 +253,9 @@ def main() -> None:
         "vertices": int(len(mesh.vertices)),
         "faces": int(len(mesh.faces)),
         "seconds": elapsed,
+        "load_seconds": load_seconds,
+        "release_stages": args.release_stages,
+        "vram": vram_record(free_vram),
     }
     report.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
     print(f"HY3D_GENERATION_OK {json.dumps(payload, sort_keys=True)}", flush=True)
