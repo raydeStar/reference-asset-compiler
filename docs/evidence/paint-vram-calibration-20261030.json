@@ -1,0 +1,100 @@
+{
+  "schema": "reference-asset-compiler.paint-vram-calibration.v1",
+  "date": "2026-10-30",
+  "purpose": "Locate the Hunyuan3D-Paint 2.1 VRAM peak and measure studio-runner release_stages; calibration only, not texture candidates.",
+  "input_mesh": {
+    "path": "${RAC_REPO_ROOT}/work/artiss-tomb-2026-10-16/assets/CH-03/guard-uv-v1/guard.obj",
+    "sha256": "815f8b37929eb94e0c514af3f6055340025a58caff6ce5f050c93ac6f08f835b"
+  },
+  "reference": {
+    "path": "${RAC_REPO_ROOT}/work/artiss-tomb-2026-10-16/assets/CH-03/guard-reference-v1.png",
+    "sha256": "c805032824ec22a5e0a63a0357a829b4de3281a59ceeee5f1c8045212e1295e3"
+  },
+  "studio_runner_sha256": "21c6de5cd048adfc373ef8151e3c1b864041413dce95d638b29a1458f88d3a06",
+  "atlas": 2048,
+  "findings": [
+    "Resident paint fills the 24 GiB card at every setting; nvidia-smi read 23.85-23.90 GiB used for 6x512, 6x768, 9x768 and 12x768.",
+    "Model weights hold 7.7 GiB. Diffusion steps add about 1.6 GiB. The peak is the VAE decode of all albedo and metal-rough views in one batch at the end of multiview generation.",
+    "At 12 views x 768 the torch reserved pool reached 35.5 GiB, so about 11 GiB spilled into Windows shared memory.",
+    "Paint is deterministic: two resident runs gave byte-identical maps at 6x512 and 12x768. Released runs are deterministic too (launcher rerun byte-identical).",
+    "Offloading the diffusion weights alone kept maps byte-identical but did not lower the peak. Decode-one-at-a-time slicing lowers it and is not byte-identical; slicing the reference encode as well moved more pixels, so only the decode is sliced."
+  ],
+  "resident": {
+    "v6-r512": {
+      "peak_allocated_mib": 13671,
+      "peak_reserved_mib": 20926,
+      "seconds": 48.8
+    },
+    "v12-r768": {
+      "peak_allocated_mib": 21622,
+      "peak_reserved_mib": 36292,
+      "seconds": 119.4
+    }
+  },
+  "released": {
+    "v6-r512": {
+      "peak_allocated_mib": 10038,
+      "peak_reserved_mib": 12082,
+      "seconds": 50.7
+    },
+    "v12-r768": {
+      "peak_allocated_mib": 13349,
+      "peak_reserved_mib": 16440,
+      "seconds": 83.1
+    }
+  },
+  "map_delta_released_vs_resident": {
+    "v6-r512": {
+      "painted.png": {
+        "byte_identical": false,
+        "max": 76,
+        "mean": 0.7172,
+        "pct_over_4": 1.3178,
+        "pct_over_16": 0.0505
+      },
+      "painted_metallic.png": {
+        "byte_identical": false,
+        "max": 166,
+        "mean": 0.3717,
+        "pct_over_4": 0.5518,
+        "pct_over_16": 0.0233
+      },
+      "painted_roughness.png": {
+        "byte_identical": false,
+        "max": 93,
+        "mean": 0.4328,
+        "pct_over_4": 0.7998,
+        "pct_over_16": 0.0396
+      }
+    },
+    "v12-r768": {
+      "painted.png": {
+        "byte_identical": false,
+        "max": 96,
+        "mean": 0.6755,
+        "pct_over_4": 1.2192,
+        "pct_over_16": 0.0413
+      },
+      "painted_metallic.png": {
+        "byte_identical": false,
+        "max": 124,
+        "mean": 0.3055,
+        "pct_over_4": 0.3374,
+        "pct_over_16": 0.0087
+      },
+      "painted_roughness.png": {
+        "byte_identical": false,
+        "max": 99,
+        "mean": 0.4045,
+        "pct_over_4": 0.8669,
+        "pct_over_16": 0.0475
+      }
+    }
+  },
+  "floors_mib": {
+    "resident_and_legacy": 21504,
+    "released_6_views_512": 14336,
+    "released_other": 18944,
+    "basis": "released peak reserved (11.8 / 16.1 GiB) plus about 2.5 GiB for the CUDA context and headroom; unmeasured combinations take the 12x768 floor"
+  }
+}

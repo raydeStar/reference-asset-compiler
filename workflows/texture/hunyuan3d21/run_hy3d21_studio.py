@@ -30,17 +30,27 @@ rather than editing them in place:
   5. Painter normals are averaged on an exact-position proxy and expanded back
      to the original indices. UV seams must not become lighting in the paint.
 
+  6. With --release-stages, the VAE decodes the generated views one at a
+     time instead of all albedo and metal-rough views in one batch, which was
+     the whole run's peak (21.1 GiB allocated at 12 views x 768; the reserved
+     pool reached 35 GiB and spilled into shared memory). The multiview
+     pipeline and DINO then move to the CPU before the upscale and bake, and
+     the allocator cache is emptied after each RealESRGAN upscale. Paint is
+     deterministic, so the maps are compared byte for byte against a resident run.
+
 The UV lock, the local model snapshots, the validation gate and its 1e-6
 tolerances match the legacy runner exactly, because those parts were right.
 
 Usage:
   <venv-hy3d21>\\python.exe run_hy3d21_studio.py <mesh.obj> <reference.png> \\
       <output.obj> [--views 12] [--resolution 768] [--atlas 4096] [--legacy-root PATH]
+      [--release-stages]
 """
 
 from __future__ import annotations
 
 import argparse
+import gc
 import json
 import os
 import sys
@@ -70,6 +80,8 @@ parser.add_argument(
 parser.add_argument(
     "--min-free-gib", type=float, default=21.0,
     help="Refuse to launch below this much free VRAM. Never kills anything.")
+parser.add_argument("--release-stages", action="store_true",
+                    help="Move diffusion weights off the GPU before the upscale and bake.")
 args = parser.parse_args()
 
 LEGACY = args.legacy_root.resolve()
@@ -225,6 +237,40 @@ def use_local_snapshot(repo_id, *snapshot_args, **snapshot_kwargs):
 
 huggingface_hub.snapshot_download = use_local_snapshot
 
+def release_between_stages(painter):
+    multiview, upscale = painter.models["multiview_model"], painter.models["super_model"]
+    vae = multiview.pipeline.vae
+    decode = vae.decode
+
+    def decode_one_at_a_time(*decode_args, **decode_kwargs):
+        # Slice the decode only. Slicing the reference encode as well shifts
+        # the sampled latents and with them the whole diffusion trajectory.
+        vae.use_slicing = True
+        try:
+            return decode(*decode_args, **decode_kwargs)
+        finally:
+            vae.use_slicing = False
+
+    vae.decode = decode_one_at_a_time
+
+    def generate_then_release(*call_args, **call_kwargs):
+        views = multiview(*call_args, **call_kwargs)
+        multiview.pipeline.to("cpu")
+        if hasattr(multiview, "dino_v2"):
+            multiview.dino_v2.to("cpu")
+        gc.collect()
+        torch.cuda.empty_cache()
+        return views
+
+    def upscale_then_trim(image):
+        enhanced = upscale(image)
+        torch.cuda.empty_cache()
+        return enhanced
+
+    painter.models["multiview_model"] = generate_then_release
+    painter.models["super_model"] = upscale_then_trim
+
+
 config = Hunyuan3DPaintConfig(args.views, args.resolution)
 config.multiview_cfg_path = str(PAINT_ROOT / "cfgs" / "hunyuan-paint-pbr.yaml")
 config.custom_pipeline = str(PAINT_ROOT / "hunyuanpaintpbr")
@@ -237,6 +283,9 @@ previous_cwd = Path.cwd()
 os.chdir(UPSTREAM)
 try:
     painter = Hunyuan3DPaintPipeline(config)
+    torch.cuda.reset_peak_memory_stats()
+    if args.release_stages:
+        release_between_stages(painter)
     if args.smooth_conditioning_normals:
         painter.render.shader_type = 'vertex'
     print('HY3D21_CONDITIONING_NORMALS', painter.render.shader_type, flush=True)
@@ -283,6 +332,10 @@ report = {
     "downsample_disabled": args.atlas != 2048,
     "map_format": "png",
     "maps": written,
+    "release_stages": args.release_stages,
+    "vram": {"device": torch.cuda.get_device_name(0), "free_bytes_at_start": int(free_bytes),
+             "peak_allocated_bytes": int(torch.cuda.max_memory_allocated()),
+             "peak_reserved_bytes": int(torch.cuda.max_memory_reserved())},
 }
 report_path = output_obj.with_suffix(".validation.json")
 report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

@@ -5130,3 +5130,21 @@ resident and 4.99/5.18 GiB released (single view/multiview), against the old
 `docs/evidence/geometry-vram-calibration-20261030.json`. These were
 calibration runs, not modeling candidates; their outputs stayed in a scratch
 directory. Paint's 21 GiB floor is still unmeasured.
+
+## 2026-10-30 — Paint VRAM peak located; studio runner release_stages
+
+Branch `gpu-efficiency`. Resident Hunyuan3D-Paint filled the 4090 at 6×512,
+6×768, 9×768 and 12×768. A torch-memory probe (a wrapper around the unchanged
+runner) placed the peak at the batched VAE decode at the end of multiview
+generation. At 12×768 reserved memory was 35.5 GiB, so it spilled into shared
+memory. Paint is deterministic run to run. The studio runner's new
+`--release-stages`, exposed as the launcher's `-ReleaseStages` and opt-in,
+slices that decode and offloads the diffusion weights. Reserved memory fell to
+11.8 GiB at 6×512 and 16.1 GiB at 12×768, and 12×768 ran 30% faster. The maps
+are not byte-identical: 0.04% of base-colour pixels moved by more than 16/255,
+at UV island edges. Offloading alone was byte-identical but did not lower the
+peak. Released floors are 14,336 and 18,944 MiB; resident and legacy stay at
+21,504. The new studio runner hash is pinned in the launcher and the catalog.
+Evidence is in `docs/evidence/paint-vram-calibration-20261030.json` and
+`paint-release-compare-20261030.jpg`. Calibration outputs stayed in a scratch
+directory. No texture candidate was made or judged.
