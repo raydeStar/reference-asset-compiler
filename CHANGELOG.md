@@ -3,14 +3,13 @@
 Release notes live under `docs/releases/`; GitHub releases carry the same text
 and any attached wheel.
 
-## Unreleased
+## v0.2.1 — 2026-10-31
 
-Faster AI stages: geometry generation is about 3× faster with a near-surface
-volume decoder (meshes match to 0.008% of the diagonal), and studio paint
-fills its two texture maps in parallel (byte-identical, about 40 s saved).
-
-The geometry launcher starts again when run directly under Windows
-PowerShell 5.1.
+Faster AI stages: geometry generation is about 3× faster (three views 63 → 21 s,
+one picture 55 → 13 s; meshes match to 0.008% of the diagonal), studio paint is
+about 40 s faster with byte-identical maps, and the geometry launcher starts
+again when run directly under Windows PowerShell 5.1.
+Notes: [docs/releases/v0.2.1.md](docs/releases/v0.2.1.md).
 
 ## v0.2.0 — 2026-10-30
 

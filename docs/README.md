@@ -66,6 +66,8 @@ escalations are retained verbatim so nobody repeats them. Start with
 
 - [releases/v0.1.1.md](releases/v0.1.1.md) — reliability maintenance release notes, 2026-09-11. Root `CHANGELOG.md` lists every tag.
 - [releases/v0.1.2.md](releases/v0.1.2.md) — stronger evidence, safer reruns and the first compile example.
+- [releases/v0.2.0.md](releases/v0.2.0.md) — the full pipeline on a 12 GB GPU.
+- [releases/v0.2.1.md](releases/v0.2.1.md) — geometry about 3× faster, paint about 40 s faster, same output.
 - [MAINTENANCE_REVIEW_2026-09-11.md](MAINTENANCE_REVIEW_2026-09-11.md) — the accepted review mapped to implementation and verification.
 
 ## Evidence and media
