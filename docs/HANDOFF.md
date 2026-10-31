@@ -5222,3 +5222,20 @@ pool. Astrolabe 12×768 paint 146 → 105 s, launcher wall 126 s, all three maps
 byte-identical. Evidence `docs/evidence/speed-calibration-20261031.json`.
 Runner hashes repinned in both launchers, `workflows/catalog.json` and
 `scripts/workflow_doctor.py`. No candidate was made or judged.
+
+## 2026-10-31 — Geometry launcher end to end; Windows PowerShell 5.1 start fix
+
+`scripts\run_hy3d_geometry.ps1` could not start when called directly under
+Windows PowerShell 5.1: that host leaves `$PSScriptRoot` empty inside a
+`[CmdletBinding()]` script's param defaults, so the `-RepoRoot` default threw
+before preflight. `rac` was unaffected because it passes `-RepoRoot`. The
+default is now resolved in the script body. With that, a scratch copy of
+`configs/generation/fox-mascot-ai-v3.json` (fresh `rac new` workspace
+`work/fox-launch-speedtest`, `release_stages` true, `volume_decoding` unset)
+ran once through the launcher: exit 0, 65 s wall, 27 s generation, 15 s load,
+5.2 GiB peak reserved, preflight resolved `hierarchical`, attempt `succeeded`
+with the pinned multiview hash. The mesh is vertex-identical to the direct
+hierarchical runner run and matches the old dense mesh (99.89% of vertices
+identical, max shift 0.0035% of the diagonal). A game was using the GPU during
+the run. Four-view matcap sheet:
+`docs/evidence/geometry-launcher-fox-20261031.jpg`. Not a candidate for any asset.

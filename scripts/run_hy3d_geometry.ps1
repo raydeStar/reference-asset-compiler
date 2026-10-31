@@ -2,13 +2,16 @@
 param(
     [Parameter(Mandatory = $true)][string] $Request,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D checkout, environment, and pinned runner.' }),
-    [string] $RepoRoot = (Split-Path -Parent $PSScriptRoot),
+    [string] $RepoRoot,
     [string] $CompilerPython,
     [int] $MinimumFreeVramMiB = 0,
     [string] $ComfyUrl = 'http://127.0.0.1:8188'
 )
 
 $ErrorActionPreference = 'Stop'
+# Resolved here, not as a param default: Windows PowerShell 5.1 leaves
+# $PSScriptRoot empty inside a [CmdletBinding()] script's param defaults.
+if (-not $RepoRoot) { $RepoRoot = Split-Path -Parent $PSScriptRoot }
 function Write-Utf8NoBom {
     param(
         [Parameter(Mandatory = $true)][string] $Path,
