@@ -37,6 +37,14 @@ rather than editing them in place:
      pipeline and DINO then move to the CPU before the upscale and bake, and
      the allocator cache is emptied after each RealESRGAN upscale. Paint is
      deterministic, so the maps are compared byte for byte against a resident run.
+     One-shot helpers leave the GPU before sampling: the CLIP text encoder is
+     never called (the UNet uses learned prompt embeddings), and DINO encodes
+     the reference once, before the first diffusion step.
+
+     Each UNet feed-forward runs one image at a time, the multiview attention
+     runs one (guidance, material) sequence at a time, and the idle UNet waits
+     in host memory while the VAE encodes the reference and the normal and
+     position views, so 12 views x 768 fits a 10 GiB allocator (a 12 GB card).
 
 The UV lock, the local model snapshots, the validation gate and its 1e-6
 tolerances match the legacy runner exactly, because those parts were right.
@@ -58,7 +66,13 @@ from pathlib import Path
 
 import huggingface_hub
 import numpy as np
-import torch
+
+# Read when CUDA first allocates. Large blocks are not split and freed cache is
+# reclaimed before the pool is full, so a 12 GB card is not lost to
+# fragmentation (0.8 GiB sat free in pieces when a 540 MiB request failed).
+# Placement only: what is computed does not change.
+os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "garbage_collection_threshold:0.8,max_split_size_mb:256")
+import torch  # noqa: E402
 import trimesh
 from seam_normals import install_seam_normal_repair
 
@@ -157,6 +171,18 @@ if free_bytes < args.min_free_gib * 2 ** 30:
     raise RuntimeError(
         "Requires at least {0} GiB free VRAM; no process was killed".format(
             args.min_free_gib))
+# Windows drivers back an over-full card with shared system memory instead of
+# failing the allocation, so the caching allocator never has to reuse its
+# cache: one released astrolabe run reserved 26 GiB on a 24 GiB card while
+# using 7, and crawled for two hours. A pool budget of the free memory makes
+# PyTorch recycle its cache first, as it already does on a 12 GB card.
+# Placement only. Resident runs exceed physical VRAM by design and are left as
+# they were.
+pool_budget_bytes = None
+if args.release_stages:
+    pool_budget_bytes = max(free_bytes - 512 * 2 ** 20, 0)
+    torch.cuda.set_per_process_memory_fraction(pool_budget_bytes / total_bytes)
+    print("HY3D21_POOL_BUDGET gib={0:.2f}".format(pool_budget_bytes / 2 ** 30), flush=True)
 
 realesrgan = PAINT_ROOT / "ckpt" / "RealESRGAN_x4plus.pth"
 if not realesrgan.exists() or realesrgan.stat().st_size != 67_040_989:
@@ -239,6 +265,85 @@ huggingface_hub.snapshot_download = use_local_snapshot
 
 def release_between_stages(painter):
     multiview, upscale = painter.models["multiview_model"], painter.models["super_model"]
+    for name, component in multiview.pipeline.components.items():
+        if isinstance(component, torch.nn.Module):
+            size = sum(p.numel() * p.element_size() for p in component.parameters())
+            print("HY3D21_COMPONENT {0} gib={1:.3f} device={2}".format(
+                name, size / 2 ** 30, next(component.parameters()).device), flush=True)
+    execution_device = multiview.pipeline.unet.device
+    if getattr(multiview.pipeline.unet, "use_learned_text_clip", False):
+        # diffusers derives `device` from the first module in a *set* of
+        # component names. With the encoder on the CPU, some processes would
+        # sample on the CPU, and upstream seeds its noise generator on
+        # `pipeline.device`, so others would draw different noise: a re-rolled
+        # paint. Pin both to the GPU the pipeline runs on.
+        pipeline_type = type(multiview.pipeline)
+        pipeline_type._execution_device = property(lambda _: execution_device)
+        pipeline_type.device = property(lambda _: execution_device)
+        multiview.pipeline.text_encoder.to("cpu")
+    dino = getattr(multiview, "dino_v2", None)
+    if dino is not None:
+        def encode_reference_then_release(*dino_args, **dino_kwargs):
+            states = dino(*dino_args, **dino_kwargs)
+            dino.to("cpu")
+            torch.cuda.empty_cache()
+            return states
+
+        multiview.dino_v2 = encode_reference_then_release
+    # Run each UNet feed-forward one image at a time. At 9-12 views x 768 its
+    # 4x-wide intermediate for every view at once exceeded 10 GiB.
+    chunked = 0
+    for module in multiview.pipeline.unet.modules():
+        if hasattr(type(module), "set_chunk_feed_forward"):
+            module.set_chunk_feed_forward(1, 0)
+            chunked += 1
+    print("HY3D21_FEED_FORWARD_CHUNKED blocks={0}".format(chunked), flush=True)
+    # The multiview attention joins every view's tokens into one sequence per
+    # (guidance branch, material) pair; the pairs never attend to each other,
+    # so run them one at a time. RoPE angles come from the pair's voxel
+    # indices, sliced to match and cached beside upstream's own cache.
+    split = 0
+    for module in multiview.pipeline.unet.modules():
+        attention = module._modules.get("attn_multiview")
+        if attention is None:
+            continue
+        attend = attention.forward
+
+        def attend_one_sequence_at_a_time(hidden_states, encoder_hidden_states=None, position_indices=None,
+                                          n_pbrs=1, _attend=attend, **attend_kwargs):
+            if hidden_states.shape[0] == 1:
+                return _attend(hidden_states, encoder_hidden_states=encoder_hidden_states,
+                               position_indices=position_indices, n_pbrs=n_pbrs, **attend_kwargs)
+            outputs = []
+            for index in range(hidden_states.shape[0]):
+                indices = None
+                if position_indices is not None:
+                    batch = index // n_pbrs
+                    indices = position_indices.setdefault(("rac_sequence", batch), {
+                        "voxel_indices": position_indices["voxel_indices"][batch:batch + 1],
+                        "voxel_resolution": position_indices["voxel_resolution"]})
+                context = None if encoder_hidden_states is None else encoder_hidden_states[index:index + 1]
+                outputs.append(_attend(hidden_states[index:index + 1], encoder_hidden_states=context,
+                                       position_indices=indices, n_pbrs=1, **attend_kwargs))
+            return torch.cat(outputs)
+
+        attention.forward = attend_one_sequence_at_a_time
+        split += 1
+    print("HY3D21_MULTIVIEW_ATTENTION_SPLIT blocks={0}".format(split), flush=True)
+    pipeline = multiview.pipeline
+    encode_images = pipeline.encode_images
+
+    def encode_without_unet(*encode_args, **encode_kwargs):
+        # The batched condition encodes peak while 3.7 GiB of UNet sits idle.
+        pipeline.unet.to("cpu")
+        torch.cuda.empty_cache()
+        try:
+            return encode_images(*encode_args, **encode_kwargs)
+        finally:
+            pipeline.unet.to(execution_device)
+
+    pipeline.encode_images = encode_without_unet
+    torch.cuda.empty_cache()
     vae = multiview.pipeline.vae
     decode = vae.decode
 
@@ -256,8 +361,6 @@ def release_between_stages(painter):
     def generate_then_release(*call_args, **call_kwargs):
         views = multiview(*call_args, **call_kwargs)
         multiview.pipeline.to("cpu")
-        if hasattr(multiview, "dino_v2"):
-            multiview.dino_v2.to("cpu")
         gc.collect()
         torch.cuda.empty_cache()
         return views
@@ -334,6 +437,7 @@ report = {
     "maps": written,
     "release_stages": args.release_stages,
     "vram": {"device": torch.cuda.get_device_name(0), "free_bytes_at_start": int(free_bytes),
+             "pool_budget_bytes": pool_budget_bytes,
              "peak_allocated_bytes": int(torch.cuda.max_memory_allocated()),
              "peak_reserved_bytes": int(torch.cuda.max_memory_reserved())},
 }

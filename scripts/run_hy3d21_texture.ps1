@@ -12,18 +12,19 @@ param(
     [ValidateSet('legacy', 'studio')][string] $RunnerKind = 'legacy',
     [ValidateSet(2048, 4096)][int] $Atlas = 2048,
     [switch] $SmoothConditioningNormals,
-    # The studio runner decodes the generated views one at a time and moves the
-    # diffusion weights off the GPU before upscaling and baking. Measured on
-    # 2026-10-30 at 12 views x 768: reserved VRAM 35.5 -> 16.1 GiB, no spill
-    # into shared memory, 30% faster. Not byte-identical (0.04% of atlas
+    # The studio runner moves one-shot helpers off the GPU before sampling, runs
+    # the UNet feed-forward and the VAE decode one image at a time, and moves
+    # the diffusion weights off the GPU before upscaling and baking. Measured
+    # on 2026-10-30 at 12 views x 768: 35.5 GiB reserved (spilling into shared
+    # memory) -> 9.6 GiB under a hard 10 GiB cap, and about 25% faster. Not byte-identical (0.04% of atlas
     # pixels move by more than 16/255, at UV island edges); the user judged the
     # four-view renders identical and made it the default. This switch restores
     # the resident behaviour, e.g. to reproduce an attempt painted before it.
     [switch] $KeepStagesResident,
     [string] $DiagnosticsDir,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D-Paint runner, upstream checkout and models.' }),
-    # 0 selects the measured floor: 21504 resident, 14336 released at
-    # 6 views x 512, 18944 released otherwise.
+    # 0 selects the measured floor: 21504 resident, 10752 released (a 12 GB
+    # card; 12 views x 768 peaked at 9.6 GiB under a hard 10 GiB cap).
     [int] $MinimumFreeVramMiB = 0,
     [string] $ComfyUrl = 'http://127.0.0.1:8188'
 )
@@ -40,7 +41,7 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
 }
 $expectedRunnerHash = 'B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B'
-$expectedStudioRunnerHash = '21C6DE5CD048ADFC373EF8151E3C1B864041413DCE95D638B29A1458F88D3A06'
+$expectedStudioRunnerHash = '1A67DFB9CEF34BED9A7381C0808F654503752FD9430AFED574F76EF3FD066CF5'
 $python = Join-Path $LegacyRoot '.venv-hy3d21\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d21_pbr.py'
 if ($RunnerKind -eq 'studio') {
@@ -59,7 +60,7 @@ if ($SmoothConditioningNormals -and $RunnerKind -ne 'studio') {
 # The legacy runner keeps every stage resident and its own 21 GiB check.
 $releaseStages = $RunnerKind -eq 'studio' -and -not $KeepStagesResident
 if ($MinimumFreeVramMiB -le 0) {
-    $MinimumFreeVramMiB = if (-not $releaseStages) { 21504 } elseif ($Views -le 6 -and $Resolution -eq 512) { 14336 } else { 18944 }
+    $MinimumFreeVramMiB = if ($releaseStages) { 10752 } else { 21504 }
 }
 $upstream = Join-Path $LegacyRoot 'upstream\Hunyuan3D-2.1'
 $models = Join-Path $LegacyRoot 'models\hy3d21\Hunyuan3D-2.1'

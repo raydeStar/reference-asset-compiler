@@ -19,7 +19,7 @@ when a required component is missing.
 
 | | Requirement |
 |---|---|
-| GPU | NVIDIA, 24 GB card (verified on an RTX 4090). The launchers measure free VRAM in MiB: texturing refuses to start under 21 GiB (21,504 MiB) free, or 14–18.5 GiB on the studio runner, which releases stages by default (see [Painting with less VRAM](#painting-with-less-vram)); geometry, either mode, under 8 GiB (8,192 MiB) with the default `release_stages`, or 10 GiB (10,240 MiB) resident. These are measured; see [Running geometry with less VRAM](#running-geometry-with-less-vram). |
+| GPU | NVIDIA, 24 GB card (verified on an RTX 4090). The launchers measure free VRAM in MiB: texturing refuses to start under 21 GiB (21,504 MiB) free, or 10.5 GiB (10,752 MiB, a 12 GB card) on the studio runner, which releases stages by default (see [Painting with less VRAM](#painting-with-less-vram)); geometry, either mode, under 8 GiB (8,192 MiB) with the default `release_stages`, or 10 GiB (10,240 MiB) resident. These are measured; see [Running geometry with less VRAM](#running-geometry-with-less-vram). |
 | CUDA | 12.4 toolchain for the Hunyuan3D-Paint rasterizer build, plus Visual Studio Build Tools with the C++ workload. |
 | Python | 3.11 for the paint environment (`.venv-hy3d21`); the geometry environment (`.venv-hy3d`) follows the upstream Hunyuan3D-2 requirements. |
 | Disk | 34,665,936,452 bytes (32.285 GiB) for a fresh one-image stack; 39,594,089,622 bytes (36.875 GiB) with both pinned shape models. Keep 45/50 GiB free respectively, or 60 GiB with room for attempts. |
@@ -241,28 +241,66 @@ multiview generation, when the VAE decodes every albedo and metal-rough view in
 one batch. At 12 views × 768 the PyTorch pool reached 35.5 GiB, so about 11 GiB
 spilled into Windows shared memory. That spill is the slowdown recorded earlier.
 
-The studio runner (`run_hy3d21_texture.ps1 -RunnerKind studio`) now decodes the
-views one at a time by default, then moves the diffusion pipeline and DINO to
-the CPU before the upscale and bake. `-KeepStagesResident` restores the old
-behaviour:
+The studio runner (`run_hy3d21_texture.ps1 -RunnerKind studio`) releases stages
+by default; `-KeepStagesResident` restores the old behaviour. Released means:
+
+1. The CLIP text encoder (never called: the UNet uses learned prompt
+   embeddings) and DINO (it encodes the reference once) leave the GPU before
+   sampling.
+2. The idle UNet waits in host memory while the VAE encodes the reference and
+   the normal and position views.
+3. Each UNet feed-forward runs one image at a time, and the multiview attention
+   runs one (guidance branch, material) sequence at a time. The sequences never
+   attend to each other, so this splits the work without changing what is
+   computed.
+4. The VAE decodes the generated views one at a time.
+5. The diffusion pipeline leaves the GPU before the upscale and bake.
+6. `PYTORCH_CUDA_ALLOC_CONF` (`garbage_collection_threshold:0.8,max_split_size_mb:256`)
+   keeps fragmentation from eating the margin. It affects placement only.
+7. The PyTorch pool is budgeted to the free VRAM at launch, less 512 MiB
+   (`set_per_process_memory_fraction`). On Windows, an over-full card borrows
+   shared system memory instead of failing, so without a budget the cache
+   never has to recycle. One uncapped astrolabe run reserved 27.7 GiB on the
+   24 GiB card while using 6.8 GiB, and crawled for two hours until stopped.
 
 | Views × resolution | Stages | Peak reserved | Peak allocated | Paint time |
 | --- | --- | --- | --- | --- |
 | 6 × 512 | resident | 20.4 GiB | 13.4 GiB | 49 s |
-| 6 × 512 | released | 11.8 GiB | 9.8 GiB | 51 s |
+| 6 × 512 | released, 10 GiB cap | 8.5 GiB | 7.8 GiB | 54 s |
 | 12 × 768 | resident | 35.4 GiB (spills) | 21.1 GiB | 119 s |
-| 12 × 768 | released | 16.1 GiB | 13.0 GiB | 83 s |
+| 12 × 768 | released, 10 GiB cap | 9.0 GiB | 7.9 GiB | 94 s |
 
-The launcher's floor follows: 14,336 MiB released at 6 × 512, 18,944 MiB for
-any other released setting, and 21,504 MiB resident or on the legacy runner.
-`-MinimumFreeVramMiB` still overrides.
+The AR-02 astrolabe (14,062 triangles) is heavier. At 12 × 768, resident paint
+reserved 44.4 GiB and took 178 s, spilling into shared memory. Released under
+the 10 GiB cap it peaked at 9.6 GiB reserved and 9.1 GiB allocated, and took
+125 s. Before items 2, 3 (attention) and 6 it ran out of memory under the cap,
+first in the condition encode and then in the first diffusion step. Its maps
+moved 0.10% of base-colour pixels by more than 16/255 against the resident
+paint, and the four-view renders match
+([on-model comparison](evidence/paint-12gb-astrolabe-20261030.jpg)).
+
+The capped rows ran under `torch.cuda.set_per_process_memory_fraction`, so the
+allocator could not exceed 10 GiB, about what a 12 GB card leaves after the
+CUDA context and the desktop. Every setting fits. On a larger card, item 7
+sets the budget to that card's free memory, so the cache may grow into spare
+VRAM but never past it. The launcher's floor is 10,752 MiB for any released setting
+and 21,504 MiB resident or on the legacy runner. `-MinimumFreeVramMiB` still
+overrides.
+
+diffusers derives a pipeline's `device` from the first module in an unordered
+set of component names, and upstream seeds its noise generator on
+`pipeline.device`. With the text encoder on the CPU, a process could therefore
+sample on the CPU (a crash) or draw its noise on the CPU, which gives a
+different paint, like a different seed. The runner pins both to the GPU. A
+comparison sheet sent before the pin went in showed that re-roll, not the
+release itself.
 
 Paint is deterministic: repeated runs give byte-identical maps, resident or
 released. Released maps are **not** byte-identical to resident ones, because
 batch-of-one convolutions round differently and the upscale, bake and inpaint
 amplify it in places. At 12 × 768, 1.2% of base-colour pixels moved by more than
-4/255 and 0.04% by more than 16/255, almost all of them single pixels on UV
-island edges ([side by side and ×4 difference](evidence/paint-release-compare-20261030.jpg)).
+4/255 and 0.04% by more than 16/255 (0.07% with the 12 GB changes), almost all
+of them single pixels on UV island edges ([side by side and ×4 difference](evidence/paint-release-compare-20261030.jpg)).
 Moving the weights alone kept the maps byte-identical but did not lower the
 peak, and slicing the reference encode as well moved more pixels. On the model
 the difference is invisible: in four-view renders of both paints

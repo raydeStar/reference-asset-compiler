@@ -3,6 +3,13 @@
 Release notes live under `docs/releases/`; GitHub releases carry the same text
 and any attached wheel.
 
+## v0.2.0 — 2026-10-30
+
+RAC on a 12 GB GPU: geometry needs 8 GB (byte-identical meshes), studio-route
+texture painting peaks under 10 GB at best quality (was 35–44 GB, spilling into
+RAM) and runs faster, every AI run records its peak VRAM, and review renders can
+use the CPU. Notes: [docs/releases/v0.2.0.md](docs/releases/v0.2.0.md).
+
 ## v0.1.2 — 2026-09-11
 
 Stronger lineage and promotion guards, retained compile/bake attempts, consistent

@@ -5158,3 +5158,48 @@ releases stages by default; `-KeepStagesResident` restores the old behaviour for
 reproducing earlier attempts. The legacy route is unchanged. This was a
 judgement of the memory change only, not of the guard texture, which remains a
 calibration input.
+
+## 2026-10-30 — Paint fits a 12 GB card by default
+
+Branch `gpu-efficiency`. The studio runner's released stages now also:
+- move the never-called CLIP text encoder and the one-shot DINO off the GPU
+  before sampling;
+- park the UNet in host memory during the condition encodes;
+- run the UNet feed-forward and the multiview attention one image or sequence
+  at a time;
+- set `PYTORCH_CUDA_ALLOC_CONF` against fragmentation.
+
+Moving the text encoder exposed a diffusers trap: `pipeline.device` comes from
+the first module in an unordered set, and upstream seeds its noise generator
+there. Some processes therefore sampled on the CPU (a crash) or drew CPU noise,
+which re-rolled the paint. The runner pins both device properties to the GPU.
+An on-model sheet sent to the user before the pin showed that re-roll; the
+corrected sheet is `docs/evidence/paint-12gb-guard-20261030.jpg`.
+
+Under a hard 10 GiB allocator cap (`set_per_process_memory_fraction`), 12×768
+painted the guard at 9.0 GiB and the AR-02 astrolabe at 9.6 GiB, against 36
+and 44 GiB resident. Against resident maps, 0.055% and 0.10% of base-colour
+pixels moved by more than 16/255; on-model sheets are in `docs/evidence/`. The
+released launcher floor is now 10,752 MiB at every setting, and resident and
+legacy stay at 21,504. The paints were calibration outputs in a scratch
+directory; no candidate was made or judged.
+
+## 2026-10-30 — Released paint budgets its pool to free VRAM
+
+Branch `gpu-efficiency`. The first uncapped end-to-end launcher run of the 12 GB
+code (AR-02 astrolabe, 12×768) stalled at the first diffusion step for two
+hours: 6.8 GiB allocated but 27.7 GiB reserved on the 24 GiB card. The Windows
+driver backs an over-full card with shared system memory instead of failing
+`cudaMalloc`, so the caching allocator never recycled; the capped calibration
+runs never saw it because the cap forced recycling. A faulthandler stack dump
+put the stall inside the split multiview attention, which was simply running
+from shared memory. The studio runner now calls
+`set_per_process_memory_fraction` with the free VRAM at launch less 512 MiB, in
+released mode only; resident mode exceeds physical VRAM by design and is
+unchanged. The rerun through `run_hy3d21_texture.ps1` finished in 139 s wall
+(22.0 GiB budget, 18.1 GiB reserved, 9.1 GiB allocated), and its base colour is
+byte-identical to the capped `astro-12gb` paint. On-model sheet:
+`docs/evidence/paint-launcher-astrolabe-20261030.jpg`. Runner sha256
+`1a67dfb9cef34bed9a7381c0808f654503752fd9430afed574f76ef3fd066cf5`, repinned in
+the launcher and `workflows/catalog.json`. The killed run's attempt directory
+was scratch, not an asset.
