@@ -1,0 +1,140 @@
+{
+  "schema": "rac.ennix-turn-review.v1",
+  "local_case": "work/ennix-turn-contact-20261023",
+  "delivery_receipt_sha256": "af34407a763d66059df70abb44f2991ffec3a4ef313ac609f1b735e062af4544",
+  "preservation": {
+    "original_game_files_checked": 212,
+    "changed": [],
+    "native_source_and_exports_unchanged": true
+  },
+  "runtime": {
+    "before_30": {
+      "frames": 1695,
+      "maximum_declared_plant_drift_cm": 10.444517575242099,
+      "minimum_sole_gap_cm": 0.34735172566570327,
+      "ground_hit_fraction": 0.998362909079677
+    },
+    "before_60": {
+      "frames": 3390,
+      "maximum_declared_plant_drift_cm": 9.414473783281789,
+      "minimum_sole_gap_cm": 0.3653049938402546,
+      "ground_hit_fraction": 0.9984710188574341
+    },
+    "after_30": {
+      "frames": 1695,
+      "maximum_declared_plant_drift_cm": 1.1368683772161603e-13,
+      "minimum_sole_gap_cm": 0.3473517102859205,
+      "ground_hit_fraction": 0.9987706373843611
+    },
+    "after_60": {
+      "frames": 3390,
+      "maximum_declared_plant_drift_cm": 1.8198773652309366e-12,
+      "minimum_sole_gap_cm": 0.36530499192667776,
+      "ground_hit_fraction": 0.9988355032510154
+    }
+  },
+  "transition_delta": {
+    "30": {
+      "maximum_pelvis_drop_cm": 1.9374464750289917,
+      "maximum_added_vertical_step_cm": 1.1166318655014038,
+      "maximum_leg_segment_length_change_cm": 1.1084466677857563e-12,
+      "maximum_mesh_path_transform_delta": 0.0,
+      "frames": 1695,
+      "scope": "Matched actual game frames. Leg lengths and movement path must remain unchanged; added pelvis displacement is reported, not declared artistically acceptable."
+    },
+    "60": {
+      "maximum_pelvis_drop_cm": 3.031204938888777,
+      "maximum_added_vertical_step_cm": 0.6842679381370544,
+      "maximum_leg_segment_length_change_cm": 1.2860823517257813e-12,
+      "maximum_mesh_path_transform_delta": 0.0,
+      "frames": 3390,
+      "scope": "Matched actual game frames. Leg lengths and movement path must remain unchanged; added pelvis displacement is reported, not declared artistically acceptable."
+    }
+  },
+  "checks": {
+    "unit_tests_passed": 936,
+    "skipped": 39,
+    "subtests": 198,
+    "stage_scripts_parsed": 325,
+    "plugin_build": true,
+    "fresh_reload": true,
+    "default_plugin_disabled": true,
+    "hand_body_samples_per_rate": 339
+  },
+  "human_approved": false,
+  "production_ready": false,
+  "limitations": [
+    "Planted-ankle XY measurements; foot rotation remains free during pivots.",
+    "Positive ground clearance applies to observed hit traces; coverage is reported separately.",
+    "Hand/body samples at 6 Hz exclude sleeves, cloth simulation, containment and unsampled frames.",
+    "Fixed-rate owned -game correctness tests, not cooked, performance or human artistic acceptance."
+  ],
+  "implementation": [
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\LICENSE",
+      "sha256": "46ee6c7acf7761aa69c3c6746b35f62cdda3116b6ae0a8ff381a69f1b0cb01d1",
+      "bytes": 1083
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\RACAnimation.uplugin",
+      "sha256": "bdfc04ff0925ebab3540369b2ac1de9282d369c817536d9c14c575c21a97d848",
+      "bytes": 580
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\README.md",
+      "sha256": "dddc70ff0cc366c4a82e684b3b1359903daa2487558d812d399fce67159625c1",
+      "bytes": 5118
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\Source\\RACAnimationEditor\\Private\\RACAnimationEditor.cpp",
+      "sha256": "77f99ee4754ae8df4bf4e4f733deeb55953faa57f8684c3ffd8e084c181104f8",
+      "bytes": 124
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\Source\\RACAnimationEditor\\Public\\AnimGraphNode_RACSoleContact.h",
+      "sha256": "4b1cc00d0cfb033cc7040cafc7cd760672aa9b3c2faf867156e8eba0b4a11c17",
+      "bytes": 972
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\Source\\RACAnimationEditor\\RACAnimationEditor.Build.cs",
+      "sha256": "b7314d3d097ea8763e0d96225a7a07d92a5f90485122f8b84056475c0b09431c",
+      "bytes": 451
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\Source\\RACAnimationRuntime\\Private\\AnimNode_RACSoleContact.cpp",
+      "sha256": "a0ab9687112916e4cc4364d429d6966af74529119255647bbd4f5155eee31d5b",
+      "bytes": 15480
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\Source\\RACAnimationRuntime\\Private\\RACAnimationRuntime.cpp",
+      "sha256": "cccd06189a8da8ad534b5d168bbfbc333d67c18320c938f7897ff1ccee544081",
+      "bytes": 125
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\Source\\RACAnimationRuntime\\Public\\AnimNode_RACSoleContact.h",
+      "sha256": "019103cdf5eacd9ad7e1a3ae7e7162f5fd227a891a0a85e07e455a764dc12aee",
+      "bytes": 4082
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\integrations\\unreal\\RACAnimation\\Source\\RACAnimationRuntime\\RACAnimationRuntime.Build.cs",
+      "sha256": "155ab2b97a9fd5ee02eb33b5a7ecf2cff1e9b37c8e33fa9c47a87c9ae6d0bf93",
+      "bytes": 424
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\configure_rac_contact.py",
+      "sha256": "898fa9b7e72ba7cb5b0e2fd2133d2d6aadf14c1da184c3fa918c04c186e9b684",
+      "bytes": 8641
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\character02_walk_runtime.py",
+      "sha256": "b1f17b1e55a034ac275a281240033c7d4359cf2869f98533dabf5e816ed4dbe8",
+      "bytes": 13039
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\tests\\test_unreal_contact_profile.py",
+      "sha256": "3152e0632ae6bdbf712ffecf73194a464058005dd254fd2d7ef75b5e90434362",
+      "bytes": 2366
+    }
+  ],
+  "installed_runtime_dll_sha256": "00a77946c9df8237453c779e0fd2b7d5ad88c7116df0e9a525736657932c7857"
+}

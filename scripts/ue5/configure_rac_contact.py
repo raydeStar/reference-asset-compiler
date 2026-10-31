@@ -11,6 +11,13 @@ import shutil
 
 import unreal
 
+# Optional profile fields; the defaults reproduce the solver's original human-scale constants.
+DEFAULTS={'action_slot':'DefaultSlot','pelvis_bone':'pelvis','maximum_lock_speed_cm_s':180,
+          'maximum_plant_offset_cm':15,'maximum_pelvis_drop_cm':0,
+          'lock_acquire_weight':.65,'lock_release_weight':.5}
+TERRAIN_DEFAULTS={'channel':'ECC_VISIBILITY','trace_up_cm':45,'trace_down_cm':180,'minimum_ground_normal_z':.5,
+                  'inner_grid_spacing_cm':7.5,'maximum_predicted_travel_cm':15}
+
 
 def read_spec(path):
     path = Path(path).resolve()
@@ -21,8 +28,8 @@ def read_spec(path):
     if hashlib.sha256(probe_path.read_bytes()).hexdigest() != spec['probe']['sha256']:
         raise ValueError('sole sample hash changed')
     probe = json.loads(probe_path.read_text(encoding='utf-8'))
-    if probe['source_sha256'] != spec['native_character_sha256']:
-        raise ValueError('samples belong to another native character')
+    if probe['source_sha256'] != spec.get('sample_source_sha256', spec.get('native_character_sha256')):
+        raise ValueError('samples belong to another declared source mesh')
     for side in ('l','r'):
         chain = spec['chains'][side]
         if len(chain)!=4 or len(set(chain))!=4 or not all(isinstance(n,str) and n for n in chain):
@@ -37,12 +44,34 @@ def read_spec(path):
                 if not item['bone'] or len(item['point_cm'])!=3 or item['weight']<0 or not all(
                         math.isfinite(v) for v in [item['weight'],*item['point_cm']]):
                     raise ValueError('invalid sole influence')
-    for field,minimum,maximum in [('clearance_cm',0,1),('max_correction_cm',0,10),
-                                   ('combat_max_correction_cm',0,10),('release_time_s',.01,1)]:
-        value=spec[field]
-        if not isinstance(value,(int,float)) or not math.isfinite(value) or not minimum<=value<=maximum:
-            raise ValueError(f'out of range: {field}')
+    for field,value in DEFAULTS.items():
+        spec.setdefault(field,value)
+    for field,value in TERRAIN_DEFAULTS.items():
+        spec.setdefault('terrain',{}).setdefault(field,value)
+    ranges=[('clearance_cm',0,1),('max_correction_cm',0,30),
+            ('maximum_plant_offset_cm',0,50),('maximum_pelvis_drop_cm',0,8),
+            ('combat_max_correction_cm',0,10),('release_time_s',.01,1),
+            ('maximum_lock_speed_cm_s',0,2000),('lock_acquire_weight',0,1),('lock_release_weight',0,1)]
+    for field,minimum,maximum in ranges:
+        check_number(field,spec[field],minimum,maximum)
+    if spec['lock_release_weight']>spec['lock_acquire_weight']:
+        raise ValueError('lock_release_weight must not exceed lock_acquire_weight')
+    terrain=spec['terrain']
+    if set(terrain)-set(TERRAIN_DEFAULTS):
+        raise ValueError('unknown terrain field')
+    for field,minimum,maximum in [('trace_up_cm',0,500),('trace_down_cm',0,1000),('minimum_ground_normal_z',0,1),
+                                   ('inner_grid_spacing_cm',1,50),('maximum_predicted_travel_cm',0,100)]:
+        check_number('terrain.'+field,terrain[field],minimum,maximum)
+    if not isinstance(terrain['channel'],str) or not terrain['channel']:
+        raise ValueError('terrain.channel must name an ECollisionChannel')
+    if not isinstance(spec['action_slot'],str) or not spec['action_slot'] or not isinstance(spec['pelvis_bone'],str) or not spec['pelvis_bone']:
+        raise ValueError('action_slot and pelvis_bone must be names')
     return spec,probe
+
+
+def check_number(field,value,minimum,maximum):
+    if isinstance(value,bool) or not isinstance(value,(int,float)) or not math.isfinite(value) or not minimum<=value<=maximum:
+        raise ValueError(f'out of range: {field}')
 
 
 def configure(node,spec,probe):
@@ -64,12 +93,23 @@ def configure(node,spec,probe):
             sample.set_editor_property('influences',influences)
             samples.append(sample)
     for key,value in {'samples':samples,'left_chain':spec['chains']['l'],'right_chain':spec['chains']['r'],
-                      'action_slot':spec.get('action_slot','DefaultSlot'),
+                      'action_slot':spec['action_slot'],'maximum_lock_speed':spec['maximum_lock_speed_cm_s'],
+                      'lock_acquire_weight':spec['lock_acquire_weight'],'lock_release_weight':spec['lock_release_weight'],
+                      'trace_channel':getattr(unreal.CollisionChannel,spec['terrain']['channel']),
+                      'trace_up':spec['terrain']['trace_up_cm'],'trace_down':spec['terrain']['trace_down_cm'],
+                      'minimum_ground_normal_z':spec['terrain']['minimum_ground_normal_z'],
+                      'inner_grid_spacing':spec['terrain']['inner_grid_spacing_cm'],
+                      'maximum_predicted_travel':spec['terrain']['maximum_predicted_travel_cm'],
                       'left_plant_curve':spec['plant_curves']['l'],'right_plant_curve':spec['plant_curves']['r'],
                       'clearance':spec['clearance_cm'],'max_correction':spec['max_correction_cm'],
+                      'maximum_plant_offset':spec['maximum_plant_offset_cm'],
+                      'maximum_pelvis_drop':spec['maximum_pelvis_drop_cm'],
                       'max_combat_correction':spec['combat_max_correction_cm'],
                       'release_time':spec['release_time_s']}.items():
         inner.set_editor_property(key,value)
+    pelvis=unreal.BoneReference()
+    pelvis.set_editor_property('bone_name',spec['pelvis_bone'])
+    inner.set_editor_property('pelvis_bone',pelvis)
     montage=unreal.load_asset(spec['grounded_combat_montage']) if spec.get('grounded_combat_montage') else None
     if spec.get('grounded_combat_montage') and not isinstance(montage,unreal.AnimMontage):
         raise ValueError('the explicitly selected montage is missing')

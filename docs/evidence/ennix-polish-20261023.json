@@ -1,0 +1,123 @@
+{
+  "schema": "rac.ennix-polish-review.v1",
+  "local_case": "work/ennix-idle-walk-20261023",
+  "delivery_receipt_sha256": "068e0ad66b636068afe143b7685f8a9dcfadf3a9ef1d7047f297395995cf6af0",
+  "preservation": {
+    "checked_game_files": 195,
+    "changed": [],
+    "default_player_changed": false
+  },
+  "native_replay_identical": true,
+  "checks": {
+    "exported_idle_pose": true,
+    "model_payload_preserved": true,
+    "fbx_glb_all_frame_reimport": true,
+    "fresh_engine_reload": true,
+    "pytest_passed": 930,
+    "pytest_skipped": 39,
+    "pytest_subtests": 198,
+    "script_parse_count": 325,
+    "isolated_wheel_workflow_passed": true
+  },
+  "runtime_runs": {
+    "before_30": {
+      "frames": 1695,
+      "minimum_sole_gap_cm": -10.999744578850368,
+      "negative_sole_samples": 3079,
+      "ground_hit_fraction": 0.9951813927628226,
+      "unobserved_foot_frames": 0,
+      "maximum_declared_plant_drift_cm": null
+    },
+    "before_60": {
+      "frames": 3390,
+      "minimum_sole_gap_cm": -10.681931324143534,
+      "negative_sole_samples": 6108,
+      "ground_hit_fraction": 0.9951396932771163,
+      "unobserved_foot_frames": 0,
+      "maximum_declared_plant_drift_cm": null
+    },
+    "after_30": {
+      "frames": 1695,
+      "minimum_sole_gap_cm": 0.34735172566570327,
+      "negative_sole_samples": 0,
+      "ground_hit_fraction": 0.998362909079677,
+      "unobserved_foot_frames": 0,
+      "maximum_declared_plant_drift_cm": 10.444517575242099
+    },
+    "after_60": {
+      "frames": 3390,
+      "minimum_sole_gap_cm": 0.3653049938402546,
+      "negative_sole_samples": 0,
+      "ground_hit_fraction": 0.9984710188574341,
+      "unobserved_foot_frames": 0,
+      "maximum_declared_plant_drift_cm": 9.414473783281789
+    }
+  },
+  "human_approved": false,
+  "production_ready": false,
+  "limitations": [
+    "Sharp left/reversal plant yields up to 10.445 cm at 30 Hz and 9.414 cm at 60 Hz; perfect pivot contact is not accepted.",
+    "Ground statistics cover hit traces; 99.836/99.847 percent candidate coverage, no entirely unobserved foot frames.",
+    "Hand/body audit samples 6 Hz; excludes sleeves, cloth simulation, containment and unsampled frames.",
+    "Fixed-step owned -game tests, not cooked or performance acceptance. No human artistic approval.",
+    "Local HTML browser playback could not be checked: browser automation disallows file URLs. Movies decoded and sampled offline.",
+    "New candidate assets saved separately; original Ennix config and Character02 default player preserved."
+  ],
+  "inputs_and_implementation": {
+    "scripts/blender/polish_locomotion.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\blender\\polish_locomotion.py",
+      "sha256": "1e846475b6e26bf97d1d3fc9dfe93f9687886610db5131b7ecbed00b00eda787",
+      "bytes": 14690
+    },
+    "scripts/anim/polish_idle.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\polish_idle.py",
+      "sha256": "721e21d72aba36784629bdd57de7ae54d0b5d80c538fc422b125aea414ef32cd",
+      "bytes": 4251
+    },
+    "scripts/anim/skin_geometry.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\skin_geometry.py",
+      "sha256": "bdeeadd936ed622d8ee0fde15502fa921e103133d7bc1d3d479a1fe7aa6908b8",
+      "bytes": 2793
+    },
+    "scripts/anim/transport_bind_frames.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\anim\\transport_bind_frames.py",
+      "sha256": "1eae36269eecc49fc2e94ef10fa9876bae1b39f2b632086a2bd91e34add94893",
+      "bytes": 3029
+    },
+    "scripts/blender/extract_engine_sole_samples.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\blender\\extract_engine_sole_samples.py",
+      "sha256": "117d37241a5d22f5740a7be98a019a2fd68cad2ea6b7e4baab9ea11b1b1d4cca",
+      "bytes": 3568
+    },
+    "scripts/ue5/export_animation_binding.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\export_animation_binding.py",
+      "sha256": "9681dd6e063c6a8f45209366438c4a47b9d93e549e3e2412b2ceb7fb0c7de17c",
+      "bytes": 2684
+    },
+    "scripts/blender/check_hand_body_clearance.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\blender\\check_hand_body_clearance.py",
+      "sha256": "5eb9d10650d4ef1e38be14e61705ae2175c833d67dae4bdd7dd4bfb0f3ad0c72",
+      "bytes": 4080
+    },
+    "scripts/blender/animation_packet.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\blender\\animation_packet.py",
+      "sha256": "a310f79cb4d6e94d222f36f3f5c44fac7f97bc857d7e05680a37c851b03f24f0",
+      "bytes": 18183
+    },
+    "scripts/ue5/character02_walk_runtime.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\scripts\\ue5\\character02_walk_runtime.py",
+      "sha256": "b1f17b1e55a034ac275a281240033c7d4359cf2869f98533dabf5e816ed4dbe8",
+      "bytes": 13039
+    },
+    "profiles/animation/polish/ennix.json": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\profiles\\animation\\polish\\ennix.json",
+      "sha256": "8a5821d4c56b691a7905e3b930ea6c8b5f1ff3c9b81aa490c8e5b468dc15f213",
+      "bytes": 882
+    },
+    "src/reference_asset_compiler/animation_calibration.py": {
+      "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\src\\reference_asset_compiler\\animation_calibration.py",
+      "sha256": "ff7a730e86f95d57ae74324402196a2e28c7f5a94ab2d517c8b40f8b0cf1803b",
+      "bytes": 2654
+    }
+  }
+}

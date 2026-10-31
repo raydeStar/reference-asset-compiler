@@ -1,0 +1,18 @@
+{
+  "schema": "rac.idle-handoff-relaxation.v1",
+  "asset": "Character02",
+  "note": "2026-10-22 idle/coat contact repair (work/character02-idle-contact-20261022, candidate-v4). Arms hang clear of the long coat; thumbs relax toward the index finger; the change blends into each clip that enters or leaves the idle.",
+  "idle_clip": "MM_Idle",
+  "pelvis_motion_scale": 0.3,
+  "idle_arm_directions": {"upperarm": [0.27, -0.08], "lowerarm": [0.31, 0.23]},
+  "arm_motion_follow": 0.3,
+  "thumb_adduction_degrees": 45,
+  "handoffs": {
+    "MF_Unarmed_Walk_Fwd": {"upperarm_degrees": 4, "lowerarm_degrees": 7.5},
+    "MM_Stop_L": {"upperarm_degrees": 3, "lowerarm_degrees": 7.5, "blend_to_idle": "end"},
+    "MM_Stop_R": {"upperarm_degrees": 3, "lowerarm_degrees": 7.5, "blend_to_idle": "end"},
+    "MM_Start": {"upperarm_degrees": 3, "lowerarm_degrees": 7.5, "blend_to_idle": "start", "fade_out_after": 0.55, "fade_out_length": 0.45},
+    "MM_Jump": {"upperarm_degrees": 3, "lowerarm_degrees": 7.5, "blend_to_idle": "start"},
+    "MM_Land": {"upperarm_degrees": 3, "lowerarm_degrees": 7.5, "blend_to_idle": "end"}
+  }
+}

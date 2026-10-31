@@ -1,7 +1,8 @@
 # SPDX-License-Identifier: MIT
-"""Bounded Character02 idle/coat repair; immutable input, versioned output.
+"""Relax an idle's arms and hands, then carry the change into its entry/exit handoffs.
 
-Runs on CPU. Preserve the accepted body, rest transforms, timing and root tracks.
+Profile-driven (profiles/animation/repair/<name>.json); immutable input, versioned
+output. Runs on CPU. Preserve the accepted body, rest transforms, timing and root tracks.
 This is an authored candidate, not a declaration of artistic acceptance.
 """
 import argparse
@@ -22,13 +23,34 @@ def digest(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def load_profile(path):
+    profile = json.loads(Path(path).read_text())
+    if profile.get('schema') != 'rac.idle-handoff-relaxation.v1':
+        raise ValueError('unsupported idle handoff profile')
+    for key in ('idle_clip', 'pelvis_motion_scale', 'idle_arm_directions', 'arm_motion_follow',
+                'thumb_adduction_degrees', 'handoffs'):
+        if key not in profile:
+            raise ValueError(f'profile missing {key}')
+    for bone in ('upperarm', 'lowerarm'):
+        xy = profile['idle_arm_directions'][bone]
+        if len(xy) != 2 or sum(a * a for a in xy) >= 1:
+            raise ValueError(f'{bone} direction needs the x/y of a unit downward vector')
+    for name, spec in profile['handoffs'].items():
+        if spec.get('blend_to_idle') not in (None, 'start', 'end'):
+            raise ValueError(f'{name}: blend_to_idle is start, end or absent')
+    return profile
+
+
 def smooth(value):
     value = np.clip(value, 0, 1)
     return value * value * (3 - 2 * value)
 
 
-def repair(packet, skeleton):
+def repair(packet, skeleton, profile):
     result = copy.deepcopy(packet)
+    idle_name = profile['idle_clip']
+    arms = profile['idle_arm_directions']
+    handoff = profile['handoffs']
     names, parents = skeleton['bones'], skeleton['parents']
     ix = {name: i for i, name in enumerate(names)}
     families = {}
@@ -72,10 +94,10 @@ def repair(packet, skeleton):
             if np.linalg.norm(axis) > 1e-8:
                 rotate(world, f'thumb_01_{side}', Rotation.from_rotvec(axis / np.linalg.norm(axis) * angle).as_matrix())
 
-    idle = result['clips']['MM_Idle']
+    idle = result['clips'][idle_name]
     original = world_matrices(idle, skeleton)
     pelvis = np.array(idle['tracks']['pelvis'])
-    pelvis[:, :3] = pelvis[0, :3] + .3 * (pelvis[:, :3] - pelvis[0, :3])
+    pelvis[:, :3] = pelvis[0, :3] + profile['pelvis_motion_scale'] * (pelvis[:, :3] - pelvis[0, :3])
     idle['tracks']['pelvis'] = pelvis.tolist()
     duration = (idle['frames'] - 1) / idle['fps']
     for side in 'lr':
@@ -86,40 +108,42 @@ def repair(packet, skeleton):
     worlds = world_matrices(idle, skeleton)
     for world in worlds:
         for side, sign in [('l', 1), ('r', -1)]:
-            for bone, child, xy in [('upperarm', 'lowerarm', (.27, -.08)), ('lowerarm', 'hand', (.31, .23))]:
+            for bone, child, xy in [('upperarm', 'lowerarm', arms['upperarm']), ('lowerarm', 'hand', arms['lowerarm'])]:
                 source_direction = original[0, ix[f'{child}_{side}'], :3, 3] - original[0, ix[f'{bone}_{side}'], :3, 3]
                 direction = world[ix[f'{child}_{side}'], :3, 3] - world[ix[f'{bone}_{side}'], :3, 3]
                 target = np.array([sign * xy[0], xy[1], -np.sqrt(1 - sum(a*a for a in xy))])
-                target += .3 * (direction / np.linalg.norm(direction) - source_direction / np.linalg.norm(source_direction))
+                target += profile['arm_motion_follow'] * (direction / np.linalg.norm(direction) - source_direction / np.linalg.norm(source_direction))
                 rotate(world, f'{bone}_{side}', _aim(np.eye(3), direction, target))
-        relax_thumbs(world)
+        relax_thumbs(world, profile['thumb_adduction_degrees'])
         pins(world)
     store(idle, worlds)
 
     # Keep the entrance/exit handoffs: the butler does not teleport his elbows.
-    modified = ['MM_Idle']
-    for name in ['MF_Unarmed_Walk_Fwd', 'MM_Stop_L', 'MM_Stop_R', 'MM_Start', 'MM_Jump', 'MM_Land']:
+    modified = [idle_name]
+    for name, spec in handoff.items():
         clip = result['clips'][name]
         worlds = world_matrices(clip, skeleton)
         for f, world in enumerate(worlds):
-            weight = 1 - smooth((f/(len(worlds)-1) - .55)/.45) if name == 'MM_Start' else 1
+            ramp = spec.get('fade_out_after')
+            weight = 1 - smooth((f/(len(worlds)-1) - ramp)/spec.get('fade_out_length', 1 - ramp)) if ramp is not None else 1
             across = world[ix['upperarm_l'], :3, 3] - world[ix['upperarm_r'], :3, 3]
             across /= np.linalg.norm(across)
             for side, sign in [('l', 1), ('r', -1)]:
-                for bone, degrees in [('upperarm', 4 if name == 'MF_Unarmed_Walk_Fwd' else 3), ('lowerarm', 7.5)]:
+                for bone, degrees in [('upperarm', spec['upperarm_degrees']), ('lowerarm', spec['lowerarm_degrees'])]:
                     reach = world[ix[f'hand_{side}'], :3, 3] - world[ix[f'{bone}_{side}'], :3, 3]
                     axis = np.cross(reach, across * sign)
                     axis /= np.linalg.norm(axis)
                     rotate(world, f'{bone}_{side}', Rotation.from_rotvec(axis * np.radians(degrees * weight)).as_matrix())
-            relax_thumbs(world, 45 * weight)
+            relax_thumbs(world, profile['thumb_adduction_degrees'] * weight)
             pins(world)
         store(clip, worlds)
         # Change arm families only in handoff windows; retain authored hips and feet.
         for f in range(clip['frames']):
-            if name in ('MM_Start', 'MM_Jump'):
-                weight = 1 - smooth(f / 6)
-            elif name in ('MM_Stop_L', 'MM_Stop_R', 'MM_Land'):
-                weight = smooth((f - (clip['frames'] - 7)) / 6)
+            frames = spec.get('blend_frames', 6)
+            if spec.get('blend_to_idle') == 'start':
+                weight = 1 - smooth(f / frames)
+            elif spec.get('blend_to_idle') == 'end':
+                weight = smooth((f - (clip['frames'] - frames - 1)) / frames)
             else:
                 weight = 0
             if not weight:
@@ -146,6 +170,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--packet', type=Path, required=True)
     parser.add_argument('--skeleton', type=Path, required=True)
+    parser.add_argument('--profile', type=Path, required=True)
     parser.add_argument('--out', type=Path, required=True)
     args = parser.parse_args()
     packet = json.loads(args.packet.read_text(encoding='utf-8-sig'))
@@ -153,12 +178,16 @@ def main():
     validate_packet(packet)
     assert packet['bones'] == skeleton['bones']
     assert packet['provenance']['character_blend_sha256'] == skeleton['source_sha256']
-    result, modified = repair(packet, skeleton)
+    profile = load_profile(args.profile)
+    missing = ({profile['idle_clip']} | set(profile['handoffs'])) - set(packet['clips'])
+    if missing:
+        raise ValueError(f'profile names clips absent from the packet: {sorted(missing)}')
+    result, modified = repair(packet, skeleton, profile)
     args.out.mkdir(parents=True, exist_ok=False)
     (args.out/'clips.json').write_text(json.dumps(result, separators=(',', ':')), encoding='utf-8')
     (args.out/'derivation.json').write_text(json.dumps({'source': str(args.packet.resolve()),
         'source_sha256': digest(args.packet), 'skeleton_sha256': digest(args.skeleton),
-        'script_sha256': digest(Path(__file__)), 'packet_sha256': digest(args.out/'clips.json'),
+        'script_sha256': digest(Path(__file__)), 'profile_sha256': digest(args.profile), 'packet_sha256': digest(args.out/'clips.json'),
         'modified_clips': modified, 'timing_root_and_events_preserved': True,
         'human_approved': False, 'production_ready': False}, indent=2), encoding='utf-8')
     print('CANDIDATE_AUTHORED -- the elbows have been asked to mind the tailoring.')

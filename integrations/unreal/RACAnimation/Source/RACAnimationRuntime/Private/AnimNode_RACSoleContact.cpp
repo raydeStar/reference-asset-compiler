@@ -13,10 +13,12 @@ FAnimNode_RACSoleContact::FAnimNode_RACSoleContact()
 {
 	LeftChain = {TEXT("thigh_l"), TEXT("calf_l"), TEXT("foot_l"), TEXT("ik_foot_l")};
 	RightChain = {TEXT("thigh_r"), TEXT("calf_r"), TEXT("foot_r"), TEXT("ik_foot_r")};
+	PelvisBone.BoneName = TEXT("pelvis");
 }
 
 void FAnimNode_RACSoleContact::InitializeBoneReferences(const FBoneContainer& Bones)
 {
+	PelvisBone.Initialize(Bones);
 	for (int32 Side = 0; Side < 2; ++Side)
 	{
 		const TArray<FName>& Names = Side == 0 ? LeftChain : RightChain;
@@ -34,6 +36,7 @@ void FAnimNode_RACSoleContact::InitializeBoneReferences(const FBoneContainer& Bo
 bool FAnimNode_RACSoleContact::IsValidToEvaluate(const USkeleton* Skeleton, const FBoneContainer& Bones)
 {
 	if (Samples.IsEmpty()) return false;
+	if (MaximumPelvisDrop > 0.f && !PelvisBone.IsValidToEvaluate(Bones)) return false;
 	for (const auto& Chain : Chains)
 		for (const FBoneReference& Bone : Chain)
 			if (!Bone.IsValidToEvaluate(Bones)) return false;
@@ -106,7 +109,7 @@ void FAnimNode_RACSoleContact::PreUpdate(const UAnimInstance* AnimInstance)
 		}
 		if (bHasPreviousCentre[Side])
 		{
-			FVector Travel = (Centre - PreviousCentre[Side]).GetClampedToMaxSize(15.f);
+			FVector Travel = (Centre - PreviousCentre[Side]).GetClampedToMaxSize(MaximumPredictedTravel);
 			Travel.Z = 0;
 			if (!Travel.IsNearlyZero(0.1f))
 			{
@@ -123,26 +126,26 @@ void FAnimNode_RACSoleContact::PreUpdate(const UAnimInstance* AnimInstance)
 		PreviousCentre[Side] = Centre;
 		bHasPreviousCentre[Side] = true;
 		// A turn changes the whole footprint, not just its centre. Pad the measured
-		// bounds by the 15 cm lock envelope so a newly rotated toe remains covered.
+		// bounds by the configured lock envelope so a newly rotated toe remains covered.
 		FVector Extent = FVector::ZeroVector;
 		for (const FVector& Point : Points[Side])
 		{
 			Extent.X = FMath::Max(Extent.X, FMath::Abs(Point.X - Centre.X));
 			Extent.Y = FMath::Max(Extent.Y, FMath::Abs(Point.Y - Centre.Y));
 		}
-		Extent += FVector(15, 15, 0);
+		Extent += FVector(MaximumPlantOffset, MaximumPlantOffset, 0);
 		// Retain dense inner coverage as well as the padded outer footprint.
 		for (int32 X = -2; X <= 2; ++X)
 			for (int32 Y = -2; Y <= 2; ++Y)
-				if (X != 0 || Y != 0) Queries.Add(Centre + FVector(X * 7.5f, Y * 7.5f, 0));
+				if (X != 0 || Y != 0) Queries.Add(Centre + FVector(X * InnerGridSpacing, Y * InnerGridSpacing, 0));
 		for (int32 X = -2; X <= 2; ++X)
 			for (int32 Y = -2; Y <= 2; ++Y)
 				if (X != 0 || Y != 0) Queries.Add(Centre + FVector(X * Extent.X * 0.5, Y * Extent.Y * 0.5, 0));
 		for (const FVector& Query : Queries)
 		{
 			FHitResult Hit;
-			if (Character->GetWorld()->LineTraceSingleByChannel(Hit, Query + FVector(0, 0, 45),
-				Query - FVector(0, 0, 180), ECC_Visibility, Params) && Hit.ImpactNormal.Z > 0.5)
+			if (Character->GetWorld()->LineTraceSingleByChannel(Hit, Query + FVector(0, 0, TraceUp),
+				Query - FVector(0, 0, TraceDown), TraceChannel, Params) && Hit.ImpactNormal.Z > MinimumGroundNormalZ)
 				Ground[Side].Add({Hit.ImpactPoint, Hit.ImpactNormal, Query});
 		}
 	}
@@ -165,6 +168,7 @@ void FAnimNode_RACSoleContact::EvaluateSkeletalControl_AnyThread(FComponentSpace
 		Correction[0] = Correction[1] = 0.f;
 		LockAlpha[0] = LockAlpha[1] = 0.f;
 		bLocked[0] = bLocked[1] = false;
+		PelvisDrop = 0.f;
 		return; // Airborne motion and actions outside the opted-in combo keep their own contracts.
 	}
 	if (bActiveStrike)
@@ -193,6 +197,8 @@ void FAnimNode_RACSoleContact::EvaluateSkeletalControl_AnyThread(FComponentSpace
 			+ Nearest->Normal.Y * (Point.Y - Nearest->Point.Y)) / Nearest->Normal.Z;
 		Required[Side] = FMath::Max(Required[Side], static_cast<float>(FloorZ + Clearance - Point.Z));
 	}
+	// Acquire support before solving either leg: the pelvis must serve both boots.
+	float NeededDrop = 0.f;
 	for (int32 Side = 0; Side < 2; ++Side)
 	{
 		const float Target = FMath::Clamp(Required[Side], 0.f, CorrectionLimit);
@@ -200,32 +206,63 @@ void FAnimNode_RACSoleContact::EvaluateSkeletalControl_AnyThread(FComponentSpace
 		// Prevent penetration immediately; release gently instead of snapping down after a tile edge.
 		Correction[Side] = Target >= Correction[Side] ? Target : FMath::Lerp(Correction[Side], Target,
 			1.f - FMath::Exp(-DeltaTime / FMath::Max(ReleaseTime, 0.01f)));
+		const FTransform& FootCS = Output.Pose.GetComponentSpaceTransform(Chains[Side][2].GetCompactPoseIndex(Bones));
+		const float Contact = Output.Curve.Get(Side == 0 ? LeftPlantCurve : RightPlantCurve);
+		if (!bPermitLock || Contact < LockReleaseWeight) bLocked[Side] = false;
+		if (bPermitLock && !bLocked[Side] && Contact > LockAcquireWeight)
+		{
+			LockedWorld[Side] = World.TransformPosition(FootCS.GetLocation());
+			bLocked[Side] = true;
+		}
+		LockAlpha[Side] = bLocked[Side] ? 1.f : FMath::Max(0.f, LockAlpha[Side] - DeltaTime / FMath::Max(ReleaseTime, 0.01f));
+		if (MaximumPelvisDrop > 0.f && bPermitLock && LockAlpha[Side] > 0.f)
+		{
+			const FVector Hip = World.TransformPosition(Output.Pose.GetComponentSpaceTransform(Chains[Side][0].GetCompactPoseIndex(Bones)).GetLocation());
+			const FVector Knee = World.TransformPosition(Output.Pose.GetComponentSpaceTransform(Chains[Side][1].GetCompactPoseIndex(Bones)).GetLocation());
+			const FVector Foot = World.TransformPosition(FootCS.GetLocation());
+			const double Length = (Knee - Hip).Size() + (Foot - Knee).Size();
+			const FVector Delta = (FVector(LockedWorld[Side].X, LockedWorld[Side].Y, Foot.Z) - Foot).GetClampedToMaxSize(MaximumPlantOffset) * LockAlpha[Side];
+			const FVector Goal = Foot + Delta + FVector(0, 0, Correction[Side]);
+			// Keep a little knee bend; stretching the leg is not extra reach.
+			const double Reach = Length * 0.995;
+			const double Vertical = FMath::Sqrt(FMath::Max(0.0, Reach * Reach - FVector::DistSquaredXY(Hip, Goal)));
+			NeededDrop = FMath::Max(NeededDrop, static_cast<float>(Hip.Z - Goal.Z - Vertical));
+		}
+	}
+	NeededDrop = FMath::Clamp(NeededDrop, 0.f, MaximumPelvisDrop);
+	PelvisDrop = NeededDrop >= PelvisDrop ? NeededDrop : FMath::Lerp(PelvisDrop, NeededDrop,
+		1.f - FMath::Exp(-DeltaTime / FMath::Max(ReleaseTime * 2.f, 0.01f)));
+	if (bActiveStrike || MaximumPelvisDrop <= 0.f) PelvisDrop = 0.f;
+	const FVector BodyDrop = World.InverseTransformVector(FVector(0, 0, PelvisDrop));
+	if (PelvisDrop > 0.0001f)
+	{
+		const FCompactPoseBoneIndex Pelvis = PelvisBone.GetCompactPoseIndex(Bones);
+		FTransform PelvisCS = Output.Pose.GetComponentSpaceTransform(Pelvis);
+		PelvisCS.AddToTranslation(-BodyDrop);
+		OutBoneTransforms.Add(FBoneTransform(Pelvis, PelvisCS));
+	}
+	for (int32 Side = 0; Side < 2; ++Side)
+	{
 		const FCompactPoseBoneIndex Thigh = Chains[Side][0].GetCompactPoseIndex(Bones);
 		const FCompactPoseBoneIndex Calf = Chains[Side][1].GetCompactPoseIndex(Bones);
 		const FCompactPoseBoneIndex Foot = Chains[Side][2].GetCompactPoseIndex(Bones);
 		FTransform ThighCS = Output.Pose.GetComponentSpaceTransform(Thigh);
 		FTransform CalfCS = Output.Pose.GetComponentSpaceTransform(Calf);
 		FTransform FootCS = Output.Pose.GetComponentSpaceTransform(Foot);
-		const float Contact = Output.Curve.Get(Side == 0 ? LeftPlantCurve : RightPlantCurve);
-		if (!bPermitLock || Contact < 0.5f) bLocked[Side] = false;
-		// Acquire blended support before it reaches full weight; waiting for 0.9 allowed a visible start slide.
-		if (bPermitLock && !bLocked[Side] && Contact > 0.65f)
-		{
-			LockedWorld[Side] = World.TransformPosition(FootCS.GetLocation());
-			bLocked[Side] = true;
-		}
-		LockAlpha[Side] = bLocked[Side] ? 1.f : FMath::Max(0.f, LockAlpha[Side] - DeltaTime / FMath::Max(ReleaseTime, 0.01f));
+		const FVector AuthoredFoot = FootCS.GetLocation();
+		const double Length = (CalfCS.GetLocation() - ThighCS.GetLocation()).Size() + (FootCS.GetLocation() - CalfCS.GetLocation()).Size();
+		ThighCS.AddToTranslation(-BodyDrop);
+		CalfCS.AddToTranslation(-BodyDrop);
+		FootCS.AddToTranslation(-BodyDrop);
 		FVector LockDelta = FVector::ZeroVector;
 		if (LockAlpha[Side] > 0.f)
 		{
-			const FVector Current = World.TransformPosition(FootCS.GetLocation());
+			const FVector Current = World.TransformPosition(AuthoredFoot);
 			LockDelta = World.InverseTransformVector(FVector(LockedWorld[Side].X - Current.X, LockedWorld[Side].Y - Current.Y, 0)) * LockAlpha[Side];
-			const double Length = (CalfCS.GetLocation() - ThighCS.GetLocation()).Size() + (FootCS.GetLocation() - CalfCS.GetLocation()).Size();
 			const FVector Lift = World.InverseTransformVector(FVector(0, 0, Correction[Side]));
-			// A recovery can outgrow the plant envelope. Project onto it instead of resetting
-			// a 15 cm correction in one frame; the foot yields continuously until normal release.
-			LockDelta = LockDelta.GetClampedToMaxSize(15.f);
-			const FVector BaseReach = FootCS.GetLocation() + Lift - ThighCS.GetLocation();
+			// Keep a finite character-specific envelope; impossible contacts still yield.
+			LockDelta = LockDelta.GetClampedToMaxSize(MaximumPlantOffset);
+			const FVector BaseReach = AuthoredFoot + Lift - ThighCS.GetLocation();
 			if ((BaseReach + LockDelta).Size() > Length * 0.999)
 			{
 				float Low = 0.f, High = 1.f;
@@ -258,11 +295,11 @@ void FAnimNode_RACSoleContact::EvaluateSkeletalControl_AnyThread(FComponentSpace
 				Correction[Side] = FMath::Clamp(FMath::Max(Correction[Side], static_cast<float>(FloorZ + Clearance - Point.Z)), 0.f, MaxCorrection);
 			}
 		}
-		if (Correction[Side] < 0.001f && LockDelta.IsNearlyZero()) continue;
+		if (Correction[Side] < 0.001f && LockDelta.IsNearlyZero() && PelvisDrop <= 0.0001f) continue;
 		const FQuat Rotation = FootCS.GetRotation();
 		const FVector Mid = 0.5f * (ThighCS.GetLocation() + FootCS.GetLocation());
 		const FVector Pole = CalfCS.GetLocation() + (CalfCS.GetLocation() - Mid).GetSafeNormal() * 50.f;
-		const FVector TargetFoot = FootCS.GetLocation() + LockDelta + World.InverseTransformVector(FVector(0, 0, Correction[Side]));
+		const FVector TargetFoot = AuthoredFoot + LockDelta + World.InverseTransformVector(FVector(0, 0, Correction[Side]));
 		AnimationCore::SolveTwoBoneIK(ThighCS, CalfCS, FootCS, Pole, TargetFoot, false, 1.f, 1.f);
 		FootCS.SetRotation(Rotation);
 		OutBoneTransforms.Add(FBoneTransform(Thigh, ThighCS));

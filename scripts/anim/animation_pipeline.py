@@ -23,7 +23,7 @@ from reference_asset_compiler.io import read_json, write_retained_json  # noqa: 
 from reference_asset_compiler.animation_motion import world_matrices, transforms  # noqa: E402
 
 
-def snapshot(project, out, configuration='Tools/Characters/Character02.json'):
+def snapshot(project, out, configuration):
     project, out = project.resolve(), out.resolve()
     config_path = project / configuration
     config = read_json(config_path)
@@ -56,7 +56,7 @@ def snapshot(project, out, configuration='Tools/Characters/Character02.json'):
     cases = {}
     for name in selected:
         if name not in packet['clips']:
-            raise ValueError(f'required Character02 benchmark clip absent: {name}')
+            raise ValueError(f'required benchmark clip absent: {name}')
         c = packet['clips'][name]
         duration = (c['frames'] - 1) / c['fps']
         cases[name] = {'contacts': [], 'joins': []}
@@ -301,7 +301,7 @@ def engine_runtime(recipe_path, executable, output, fps):
 
 
 def surface_audit(args):
-    """Character02-specific skin check on packet poses; not a runtime pose dump."""
+    """Skin check on packet poses through the game's surface adapter; not a runtime pose dump."""
     import math
     recipe, packet, skeleton = load_recipe(args.recipe)
     if not skeleton or not math.isfinite(args.floor_z_cm):
@@ -319,10 +319,10 @@ def surface_audit(args):
     if not selected or len(set(selected)) != len(selected) or set(selected) - set(packet['clips']):
         raise ValueError('select existing unique surface-audit clips')
     if any((packet['clips'][n]['frames']-1)/packet['clips'][n]['fps'] < .5 for n in selected):
-        raise ValueError('legacy Character02 footing adapter requires clips at least 0.5 seconds long')
+        raise ValueError('the footing adapter requires clips at least 0.5 seconds long')
     scripts = [bound_path(r, base) for r in recipe['workstation']['surface_scripts']]
     if [p.name for p in scripts] != ['CheckLocomotionClearance.py', 'CheckLocomotionFooting.py']:
-        raise ValueError('unexpected Character02 surface adapter')
+        raise ValueError('unexpected surface adapter')
     out = args.output.resolve()
     out.mkdir(parents=True, exist_ok=False)
     rest_clip = {'tracks': {n: [v] for n, v in skeleton['rest_local'].items()}}
@@ -367,8 +367,7 @@ def main():
     sub = p.add_subparsers(dest='operation', required=True)
     q = sub.add_parser('snapshot')
     q.add_argument('--project', type=Path, required=True)
-    q.add_argument('--config', default='Tools/Characters/Character02.json',
-                   help='Explicit game configuration; legacy default retained for existing scripts')
+    q.add_argument('--config', required=True, help='Game character configuration, e.g. Tools/Characters/<name>.json')
     q.add_argument('--output', type=Path, required=True)
     q = sub.add_parser('run', help='Reusable recipe-to-review workflow; never installs game assets')
     q.add_argument('recipe', type=Path)

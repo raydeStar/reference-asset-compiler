@@ -5,6 +5,10 @@ new candidates and evidence; they do not acquire a character, replace bind data,
 install game assets, or grant artistic approval. The initial coordinate contract
 is UE-local centimetres, Z-up, xyzw rotations. Other conventions need an adapter.
 
+The [Ennix polish case](ENNIX_ANIMATION_POLISH.md) adds a character-specific idle
+and walk profile, actual mesh-bind transport, installed-mesh sole sampling and
+isolated in-game transition review while preserving Character02.
+
 ## Three ways to use the workflow
 
 1. **Installed CLI / Python:** `rac animation init`, `preflight`, `derive`,
@@ -87,14 +91,15 @@ The included UAL profile targets a Manny-compatible biped. Its stance settings
 need review for each character's proportions and clothing. A new bake reproduces
 the selected mapping and layers; it does not reconstruct later Character02
 cleanup unless those operations and their exact input packet are also supplied.
-The retained `repair_character02_*` and `install_character02_*` scripts document
-that benchmark's repairs/migrations. They are not the generic entry point, and
-hash-guarded one-time migrations must not be replayed against the current game.
+That benchmark's repairs now run through generic, profile-driven tools
+(`relax_idle_handoffs.py`, `polish_locomotion.py`, `analyze_runtime_contact.py`;
+see [ANIMATION_CONTACT_TOOLS.md](ANIMATION_CONTACT_TOOLS.md)). Its hash-guarded,
+one-time game migrations and game-API probes moved to the game repository.
 
 `snapshot --project ... --config Tools/Characters/<name>.json` is available for
 installed projects using the existing library-animation configuration contract.
-Its older Character02 default remains for compatibility. Profiles plus `init`
-are the route for characters that have not been installed in a game.
+`--config` is required. Profiles plus `init` are the route for characters that
+have not been installed in a game.
 
 ## Verification from a clean checkout
 

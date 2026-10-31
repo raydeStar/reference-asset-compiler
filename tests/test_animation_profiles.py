@@ -8,7 +8,6 @@ import pytest
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]/'src'))
 from reference_asset_compiler.animation_profiles import create_recipe, parse_inputs
 from reference_asset_compiler.animation_workflow import load_recipe
-pytest_plugins = ['test_animation_workflow']
 
 
 def profile_for(recipe_path):

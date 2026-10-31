@@ -3,6 +3,7 @@
 
 #include "CoreMinimal.h"
 #include "BoneControllers/AnimNode_SkeletalControlBase.h"
+#include "Engine/EngineTypes.h"
 #include "AnimNode_RACSoleContact.generated.h"
 
 class UAnimMontage;
@@ -44,11 +45,19 @@ struct RACANIMATIONRUNTIME_API FAnimNode_RACSoleContact : public FAnimNode_Skele
 	FName ActionSlot = TEXT("DefaultSlot");
 	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0"))
 	float MaximumLockSpeed = 180.f;
+	/** Character-calibrated horizontal plant envelope, in component centimetres. */
+	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="50"))
+	float MaximumPlantOffset = 15.f;
+	/** Optional downward pelvis reach reserve. Zero preserves the original solver. */
+	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="8"))
+	float MaximumPelvisDrop = 0.f;
+	UPROPERTY(EditAnywhere, Category=Skeleton)
+	FBoneReference PelvisBone;
 	UPROPERTY(EditAnywhere, Category=Contact)
 	TArray<FRACSoleSample> Samples;
 	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="1"))
 	float Clearance = 0.15f;
-	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="10"))
+	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="30"))
 	float MaxCorrection = 6.f;
 	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0.01"))
 	float ReleaseTime = 0.06f;
@@ -62,6 +71,25 @@ struct RACANIMATIONRUNTIME_API FAnimNode_RACSoleContact : public FAnimNode_Skele
 	FName LeftPlantCurve = TEXT("SolePlantL");
 	UPROPERTY(EditAnywhere, Category=Contact)
 	FName RightPlantCurve = TEXT("SolePlantR");
+	/** Plant-curve weight that acquires a world-space lock, and the weight below which it lets go. */
+	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="1"))
+	float LockAcquireWeight = 0.65f;
+	UPROPERTY(EditAnywhere, Category=Contact, meta=(ClampMin="0", ClampMax="1"))
+	float LockReleaseWeight = 0.5f;
+	/** Terrain queries: collision channel, ray reach above and below each sole point, steepest accepted ground. */
+	UPROPERTY(EditAnywhere, Category=Terrain)
+	TEnumAsByte<ECollisionChannel> TraceChannel = ECC_Visibility;
+	UPROPERTY(EditAnywhere, Category=Terrain, meta=(ClampMin="0"))
+	float TraceUp = 45.f;
+	UPROPERTY(EditAnywhere, Category=Terrain, meta=(ClampMin="0"))
+	float TraceDown = 180.f;
+	UPROPERTY(EditAnywhere, Category=Terrain, meta=(ClampMin="0", ClampMax="1"))
+	float MinimumGroundNormalZ = 0.5f;
+	/** Spacing of the dense query grid around each boot, and the farthest foot travel predicted between updates (cm). */
+	UPROPERTY(EditAnywhere, Category=Terrain, meta=(ClampMin="1"))
+	float InnerGridSpacing = 7.5f;
+	UPROPERTY(EditAnywhere, Category=Terrain, meta=(ClampMin="0"))
+	float MaximumPredictedTravel = 15.f;
 
 	FAnimNode_RACSoleContact();
 	virtual bool HasPreUpdate() const override { return true; }
@@ -88,6 +116,7 @@ private:
 	bool bLocked[2] = {false, false};
 	bool bAllowLock = false;
 	float DeltaTime = 0.f;
+	float PelvisDrop = 0.f;
 	bool bGroundedLocomotion = false;
 	bool bGroundedCombat = false;
 };
