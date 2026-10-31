@@ -1,0 +1,77 @@
+{
+ "schema": "reference-asset-compiler.speed-calibration.v1",
+ "date": "2026-10-31",
+ "machine": "RTX 4090, Windows 11, warm file cache",
+ "purpose": "Locate where geometry and paint time goes and take the wins that do not change the output; calibration only, not candidates.",
+ "geometry": {
+  "case": "fox-mascot calibration (seed 137, 40 steps, octree 512, chunks 20000, release_stages)",
+  "dense_seconds": {
+   "multiview_generate": 63.3,
+   "of_which_volume_decode": 44.1,
+   "denoise_40_steps": 15.1,
+   "marching_cubes": 1.9,
+   "single_view_generate": 55.2
+  },
+  "chunks_50000_volume_decode_seconds": 43.7,
+  "hierarchical_seconds": {
+   "multiview_generate": 20.6,
+   "single_view_generate": 13.0
+  },
+  "mesh_vs_dense": {
+   "multiview": {
+    "vertices": [
+     536108,
+     536108
+    ],
+    "faces": [
+     1072238,
+     1072238
+    ],
+    "bit_identical_vertex_share": 0.9989,
+    "max_shift_percent_of_diagonal": 0.0035
+   },
+   "single_view": {
+    "vertices": [
+     504912,
+     504918
+    ],
+    "faces": [
+     1009810,
+     1009818
+    ],
+    "bit_identical_vertex_share": 0.9962,
+    "max_shift_percent_of_diagonal": 0.0077
+   }
+  },
+  "upstream_bug": "HierarchicalVolumeDecoding builds refined query positions with an int64 cell size (dtype=next_points.dtype), so every refined query lands on the box corner and the decode fails; the runners recompile it with float32.",
+  "rejected": {
+   "flashvdm_adaptive_kv": "volume decode 1.3 s but an approximation: shape differs, and with mc it decodes a 504 grid scaled as 512, shrinking the mesh 1.6%; not used."
+  },
+  "on_model": "docs/evidence/geometry-decoder-compare-20261031.jpg"
+ },
+ "paint": {
+  "case": "AR-02 astrolabe, studio runner, 12 views x 768, atlas 2048, release_stages",
+  "before_seconds": {
+   "process": 177.2,
+   "imports": 8.5,
+   "load_models": 21.3,
+   "unet_15_steps": 59.6,
+   "realesrgan_16_images": 19.2,
+   "bake_2_maps": 8.1,
+   "inpaint_2_maps_sequential": 35.3,
+   "paint_total": 145.7
+  },
+  "attention_split_off_unet_seconds": 60.6,
+  "after_seconds": {
+   "process": 136.5,
+   "inpaint_wait": 16.1,
+   "paint_total": 105.0
+  },
+  "launcher_wall_seconds_after": 126,
+  "maps_vs_before": "base colour, metallic and roughness PNGs byte-identical",
+  "not_taken": {
+   "fewer_diffusion_steps": "changes the paint; a quality decision",
+   "safetensors_conversion": "would rewrite weights in the read-only studio tree"
+  }
+ }
+}

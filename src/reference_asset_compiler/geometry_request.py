@@ -164,6 +164,11 @@ def validate_geometry_request(
     release_stages = parameters.get("release_stages", True)
     if not isinstance(release_stages, bool):
         raise ValueError("Geometry release_stages must be true or false")
+    # Hierarchical decoding queries only near the surface; dense queries the
+    # whole grid as attempts before 2026-10-31 did.
+    volume_decoding = parameters.get("volume_decoding", "hierarchical")
+    if volume_decoding not in {"dense", "hierarchical"}:
+        raise ValueError("Geometry volume_decoding must be dense or hierarchical")
 
     output_directory = _expand_path(
         request.get("output_directory"), legacy_root, repo_root)
@@ -199,6 +204,7 @@ def validate_geometry_request(
             "octree_resolution": octree_resolution,
             "chunks": chunks,
             "release_stages": release_stages,
+            "volume_decoding": volume_decoding,
         },
         "output_directory": str(output_directory),
         "launch_ready": True,

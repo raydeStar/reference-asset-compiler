@@ -58,6 +58,7 @@ Usage:
 from __future__ import annotations
 
 import argparse
+from concurrent.futures import ThreadPoolExecutor
 import gc
 import json
 import os
@@ -234,6 +235,37 @@ def uv_inpaint_cv_fallback(self, texture, mask, **inpaint_kwargs):
 
 MeshRender.uv_inpaint = uv_inpaint_cv_fallback
 
+
+def inpaint_while_baking(painter):
+    """Start each map's CPU inpaint as soon as it is baked.
+
+    Upstream bakes base colour and metal-rough on the GPU, then inpaints them
+    one after the other on one CPU core: about 18 s each at a 4096 atlas.
+    OpenCV releases the GIL, so the two run side by side here, on the same
+    inputs and the same function. The result is byte-identical.
+    """
+    view_processor = painter.view_processor
+    bake, inpaint = view_processor.bake_from_multiview, view_processor.texture_inpaint
+    workers = ThreadPoolExecutor(max_workers=2, thread_name_prefix="rac-inpaint")
+    started = {}
+
+    def bake_then_start_inpaint(*bake_args, **bake_kwargs):
+        texture, mask = bake(*bake_args, **bake_kwargs)
+        # The exact mask upstream derives before calling texture_inpaint.
+        mask_np = (mask.squeeze(-1).cpu().numpy() * 255).astype(np.uint8)
+        started[id(texture)] = (texture, mask_np, workers.submit(inpaint, texture, mask_np))
+        return texture, mask
+
+    def finish_inpaint(texture, mask, *inpaint_args, **inpaint_kwargs):
+        entry = started.pop(id(texture), None)
+        if (entry is None or entry[0] is not texture or inpaint_args or inpaint_kwargs
+                or not np.array_equal(entry[1], mask)):
+            return inpaint(texture, mask, *inpaint_args, **inpaint_kwargs)
+        return entry[2].result()
+
+    view_processor.bake_from_multiview = bake_then_start_inpaint
+    view_processor.texture_inpaint = finish_inpaint
+
 # --- local model snapshots -------------------------------------------------
 model_root = LEGACY / "models" / "hy3d21"
 paint_snapshot = model_root / "Hunyuan3D-2.1"
@@ -387,6 +419,7 @@ os.chdir(UPSTREAM)
 try:
     painter = Hunyuan3DPaintPipeline(config)
     torch.cuda.reset_peak_memory_stats()
+    inpaint_while_baking(painter)
     if args.release_stages:
         release_between_stages(painter)
     if args.smooth_conditioning_normals:

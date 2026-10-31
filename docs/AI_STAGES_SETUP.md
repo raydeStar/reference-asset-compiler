@@ -310,6 +310,35 @@ identical on 2026-10-30, so release is the studio default. Reproduce a texture
 painted before that date with `-KeepStagesResident`. The legacy runner is
 unchanged.
 
+## Speed
+
+Measured on 2026-10-31 on the RTX 4090 with a warm file cache
+([evidence](evidence/speed-calibration-20261031.json)).
+
+**Geometry.** Turning the generated latent into a mesh queried every point of
+a 513³ grid: 44 of the 63 s a three-view generation took, and larger chunks do
+not help. The runners can now decode coarse to fine instead, querying only the
+cells near the surface, with the same decoder at the same final resolution.
+Requests default to `"volume_decoding": "hierarchical"`; `"dense"` is the old
+path. Three-view generation fell from 63 s to 21 s and one-picture generation
+from 55 s to 13 s. On the fox calibration, 99.6–99.9% of vertices are
+bit-identical, and none moved more than 0.008% of the bounding diagonal
+([on-model comparison](evidence/geometry-decoder-compare-20261031.jpg)).
+Upstream's hierarchical decoder has a bug that rounds the refined cell size
+to zero; the runners recompile it from upstream's source with that one
+correction and refuse to run if the source changes. FlashVDM, upstream's
+faster approximation, was rejected: it changes the shape, and with standard
+marching cubes it shrinks the mesh by 1.6%.
+
+**Paint.** Of a 146 s best-quality astrolabe paint, the UNet's 15 diffusion
+steps take 60 s, filling unpainted texels takes 35 s, RealESRGAN takes 19 s
+and baking 8 s. The fill ran on one CPU core for base colour and then for
+metal-rough; the studio runner now starts each map's fill as soon as it is
+baked, so the two run side by side. Paint fell to 105 s (126 s through the
+launcher), and all three maps are byte-identical. Splitting the attention for
+the 12 GB budget costs no measurable time. Fewer diffusion steps would be
+faster but would change the paint, so that stays a quality decision.
+
 ## Optional historical geometry through ComfyUI
 
 Earlier geometry work on the development workstation ran through the preserved

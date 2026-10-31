@@ -20,9 +20,9 @@ from reference_asset_compiler.io import sha256_file  # noqa: E402
 
 GEOMETRY_HASHES = {
     "single_view": ("run_hy3d_single_view.py",
-                    "a3ccdb3f971245d5e0a68eadef53cd4221f6e8bd848adb62c905508fa1a9b796"),
+                    "d8aacd0d0963b2a694170725678913c6f45cd7c9904bcf9699e13990e59671cd"),
     "multiview": ("run_hy3d_multiview.py",
-                  "29d40619e591955ac717bd1f2d8190fdf7f9c3b124217b12dbd551dff5df1eea"),
+                  "1ca6e74756f1df02240a97e35db3c68dd3f1de2179908c0cd36588d0bab599e6"),
 }
 PAINT_HASH = "b039065ea96e0e63effecba4379f63b8228f830b036ef1392790e5bf6b8f8a8b"
 PROFILES = ("ledger", "geometry", "texture", "ue", "all")

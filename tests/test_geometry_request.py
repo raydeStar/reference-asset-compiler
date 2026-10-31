@@ -104,6 +104,19 @@ class GeometryRequestTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "release_stages"):
             validate_geometry_request(self.request, self.legacy, self.repo)
 
+    def test_volume_decoding_defaults_hierarchical_and_is_checked(self) -> None:
+        self.assertEqual("hierarchical", validate_geometry_request(self.request, self.legacy, self.repo)
+                         ["parameters"]["volume_decoding"])
+        payload = json.loads(self.request.read_text(encoding="utf-8"))
+        payload["parameters"]["volume_decoding"] = "dense"
+        self.request.write_text(json.dumps(payload), encoding="utf-8")
+        self.assertEqual("dense", validate_geometry_request(self.request, self.legacy, self.repo)
+                         ["parameters"]["volume_decoding"])
+        payload["parameters"]["volume_decoding"] = "flashvdm"
+        self.request.write_text(json.dumps(payload), encoding="utf-8")
+        with self.assertRaisesRegex(ValueError, "volume_decoding"):
+            validate_geometry_request(self.request, self.legacy, self.repo)
+
     def test_source_hash_drift_fails(self) -> None:
         self.authority.write_bytes(b"changed")
         with self.assertRaisesRegex(ValueError, "source authority hash changed"):

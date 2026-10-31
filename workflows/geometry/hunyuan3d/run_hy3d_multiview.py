@@ -119,6 +119,38 @@ def release_between_stages(pipeline) -> None:
     pipeline.encode_cond, pipeline._export = encode_then_release, release_then_export
 
 
+def decode_near_surface_only(pipeline) -> None:
+    """Decode the occupancy volume coarse to fine instead of densely.
+
+    The dense decoder queries every one of the 513^3 grid points, about 44 s
+    of a 63 s generation. Upstream's hierarchical decoder evaluates a 65^3
+    grid and then only the cells near the surface at each finer level, with
+    the same geometry decoder at the same final resolution; marching cubes
+    sees identical values wherever the surface is. On the fox calibration
+    99.9% of vertices were bit-identical and none moved more than 0.0035% of
+    the bounding diagonal.
+
+    Upstream's copy carries a bug: it builds the refined query positions with
+    ``torch.tensor(resolution, dtype=next_points.dtype)``, and next_points
+    holds integer indices, so the cell size rounds to zero and every refined
+    query lands on the box corner. The method is recompiled from upstream's
+    own source with that dtype set to float32; anything else in the source
+    changing makes this refuse to run rather than guess.
+    """
+    import inspect
+    import textwrap
+
+    from hy3dgen.shapegen.models.autoencoders import volume_decoders
+
+    source = textwrap.dedent(inspect.getsource(volume_decoders.HierarchicalVolumeDecoding))
+    if source.count("dtype=next_points.dtype") != 2:
+        raise RuntimeError("Upstream HierarchicalVolumeDecoding changed; not patching it")
+    namespace: dict = {}
+    exec(compile(source.replace("dtype=next_points.dtype", "dtype=torch.float32"),
+                 inspect.getsourcefile(volume_decoders), "exec"), volume_decoders.__dict__, namespace)
+    pipeline.vae.volume_decoder = namespace["HierarchicalVolumeDecoding"]()
+
+
 def vram_record(free_at_start: int) -> dict:
     """Peak usage since the counters were reset, for calibrating launch floors."""
     return {
@@ -143,6 +175,8 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--release-stages", action="store_true",
                         help="Move the conditioner and diffusion model off the GPU once each is done.")
+    parser.add_argument("--volume-decoding", choices=("dense", "hierarchical"), default="dense",
+                        help="hierarchical decodes only near the surface; dense queries every grid point.")
     parser.add_argument("--min-free-gib", type=float, default=18,
                         help="Refuse to load the model with less free VRAM than this.")
     parser.add_argument(
@@ -219,6 +253,8 @@ def main() -> None:
     load_seconds = time.perf_counter() - load_started
     if args.release_stages:
         release_between_stages(pipeline)
+    if args.volume_decoding == "hierarchical":
+        decode_near_surface_only(pipeline)
     started = time.perf_counter()
     try:
         mesh = pipeline(
@@ -232,7 +268,8 @@ def main() -> None:
     except Exception as error:
         # Retain what a failed attempt used; an OOM is calibration evidence.
         failure = {"status": "failed", "error": f"{type(error).__name__}: {error}",
-                   "release_stages": args.release_stages, "seconds": time.perf_counter() - started,
+                   "release_stages": args.release_stages,
+                   "volume_decoding": args.volume_decoding, "seconds": time.perf_counter() - started,
                    "vram": vram_record(free_vram)}
         report.with_name(report.stem + "-failure.json").write_text(
             json.dumps(failure, indent=2) + "\n", encoding="utf-8")
@@ -255,6 +292,7 @@ def main() -> None:
         "seconds": elapsed,
         "load_seconds": load_seconds,
         "release_stages": args.release_stages,
+        "volume_decoding": args.volume_decoding,
         "vram": vram_record(free_vram),
     }
     report.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")

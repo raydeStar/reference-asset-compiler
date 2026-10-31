@@ -22,8 +22,8 @@ function Write-Utf8NoBom {
 # Two hash-pinned runners: multiview (three guidance views) and single view
 # (the reference image alone). The request's mode selects one after preflight.
 $expectedRunnerHashes = @{
-    multiview   = '29D40619E591955AC717BD1F2D8190FDF7F9C3B124217B12DBD551DFF5DF1EEA'
-    single_view = 'A3CCDB3F971245D5E0A68EADEF53CD4221F6E8BD848ADB62C905508FA1A9B796'
+    multiview   = '1CA6E74756F1DF02240A97E35DB3C68DD3F1DE2179908C0CD36588D0BAB599E6'
+    single_view = 'D8AACD0D0963B2A694170725678913C6F45CD7C9904BCF9699E13990E59671CD'
 }
 $runnerNames = @{ multiview = 'run_hy3d_multiview.py'; single_view = 'run_hy3d_single_view.py' }
 $generationSchemas = @{ multiview = 'reference-studio.hunyuan3d-multiview.v2'; single_view = 'reference-studio.hunyuan3d-single-view.v1' }
@@ -74,6 +74,8 @@ if (-not $runnerNames.ContainsKey($mode)) { throw "Unsupported geometry request 
 $runner = Join-Path $runnerRoot $runnerNames[$mode]
 $expectedRunnerHash = $expectedRunnerHashes[$mode]
 $releaseStages = [bool]$preflight.parameters.release_stages
+# Older preflight output has no volume_decoding; it meant the dense decoder.
+$volumeDecoding = if ($preflight.parameters.volume_decoding) { [string]$preflight.parameters.volume_decoding } else { 'dense' }
 # Floors are measured peaks plus headroom (docs/evidence/
 # geometry-vram-calibration-20261030.json, octree 512, 20000 chunks): the
 # allocator reserved at most 7.94 GiB resident and 5.18 GiB released in either
@@ -125,6 +127,7 @@ $attempt = [ordered]@{
     free_vram_mib = $freeMiB
     required_free_vram_mib = $requiredFreeVramMiB
     release_stages = $releaseStages
+    volume_decoding = $volumeDecoding
     gpu_utilization_percent = $utilization
     gpu_compute_owners = $computeApps
     comfy_process_count = $comfyProcessCount
@@ -153,6 +156,7 @@ try {
     # The runner rechecks the same floor after CUDA initialises.
     $viewArguments += @('--min-free-gib', ([double]$requiredFreeVramMiB / 1024).ToString([Globalization.CultureInfo]::InvariantCulture))
     if ($releaseStages) { $viewArguments += '--release-stages' }
+    $viewArguments += @('--volume-decoding', $volumeDecoding)
     try {
         & $hyPython $runner @viewArguments `
             --output $candidate `

@@ -3,6 +3,12 @@
 Release notes live under `docs/releases/`; GitHub releases carry the same text
 and any attached wheel.
 
+## Unreleased
+
+Faster AI stages: geometry generation is about 3× faster with a near-surface
+volume decoder (meshes match to 0.008% of the diagonal), and studio paint
+fills its two texture maps in parallel (byte-identical, about 40 s saved).
+
 ## v0.2.0 — 2026-10-30
 
 RAC on a 12 GB GPU: geometry needs 8 GB (byte-identical meshes), studio-route

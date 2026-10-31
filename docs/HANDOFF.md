@@ -5203,3 +5203,22 @@ byte-identical to the capped `astro-12gb` paint. On-model sheet:
 `1a67dfb9cef34bed9a7381c0808f654503752fd9430afed574f76ef3fd066cf5`, repinned in
 the launcher and `workflows/catalog.json`. The killed run's attempt directory
 was scratch, not an asset.
+
+## 2026-10-31 — Speed: near-surface volume decoding and parallel paint fill
+
+Branch `gpu-efficiency`. Stage timers (scratch probes wrapping upstream
+methods; runners unchanged) located the time. Geometry: the dense 513³ volume
+decode was 44 of 63 s; chunk size does not matter. Upstream's
+`HierarchicalVolumeDecoding` fails because it multiplies integer indices by an
+int64 cell size; both geometry runners now recompile it from upstream source
+with float32 (`--volume-decoding hierarchical`, request parameter
+`volume_decoding`, default `hierarchical`). Fox calibration: three-view 63 → 21 s,
+one-picture 55 → 13 s, 99.6–99.9% of vertices bit-identical, max shift
+0.008% of the diagonal; renders `docs/evidence/geometry-decoder-compare-20261031.jpg`.
+FlashVDM adaptive KV was rejected (approximate; with `mc` it decodes a 504 grid
+scaled as 512). Paint: UNet 60 s, CPU inpaint 35 s, RealESRGAN 19 s; the studio
+runner now starts each map's OpenCV inpaint when it is baked, in a two-thread
+pool. Astrolabe 12×768 paint 146 → 105 s, launcher wall 126 s, all three maps
+byte-identical. Evidence `docs/evidence/speed-calibration-20261031.json`.
+Runner hashes repinned in both launchers, `workflows/catalog.json` and
+`scripts/workflow_doctor.py`. No candidate was made or judged.
