@@ -235,6 +235,15 @@ Add every new item before it is used.
     faces were dropped; the plate on the back is not in the reference (it
     came from the acquisition); faint seams may show at the ~10k UV islands
     up close; not yet rigged or speaking.
-- Next: Mark's gate on textured v1; then the rig (open-source UE skeleton,
+  Mark passed textured v1 ("Yes, rig him") and asked for a hand check first.
+- 2026-11-01: hands checked before rigging (`hand_views.py`,
+  `evidence/raider-hands-check.jpg`). They are not good enough to rig. The
+  fingers are fused for most of their length and part only at the tips;
+  they are short and stubby against the reference's long, slim gloved
+  fingers; the flared gauntlet cuff is a thin band. The paint is right. The
+  hands came from the whole-body acquisition, which gave them as little
+  resolution as it gave the old head. Rigging is held until the hands are
+  replaced.
+- Next: hands; then the rig (open-source UE skeleton,
   MakeHuman face wrapped onto the painted head for blinks and speech,
   carrying the paint by bake).
