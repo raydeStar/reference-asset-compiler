@@ -105,6 +105,30 @@ Add every new item before it is used.
   (`evidence/reference-part-map-v1.png`). Known gap: the crossing harness
   straps under the chest plate merged into the jacket. Prototype scripts are in
   `work/raider-revamp/proto/`.
-- Next: project the part map onto the dense acquired mesh from the reference
-  camera, grow labels to hidden and back faces along concave creases, then
-  check the result from four views.
+- 2026-11-01: parts separated on the dense acquired mesh, first pass
+  (`evidence/raider-parts-v1.jpg`, `parts-v1/raider-parts-dense.blend`, 16
+  part objects, 663,532 triangles). Method (`proto/project_parts.py`):
+  - The crossing harness straps were added to the 2D map with Segment
+    Anything point prompts.
+  - Front and back are told apart by the boot toes; the front orthographic
+    view matches the reference silhouette at IoU 0.864.
+  - Faces turned toward the camera (normal facing it at more than 0.35) take
+    labels by per-pixel ray cast; the rest grow along the surface, where
+    concave creases cost 25 times more.
+  - Equipment may only reach a set distance around the body. Hidden faces
+    otherwise take the cloth or body part seen at the same screen position,
+    with the equipment removed from the map. Above the beard line, faces
+    turned backwards or upwards are hair.
+  - Rolled sleeves count as jacket.
+
+  Known rough spots: the hair and skin edge at the temples, the back of the
+  collar partly labelled hair, the belt band at the back partly jacket, and a
+  small knee-pad spill on his left thigh.
+- 2026-11-01: the workstation blue-screened (bugcheck 0x00020001) during a
+  projection run. The i9-14900K has logged corrected machine checks
+  ("internal parity error") on the same core, APIC ID 33, on 12, 20 and
+  30 October. That is a hardware-stability signal, not a script fault: the
+  same run had completed five times. Runs save their results as they go.
+- Next: cap each part's openings, reduce each part with its own budget, then
+  fit the MakeHuman head and gloves; Mark's modeling gate on the separated
+  parts.
