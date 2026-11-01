@@ -159,4 +159,15 @@ Add every new item before it is used.
     with the rig, since they must be posed to the glove); hair is the acquired
     lumpy shell (cards at paint); the eyes are placeholder spheres; the
     MakeHuman system assets (CC0 eyes, brows, lashes) need a download.
-- Next: Mark's modeling gate on v2; then UV and bake per part.
+- 2026-11-01: Mark rejected the v2 face ("face is a fail"); the body parts
+  were not rejected. The low-frequency fit gave a generic MakeHuman face with
+  sunken placeholder eyes, untextured. Tried next (`fit_head_v2.py`): a tight
+  pass snaps the skin onto the acquired head except the eyelids, lips and ears
+  (residual mean 0.0038 to 0.0026). To judge likeness, the reference picture
+  was projected front-on as colour onto both heads and the acquired head
+  (`face_preview.py`, `evidence/raider-face-options.jpg`). With colour, all
+  three read as the reference from the front. The acquired head (A) looks
+  most natural but cannot blink or talk. Both MakeHuman fits (B loose,
+  C tight) show spectacle-like rings where the lids meet the eyeballs.
+  Awaiting Mark's choice of A or C before UV and bake.
+- Next: Mark's pick of face; then UV and bake per part.

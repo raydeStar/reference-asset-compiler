@@ -15,6 +15,7 @@ SAM scripts run under the ComfyUI Python, which has `segment_anything`.
 | 3 | `refine_labels.py` | `$B -b --factory-startup` | Head and collar regrown along creases, belt round the back, pouches, knee pads, small islands |
 | 4 | `build_parts.py` | `$B -b --factory-startup` | One part per label: cloth continues under overlays, overlays become thin shells, open edges skirted inward, each part reduced to its budget |
 | 5 | `fit_head.py` | `$B -b <parts blend>` (needs MPFB 2) | MakeHuman head fitted to the acquired head, 34 expression shape keys, beard as a paint mask |
+| 5b | `fit_head_v2.py` | `$B -b <parts blend>` | Tight fit after the face was rejected: skin snapped onto the acquired head except lids, lips, ears |
 | 6 | `eyes_and_sheet.py`, `fix_eyes.py`, `expr.py` | `$B -b <head blend>` | Eyeballs, gate renders, expression renders |
 
 Example, from the repository root:
