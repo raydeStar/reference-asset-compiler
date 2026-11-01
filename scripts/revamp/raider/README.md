@@ -18,6 +18,7 @@ SAM scripts run under the ComfyUI Python, which has `segment_anything`.
 | 5b | `fit_head_v2.py` | `$B -b <parts blend>` | Tight fit after the face was rejected: skin snapped onto the acquired head except lids, lips, ears |
 | 6 | `eyes_and_sheet.py`, `fix_eyes.py`, `expr.py` | `$B -b <head blend>` | Eyeballs, gate renders, expression renders |
 | 7 | `face_preview.py` | `$B -b <head blend>` | Reference picture projected front-on as colour, to judge likeness |
+| 8 | `head_crop.py`, `head_views.py` | ComfyUI Python; `$B -b --factory-startup` | Head crop of the reference, 4x Real-ESRGAN, for a head-only acquisition; clay views of the candidate |
 
 Example, from the repository root:
 

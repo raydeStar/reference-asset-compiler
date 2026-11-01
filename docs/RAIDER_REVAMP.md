@@ -169,5 +169,20 @@ Add every new item before it is used.
   three read as the reference from the front. The acquired head (A) looks
   most natural but cannot blink or talk. Both MakeHuman fits (B loose,
   C tight) show spectacle-like rings where the lids meet the eyeballs.
-  Awaiting Mark's choice of A or C before UV and bake.
-- Next: Mark's pick of face; then UV and bake per part.
+  Mark rejected all three ("they are all bad").
+- 2026-11-01: diagnosis: every option starts from the head cut out of the
+  whole-body acquisition, which gives the head a small share of the
+  generator's resolution. Its hair is lumps, its eyes are shallow dents, and
+  no fit or projection can add structure that is not there. That matches the
+  2026-09-05 decisions ("head paint cannot replace facial structure"; "head-only
+  acquisition restores detail"). New head-only acquisition: the reference head
+  is cropped and upscaled 4x with Real-ESRGAN (`head_crop.py`), registered as
+  workspace `work/raider-head` (`rac new`, kind humanoid), and run once through
+  the single-view launcher (`configs/generation/raider-head-attempt001.json`,
+  seed 42, 50 steps, octree 512; 1.55M triangles in 16 s, 5.2 GB VRAM peak).
+  In clay it has hair strands with volume, eyelids, brow ridges, lips, ears
+  and relief for the beard and collar (`evidence/raider-head-old-vs-new.jpg`).
+  This is a candidate only, waiting on Mark's modeling gate.
+- Next, if the new head passes: place it on the body; wrap MakeHuman topology
+  tightly onto it for blinks and speech; paint it with registered front
+  colour plus the painter for the sides and hair.
