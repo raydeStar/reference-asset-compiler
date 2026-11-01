@@ -19,6 +19,7 @@ SAM scripts run under the ComfyUI Python, which has `segment_anything`.
 | 6 | `eyes_and_sheet.py`, `fix_eyes.py`, `expr.py` | `$B -b <head blend>` | Eyeballs, gate renders, expression renders |
 | 7 | `face_preview.py` | `$B -b <head blend>` | Reference picture projected front-on as colour, to judge likeness |
 | 8 | `head_crop.py`, `head_views.py` | ComfyUI Python; `$B -b --factory-startup` | Head crop of the reference, 4x Real-ESRGAN, for a head-only acquisition; clay views of the candidate |
+| 9 | `head_paint_prep.py`, `obj_to_glb.py` | `$B -b --factory-startup` | Reduce and unwrap the accepted head for Hunyuan3D-Paint (`scripts/run_hy3d21_texture.ps1`); pack the painted OBJ and maps into a GLB for `render_turnaround.py` |
 
 Example, from the repository root:
 

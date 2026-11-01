@@ -183,6 +183,29 @@ Add every new item before it is used.
   In clay it has hair strands with volume, eyelids, brow ridges, lips, ears
   and relief for the beard and collar (`evidence/raider-head-old-vs-new.jpg`).
   This is a candidate only, waiting on Mark's modeling gate.
-- Next, if the new head passes: place it on the body; wrap MakeHuman topology
-  tightly onto it for blinks and speech; paint it with registered front
-  colour plus the painter for the sides and hair.
+  Mark passed the new head's shape ("new is really good").
+- 2026-11-01: head painted (`evidence/raider-head-painted-v1.jpg`).
+  - Paint mesh: the candidate reduced by QEM collapse to 100k triangles,
+    Smart UV Project, exported with a material
+    (`head_paint_prep.py`, `work/raider-head/modeling/raider-head-paintmesh-100k-v2.glb`).
+    Attempt 1 failed before inference: exported without a material, the
+    painter's loader dropped the UVs (`ColorVisuals has no uv`). Retained, not
+    retried.
+  - Attempt 2: `run_hy3d21_texture.ps1 -Views 12 -Resolution 768 -RunnerKind
+    studio -Atlas 4096` with the head crop as reference. The topology/UV gate
+    passed (geometry delta 1.7e-7, UV delta 0). The process then exited
+    abnormally (-1073741819) during teardown, after writing its outputs;
+    receipt retained.
+  - Result: unlike the shallow Ayric head (2026-09-05, doubled eyes), this
+    head's modeled sockets let the views agree. One pair of eyes sits in the
+    sockets; brows, nose, beard, mouth and ears land where the reference has
+    them; the hair is painted round the back.
+  - The painter's roughness left the skin wet-looking (5th percentile 0.30).
+    `clamp_region_roughness.py` now reads the studio runner's PNG maps (test
+    added). With a whole-atlas mask and a 0.6 floor, the lit skin reads matte
+    (`textures/paint-attempt002-rough60`). Small light specks remain on the
+    back of the collar and a dark mark at the top of his left ear.
+- Next: Mark's texture gate on the head; then paint the body parts the same
+  way (per part, close crops); place the head on the body; wrap MakeHuman
+  topology onto the painted head for blinks and speech, carrying the paint by
+  bake.
