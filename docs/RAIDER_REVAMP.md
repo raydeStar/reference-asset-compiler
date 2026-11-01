@@ -205,7 +205,36 @@ Add every new item before it is used.
     added). With a whole-atlas mask and a 0.6 floor, the lit skin reads matte
     (`textures/paint-attempt002-rough60`). Small light specks remain on the
     back of the collar and a dark mark at the top of his left ear.
-- Next: Mark's texture gate on the head; then paint the body parts the same
-  way (per part, close crops); place the head on the body; wrap MakeHuman
-  topology onto the painted head for blinks and speech, carrying the paint by
-  bake.
+  Mark passed the painted head ("significantly better than before").
+- 2026-11-01: body painted and head placed (`evidence/raider-textured-v1.jpg`,
+  `work/raider-revamp/assembled/raider-v3.glb`).
+  - Paint mesh: the 16 reduced parts joined and triangulated, one Smart UV
+    atlas (`body_paint_prep.py`). The acquired face, beard and hair stay in,
+    so the painter sees the whole character the reference shows.
+  - Attempt 1 (12 views, 768, 4096 atlas) gave coherent colour, but the
+    default scaled pack margin left 88% of the atlas empty across about 10k
+    islands (UV area 0.115). A fixed fraction margin (0.001, 4 px) packs to
+    0.46. Attempt 2 repainted with that layout and is visibly sharper on the
+    pouches, buckle, straps and plates. Both runs passed the topology/UV gate
+    and exited abnormally in teardown after writing outputs.
+  - The painter left cloth, skin and leather partly metallic (mean 0.088), so
+    the trousers read as steel. `calibrate_pbr.py` sets metallic to zero and
+    raises roughness to a 0.6 floor inside a non-metal mask, rasterized from
+    each painted face's part (`part_uv_mask.py`, nearest reduced part; the
+    glTF export drops one degenerate face, so face order is not trusted).
+    Plates and buckle are untouched.
+  - Head placement (`place_head.py`): body face, beard and hair faces are
+    dropped. The painted head is aligned on the nose tip, with the scale from
+    nose-to-crown height and ear width (0.242 and 0.247, mean used). Two
+    geometric bust cuts were rejected: a plain 2 cm distance cut left a ragged
+    neck, and an outside-the-cloth test misread the collar's inner face. The
+    kept cut uses the head's own paint: below the jaw, teal-jacket faces go,
+    and so do leather faces below the beard; skin and beard stay. The neck
+    now runs cleanly into the open collar.
+  - Still rough: a dark notch at the back of the collar where the body's neck
+    faces were dropped; the plate on the back is not in the reference (it
+    came from the acquisition); faint seams may show at the ~10k UV islands
+    up close; not yet rigged or speaking.
+- Next: Mark's gate on textured v1; then the rig (open-source UE skeleton,
+  MakeHuman face wrapped onto the painted head for blinks and speech,
+  carrying the paint by bake).
