@@ -17,6 +17,7 @@ SAM scripts run under the ComfyUI Python, which has `segment_anything`.
 | 5 | `fit_head.py` | `$B -b <parts blend>` (needs MPFB 2) | MakeHuman head fitted to the acquired head, 34 expression shape keys, beard as a paint mask |
 | 5b | `fit_head_v2.py` | `$B -b <parts blend>` | Tight fit after the face was rejected: skin snapped onto the acquired head except lids, lips, ears |
 | 6 | `eyes_and_sheet.py`, `fix_eyes.py`, `expr.py` | `$B -b <head blend>` | Eyeballs, gate renders, expression renders |
+| 7 | `face_preview.py` | `$B -b <head blend>` | Reference picture projected front-on as colour, to judge likeness |
 
 Example, from the repository root:
 
