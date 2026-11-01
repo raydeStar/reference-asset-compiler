@@ -129,6 +129,34 @@ Add every new item before it is used.
   ("internal parity error") on the same core, APIC ID 33, on 12, 20 and
   30 October. That is a hardware-stability signal, not a script fault: the
   same run had completed five times. Runs save their results as they go.
-- Next: cap each part's openings, reduce each part with its own budget, then
-  fit the MakeHuman head and gloves; Mark's modeling gate on the separated
-  parts.
+- 2026-11-01: modeling gate v2 (`evidence/raider-parts-v2.jpg`,
+  `parts-v2/raider-parts-v2.blend`, `parts-v2/raider-head-v1.blend`; scripts
+  in `scripts/revamp/raider/`).
+  - Labels: above the shoulders, hair, face, beard and collar are regrown
+    from sure seeds along creases; the beard may not climb above the nose. The
+    belt band runs round the back; boxes standing proud of the belt are
+    pouches; knee pads stop at the top of the pad and at 60 degrees round
+    the leg; islands under 250 faces join their neighbours.
+  - Capping every opening flat was tried and rejected: caps on large, curved
+    openings cut through the face and chest. Instead, cloth continues under
+    each overlay (the covered area is relaxed into a smooth membrane), every
+    overlay (straps, plates, belt, buckle, pouches, knee pads, boot straps,
+    hair) is a closed thin shell, and each cloth part's open edge folds a
+    short skirt inward so no hole shows between parts.
+  - Reduced from 663k to 120k triangles, each part to its own budget.
+  - Head: the MPFB MakeHuman head (male, CC0 assets) is aligned on eye, mouth
+    and nose landmarks (vertical and width scales agree within 2.5%), then
+    takes a smooth low-frequency offset field, so it keeps MakeHuman's
+    eyelids, lips and nostrils. Mean distance to the acquired head is 0.004
+    (p95 0.009, head height about 0.25). It carries teeth, tongue and 34
+    expression shape keys; mouth open, smile, "oo", blink and brows are shown.
+    MakeHuman's lids close over the socket, so its helper eyes were replaced
+    with eyeball spheres seated by depth.
+  - The acquired beard is retired as geometry: a shell over a talking mouth
+    cannot follow it. The beard is a `beard_mask` vertex group on the head for
+    the paint stage.
+  - Still open: gloves are the acquired shape (jointed MakeHuman hands come
+    with the rig, since they must be posed to the glove); hair is the acquired
+    lumpy shell (cards at paint); the eyes are placeholder spheres; the
+    MakeHuman system assets (CC0 eyes, brows, lashes) need a download.
+- Next: Mark's modeling gate on v2; then UV and bake per part.
