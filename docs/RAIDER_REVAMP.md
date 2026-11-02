@@ -538,3 +538,47 @@ Add every new item before it is used.
   - Still visible: the left glove's thumb sticks out as a flat bar (the
     left hand is the right one mirrored); a sliver of lining at the left
     cuff.
+- 2026-11-02: forearm and hand reconstruction (`scripts/revamp/raider/place_hands.py`,
+  `scripts/revamp/raider/prep_production.py`, `scripts/revamp/raider/lengthen_forearms.py`,
+  `assembled/raider-v13.glb`, `prod/raider_hero_production.glb`,
+  `evidence/raider-forearms-v4.jpg`, `evidence/raider-forearm-check-v4.jpg`,
+  `evidence/raider-forearm-square-v4.jpg`, `evidence/raider-hands-v2.jpg`).
+  - Mark rejected forearms v4 ("this looks so wrong still"). Root-cause
+    audit traced the defect to a two-stage failure chain:
+    1. **Stage 1 (`place_hands.py` caused T-Rex arms):** the hand-only
+       acquisition (`raider-hand-r.glb`) already contained the full 8.7 cm
+       sculpted leather gauntlet welt (`T in [-0.067, +0.015]`) and bare
+       forearm (`T in [-0.140, -0.067]`), but the script's HSV skin detector
+       misclassified bright highlights on the brown leather gauntlet as
+       "skin". Taking `np.percentile(t[skin], 8)` (`T = +0.0327`) sliced off
+       the entire 8.7 cm leather gauntlet and bare forearm right above the
+       wrist strap, and `WRIST_OVERLAP = 0.035` then pushed that truncated
+       wrist 3.5 cm inside the rolled sleeve—shortening both arms by ~6 cm
+       and burying the wrists inside the cuffs.
+    2. **Stage 2 (`lengthen_forearms.py` broke the geometry trying to patch
+       Stage 1):** instead of restoring the sculpted gauntlet and forearm in
+       `place_hands.py`, `lengthen_forearms.py` pulled the rolled sleeve cuff
+       up (`SLEEVE_UP = 0.035`), pushed the truncated hand out, and bridged
+       the gap with two procedural `tube()` cylinders. That left the rolled
+       sleeve hollow and torn, the bare-skin cylinder off-centre and too
+       thin, the gauntlet cuff a floating grey cylinder with a skin gap above
+       the palm, and a flat bar spike on the left pinky where vertices beyond
+       `r = 0.12 m` were left behind during hand rotation.
+  - Fixed directly in `place_hands.py` and `prep_production.py`:
+    - `place_hands.py` now cuts `raider-hand-r.glb` at `T_CUT_H = -0.105`
+      (preserving 100% of the gloved fingers, wrist strap, 8.7 cm flared
+      leather gauntlet welt, and bare forearm), scales by `S = 0.195`,
+      aligns each hand coaxially (`15.71` and `15.04` degree turns) with the
+      unbiased forearm axis measured from non-boundary outer forearm slices,
+      removes the synthetic 6 mm inward boundary skirt on `raider_body`'s
+      `skin` part (`fn . r_hat <= +0.47`), inserts planar crease rings at
+      `tb = -0.1180`, `-0.1165`, and `-0.1145`, and smoothly morphs the bare
+      forearm (`t_rel in [-0.038, 0.0]`) into the 360-degree rolled sleeve
+      cuff bore with a clean circular shadow crease under the cuff lip.
+    - `prep_production.py` welds coincident UV-seam vertices
+      (`remove_doubles(dist=1e-5)`) before `DECIMATE` and recalculates face
+      normals afterward, eliminating UV-seam splitting cracks on the 75,996-face
+      hero-tier production mesh.
+    - `lengthen_forearms.py` is updated to verify the reconstructed forearm
+      and hand dimensions (`shoulder_to_fingertip_m = 0.735`,
+      `hand_and_forearm_span_m = 0.402`) without destructive cylinder surgery.

@@ -3,7 +3,7 @@ hands (materials kept), scale to the declared height with the soles on the floor
 
   $B -b --factory-startup --python prep_production.py -- <assembled.glb> <out.glb> [height_m]
 """
-import bpy, sys, json
+import bpy, bmesh, sys, json
 import numpy as np
 from mathutils import Matrix
 a = sys.argv[sys.argv.index("--") + 1:]; src, out = a[0], a[1]; height = float(a[2]) if len(a) > 2 else 1.82
@@ -15,12 +15,18 @@ obs = [o for o in bpy.context.scene.objects if o.type == 'MESH']
 report_tris = {}
 for o in obs:
     o.data.transform(o.matrix_world); o.matrix_world = Matrix.Identity(4)
+    bm = bmesh.new(); bm.from_mesh(o.data)
+    bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-5)
+    bm.to_mesh(o.data); bm.free()
     key = next((k for k in BUDGET if o.name.startswith(k)), None)
     n = sum(len(p.vertices) - 2 for p in o.data.polygons)
     if key and n > BUDGET[key]:
         bpy.context.view_layer.objects.active = o
         m = o.modifiers.new("reduce", 'DECIMATE'); m.ratio = BUDGET[key] / n; m.use_collapse_triangulate = True
         bpy.ops.object.modifier_apply(modifier=m.name)
+    bm = bmesh.new(); bm.from_mesh(o.data)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
+    bm.to_mesh(o.data); bm.free()
     report_tris[o.name] = sum(len(p.vertices) - 2 for p in o.data.polygons)
     o.select_set(True)
 print("REDUCED", report_tris)
