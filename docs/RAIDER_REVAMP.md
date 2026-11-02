@@ -456,3 +456,29 @@ Add every new item before it is used.
   times the viseme mix) and the blinks turned the eye area dark. Rendered
   with `RAC_SPEAK_GAIN=1.5 RAC_SPEAK_BLINK=0 RAC_SPEAK_DIST=1.0`. The blink
   shape still needs fixing before blinks go back in.
+- 2026-11-01: mouth v1 (`evidence/raider-mouth-v1.jpg`,
+  `rig/mouth-v1/raider_hero_rigged.fbx`, `fix_mouth.py`,
+  `speech/raider-speaking-v3.mp4`).
+  - Mark: the lips look jagged and "the teeth aren't in place". Measured:
+    MPFB's per-shape refit bent both arches in the open-mouth shape (side
+    teeth swung into the gap, front teeth stayed apart); the upper incisor
+    edges sat above the lip line, and the open-mouth shape also pulls the
+    upper lip down, so the upper lip buried them.
+  - Now the teeth are rigid: the upper row stays with the skull and follows
+    the upper lip's edge down (never up); the lower row and tongue follow
+    the chin and lower lip as one solid piece (a best-fit rigid motion per
+    shape: 25 degrees at full open). Teeth drop 5.3 mm so the incisor edges
+    sit 3 mm under the lip line. Rows are told apart by how far each tooth
+    dropped in the original refit (by centre height, long front teeth
+    landed in the wrong row); the 52 gum faces joining the arches at the
+    back are removed.
+  - The demo caps the mouth shapes at 0.7 (`RAC_SPEAK_MAX`): past that the
+    face's mouth corners tear. Still rough: dark streaks baked onto the
+    inner edge of the lower lip.
+- 2026-11-01: short forearms found (`evidence/raider-forearm-check.jpg`).
+  At the same figure height the model's hands end at the belt, about 9% of
+  his height above the reference's. The reference has a stretch of bare
+  forearm and a long gauntlet cuff between the rolled sleeve and the hand;
+  the model has neither. The hand placement followed the whole-body
+  acquisition's glove, whose forearm was already short, and the gauntlet
+  sits inside the sleeve. Needs a modeling fix and a re-rig.
