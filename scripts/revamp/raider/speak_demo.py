@@ -3,9 +3,13 @@ timings), add two blinks and a little head movement, and render the frames for a
 
   $B -b <rigged.blend> --python speak_demo.py -- <visemes.json> <frames_dir> [fps]
 The mouth shapes on the face, teeth and tongue are the MakeHuman expression shapes of the same names.
+Environment: RAC_SPEAK_GAIN scales the mouth shapes (default 0.9, capped at 1), RAC_SPEAK_BLINK=0 drops the blinks,
+RAC_SPEAK_DIST is the camera distance in metres (default 1.75; about 1.0 frames the face).
 """
 import bpy, sys, os, json, math
 from mathutils import Vector, Euler
+GAIN = float(os.environ.get("RAC_SPEAK_GAIN", "0.9")); BLINK = os.environ.get("RAC_SPEAK_BLINK", "1") != "0"
+DIST = float(os.environ.get("RAC_SPEAK_DIST", "1.75"))
 a = sys.argv[sys.argv.index("--") + 1:]; vis_p, out = a[0], a[1]; FPS = int(a[2]) if len(a) > 2 else 24
 os.makedirs(out, exist_ok=True)
 sc = bpy.context.scene
@@ -29,10 +33,10 @@ for o in targets:
     for v in V:
         f = 1 + v["t"] * FPS; ws = MAP.get(v["v"], {})
         for s in SHAPES:
-            if s in kb: kb[s].value = ws.get(s, 0.0) * 0.9; kb[s].keyframe_insert("value", frame=f)
+            if s in kb: kb[s].value = min(1.0, ws.get(s, 0.0) * GAIN); kb[s].keyframe_insert("value", frame=f)
     for s in SHAPES:
         if s in kb: kb[s].value = 0; kb[s].keyframe_insert("value", frame=sc.frame_end)
-    for bt in (0.15, 2.35):   # two blinks
+    for bt in ((0.15, 2.35) if BLINK else ()):   # two blinks
         for s in ("eye-left-closure", "eye-right-closure"):
             if s not in kb: continue
             for df, val in ((0, 0), (2, 1), (4, 1), (7, 0)):
@@ -50,7 +54,7 @@ for nm, en, rot in (("key", 2.6, (55, 0, -35)), ("fill", 0.7, (65, 0, 60)), ("ri
     l = bpy.data.objects.new(nm, bpy.data.lights.new(nm, 'SUN')); l.data.energy = en; sc.collection.objects.link(l); l.rotation_euler = tuple(math.radians(x) for x in rot)
 cam = bpy.data.objects.new("c", bpy.data.cameras.new("c")); sc.collection.objects.link(cam); sc.camera = cam; cam.data.lens = 85
 head = arm.matrix_world @ arm.data.bones["head"].head_local + Vector((0, 0, 0.05))
-d = Vector((0, -1, 0)); d.rotate(Euler((0, 0, math.radians(18)))); cam.location = head + d * 1.75 + Vector((0, 0, 0.03))
+d = Vector((0, -1, 0)); d.rotate(Euler((0, 0, math.radians(18)))); cam.location = head + d * DIST + Vector((0, 0, 0.03))
 cam.rotation_euler = (head - cam.location).to_track_quat('-Z', 'Y').to_euler()
 sc.render.resolution_x, sc.render.resolution_y = 960, 960
 sc.render.image_settings.file_format = 'PNG'; sc.render.filepath = os.path.join(out, "f_")

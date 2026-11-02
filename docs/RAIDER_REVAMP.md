@@ -451,3 +451,8 @@ Add every new item before it is used.
     degrees, which is what makes the head look sunk; at a natural 30 degrees
     it reads normally. Arms-out is nearly unchanged apart from a small skin
     patch at the left armpit, now gone.
+- 2026-11-01: speech demo v2 (`speech/raider-speaking-v2.mp4`, on
+  `rig/shoulder-v4`). The first demo's mouth barely opened (shapes at 0.9
+  times the viseme mix) and the blinks turned the eye area dark. Rendered
+  with `RAC_SPEAK_GAIN=1.5 RAC_SPEAK_BLINK=0 RAC_SPEAK_DIST=1.0`. The blink
+  shape still needs fixing before blinks go back in.
