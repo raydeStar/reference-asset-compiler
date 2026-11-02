@@ -23,7 +23,11 @@ Historical note (2026-11-02):
 
   $B -b --factory-startup --python lengthen_forearms.py -- <production.glb> <landmarks.json> <out.glb> [reference.png]
 """
-import bpy, bmesh, sys, json, os
+import bpy
+import bmesh
+import sys
+import json
+import os
 import numpy as np
 
 a = sys.argv[sys.argv.index("--") + 1:]
@@ -45,7 +49,8 @@ for p in me.polygons:
         mi[v] = p.material_index
 
 wrists = [np.array(J["hand_l"]), np.array(J["hand_r"])]
-near = lambda k: sum(int((np.linalg.norm(P[mi == k] - w, axis=1) < 0.10).sum()) for w in wrists)
+def near(k):
+    return sum(int((np.linalg.norm(P[mi == k] - w, axis=1) < 0.10).sum()) for w in wrists)
 HAND = max(range(len(me.materials)), key=near)
 BODY = 0
 

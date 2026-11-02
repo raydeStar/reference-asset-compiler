@@ -10,7 +10,11 @@ rolled sleeve cuff's inner crease is cleanly tucked along a planar ring inside t
   $B -b raider-parts-v2.blend --python place_hands.py -- <assembled.glb> <hand.glb> <crop.png> <crop.lineage.json> \
      <ids.npy> <out.glb>
 """
-import bpy, bmesh, sys, json, math
+import bpy
+import bmesh
+import sys
+import json
+import math
 import numpy as np
 from mathutils import Vector, Matrix
 from mathutils.kdtree import KDTree
@@ -43,13 +47,16 @@ body = next(o for o in asm if "body" in o.name)
 head = next(o for o in asm if "head" in o.name)
 body.name = "raider_body"
 head.name = "raider_head"
-body.data.transform(body.matrix_world); body.matrix_world = Matrix.Identity(4)
-head.data.transform(head.matrix_world); head.matrix_world = Matrix.Identity(4)
+body.data.transform(body.matrix_world)
+body.matrix_world = Matrix.Identity(4)
+head.data.transform(head.matrix_world)
+head.matrix_world = Matrix.Identity(4)
 
 bpy.ops.import_scene.gltf(filepath=hand_p)
 hand = [o for o in bpy.context.selected_objects if o.type == 'MESH'][0]
 hand.name = "raider_hand_r"
-hand.data.transform(hand.matrix_world); hand.matrix_world = Matrix.Identity(4)
+hand.data.transform(hand.matrix_world)
+hand.matrix_world = Matrix.Identity(4)
 
 S = 0.195
 hand.data.transform(Matrix.Scale(S, 4))
@@ -65,23 +72,30 @@ ch = 0.5 * (Vh[sl_welt].min(0) + Vh[sl_welt].max(0))
 
 # Cut hand at T_CUT_H = -0.105 (t_rel = -0.038, inside the 360-deg uniform bare-skin band above the leather gauntlet welt)
 T_CUT_H = -0.105
-hb = bmesh.new(); hb.from_mesh(hand.data)
+hb = bmesh.new()
+hb.from_mesh(hand.data)
 bmesh.ops.remove_doubles(hb, verts=hb.verts[:], dist=1e-6)
 plane_co = Vector((c_ref_h + axis_h * T_CUT_H).tolist())
 plane_no = Vector((-axis_h).tolist())
 bmesh.ops.bisect_plane(hb, geom=hb.verts[:] + hb.edges[:] + hb.faces[:], plane_co=plane_co, plane_no=plane_no, clear_outer=True)
 
-hb.faces.ensure_lookup_table(); seen = set(); pieces = []
+hb.faces.ensure_lookup_table()
+seen = set()
+pieces = []
 for f in hb.faces:
     if f.index in seen:
         continue
-    stack = [f]; seen.add(f.index); piece = []
+    stack = [f]
+    seen.add(f.index)
+    piece = []
     while stack:
-        g = stack.pop(); piece.append(g)
+        g = stack.pop()
+        piece.append(g)
         for e in g.edges:
             for h in e.link_faces:
                 if h.index not in seen:
-                    seen.add(h.index); stack.append(h)
+                    seen.add(h.index)
+                    stack.append(h)
     pieces.append(piece)
 pieces.sort(key=len, reverse=True)
 hand_faces_cut = sum(len(p) for p in pieces[1:])
@@ -105,12 +119,15 @@ for _ in range(4):
             updates[v] = sum(nbrs, Vector((0.0, 0.0, 0.0))) / len(nbrs)
     for v, co_new in updates.items():
         v.co = 0.35 * v.co + 0.65 * co_new
-hb.to_mesh(hand.data); hb.free()
+hb.to_mesh(hand.data)
+hb.free()
 
 # Weld body seams and measure unbiased slice-bbox arm axes from non-boundary outer forearm vertices
-bm = bmesh.new(); bm.from_mesh(body.data)
+bm = bmesh.new()
+bm.from_mesh(body.data)
 bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-5)
-bm.faces.ensure_lookup_table(); bm.verts.ensure_lookup_table()
+bm.faces.ensure_lookup_table()
+bm.verts.ensure_lookup_table()
 
 Vb = np.array([v.co[:] for v in bm.verts])
 is_bnd_v = np.array([v.is_boundary for v in bm.verts], dtype=bool)
@@ -126,8 +143,10 @@ for side, sg in (('r', -1), ('l', 1)):
                 for v in f.verts:
                     if not v.is_boundary:
                         arm_v.add(v.index)
-    arm_mask = np.zeros(len(Vb), bool); arm_mask[list(arm_v)] = True
-    ax = np.array([sg * 0.43263932, -0.30733883, -0.84756478]); ax /= np.linalg.norm(ax)
+    arm_mask = np.zeros(len(Vb), bool)
+    arm_mask[list(arm_v)] = True
+    ax = np.array([sg * 0.43263932, -0.30733883, -0.84756478])
+    ax /= np.linalg.norm(ax)
     cref = np.array([sg * 0.46579623, -0.01634728, 0.1502606])
     for _ in range(6):
         tb = (Vb - cref) @ ax
@@ -148,7 +167,9 @@ for side, sg in (('r', -1), ('l', 1)):
     c_join = 0.5 * (Vb[sl_join].min(0) + Vb[sl_join].max(0))
     arm_axes[side] = (ax, cref, c_join, arm_mask)
 
-left = hand.copy(); left.data = hand.data.copy(); left.name = "raider_hand_l"
+left = hand.copy()
+left.data = hand.data.copy()
+left.name = "raider_hand_l"
 bpy.context.scene.collection.objects.link(left)
 
 cyl_profiles = {}
@@ -168,8 +189,10 @@ for side, obj, sg in (('r', hand, -1), ('l', left, 1)):
     obj.data.transform(M)
     rot_degs[side] = float(np.degrees(np.arccos(np.clip(ax_h_side @ ax_b, -1.0, 1.0))))
 
-    u = np.cross(ax_b, [0, 1, 0]); u /= np.linalg.norm(u)
-    v_ort = np.cross(ax_b, u); v_ort /= np.linalg.norm(v_ort)
+    u = np.cross(ax_b, [0, 1, 0])
+    u /= np.linalg.norm(u)
+    v_ort = np.cross(ax_b, u)
+    v_ort /= np.linalg.norm(v_ort)
 
     # Measure sleeve inner bore radius profile r_top(theta) from all non-boundary outer forearm vertices in -0.115 < tb < -0.104
     tb_b = (Vb - cref_b) @ ax_b
@@ -178,7 +201,8 @@ for side, obj, sg in (('r', hand, -1), ('l', left, 1)):
     rad_b = np.hypot(rel_b @ u, rel_b @ v_ort)
     ang_b = np.arctan2(rel_b @ v_ort, rel_b @ u)
     sl_b_top = arm_mask & (~is_bnd_v) & (tb_b > -0.115) & (tb_b < -0.104)
-    ang_b_top = ang_b[sl_b_top]; rad_b_top = rad_b[sl_b_top]
+    ang_b_top = ang_b[sl_b_top]
+    rad_b_top = rad_b[sl_b_top]
 
     # Measure hand's smooth wrist skin radius profile r_bot(theta) right above the leather gauntlet welt (t_rel in [-0.008, -0.003])
     Vh_now = np.array([v.co[:] for v in obj.data.vertices])
@@ -276,17 +300,23 @@ body_faces_dropped = len(drop_faces)
 bmesh.ops.delete(bm, geom=drop_faces, context='FACES')
 
 # Remove any small disconnected fragments near the arms
-bm.faces.ensure_lookup_table(); seen = set(); comps = []
+bm.faces.ensure_lookup_table()
+seen = set()
+comps = []
 for f in bm.faces:
     if f.index in seen:
         continue
-    stack = [f]; seen.add(f.index); comp = []
+    stack = [f]
+    seen.add(f.index)
+    comp = []
     while stack:
-        g = stack.pop(); comp.append(g)
+        g = stack.pop()
+        comp.append(g)
         for e in g.edges:
             for h in e.link_faces:
                 if h.index not in seen:
-                    seen.add(h.index); stack.append(h)
+                    seen.add(h.index)
+                    stack.append(h)
     comps.append(comp)
 for comp in comps:
     if len(comp) < 250:
@@ -337,13 +367,16 @@ for v in bm.verts:
                 v.co = Vector((c_sl + dir_rad * r_new).tolist())
 
 bmesh.ops.recalc_face_normals(bm, faces=bm.faces[:])
-bm.to_mesh(body.data); bm.free()
+bm.to_mesh(body.data)
+bm.free()
 for p in body.data.polygons:
     p.use_smooth = True
 for o in (hand, left):
-    bm_h = bmesh.new(); bm_h.from_mesh(o.data)
+    bm_h = bmesh.new()
+    bm_h.from_mesh(o.data)
     bmesh.ops.recalc_face_normals(bm_h, faces=bm_h.faces[:])
-    bm_h.to_mesh(o.data); bm_h.free()
+    bm_h.to_mesh(o.data)
+    bm_h.free()
     for p in o.data.polygons:
         p.use_smooth = True
 

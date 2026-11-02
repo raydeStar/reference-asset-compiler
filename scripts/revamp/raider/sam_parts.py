@@ -1,7 +1,10 @@
-import sys, json, numpy as np, torch, cv2
+import sys
+import numpy as np
+import cv2
 from segment_anything import sam_model_registry, SamPredictor
 ref, ckpt, out = sys.argv[1], sys.argv[2], sys.argv[3]
-img = cv2.cvtColor(cv2.imread(ref), cv2.COLOR_BGR2RGB); H, W = img.shape[:2]
+img = cv2.cvtColor(cv2.imread(ref), cv2.COLOR_BGR2RGB)
+H, W = img.shape[:2]
 auto = np.load(out + "/labels.npy")
 fg = ~(img.astype(int).sum(-1) > 735)
 # automatic ids -> parts (read off ids.png)
@@ -10,9 +13,11 @@ A = {"hair": [23], "face": [6], "beard": [36], "skin": [26, 25],
      "strap": [31, 38, 28, 40], "kneepad": [19, 11, 18, 10, 49], "glove": [9, 45, 24, 47, 42, 44],
      "boot": [7, 13, 35, 5, 14, 34], "boot_strap": [48, 33, 43, 41, 32, 46], "trousers": [4, 2, 21, 22]}
 part = np.full((H, W), "", object)
-pred = SamPredictor(sam_model_registry["vit_b"](checkpoint=ckpt).to("cuda")); pred.set_image(img)
+pred = SamPredictor(sam_model_registry["vit_b"](checkpoint=ckpt).to("cuda"))
+pred.set_image(img)
 def prompt(pos, neg=()):
-    pts = np.array(list(pos) + list(neg), float); lab = np.array([1] * len(pos) + [0] * len(neg))
+    pts = np.array(list(pos) + list(neg), float)
+    lab = np.array([1] * len(pos) + [0] * len(neg))
     m, s, _ = pred.predict(point_coords=pts, point_labels=lab, multimask_output=True)
     return m[int(np.argmax(s))]
 P = {  # dark, low-contrast parts the automatic pass missed
@@ -29,7 +34,8 @@ for name in order:
         m = prompt(pos, neg) & fg
         part[m & (auto < 0) | (m & (part == ""))] = name
 for name, ids in A.items():
-    for k in ids: part[auto == k] = name
+    for k in ids:
+        part[auto == k] = name
 part[~fg] = ""
 names = sorted({p for p in part.ravel() if p})
 pal = {"hair": (70,35,15), "face": (240,180,140), "beard": (120,70,40), "skin": (215,140,100), "sleeve_roll": (40,150,170),
@@ -37,8 +43,10 @@ pal = {"hair": (70,35,15), "face": (240,180,140), "beard": (120,70,40), "skin": 
        "belt": (200,100,40), "strap": (205,90,40), "kneepad": (240,115,180), "glove": (140,50,155), "boot": (140,75,25),
        "boot_strap": (190,120,60), "trousers": (75,75,90), "thigh_pouch": (250,170,60)}
 vis = np.full((H, W, 3), 90, np.uint8)
-for n in names: vis[part == n] = pal.get(n, (255, 0, 0))
-unl = fg & (part == ""); vis[unl] = (255, 0, 0)
+for n in names:
+    vis[part == n] = pal.get(n, (255, 0, 0))
+unl = fg & (part == "")
+vis[unl] = (255, 0, 0)
 cv2.imwrite(out + "/parts.png", cv2.cvtColor(vis, cv2.COLOR_RGB2BGR))
 np.save(out + "/parts.npy", part.astype("U12"))
 print("PARTS", {n: int((part == n).sum()) for n in names}, "unlabelled", int(unl.sum()), "of", int(fg.sum()))
