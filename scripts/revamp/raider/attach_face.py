@@ -31,7 +31,7 @@ for o in asm: bpy.data.objects.remove(o)
 M = Matrix.Scale(s, 4) @ Matrix.Translation((-cx, -cy, -z0))
 
 with bpy.data.libraries.load(face_p, link=False) as (src, dst):
-    dst.objects = [n for n in src.objects if n in ("face", "hair", "eye_l", "eye_r") or n.startswith("raider_head")]
+    dst.objects = [n for n in src.objects if n in ("face", "hair", "eye_l", "eye_r", "mouth_back") or n.startswith("raider_head")]
 new = {}
 for o in dst.objects:
     # matrix_basis (from the stored location, rotation, scale): a freshly appended object's matrix_world can be stale
@@ -57,14 +57,105 @@ for n, o in new.items():
         for loop in o.data.loops:
             p_ = np.array(o.data.vertices[loop.vertex_index].co[:]) - c; r_ = np.linalg.norm(p_) + 1e-9
             uvl.data[loop.index].uv = (0.5 + np.arctan2(p_[0], -p_[1]) / (2 * np.pi), 0.5 + np.arcsin(np.clip(p_[2] / r_, -1, 1)) / np.pi)
+# Eyes: one smooth material per eye instead of colour by face (the iris and pupil looked blocky up close).
+# Sclera, limbus, iris and pupil blend by the angle from the eye's front, the front being where the iris faces were.
+for n in ("eye_l", "eye_r"):
+    if n not in new: continue
+    o = new[n]; me_ = o.data; P = np.array([v.co[:] for v in me_.vertices]); cen = P.mean(0)
+    iris_idx = [i for i, m_ in enumerate(me_.materials) if m_ and "_iris" in m_.name]
+    iris_col = tuple(me_.materials[iris_idx[0]].node_tree.nodes["Principled BSDF"].inputs["Base Color"].default_value) if iris_idx else (0.39, 0.41, 0.41, 1)
+    fc = np.array([p_.center[:] for p_ in me_.polygons if p_.material_index in iris_idx]) if iris_idx else P[P[:, 1].argmin()][None]
+    fwd_ = fc.mean(0) - cen; fwd_ /= np.linalg.norm(fwd_)
+    m = bpy.data.materials.new(f"EYE_{n[-1]}"); m.use_nodes = True; nt = m.node_tree; N_ = nt.nodes; Lk = nt.links
+    geo = N_.new("ShaderNodeNewGeometry"); sub = N_.new("ShaderNodeVectorMath"); sub.operation = 'SUBTRACT'; sub.inputs[1].default_value = tuple(cen)
+    nrm_ = N_.new("ShaderNodeVectorMath"); nrm_.operation = 'NORMALIZE'; dot = N_.new("ShaderNodeVectorMath"); dot.operation = 'DOT_PRODUCT'; dot.inputs[1].default_value = tuple(fwd_)
+    ramp = N_.new("ShaderNodeValToRGB"); cr = ramp.color_ramp
+    lim = tuple(x * 0.45 for x in iris_col[:3]) + (1,)
+    stops = [(0.0, (0.6, 0.55, 0.5, 1)), (0.86, (0.6, 0.55, 0.5, 1)), (0.885, lim), (0.9, iris_col), (0.955, tuple(x * 0.8 for x in iris_col[:3]) + (1,)), (0.97, (0.02, 0.02, 0.02, 1)), (1.0, (0.02, 0.02, 0.02, 1))]
+    cr.elements[0].position, cr.elements[0].color = stops[0]; cr.elements[1].position, cr.elements[1].color = stops[-1]
+    for pos_, col_ in stops[1:-1]:
+        e_ = cr.elements.new(pos_); e_.color = col_
+    bs = N_["Principled BSDF"]; bs.inputs["Roughness"].default_value = 0.1
+    Lk.new(geo.outputs["Position"], sub.inputs[0]); Lk.new(sub.outputs[0], nrm_.inputs[0]); Lk.new(nrm_.outputs[0], dot.inputs[0])
+    Lk.new(dot.outputs["Value"], ramp.inputs["Fac"]); Lk.new(ramp.outputs["Color"], bs.inputs["Base Color"])
+    me_.materials.clear(); me_.materials.append(m)
+    for p_ in me_.polygons: p_.material_index = 0
 eyes_y = [np.array([v.co[:] for v in new[n].data.vertices]).mean(0) for n in ("eye_l", "eye_r") if n in new]
 print("EYES at", [[round(x, 3) for x in e] for e in eyes_y], "head bone y", round((arm.matrix_world @ arm.data.bones["head"].head_local).y, 3))
 
+# the face's skin image comes from disk (fix_neck_paint.py repaints it after the bake)
+skin_png = os.path.join(os.path.dirname(face_p), "face_skin.png")
+for im_ in bpy.data.images:
+    if im_.name.startswith("face_skin") and os.path.exists(skin_png):
+        im_.unpack(method='REMOVE') if im_.packed_file else None; im_.filepath = skin_png; im_.source = 'FILE'; im_.reload(); im_.pack()
 # remove the old head from the body
 bm = bmesh.new(); bm.from_mesh(body.data)
 bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.material_index == head_mat], context='FACES_ONLY')
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+# the body carries hundreds of loose slivers left by reducing its shells: sweep pieces under a dozen faces
+# (weld exactly coincident vertices first: the mesh is split at UV seams, and unwelded, small UV islands
+# would read as loose pieces)
+bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-6)
+bm.faces.ensure_lookup_table(); seen = set(); loose = []
+for f in bm.faces:
+    if f.index in seen: continue
+    stack = [f]; seen.add(f.index); grp = []
+    while stack:
+        g = stack.pop(); grp.append(g)
+        for e in g.edges:
+            for h in e.link_faces:
+                if h.index not in seen: seen.add(h.index); stack.append(h)
+    if len(grp) < 12: loose += grp
+bmesh.ops.delete(bm, geom=loose, context='FACES'); bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+print("BODY loose slivers removed", len(loose))
 bm.to_mesh(body.data); bm.free()
+
+# The body still carries the original painted neck and chest skin inside the collar, with ragged edges, lying
+# on the new face's neck: body faces on the face's surface (within 1 cm) and facing the same way go. The collar's
+# inner side faces the neck, so it stays.
+from mathutils.bvhtree import BVHTree
+fbm = bmesh.new(); fbm.from_mesh(new["face"].data); fbm.transform(new["face"].matrix_world); fbvh = BVHTree.FromBMesh(fbm)
+bm = bmesh.new(); bm.from_mesh(body.data); bm.faces.ensure_lookup_table(); over = []
+for f in bm.faces:
+    c = body.matrix_world @ f.calc_center_median()
+    loc, nrm, _, dd = fbvh.find_nearest(c)
+    if loc is not None and dd < 0.01 and (body.matrix_world.to_3x3() @ f.normal).dot(nrm) > 0.3: over.append(f)
+# ... and, within 3 cm of the new neck, any remaining body face painted as skin (not cloth): the old skin
+# patches that did not lie within a centimetre of it
+import colorsys
+mat0 = body.data.materials[0]; atlas = next(n.image for n in mat0.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image and any(l.to_socket.name == "Base Color" for l in n.outputs[0].links))
+AW, AH = atlas.size; AP = np.array(atlas.pixels[:], np.float32).reshape(AH, AW, -1)
+uvl = bm.loops.layers.uv.active; fz = [v.co.z for v in new["face"].data.vertices]; fmin = min(fz)
+neck_top = (arm.matrix_world @ arm.data.bones["head"].head_local).z + 0.02
+for f in bm.faces:
+    if f in over or f.material_index != 0: continue
+    c = body.matrix_world @ f.calc_center_median()
+    if not (fmin - 0.02 < c.z < neck_top and abs(c.x) < 0.14): continue
+    # close to the new neck only: leather straps share skin's hue (a colour-only rule shredded them, and so did
+    # a 5 cm reach for brighter skin: the strap by the collar is bright leather)
+    dn = fbvh.find_nearest(c)[3]
+    if dn > 0.03: continue
+    uv = sum((l[uvl].uv for l in f.loops), Vector((0, 0))) / len(f.loops)
+    r, g, b = AP[min(AH - 1, int(uv.y * AH)), min(AW - 1, int(uv.x * AW)), :3] ** (1 / 2.2)
+    h_, s_, v_ = colorsys.rgb_to_hsv(float(r), float(g), float(b)); h_ *= 360
+    if 8 <= h_ <= 38 and s_ > 0.35 and v_ > 0.35: over.append(f)
+bmesh.ops.delete(bm, geom=list(set(over)), context='FACES'); bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+# removing the neck skin strands small fragments around the neck: sweep again (pieces under 12 faces anywhere,
+# under 60 within 5 cm of the new neck)
+bmesh.ops.remove_doubles(bm, verts=bm.verts[:], dist=1e-6); bm.faces.ensure_lookup_table(); seen = set(); frag = []
+for f in bm.faces:
+    if f.index in seen: continue
+    stack = [f]; seen.add(f.index); grp = []
+    while stack:
+        g = stack.pop(); grp.append(g)
+        for e in g.edges:
+            for h in e.link_faces:
+                if h.index not in seen: seen.add(h.index); stack.append(h)
+    near = fbvh.find_nearest(body.matrix_world @ grp[0].calc_center_median())[3] < 0.05
+    if len(grp) < 12 or (near and len(grp) < 60): frag += grp
+bmesh.ops.delete(bm, geom=frag, context='FACES'); bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
+bm.to_mesh(body.data); bm.free(); fbm.free()
+print("BODY neck skin faces removed", len(set(over)), "fragments swept", len(frag))
 
 # attach: face on head and neck by height, hair and eyes rigid on the head
 B = arm.data.bones

@@ -172,9 +172,37 @@ kd.balance()
 for i in np.nonzero(~is_body)[0]:
     near = kd.find_n(Vector(MV[i] - off_body[i]), 8); ww = np.array([1 / (d + 1e-4) for _, _, d in near])
     off[i] = (off[body[[k for _, k, _ in near]]] * ww[:, None]).sum(0) / ww.sum()
+# Teeth and tongue move as one solid piece by the lips' average offset: following the nearest lip skin
+# dragged the tongue forward with lips pulled onto his fuller painted lips, and it filled the open mouth.
+lip_v = np.nonzero(lipw > 0.5)[0]
+if len(lip_v):
+    mouth_shift = off[lip_v].mean(0)
+    for arr in (teeth, tongue): off[arr] = mouth_shift
 MV = MV - off_body + off           # helpers get their share; body already moved
+# MakeHuman's teeth arch came out wider than his mouth (7.9 cm against 6.8 cm lips) and poked through the
+# corners: teeth and tongue are scaled to 75% of the lip width (at 85% their corners still showed as white wedges) about their centre and seated just behind the lips
+mouth_parts = np.concatenate([teeth, tongue])
+if len(lip_v):
+    lw, tw2 = np.ptp(MV[lip_v][:, 0]), np.ptp(MV[teeth][:, 0])
+    k_ = min(1.0, 0.75 * lw / tw2); mc = MV[mouth_parts].mean(0)
+    fix = (mc + (MV[mouth_parts] - mc) * k_) - MV[mouth_parts]
+    front_gap = (MV[lip_v][:, 1].min() + 0.004) - (MV[mouth_parts] + fix)[:, 1].min()
+    fix[:, 1] += max(0.0, front_gap)
+    off[mouth_parts] += fix; MV[mouth_parts] += fix
+    # MakeHuman's tongue sat high under the upper lip and stayed put when the jaw dropped, filling the open
+    # mouth: seat it low behind the lower teeth
+    lower_t = members("helper-lower-teeth"); th_ = np.ptp(MV[teeth][:, 2])
+    tongue_fix = np.array([0.0, 0.006, -0.45 * th_])
+    off[tongue] += tongue_fix; MV[tongue] += tongue_fix
+    print("MOUTH teeth scaled", round(float(k_), 3), "to fit lips", round(float(lw), 4))
+B0_ = np.zeros(len(MV) * 3); keys[0].data.foreach_get("co", B0_); B0_ = B0_.reshape(-1, 3)
+lower_t = members("helper-lower-teeth")
 for kb in keys:
-    co = np.zeros(len(MV) * 3); kb.data.foreach_get("co", co); kb.data.foreach_set("co", (co.reshape(-1, 3) + off).ravel())
+    co = np.zeros(len(MV) * 3); kb.data.foreach_get("co", co); co = co.reshape(-1, 3)
+    # every shape moves the tongue with the lower teeth (MakeHuman's shapes leave the tongue behind)
+    if kb is not keys[0] and len(lower_t) and len(tongue):
+        co[tongue] = B0_[tongue] + (co[lower_t] - B0_[lower_t]).mean(0)
+    kb.data.foreach_set("co", (co + off).ravel())
 me.vertices.foreach_set("co", MV.ravel()); me.update()
 res = [sbvh.find_nearest(Vector(MV[i]))[3] for i in np.nonzero(is_body & (MV[:, 2] > neck_z) & pulled_final)[0]] or [0.0]
 print("SNAP residual mean", round(float(np.mean(res)), 5), "p95", round(float(np.percentile(res, 95)), 5))
@@ -182,7 +210,10 @@ print("SNAP residual mean", round(float(np.mean(res)), 5), "p95", round(float(np
 # which vertices the last snap pass pulled, kept as a vertex group for review
 mh.vertex_groups.new(name="review_snapped").add([int(i) for i in np.nonzero(pulled_final)[0]], 1.0, 'REPLACE')
 # cut below the painted neck, keep eyes, teeth, tongue
-keep = np.zeros(len(MV), bool); keep[body[MV[body, 2] > neck_z]] = True
+# the neck reaches well down into the collar: removing the old head also took the neck skin showing in the
+# open V at the front and at the nape, and a face cut at the jaw left holes there
+NECK_DROP = float(os.environ.get("RAC_FACE_NECK_DROP", "0.12"))
+keep = np.zeros(len(MV), bool); keep[body[MV[body, 2] > neck_z - NECK_DROP]] = True
 for arr in (eyes_l, eyes_r, teeth, tongue): keep[arr] = True
 bm = bmesh.new(); bm.from_mesh(me); bm.verts.ensure_lookup_table()
 bmesh.ops.delete(bm, geom=[bm.verts[i] for i in np.nonzero(~keep)[0]], context='VERTS'); bm.to_mesh(me); bm.free()

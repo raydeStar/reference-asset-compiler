@@ -354,6 +354,35 @@ Add every new item before it is used.
     neck ends; scribbled front hair strands; a pale patch at the back of
     the collar. Not done: driving the shapes from speech audio (Rhubarb Lip
     Sync, MIT) and a check inside Unreal.
-- Next: Mark's look at the face rig; then lip-sync and the Unreal check. (open-source UE skeleton,
+  Mark: "mouth fails, neck seam fails, eyes look a bit weird but are much
+  better than before. Floating faces all around the character, and there is
+  some black thing sticking out the back of his neck."
+- 2026-11-01: face fixes (`evidence/raider-face-fixes-v1.jpg`,
+  `rig/face-v15/raider_hero_rigged.fbx`; `inspect_views.py` lists every
+  loose piece and renders the neck and mouth up close).
+  - Found: removing the old head also removed the neck skin in the open V
+    and at the nape, leaving see-through holes in the collar; about 150 hair
+    specks floated round the head and about 2,100 slivers from reducing the
+    body's shells; the throat seam was the body's original painted neck skin
+    lying in front of the new neck (the face's own neck was clean); the
+    tongue sat high and did not move with the jaw; the teeth arch was wider
+    than his lips and showed at the corners; the back of the mouth was open.
+  - Fixed: the face's neck reaches 12 cm into the collar; the lower neck is
+    repainted from the clean skin just under the chin (`fix_neck_paint.py`;
+    Pillow cannot blur float images, so OpenCV); body faces lying on the new
+    neck, and skin-painted body faces within 3 cm of it, are removed (a
+    colour-only rule and a 5 cm reach both shredded leather straps); loose
+    pieces swept (1,127 to 99); teeth and tongue scaled to 75% of the lip
+    width and moved as one piece, the tongue seated low and carried with the
+    lower teeth in every shape, a dark matte backing behind the teeth; eyes
+    get one smooth shader (sclera, darker iris edge, iris, pupil by angle
+    from the front) instead of colour by face.
+  - Rig gate passes (86 bones, 72k triangles). Still not right: a lighter,
+    ragged patch remains in the open V on his right where the collar meets
+    the neck; the lower teeth corners still show pale; MakeHuman's helper
+    teeth and tongue are simple shapes (proper ones are in MakeHuman's free
+    CC0 asset pack, which needs a download).
+- Next: Mark's look at the fixes; the V patch; better teeth and tongue; then
+  lip-sync and the Unreal check. (open-source UE skeleton,
   MakeHuman face wrapped onto the painted head for blinks and speech,
   carrying the paint by bake).
