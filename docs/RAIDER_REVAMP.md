@@ -244,6 +244,38 @@ Add every new item before it is used.
   hands came from the whole-body acquisition, which gave them as little
   resolution as it gave the old head. Rigging is held until the hands are
   replaced.
-- Next: hands; then the rig (open-source UE skeleton,
+- 2026-11-01: hands replaced by a hand-only acquisition; Mark made detail
+  acquisition (heads and hands) a standing pipeline step
+  (`docs/WORKFLOW_PLAYBOOK.md`, "Detail acquisition"; `scripts/detail_crop.py`).
+  - Right glove cropped from the reference (box 51,565 to 220,811, squared,
+    15% margin) and upscaled 4x; workspace `work/raider-hand-r`; one
+    single-view run (`configs/generation/raider-hand-r-attempt001.json`,
+    873k triangles). In clay the fingers are long and separate to the
+    knuckles, and the flared gauntlet and cuff strap are modeled.
+  - Painted alone (60k-triangle paint mesh, 12 views, 768, 4096); topology/UV
+    gate passed; teardown exit as usual.
+  - Attached by `place_hands.py` (`assembled/raider-v13.glb`,
+    `evidence/raider-hands-v2.jpg`). Size from the crop: the hand's
+    silhouette in reference pixels through the label projection's mapping
+    (x and z estimates 0.171 and 0.181). Things that failed on the way, all
+    kept in the script's history:
+    - Placing by the reference position alone left the hands hanging below
+      the wrists; the body's arms are not where the reference draws them.
+      Each hand is now lined up with its own old glove's axis and wrist
+      (11 and 12 degree turns).
+    - A per-face paint cut shredded the gauntlet (leather highlights read as
+      skin). The forearm is now cut by one plane where the skin starts.
+    - Keeping the largest piece kept one UV island: the painter splits
+      vertices at seams, so they are welded first.
+    - The forearm skin's ragged lower edge (the old glove/skin label
+      boundary) poked out above the gauntlet. The gauntlet is now seated
+      3.5 cm further up the arm, and body faces under the opening are
+      cleared.
+    - Old glove fingertip slivers and specks are removed by proximity to the
+      old glove surface and by a loose-piece sweep.
+  - Still rough: the strip of bare forearm the reference shows above the
+    gauntlet is now mostly covered; one small sliver remains by his left
+    fingertips in some views.
+- Next: Mark's look at the hands; then the rig (open-source UE skeleton,
   MakeHuman face wrapped onto the painted head for blinks and speech,
   carrying the paint by bake).

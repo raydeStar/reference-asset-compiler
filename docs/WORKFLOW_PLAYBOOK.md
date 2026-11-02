@@ -175,6 +175,46 @@ because a single view infers the far side. Both routes stop at the same
 fixed-view modeling approval. See `docs/AI_STAGES_SETUP.md` for the request
 shape and VRAM needs.
 
+### Detail acquisition: heads and hands (every humanoid)
+
+A whole-body acquisition gives the head and the hands a small share of the
+generator's resolution. On CH-03 Raider (2026-11-01) that meant lumpy hair,
+shallow eyes and a generic face that no fit, projection or paint could rescue,
+and gloves whose fingers were fused to the tips. Acquiring each detail alone
+from a close crop of the same reference fixed both: modeled eyelids, lips,
+ears and hair strands; long fingers separate to the knuckles and the gauntlet
+cuff. Treat it as part of Stage 2 for every humanoid, after the body passes
+its silhouette review and before texture:
+
+1. Crop and upscale the detail from the approved reference. The crop writes a
+   lineage JSON binding the box, the upscaler and the source hash:
+
+   ```powershell
+   & C:\Comfy\python_embeded\python.exe scripts\detail_crop.py <reference.png> `
+     <work>\<asset>\detail\<asset>-hand-r-crop-x4.png --box X0 Y0 X1 Y1
+   ```
+
+   Frame the head from crown to collar; frame one hand with its cuff. Acquire
+   one hand and mirror it for the other unless the two differ in design.
+2. Register it as its own workspace (`rac new <asset>-hand-r <crop> --kind
+   humanoid`) and run one single-view request through
+   `scripts\run_hy3d_geometry.ps1` (seed 42, 50 steps, octree 512). Review it
+   in clay from the front, back, side and, for hands, from below the
+   fingertips: fingers must be separate to the knuckles.
+3. Paint it alone with `scripts\run_hy3d21_texture.ps1` against the same crop
+   (12 views, 768, studio runner, 4096 atlas), after reducing and unwrapping
+   it with a material on the mesh. Unlike the shallow heads of 2026-09-05,
+   the detailed geometry lets the views agree on where the features are.
+4. Attach it to the painted body: drop the body's own detail faces, align by
+   measured landmarks (head: nose tip, ear width, nose-to-crown; hand: size
+   from the crop's silhouette in reference pixels, then the old glove's axis
+   and wrist), and cut the detail's extra bust or forearm. The Raider
+   prototypes are `scripts/revamp/raider/place_head.py` and `place_hands.py`;
+   their lessons are in `docs/RAIDER_REVAMP.md`.
+
+The detail is a candidate like any acquisition: it waits for its own modeling
+and texture gates, and the assembled character waits for the four-view review.
+
 ## Stage 4 — existing-mesh PBR texture
 
 For large natural scenery, a reference-conditioned repeating surface material

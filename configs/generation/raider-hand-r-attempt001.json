@@ -1,0 +1,24 @@
+{
+  "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+  "mode": "single_view",
+  "asset_id": "raider-hand-r",
+  "workspace": "${RAC_REPO_ROOT}/work/raider-hand-r",
+  "source_authority": {
+    "path": "${RAC_REPO_ROOT}/work/raider-hand-r/references/primary.png",
+    "sha256": "9b9ca059971eb9fe2042e572b8cb0ab67c09803562837d65692c0a826e430fbf"
+  },
+  "inputs": [
+    {
+      "view": "primary",
+      "path": "${RAC_REPO_ROOT}/work/raider-hand-r/references/primary.png",
+      "sha256": "9b9ca059971eb9fe2042e572b8cb0ab67c09803562837d65692c0a826e430fbf"
+    }
+  ],
+  "parameters": {
+    "seed": 42,
+    "steps": 50,
+    "octree_resolution": 512,
+    "chunks": 20000
+  },
+  "output_directory": "${RAC_REPO_ROOT}/work/raider-hand-r/candidates/hy3d-single-seed42-attempt001"
+}
