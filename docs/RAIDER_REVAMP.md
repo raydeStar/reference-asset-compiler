@@ -635,3 +635,38 @@ Add every new item before it is used.
     from roughness 0.6 to 0.8 (a grey sheen sat on the dark hair).
   - Run v4: gate passes (86 bones, 76,664 triangles), deformation 5 poses
     pass. `build/v3` is a stale rerun of the v2 chain and can be ignored.
+- 2026-11-02: look v5 (`build_raider.ps1 -Run v5`, `evidence/raider-v5-before-after.jpg`,
+  `evidence/raider-v5-closeups.jpg`). Mark: "keep applying fixes until you are 100% satisfied".
+  - Forearm skin (`tone_skin.py`, materials stage): the bare forearms read
+    orange. The face's desaturate-and-lift left this brighter paint pale and
+    pink, so arm and collar skin are colour-matched instead: a per-channel
+    gain to a target. The studio render lifts and greys painted skin, so
+    the forearm target (0.54, 0.345, 0.225) was chosen by measuring renders:
+    the rendered forearm is (0.63, 0.47, 0.40) against the reference's
+    (0.63, 0.43, 0.32). Skin is told from glove leather by brightness.
+  - The back slit's painted rim (`fill_holes.py`): within 6 cm of a filled
+    loop, jacket faces (and the near-black shadow) lose every non-teal texel
+    to the jacket's local colour. Darkness alone missed the shadow arc, and
+    a skin-colour rule painted teal over leather straps.
+  - Inner lips (`look_face.py`): the bake had projected beard paint onto
+    the lower lip's top, which tucks above the lip line behind the upper lip
+    at rest and showed as a dark ragged band when he spoke. Faces that show
+    there half open, but sit at or above the lip line at rest, and faces
+    round the lip line that face up, down or back, take the outer lips'
+    colour. Selecting by "behind the lips' front" painted the whole mouth
+    dark; the lower lip's top has reversed normals, so it is found by place.
+  - Neck (`look_face.py`): flat and pale with a light band under the beard.
+    Neck faces up to the jaw line get a smoothed shading multiplier (darker
+    turning sideways and under the jaw), and the open collar shows the
+    reference's dark grey-teal T-shirt below a neckline 10 cm under the chin
+    (the chin from the jaw's downward faces below the lips: the nose's
+    underside had been taken for it). Below 1.50 m the visible V is the
+    body's chest skin, so the T-shirt is painted there too.
+  - `pose_sheet.py` adds arms-overhead-natural (collarbones 30 degrees):
+    the head no longer reads sunk. `build_raider.ps1` moves a rerun's rig
+    folders aside, since `run_rig_candidate.ps1` refuses non-empty ones.
+  - Run v5: gate passes (86 bones, 76,664 triangles), deformation 5 poses
+    pass. Still not like the reference: the hair is a painted shape on the
+    scalp, smoother than the reference's textured short cut; a deep squat
+    pushes the jacket hem into the thighs; the mouth corners tear past 0.7
+    open (the demo caps there).

@@ -91,7 +91,7 @@ Step 'hands' { B @((Join-Path $W 'parts-v2\raider-parts-v2.blend'), '--python', 
     (Join-Path $H 'references\primary.png'), $lineage.FullName, (Join-Path $W 'evidence\seg-proto\parts-v2.npy'), $assembled) }
 Step 'production' { BF @('--python', "$here\prep_production.py", '--', $assembled, $prodRaw, '1.82') }
 # materials: the body's and head's real metalness (the packed map had metallic = roughness), the plates toned to the
-# reference's worn iron, and the jacket's slit below the collar closed
+# reference's worn iron, the arm and chest skin to the reference's tone, and the jacket's slit below the collar closed
 Step 'materials' {
     $bp = Join-Path $W $BodyPaint; $hp = (Resolve-Path $HeadPaint).Path; $parts = Join-Path $W $BodyParts
     $pbr = Join-Path $out 'raider_hero_production-pbr.glb'; $toned = Join-Path $out 'raider_hero_production-toned.glb'
@@ -101,15 +101,26 @@ Step 'materials' {
     BF @('--python', "$here\tone_metal.py", '--', $pbr, $toned, "$bp\raider-body.obj",
         "$parts\painted-face-parts.npy", "$parts\painted-face-parts.json")
     if ($LASTEXITCODE -ne 0) { return }
-    BF @('--python', "$here\fill_holes.py", '--', $toned, $prod)
+    $skinned = Join-Path $out 'raider_hero_production-skin.glb'
+    BF @('--python', "$here\tone_skin.py", '--', $toned, $skinned, "$bp\raider-body.obj",
+        "$parts\painted-face-parts.npy", "$parts\painted-face-parts.json")
+    if ($LASTEXITCODE -ne 0) { return }
+    BF @('--python', "$here\fill_holes.py", '--', $skinned, $prod)
+}
+# run_rig_candidate.ps1 refuses a non-empty folder (it protects accepted rigs): a rerun moves the run's earlier
+# rig folder aside, timestamped, and never deletes it
+function Fresh([string] $dir) {
+    if ((Test-Path -LiteralPath $dir) -and (Get-ChildItem -LiteralPath $dir -Force | Select-Object -First 1)) {
+        Move-Item -LiteralPath $dir -Destination ("{0}.prev-{1}" -f $dir, (Get-Date -Format 'yyyyMMdd-HHmmss'))
+    }
 }
 # landmarks: a first landmark-backbone run derives the humanoid landmarks from the production mesh
-Step 'landmarks' { & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'scripts\run_rig_candidate.ps1') `
+Step 'landmarks' { Fresh (Join-Path $out 'rig-landmarks'); & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'scripts\run_rig_candidate.ps1') `
     -InputMesh $prod -Profile ue5_manny -ProfileFile $profileFile -Backbone landmark `
     -OutputDirectory (Join-Path $out 'rig-landmarks') -Blender $Blender }
 Step 'fingers' { BF @('--python', (Join-Path $repo 'scripts\blender\measure_finger_landmarks.py'), '--', $prod,
     (Join-Path $out 'rig-landmarks\landmarks\humanoid-landmarks.json'), $fingers) }
-Step 'rig' { & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'scripts\run_rig_candidate.ps1') `
+Step 'rig' { Fresh $rigDir; & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'scripts\run_rig_candidate.ps1') `
     -InputMesh $prod -Profile ue5_manny -ProfileFile $profileFile -Backbone landmark -Landmarks $fingers `
     -OutputDirectory $rigDir -Blender $Blender }
 Step 'skin' { B @((Join-Path $rigDir 'raider_hero_rigged.blend'), '--python', (Join-Path $repo 'scripts\blender\skin_from_makehuman.py'), '--',

@@ -27,6 +27,9 @@ POSES = {
     "rest": {},
     "arms-forward": {"upperarm_l": (0, 0, -70), "upperarm_r": (0, 0, 70)},
     "arms-overhead": {"upperarm_l": (0, 0, -130), "upperarm_r": (0, 0, 130), "clavicle_l": (0, 0, -15), "clavicle_r": (0, 0, 15)},
+    # a reach as people make it: the collarbones lift about 30 degrees with the arms (the test pose above keeps
+    # its 15 so earlier sheets stay comparable; at 15 the head reads sunk between the shoulders)
+    "arms-overhead-natural": {"upperarm_l": (0, 0, -112), "upperarm_r": (0, 0, 112), "clavicle_l": (0, 0, -30), "clavicle_r": (0, 0, 30)},
     "elbows-bent": {"lowerarm_l": (0, 0, -110), "lowerarm_r": (0, 0, 110), "upperarm_l": (0, 0, -30), "upperarm_r": (0, 0, 30)},
     "squat": {"thigh_l": (-95, 0, 0), "thigh_r": (-95, 0, 0), "calf_l": (110, 0, 0), "calf_r": (110, 0, 0), "foot_l": (-15, 0, 0), "foot_r": (-15, 0, 0), "spine_01": (20, 0, 0)},
     "lunge": {"thigh_l": (-80, 0, 0), "calf_l": (80, 0, 0), "thigh_r": (30, 0, 0), "calf_r": (40, 0, 0)},
