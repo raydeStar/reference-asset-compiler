@@ -17,9 +17,11 @@ cls = ["eye" if in_group(v, ["helper-l-eye", "helper-r-eye"]) else "teeth" if in
        else "tongue" if in_group(v, ["helper-tongue"]) else "skin" for v in me.vertices]
 # The inside of the mouth took the lip paint. Skin that the wrap did not project onto the painted surface and
 # that sits behind the lips, near the teeth, is the mouth cavity: it gets a dark material.
-co_ = np.array([v.co[:] for v in me.vertices]); tc = co_[[i for i, c in enumerate(cls) if c == "teeth"]].mean(0)
+co_ = np.array([v.co[:] for v in me.vertices])
+teeth_obj = bpy.data.objects.get("teeth")   # MakeHuman's CC0 teeth asset, when the wrap added it
+TCO = np.array([v.co[:] for v in teeth_obj.data.vertices]) if teeth_obj else co_[[i for i, c in enumerate(cls) if c == "teeth"]]
+tc = TCO.mean(0); tw_ = float(np.ptp(TCO[:, 0]))
 snapped = np.array([in_group(v, ["review_snapped"]) for v in me.vertices])
-tw_ = float(np.ptp(co_[[i for i, c in enumerate(cls) if c == "teeth"]][:, 0]))
 # ... and that lies inside the head, behind the painted surface: without that test, unprojected skin under the
 # jaw was painted as mouth and showed as dark patches on the chin
 from mathutils import Vector as _V
@@ -113,7 +115,9 @@ import bmesh, numpy as np, colorsys
 tex = next(n for n in scan.data.materials[0].node_tree.nodes if n.type == 'TEX_IMAGE').image
 TW, TH = tex.size; PX = np.array(tex.pixels[:], np.float32).reshape(TH, TW, -1)
 gi_l = {g.name: g.index for g in face.vertex_groups}
-brow_z = max(v.co.z for v in face.data.vertices if any(g.group in (gi_l["helper-l-eye"], gi_l["helper-r-eye"]) for g in v.groups))
+_eyes_obj = bpy.data.objects.get("eyes")   # the CC0 eye asset when present, else MakeHuman's helper eyes
+brow_z = (max((_eyes_obj.matrix_world @ v.co).z for v in _eyes_obj.data.vertices) if _eyes_obj else
+          max(v.co.z for v in face.data.vertices if any(g.group in (gi_l["helper-l-eye"], gi_l["helper-r-eye"]) for g in v.groups)))
 hb = bmesh.new(); hb.from_mesh(scan.data); uvl = hb.loops.layers.uv.active; drop = []
 for f in hb.faces:
     c = f.calc_center_median(); uv = sum((l[uvl].uv for l in f.loops), __import__("mathutils").Vector((0, 0))) / len(f.loops)
@@ -145,6 +149,7 @@ from mathutils import Vector
 from mathutils.bvhtree import BVHTree
 sbm2 = bmesh.new(); sbm2.from_mesh(scan.data); sbv = BVHTree.FromBMesh(sbm2); suv = sbm2.loops.layers.uv.active
 co_f = np.array([v.co[:] for v in face.data.vertices])
+HAVE_ASSET_EYES = bpy.data.objects.get("eyes") is not None
 # MediaPipe's iris centres (468, 473) on the painted head say where each iris is painted
 import json as _json
 fdir = os.path.dirname(os.path.abspath(out))
@@ -154,7 +159,7 @@ def iris_hit(k):
     x, y = L2[k]; o = Vector((cc.x + (x / cr - 0.5) * cs, -5.0, cc.z + (0.5 - y / cr) * cs))
     return sbv.ray_cast(o, Vector((0, 1, 0)))
 eyes = {}
-for side, gname, lm in (("l", "helper-l-eye", 473), ("r", "helper-r-eye", 468)):
+for side, gname, lm in (() if HAVE_ASSET_EYES else (("l", "helper-l-eye", 473), ("r", "helper-r-eye", 468))):
     idx = [v.index for v in face.data.vertices if any(g.group == gi_l[gname] and g.weight > 0.5 for g in v.groups)]
     P = co_f[idx]; c = P.mean(0); r = float(np.linalg.norm(P - c, axis=1).mean())
     hit = iris_hit(lm)
@@ -170,7 +175,7 @@ for side, gname, lm in (("l", "helper-l-eye", 473), ("r", "helper-r-eye", 468)):
     eyes[side] = (np.array(centre[:]), R, idx, iris, fwd)
 fb = bmesh.new(); fb.from_mesh(face.data); fb.verts.ensure_lookup_table()
 bmesh.ops.delete(fb, geom=[fb.verts[i] for e_ in eyes.values() for i in e_[2]], context='VERTS'); fb.to_mesh(face.data); fb.free()
-iris_avg = tuple(float(x) for x in np.mean([e_[3] for e_ in eyes.values()], axis=0))
+iris_avg = tuple(float(x) for x in np.mean([e_[3] for e_ in eyes.values()], axis=0)) if eyes else (0.4, 0.4, 0.4)
 for side, (c, r, _, iris, fwd) in eyes.items():
     iris = iris_avg
     em_ = bpy.data.meshes.new(f"eye_{side}"); b = bmesh.new()
@@ -188,7 +193,7 @@ for side, (c, r, _, iris, fwd) in eyes.items():
     print("EYE", side, "radius", round(r, 4), "iris", tuple(round(x, 3) for x in iris))
 # The back of the mouth is open (MakeHuman's mouth bag does not survive the wrap whole), so an open mouth
 # showed straight through. A dark backing sits behind the teeth.
-tco = np.array([v.co[:] for v in face.data.vertices if in_group(v, ["helper-upper-teeth", "helper-lower-teeth"])])
+tco = TCO
 if len(tco):
     c_ = tco.mean(0); wdt = np.ptp(tco[:, 0]); hgt = np.ptp(tco[:, 2]) * 1.6
     bk_ = bmesh.new(); bmesh.ops.create_grid(bk_, x_segments=2, y_segments=2, size=0.5)

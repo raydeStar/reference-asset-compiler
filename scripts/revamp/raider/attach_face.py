@@ -31,7 +31,8 @@ for o in asm: bpy.data.objects.remove(o)
 M = Matrix.Scale(s, 4) @ Matrix.Translation((-cx, -cy, -z0))
 
 with bpy.data.libraries.load(face_p, link=False) as (src, dst):
-    dst.objects = [n for n in src.objects if n in ("face", "hair", "eye_l", "eye_r", "mouth_back") or n.startswith("raider_head")]
+    # eyelashes are left out: Mark found the lash cards weird at this style; the paint carries the lash line
+    dst.objects = [n for n in src.objects if n in ("face", "hair", "eye_l", "eye_r", "mouth_back", "eyes", "teeth", "tongue") or n.startswith("raider_head")]
 new = {}
 for o in dst.objects:
     # matrix_basis (from the stored location, rotation, scale): a freshly appended object's matrix_world can be stale
@@ -120,8 +121,7 @@ for f in bm.faces:
     c = body.matrix_world @ f.calc_center_median()
     loc, nrm, _, dd = fbvh.find_nearest(c)
     if loc is not None and dd < 0.01 and (body.matrix_world.to_3x3() @ f.normal).dot(nrm) > 0.3: over.append(f)
-# ... and, within 3 cm of the new neck, any remaining body face painted as skin (not cloth): the old skin
-# patches that did not lie within a centimetre of it
+# ... and, within 5 cm of the new neck, any remaining body face painted as skin (bright, warm; leather is darker)
 import colorsys
 mat0 = body.data.materials[0]; atlas = next(n.image for n in mat0.node_tree.nodes if n.type == 'TEX_IMAGE' and n.image and any(l.to_socket.name == "Base Color" for l in n.outputs[0].links))
 AW, AH = atlas.size; AP = np.array(atlas.pixels[:], np.float32).reshape(AH, AW, -1)
@@ -134,11 +134,15 @@ for f in bm.faces:
     # close to the new neck only: leather straps share skin's hue (a colour-only rule shredded them, and so did
     # a 5 cm reach for brighter skin: the strap by the collar is bright leather)
     dn = fbvh.find_nearest(c)[3]
-    if dn > 0.03: continue
+    # ... or standing directly in front of the new neck (a ray back from the face hits the neck within 6 cm):
+    # the skin-painted sliver in the open V stood a little over 3 cm proud of it
+    if dn > 0.05: continue
     uv = sum((l[uvl].uv for l in f.loops), Vector((0, 0))) / len(f.loops)
-    r, g, b = AP[min(AH - 1, int(uv.y * AH)), min(AW - 1, int(uv.x * AW)), :3] ** (1 / 2.2)
+    # the atlas pixels are already display colour: brightening them again washed skin out to ~0.26 saturation,
+    # under the cutoff, while darker leather passed. Skin is bright and warm; leather is darker.
+    r, g, b = AP[min(AH - 1, int(uv.y * AH)), min(AW - 1, int(uv.x * AW)), :3]
     h_, s_, v_ = colorsys.rgb_to_hsv(float(r), float(g), float(b)); h_ *= 360
-    if 8 <= h_ <= 38 and s_ > 0.35 and v_ > 0.35: over.append(f)
+    if 8 <= h_ <= 38 and s_ > 0.3 and v_ > 0.55: over.append(f)
 bmesh.ops.delete(bm, geom=list(set(over)), context='FACES'); bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')
 # removing the neck skin strands small fragments around the neck: sweep again (pieces under 12 faces anywhere,
 # under 60 within 5 cm of the new neck)

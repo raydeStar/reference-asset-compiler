@@ -207,6 +207,51 @@ me.vertices.foreach_set("co", MV.ravel()); me.update()
 res = [sbvh.find_nearest(Vector(MV[i]))[3] for i in np.nonzero(is_body & (MV[:, 2] > neck_z) & pulled_final)[0]] or [0.0]
 print("SNAP residual mean", round(float(np.mean(res)), 5), "p95", round(float(np.percentile(res, 95)), 5))
 
+# MakeHuman's own CC0 system assets replace the helper eyes, teeth and tongue. MPFB fits each
+# asset to the face's (already wrapped) helper geometry; each expression shape is refitted and stored on the asset
+# as a matching shape, so the mouth parts and lashes move with speech and blinks. Painted brows stay painted.
+from bl_ext.user_default.mpfb.services.humanservice import HumanService
+from bl_ext.user_default.mpfb.services.clothesservice import ClothesService
+from bl_ext.user_default.mpfb.services.locationservice import LocationService
+from bl_ext.user_default.mpfb.entities.clothes.mhclo import Mhclo
+UD = LocationService.get_user_data()
+ASSETS = {"eyes": ("eyes/high-poly/high-poly.mhclo", "Eyes"), "teeth": ("teeth/teeth_base/teeth_base.mhclo", "Teeth"),
+          "tongue": ("tongue/tongue01/tongue01.mhclo", "Tongue")}   # eyelashes dropped: Mark found the cards weird
+assets = {}
+for k in keys[1:]: k.value = 0.0
+for name, (rel, atype) in ASSETS.items():
+    path = os.path.join(UD, rel)
+    if not os.path.exists(path): print("ASSET missing", path); continue
+    obj = HumanService.add_mhclo_asset(path, mh, asset_type=atype, subdiv_levels=0, material_type="MAKESKIN", set_up_rigging=False,
+                                       interpolate_weights=False, import_subrig=False, import_weights=False)
+    for m_ in list(obj.modifiers): obj.modifiers.remove(m_)
+    mc = Mhclo(); mc.load(path); mc.clothes = obj
+    ClothesService.fit_clothes_to_human(obj, mh, mc, set_parent=False)
+    base_co = np.zeros(len(obj.data.vertices) * 3); obj.data.vertices.foreach_get("co", base_co)
+    per_key = {}
+    for kb_ in keys[1:]:
+        for k in keys[1:]: k.value = 0.0
+        kb_.value = 1.0
+        ClothesService.fit_clothes_to_human(obj, mh, mc, set_parent=False)
+        c_ = np.zeros_like(base_co); obj.data.vertices.foreach_get("co", c_)
+        if np.abs(c_ - base_co).max() > 1e-6: per_key[kb_.name] = c_
+    for k in keys[1:]: k.value = 0.0
+    obj.data.vertices.foreach_set("co", base_co); obj.data.update()
+    if per_key:
+        obj.shape_key_add(name="Basis", from_mix=False)
+        for kn, c_ in per_key.items():
+            sk = obj.shape_key_add(name=kn, from_mix=False); sk.data.foreach_set("co", c_)
+    obj.parent = None; obj.name = name; obj.data.name = name
+    assets[name] = obj
+    print("ASSET", name, "verts", len(obj.data.vertices), "shapes", len(per_key))
+# eyes: the pack's grey iris, the nearest to his painted grey-blue. Only the texture is swapped: MakeHuman's eye
+# material uses the texture's alpha for the clear cornea (an opaque replacement turned the eyes black).
+if "eyes" in assets:
+    eimg = bpy.data.images.load(os.path.join(UD, "eyes", "materials", "grey_eye.png"))
+    for m_ in assets["eyes"].data.materials:
+        for n_ in (m_.node_tree.nodes if m_ else []):
+            if n_.type == 'TEX_IMAGE': n_.image = eimg
+
 # which vertices the last snap pass pulled, kept as a vertex group for review
 mh.vertex_groups.new(name="review_snapped").add([int(i) for i in np.nonzero(pulled_final)[0]], 1.0, 'REPLACE')
 # cut below the painted neck, keep eyes, teeth, tongue
@@ -214,7 +259,8 @@ mh.vertex_groups.new(name="review_snapped").add([int(i) for i in np.nonzero(pull
 # open V at the front and at the nape, and a face cut at the jaw left holes there
 NECK_DROP = float(os.environ.get("RAC_FACE_NECK_DROP", "0.12"))
 keep = np.zeros(len(MV), bool); keep[body[MV[body, 2] > neck_z - NECK_DROP]] = True
-for arr in (eyes_l, eyes_r, teeth, tongue): keep[arr] = True
+# helper eyes, teeth and tongue are replaced by the CC0 assets above
+for arr in (() if assets else (eyes_l, eyes_r, teeth, tongue)): keep[arr] = True
 bm = bmesh.new(); bm.from_mesh(me); bm.verts.ensure_lookup_table()
 bmesh.ops.delete(bm, geom=[bm.verts[i] for i in np.nonzero(~keep)[0]], context='VERTS'); bm.to_mesh(me); bm.free()
 mh.name = "face"; me.name = "face"

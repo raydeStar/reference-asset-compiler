@@ -83,6 +83,8 @@ occlusion bake from the acquired dense mesh, and its own material.
 | --- | --- | --- |
 | Blender 5.2 | All modeling, UV, bake, rig, render work | GPL-3.0 |
 | MPFB 2 (MakeHuman for Blender) | Base head and hands, expression targets | GPL-3.0 (tool), CC0 (assets) |
+| MakeHuman system assets (`makehuman_system_assets_cc0.zip`, 280,737,770 bytes, sha256 `b542127a…0107`) | Eyes, teeth, tongue (installed into MPFB's user data, not this repository) | CC0 |
+| MediaPipe face landmarker (ComfyUI's PyTorch port) | 478 face landmarks for the face wrap | Apache-2.0 |
 | Segment Anything (ViT-B) | Part masks on fixed-view renders | Apache-2.0 |
 | Rhubarb Lip Sync | Mouth shapes from speech audio | MIT |
 | Quaternius Universal Animation Library | Locomotion source motion | CC0 |
@@ -382,7 +384,27 @@ Add every new item before it is used.
     the neck; the lower teeth corners still show pale; MakeHuman's helper
     teeth and tongue are simple shapes (proper ones are in MakeHuman's free
     CC0 asset pack, which needs a download).
-- Next: Mark's look at the fixes; the V patch; better teeth and tongue; then
-  lip-sync and the Unreal check. (open-source UE skeleton,
+  Mark approved downloading MakeHuman's CC0 system asset pack.
+- 2026-11-01: face v2 (`evidence/raider-face-v2.jpg`,
+  `rig/face-v20/raider_hero_rigged.fbx`).
+  - The pack was downloaded from MakeHuman's primary mirror (the community
+    site announced its services were shutting down on 2026-10-21; the file
+    was still served), checked to hold only data files, and extracted into
+    MPFB's user data, which then reported the system assets installed.
+  - `wrap_face.py` adds the CC0 eyes (high-poly, grey iris), teeth
+    (`teeth_base`) and tongue (`tongue01`) with MPFB's fitter after the wrap,
+    and refits each one per expression shape so the mouth parts move with
+    speech. The helper eyes, teeth and tongue are dropped. Replacing the eye
+    material outright turned the eyes black (its texture alpha makes the
+    cornea clear), so only the iris texture is swapped. Eyelashes were added
+    and then left out: Mark found them weird at this style.
+  - The throat: the last skin-painted sliver in the open collar survived
+    because the colour test brightened already-display-space pixels, washing
+    skin out under the saturation cutoff while darker leather passed. With
+    the colour read correctly, bright warm skin within 5 cm of the new neck
+    is removed and the straps stay intact.
+  - Rig gate passes (86 bones, 77k triangles). Still rough: a few skin
+    flecks on the collar edge; the hair's front strands are scribbled.
+- Next: Mark's look at face v2; then lip-sync and the Unreal check. (open-source UE skeleton,
   MakeHuman face wrapped onto the painted head for blinks and speech,
   carrying the paint by bake).
