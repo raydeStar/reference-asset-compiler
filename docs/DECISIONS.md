@@ -1510,3 +1510,25 @@ not inherit the source game's runtime acceptance or prove the imported mesh free
 of warnings. The contact implementation still costs up to 192 terrain traces per
 character and targets human-scale bipeds; destination performance and gameplay
 need their own evidence.
+
+## 2026-11-01 — Acquire heads and hands alone; weight layered characters by limb region
+
+CH-03 Raider's whole-body acquisition gave the head and the hands too little of the generator's resolution:
+lumpy hair, shallow eyes and a generic face that no MakeHuman fit, projection or paint rescued (three face
+options were all rejected), and gloves fused to the fingertips. A close crop of the same reference, upscaled
+4x and acquired alone, gave modeled eyelids, lips and hair, and fingers separate to the knuckles. Detail
+acquisition is now part of Stage 2 for every humanoid (`WORKFLOW_PLAYBOOK.md`, `scripts/detail_crop.py`).
+
+Rigging the assembled character exposed three faults in `derive_humanoid_landmarks.py`, now fixed: a strict
+empty-centre crotch test ran down to the knees on a stray seam (now a sustained, hip-relative gap); ordering
+the arm by sideways reach ended the chain at the thumb (now distance from the shoulder); one-sided gear
+dragged the hip-median midline 3.7 cm (now midway between the feet). Template fingers missed modeled
+fingers and a fist crumpled them; `measure_finger_landmarks.py` measures each chain from the mesh.
+
+Blender heat weighting failed on the layered mesh, on a welded copy and on a voxel-remeshed copy, so the
+rig fell back to envelope weights and the belt pouches flew with the arms. Plain nearest-bone weights fail
+the same way in an A-pose (the forearms hang beside the belt), weights spread along the surface carried
+shoulder weight down the long straps, and a limb radius cannot separate a baggy sleeve from the jacket side
+8 cm away. `rebind_layered.py` labels arm, leg and torso regions by spreading along the welded surface from
+sure seeds, lets limb bones weigh only their own region, and puts small rigid gear on one bone. Do not
+retry heat on this kind of mesh or tune radii; fix region seeds instead. The face rig is still open.

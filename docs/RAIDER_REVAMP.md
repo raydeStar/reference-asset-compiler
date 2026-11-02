@@ -276,6 +276,28 @@ Add every new item before it is used.
   - Still rough: the strip of bare forearm the reference shows above the
     gauntlet is now mostly covered; one small sliver remains by his left
     fingertips in some views.
-- Next: Mark's look at the hands; then the rig (open-source UE skeleton,
+  Mark passed the hands ("Yes, rig him").
+- 2026-11-01: body rig (`evidence/raider-rig-v1.jpg`,
+  `work/raider-revamp/rig/attempt004/rebind8/raider_hero_rigged.fbx`).
+  - Production mesh (`prep_production.py`): body, head and hands joined at
+    1.82 m, reduced to RAC's hero tier (76k triangles: head 18k, hands 6k
+    each, body 46k) instead of waiving the 20k profile budget. A hero-tier
+    profile (`prod/ue5_manny-hero.json`) carries `character_tier: hero`.
+  - Open-source landmark route, `ue5_manny` skeleton, 86 bones. Three joint
+    finder faults fixed in RAC (crotch, arm order, midline; see
+    `docs/DECISIONS.md`), and fingers measured from the mesh
+    (`measure_finger_landmarks.py`).
+  - Weights by `rebind_layered.py`. Tried and rejected, in order: envelope
+    (pouches flew with the arms), nearest-bone (the same, A-pose), surface
+    spread (straps carried the shoulder onto the chest), limb radius 10 cm
+    (jacket side followed the forearm), 7 cm (sleeves left behind). Kept:
+    limb regions spread along the welded surface; 36 small pieces made rigid.
+  - Gate passed (86 bones, 76k triangles, 4 influences, 0 unweighted);
+    deformation suite passed 5 poses. Painted close-ups (`pose_closeups.py`)
+    show arms raised, elbow, knee, fist and spread holding together.
+  - Still rough: thin threads at the armpits from the shoulder strap with
+    the arms raised. No face rig yet.
+- Next: Mark's look at the body rig; then the face rig (jaw, blinks,
+  speech shapes) on the painted head. (open-source UE skeleton,
   MakeHuman face wrapped onto the painted head for blinks and speech,
   carrying the paint by bake).
