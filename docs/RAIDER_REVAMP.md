@@ -319,7 +319,41 @@ Add every new item before it is used.
   angles) holds for arms out, elbows, lunge, twist and fists. Limits: arms
   overhead bunch the sleeves and push the shoulder plate toward the head; a
   deep squat pushes the jacket hem into the thighs.
-- Next: Mark's look at rig v2; then the face rig (jaw, blinks, speech
-  shapes) on the painted head. (open-source UE skeleton,
+  Mark passed rig v2 ("Pass, do the face").
+- 2026-11-01: face rig v1 (`evidence/raider-face-rig-v1.jpg`,
+  `rig/face-v3/raider_hero_rigged.fbx`). The painted head is one closed
+  surface (painted eyes, a painted mouth line), so it cannot blink or speak.
+  MakeHuman's head (eyelids, eyeballs, split mouth, teeth, tongue, 34
+  expression shapes) is wrapped onto it:
+  - `scripts/face_landmarks.py` (migrated from the studio tree; ComfyUI's
+    MediaPipe port, Apache-2.0) finds 478 landmarks on straight-on renders
+    of both faces (`face_front.py`); 476 pair up.
+  - `wrap_face.py`: similarity, then a thin-plate warp through the
+    landmarks (inner-lip points dropped; trusted only near the landmarks),
+    then the skin is projected onto a lightly smoothed copy of the painted
+    surface along each vertex's normal, from the vertex both ways, only
+    where the surfaces face the same way, outside the eye openings. What is
+    not projected (mouth cavity, inner lips, eyelid rims) follows the
+    nearest projected skin in space. Residual 0.8 mm mean, 2 mm p95.
+    Rejected on the way: a global warp flattened the back of the head;
+    nearest-point snapping and rays started behind the vertex folded flaps
+    around the mouth; graph-based fills peeled or tore the face; a strongly
+    regularised warp broke the solve.
+  - `bake_face.py`: the paint baked as emission (a diffuse bake multiplied
+    it by the painter's slight metalness); hair kept as its own piece from
+    the painted head; real eyeballs aimed at MediaPipe's iris centres with
+    the painted iris colour; a quarter of MakeHuman's blink folded into the
+    rest shape so the lids match his heavier ones. One bake run crashed
+    Blender with an illegal-instruction fault; the identical re-run passed
+    (no WHEA event logged that time).
+  - `attach_face.py`: the old head faces leave the body; face, hair and eyes
+    enter production space (0.2 mm nudge) with applied transforms, the face
+    on the head and neck bones by height, hair and eyes rigid on the head.
+    Rig gate passed: 86 bones, 75k triangles, eyes confirm facing.
+  - Still rough: a jagged light line across the throat where the painted
+    neck ends; scribbled front hair strands; a pale patch at the back of
+    the collar. Not done: driving the shapes from speech audio (Rhubarb Lip
+    Sync, MIT) and a check inside Unreal.
+- Next: Mark's look at the face rig; then lip-sync and the Unreal check. (open-source UE skeleton,
   MakeHuman face wrapped onto the painted head for blinks and speech,
   carrying the paint by bake).
