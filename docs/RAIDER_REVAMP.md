@@ -482,3 +482,21 @@ Add every new item before it is used.
   the model has neither. The hand placement followed the whole-body
   acquisition's glove, whose forearm was already short, and the gauntlet
   sits inside the sleeve. Needs a modeling fix and a re-rig.
+- 2026-11-01: forearms v2 on the production mesh (`evidence/raider-forearm-check-v2.jpg`,
+  `evidence/raider-forearms-v2.jpg`, `prod/raider_hero_production-v2.glb`,
+  `lengthen_forearms.py`). Measured on the reference at 1.25 mm a pixel:
+  shoulder to fingertip 64 cm (58 cm here), elbow to wrist 24 cm (18.8 cm
+  here), about 6 cm of bare forearm and an 8.7 cm gauntlet cuff under a
+  sleeve ending about 8 cm past the elbow (15 cm here).
+  - Each hand moves 5.2 cm out along the forearm (shoulder to fingertip now
+    63 cm); the rolled cuff lifts 3.5 cm as one piece, the plain sleeve above
+    it compressing; a skin tube fills the sleeve opening and narrows to the
+    wrist (curved taper; a straight one read as a funnel); a 4 cm flared
+    leather cuff rises from 3.5 cm inside the glove. Tube and cuff are
+    painted from one real texel each (the arm's skin, the glove's cuff): a
+    median of UV coordinates landed between islands, and jittered texels
+    read as a patchwork. 76,766 faces before the face swap.
+  - Tried and changed: a 5 cm cuff lift opened the cuff; sleeve centres
+    from a 1.5 cm slab put the forearm against the sleeve's edge; parts of
+    the cuff beyond 10 cm from the axis stayed behind and tore.
+  - The forearm is one flat skin tone; the reference's has painted shading.
