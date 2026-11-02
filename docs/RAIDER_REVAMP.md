@@ -517,3 +517,24 @@ Add every new item before it is used.
     ring sized to the rolled cuff (wider than the sleeve above it, so it
     poked through); squeezing the top ring to the sleeve wall by ray casts
     (crumpled it). A sliver of lining still shows at the left cuff's edge.
+- 2026-11-01: forearms v4 (`evidence/raider-forearm-square-v4.jpg`,
+  `evidence/raider-forearm-check-v4.jpg`, `evidence/raider-forearms-v4.jpg`,
+  `prod/raider_hero_production-v4.glb`). Mark on v3: "still isn't aligned
+  quite properly". Square-on renders of each forearm showed the forearm
+  leaving the cuff off-centre and running at an angle into the gauntlet.
+  - Measured: the sleeve's own centreline (centres of two slices of its
+    lower part, re-sliced square to the estimate four times) runs about 12
+    degrees off the landmark forearm, and the hand-only acquisition's glove
+    top sat 4.8 cm (left) and 6.1 cm (right) off it, pointing 14-16 degrees
+    away. Moving the hand along the landmark line kept that offset.
+  - Each hand now turns about its glove top and moves onto the sleeve's
+    centreline, 5.2 cm further out. Its side-to-side line follows the
+    sleeve; its forward tilt stays the landmark arm's, so the forearm hangs
+    in the front plane as in the reference (following the sleeve fully, 16
+    degrees towards the camera, foreshortened it). Turns: 3.8 (left) and
+    9.3 degrees (right).
+  - Measuring the sleeve with a principal-axis fit of one slice picked the
+    direction across the cuff, not along it.
+  - Still visible: the left glove's thumb sticks out as a flat bar (the
+    left hand is the right one mirrored); a sliver of lining at the left
+    cuff.

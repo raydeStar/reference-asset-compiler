@@ -8,7 +8,8 @@ gauntlet cuff. Here the sleeve ends 15 cm past the elbow and the hand-only acqui
 short), so no forearm shows at all.
 
 Per arm, along the forearm axis from the landmark elbow to the landmark wrist:
-  1. the hand moves out by DELTA as one piece (shoulder to fingertip 58 -> 63 cm);
+  1. the hand turns about its glove top to point along the sleeve's measured centreline and moves onto it, DELTA
+     further out (shoulder to fingertip 58 -> 63 cm);
   2. the rolled cuff (the sleeve's last CUFF) lifts by SLEEVE_UP as one piece and the plain sleeve above it
      compresses over SLEEVE_SPAN, so the cuff keeps its shape;
   3. a skin tube runs from just inside the sleeve opening, following its slanted edge, to inside the glove,
@@ -92,7 +93,18 @@ for s, sign in (("l", 1), ("r", -1)):
     cuffwide = (np.sign(P[:, 0]) == sign) & (r < 0.12) & (mi == BODY) & (t > 0.0) & (t < L + 0.05)
     th0, tb1 = t[hand].min(), t[body].max()
     geo[s] = dict(E=E, u=u, L=L, t=t, hand=hand, body=body, cuffwide=cuffwide, th0=th0, tb1=tb1,
-                  g_c=P[hand & (t < th0 + 0.04)].mean(0))
+                  g_c=P[hand & (t < th0 + 0.04)].mean(0), K=np.array(J[f"middle_01_{s}"]))
+    # the sleeve's own centreline: centres of two slices of its lower part, re-sliced square to the estimate a few
+    # times (the landmark forearm runs about 12 degrees off it, and the hand-only acquisition's glove top sat 5 to
+    # 6 cm off it, which showed as a kinked, off-centre forearm)
+    d = u.copy()
+    for _ in range(4):
+        tt = (P - E) @ d; rr = np.linalg.norm((P - E) - np.outer(tt, d), axis=1)
+        b2 = (np.sign(P[:, 0]) == sign) & (mi == BODY) & (rr < 0.07)
+        tend = tt[b2 & (tt > 0) & (tt < L + 0.05)].max()
+        c_lo = P[b2 & (tt > tend - 0.10) & (tt < tend - 0.06)].mean(0); c_hi = P[b2 & (tt > tend - 0.045) & (tt < tend - 0.005)].mean(0)
+        d = (c_hi - c_lo) / np.linalg.norm(c_hi - c_lo)
+    geo[s].update(d=d, c_hi=c_hi)
     # the sleeve opening's centre and radius from its last 5 cm (a thinner slab caught one side of the tilted
     # cuff and put the forearm against the sleeve's edge), moved along the arm to the opening
     slab = body & (t > tb1 - 0.05) & (r < 0.08); sc_ = P[slab].mean(0); tm = float(t[slab].mean())
@@ -145,11 +157,22 @@ def tube(a0, a1, rtop, r1, ax, mat, patch, out_sign, ease=1.0, toff=None, lining
 for s, g in geo.items():
     E, u, t, th0, tb1 = g["E"], g["u"], g["t"], g["th0"], g["tb1"]
     bm.verts.ensure_lookup_table()
-    for i in np.nonzero(g["hand"])[0]: bm.verts[i].co += Vector(DELTA * u)
+    # 1. the hand turns about its glove top to point along the sleeve, and moves onto the sleeve's centreline,
+    # DELTA further out than it was
+    d, c_hi, gc = g["d"], g["c_hi"], g["g_c"]
+    # the sleeve points 12-16 degrees towards the camera; the hand takes its side-to-side line from the sleeve but
+    # its forward tilt from the landmark arm, so the forearm hangs in the front plane as in the reference (following
+    # the sleeve fully foreshortened it in the front view)
+    dh = np.array([d[0], u[1], d[2]]); dh /= np.linalg.norm(dh)
+    hd = (g["K"] - gc) / np.linalg.norm(g["K"] - gc)
+    Rm = Vector(hd).rotation_difference(Vector(dh)).to_matrix()
+    gc_new = c_hi + dh * (float((gc - c_hi) @ dh) + DELTA)
+    g["turn_deg"] = math.degrees(Vector(hd).angle(Vector(dh))); g["shift_cm"] = float(np.linalg.norm((gc - c_hi) - ((gc - c_hi) @ d) * d)) * 100
+    for i in np.nonzero(g["hand"])[0]: bm.verts[i].co = Rm @ (bm.verts[i].co - Vector(gc)) + Vector(gc_new)
     for i in np.nonzero(g["cuffwide"] & (t > tb1 - CUFF - SLEEVE_SPAN))[0]:
-        k = min(1.0, (t[i] - (tb1 - CUFF - SLEEVE_SPAN)) / SLEEVE_SPAN); bm.verts[i].co -= Vector(SLEEVE_UP * k * u)
+        k = min(1.0, (t[i] - (tb1 - CUFF - SLEEVE_SPAN)) / SLEEVE_SPAN); bm.verts[i].co -= Vector(SLEEVE_UP * k * d)
     # centres: the sleeve opening and the glove opening (after the moves), the tube running between them
-    s_end = g["s_c"] - SLEEVE_UP * u; g_end = g["g_c"] + DELTA * u
+    s_end = g["s_c"] - SLEEVE_UP * d; g_end = gc_new
     ax = (g_end - s_end) / np.linalg.norm(g_end - s_end)
     s_r = g["s_r"]
     # the opening's outline: per direction about the tube axis, where the lifted cuff ends along the axis (the
@@ -158,7 +181,7 @@ for s, g in geo.items():
     # opening poked out of one side and showed the hollow sleeve on the other, and squeezing its top ring to fit
     # crumpled it
     side_ax = np.cross(ax, [0, 1, 0]); side_ax /= np.linalg.norm(side_ax); up_ax = np.cross(side_ax, ax)
-    q = P[g["cuffwide"] & (t > tb1 - 0.05)] - SLEEVE_UP * u - s_end
+    q = P[g["cuffwide"] & (t > tb1 - 0.05)] - SLEEVE_UP * d - s_end
     qa = q @ ax; qp = q - np.outer(qa, ax)
     ang = np.arctan2(qp @ up_ax, qp @ side_ax); rr = np.linalg.norm(qp, axis=1)
     wall, tedge = [], []
@@ -176,7 +199,8 @@ for s, g in geo.items():
               lining=wall)
     # the gauntlet runs from its top (towards the sleeve) down into the glove, the strip's way round
     ng = tube(g_end - GAUNT * ax, g_end + GLOVE_IN * ax, GAUNT_R[1], GAUNT_R[0], ax, HAND, PATCH_GAUNT, out_sign)
-    report["sides"][s] = {"forearm_before_m": round(float(g["L"]), 4), "forearm_after_m": round(float(g["L"] + DELTA), 4),
+    report["sides"][s] = {"hand_turned_deg": round(g["turn_deg"], 1), "hand_onto_sleeve_line_cm": round(g["shift_cm"], 1),
+                          "forearm_before_m": round(float(g["L"]), 4), "forearm_after_m": round(float(g["L"] + DELTA), 4),
                           "glove_started_inside_sleeve_m": round(float(tb1 - th0), 4),
                           "sleeve_to_glove_now_m": round(float(np.linalg.norm(g_end - s_end)), 4),
                           "bare_forearm_now_m": round(float(np.linalg.norm(g_end - s_end) - GAUNT), 4),
