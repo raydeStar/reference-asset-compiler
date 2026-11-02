@@ -408,3 +408,26 @@ Add every new item before it is used.
 - Next: Mark's look at face v2; then lip-sync and the Unreal check. (open-source UE skeleton,
   MakeHuman face wrapped onto the painted head for blinks and speech,
   carrying the paint by bake).
+- 2026-11-01: cleanup, finals and speech (`evidence/raider-final.jpg`,
+  `evidence/raider-rig-final.jpg`, `rig/final/raider_hero_rigged.fbx`,
+  `speech/raider-speaking.mp4`).
+  - Cleanup: the extracted hair piece and the eyelashes are left out of
+    `attach_face.py`; skin-painted body faces near the new neck are removed
+    out to 8 cm, tested in display space with no gamma (hue 8 to 38,
+    saturation above 0.3, value above 0.55; the gamma step washed the
+    saturation out and missed the old neck skin); loose fragments swept
+    again after welding.
+  - Gate passes: 86 bones, 74,350 triangles (hero tier, 80k). Deformation
+    suite: 5 poses pass. Known limits: arms overhead bunch the sleeves and
+    the head reads sunk; a deep squat pushes the jacket hem into the thighs.
+  - `final_renders.py`: four full perspective views and face close-ups.
+  - Speech demo (`speak_demo.py`): the line is spoken by Windows' built-in
+    SAPI voice "Microsoft David Desktop" (no download), whose VisemeReached
+    events give 22 mouth shapes with times. Those times ran about 1.4x long
+    against the 22,050 Hz WAV, so they are rescaled onto the WAV's measured
+    speech span (0.11 to 6.32 s, scale 0.7161). Each viseme maps to a mix of
+    MakeHuman expression shapes (open, retraction, pursing, protrusion,
+    compression, ...) keyed at 0.9 on the face, teeth, tongue and eyes, with
+    two blinks and a small head nod; EEVEE frames muxed with ffmpeg. This is
+    demo lip-sync from a synthesized voice only: arbitrary recorded audio
+    needs a phoneme aligner such as Rhubarb (MIT, needs a download).
