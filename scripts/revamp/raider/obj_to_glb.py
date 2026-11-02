@@ -24,12 +24,18 @@ def tex(path, non_color=False):
     return t
 for f in files:
     n = os.path.basename(f).lower()
-    if "metallic" in n or "rough" in n:
+    if "metallic" in n and "rough" in n:
+        # one packed map (the studio runner's): green roughness, blue metallic
         t = tex(f, True)
         sep = nt.nodes.new("ShaderNodeSeparateColor")
         nt.links.new(t.outputs[0], sep.inputs[0])
         nt.links.new(sep.outputs[2], b.inputs["Metallic"])
         nt.links.new(sep.outputs[1], b.inputs["Roughness"])
+    elif "metallic" in n or "rough" in n:
+        # a greyscale map (calibrate_pbr.py writes metallic and roughness separately): it drives its own input
+        # only. Wiring it as a packed map let the roughness map set metallic too.
+        t = tex(f, True)
+        nt.links.new(t.outputs[0], b.inputs["Metallic" if "metallic" in n else "Roughness"])
     elif "normal" in n:
         t = tex(f, True)
         nm = nt.nodes.new("ShaderNodeNormalMap")

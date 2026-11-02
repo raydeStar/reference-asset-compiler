@@ -16,10 +16,13 @@
     <Work>\prod\ue5_manny-hero.json                   resolved UE5 Manny profile, hero tier
     <Work>\face\bake-v15\face-baked.blend             the wrapped, baked speaking face (wrap_face.py, bake_face.py,
                                                       fix_neck_paint.py)
+    <Work>\body-paint\attempt002-pbr\raider-body*     calibrated body paint (metallic, roughness, paint mesh) and
+    <Work>\body-paint\attempt002-masks\painted-face-parts.*   its per-face part labels
+    work\raider-head\textures\paint-attempt002-rough60\raider-head*   calibrated head paint
   Blender needs MPFB 2 with MakeHuman's CC0 system assets for the skin and face stages. ffmpeg muxes the video.
 
-  Stages, in order: hands, production, landmarks, fingers, rig, skin, face, shoulders, mouth, check, renders,
-  speech. -From starts at a stage when the earlier ones are already in the run folder.
+  Stages, in order: hands, production, materials, landmarks, fingers, rig, skin, face, shoulders, mouth, look,
+  check, renders, speech. -From starts at a stage when the earlier ones are already in the run folder.
 
 .EXAMPLE
   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\revamp\raider\build_raider.ps1 -Run v2
@@ -30,8 +33,11 @@ param(
     [string] $Work = 'work\raider-revamp',
     [string] $HandWork = 'work\raider-hand-r',
     [string] $FaceBake = 'face\bake-v15',
-    [ValidateSet('hands', 'production', 'landmarks', 'fingers', 'rig', 'skin', 'face', 'shoulders', 'mouth',
-                 'check', 'renders', 'speech')][string] $From = 'hands',
+    [string] $BodyPaint = 'body-paint\attempt002-pbr',
+    [string] $BodyParts = 'body-paint\attempt002-masks',
+    [string] $HeadPaint = 'work\raider-head\textures\paint-attempt002-rough60',
+    [ValidateSet('hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face', 'shoulders', 'mouth',
+                 'look', 'check', 'renders', 'speech')][string] $From = 'hands',
     [string] $Blender = $env:RAC_BLENDER,
     [string] $FFmpeg
 )
@@ -47,7 +53,8 @@ $python = & (Join-Path $repo 'scripts\resolve_python.ps1')
 if (-not $Blender) { $Blender = (& $python (Join-Path $repo 'scripts\rac_env.py') --blender) | Select-Object -Last 1 }
 if (-not $Blender -or -not (Test-Path -LiteralPath $Blender)) { throw 'Blender not found; set RAC_BLENDER or pass -Blender.' }
 
-$stages = 'hands', 'production', 'landmarks', 'fingers', 'rig', 'skin', 'face', 'shoulders', 'mouth', 'check', 'renders', 'speech'
+$stages = 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face', 'shoulders', 'mouth', 'look',
+          'check', 'renders', 'speech'
 $start = [array]::IndexOf($stages, $From)
 function Want([string] $name) { return [array]::IndexOf($stages, $name) -ge $start }
 function Step([string] $name, [scriptblock] $body) {
@@ -70,18 +77,32 @@ function B([string[]] $a) { & $Blender '--background' '--python-exit-code' '1' @
 function BF([string[]] $a) { & $Blender '--background' '--factory-startup' '--python-exit-code' '1' @a }
 
 $assembled = Join-Path $out 'raider-assembled.glb'
+$prodRaw = Join-Path $out 'raider_hero_production-raw.glb'
 $prod = Join-Path $out 'raider_hero_production.glb'
 $profileFile = Join-Path $W 'prod\ue5_manny-hero.json'
 $fingers = Join-Path $out 'landmarks-fingers.json'
 $rigDir = Join-Path $out 'rig'; $skinDir = Join-Path $out 'skin'; $faceDir = Join-Path $out 'face'
-$shoulderDir = Join-Path $out 'shoulders'; $final = Join-Path $out 'final'
-New-Item -ItemType Directory -Force -Path $skinDir, $faceDir, $shoulderDir, $final | Out-Null
+$shoulderDir = Join-Path $out 'shoulders'; $mouthDir = Join-Path $out 'mouth'; $final = Join-Path $out 'final'
+New-Item -ItemType Directory -Force -Path $skinDir, $faceDir, $shoulderDir, $mouthDir, $final | Out-Null
 $lineage = Get-ChildItem (Join-Path $W 'hand-src') -Filter '*.lineage.json' | Select-Object -First 1
 
 Step 'hands' { B @((Join-Path $W 'parts-v2\raider-parts-v2.blend'), '--python', "$here\place_hands.py", '--',
     (Join-Path $W 'assembled\raider-v3.glb'), (Join-Path $H 'textures\paint-attempt001\raider-hand-r.glb'),
     (Join-Path $H 'references\primary.png'), $lineage.FullName, (Join-Path $W 'evidence\seg-proto\parts-v2.npy'), $assembled) }
-Step 'production' { BF @('--python', "$here\prep_production.py", '--', $assembled, $prod, '1.82') }
+Step 'production' { BF @('--python', "$here\prep_production.py", '--', $assembled, $prodRaw, '1.82') }
+# materials: the body's and head's real metalness (the packed map had metallic = roughness), the plates toned to the
+# reference's worn iron, and the jacket's slit below the collar closed
+Step 'materials' {
+    $bp = Join-Path $W $BodyPaint; $hp = (Resolve-Path $HeadPaint).Path; $parts = Join-Path $W $BodyParts
+    $pbr = Join-Path $out 'raider_hero_production-pbr.glb'; $toned = Join-Path $out 'raider_hero_production-toned.glb'
+    BF @('--python', "$here\fix_pbr_maps.py", '--', $prodRaw, $pbr,
+        "raider-body_roughness=$bp\raider-body", "raider-head_roughness=$hp\raider-head")
+    if ($LASTEXITCODE -ne 0) { return }
+    BF @('--python', "$here\tone_metal.py", '--', $pbr, $toned, "$bp\raider-body.obj",
+        "$parts\painted-face-parts.npy", "$parts\painted-face-parts.json")
+    if ($LASTEXITCODE -ne 0) { return }
+    BF @('--python', "$here\fill_holes.py", '--', $toned, $prod)
+}
 # landmarks: a first landmark-backbone run derives the humanoid landmarks from the production mesh
 Step 'landmarks' { & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'scripts\run_rig_candidate.ps1') `
     -InputMesh $prod -Profile ue5_manny -ProfileFile $profileFile -Backbone landmark `
@@ -99,7 +120,15 @@ Step 'face' { B @((Join-Path $skinDir 'raider_hero_rigged.blend'), '--python', "
 Step 'shoulders' { B @((Join-Path $faceDir 'raider_hero_rigged.blend'), '--python', "$here\fix_shoulders.py", '--',
     (Join-Path $shoulderDir 'raider_hero_rigged.blend'), (Join-Path $shoulderDir 'raider_hero_rigged.fbx')) }
 Step 'mouth' { B @((Join-Path $shoulderDir 'raider_hero_rigged.blend'), '--python', "$here\fix_mouth.py", '--',
-    (Join-Path $final 'raider_hero_rigged.blend'), (Join-Path $final 'raider_hero_rigged.fbx')) }
+    (Join-Path $mouthDir 'raider_hero_rigged.blend'), (Join-Path $mouthDir 'raider_hero_rigged.fbx')) }
+# look: the face to the reference's look (grey-hazel eyes from MakeHuman's CC0 eye textures, skin tone, matte)
+Step 'look' {
+    $eyes = Get-ChildItem "$env:APPDATA\Blender Foundation\Blender" -Recurse -Filter 'brownlight_eye.png' -ErrorAction SilentlyContinue |
+        Select-Object -First 1
+    if (-not $eyes) { throw 'MPFB eye textures not found (MakeHuman system assets)' }
+    B @((Join-Path $mouthDir 'raider_hero_rigged.blend'), '--python', "$here\look_face.py", '--', $eyes.DirectoryName,
+        (Join-Path $final 'raider_hero_rigged.blend'), (Join-Path $final 'raider_hero_rigged.fbx'))
+}
 $finalBlend = Join-Path $final 'raider_hero_rigged.blend'; $finalFbx = Join-Path $final 'raider_hero_rigged.fbx'
 Step 'check' {
     BF @('--python', (Join-Path $repo 'scripts\blender\gate_rig.py'), '--', $finalFbx, $profileFile, (Join-Path $final 'gate-rig.json'))

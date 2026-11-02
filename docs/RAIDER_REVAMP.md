@@ -608,3 +608,30 @@ Add every new item before it is used.
   - The repository's lint now covers these scripts: one statement per line
     (split mechanically, kept only where the parsed program was identical),
     and `scripts/revamp/*` gets the Blender stages' E402 allowance.
+- 2026-11-02: look v4 (`build_raider.ps1 -Run v4`, `evidence/raider-v4-before-after.jpg`,
+  `evidence/raider-v4-face.jpg`). Mark: "there are some obvious flaws still".
+  Found by side-by-side with the reference, in paint and clay:
+  - Chrome plates and lacquered skin: `obj_to_glb.py` wired every metallic
+    or roughness map as a packed glTF map, so the greyscale roughness map
+    from `calibrate_pbr.py` (wired last) set metallic too. The body was 71%
+    and the head 80% metallic. Fixed at the source (separate maps drive
+    their own input), and `fix_pbr_maps.py` rebuilds the packed map from
+    the calibrated pair for meshes packed before (it checks the pair's
+    roughness matches the material texel for texel): 6% and 10% now.
+  - Plates painted near-white: `tone_metal.py` tones plate and knee-pad
+    texels (and the back plate, which the part map labelled jacket: its
+    light grey texels) to the reference's iron, darkened 20% for render
+    light, keeping each texel's relative brightness (scratches, rivets)
+    and the leather rims' colour; roughness and metallic 0.55 there.
+  - A 16 cm slit in the jacket below the back of the collar (from the head
+    placement; the face's neck showed through): `fill_holes.py` closes the
+    open loops in that box with UVs fitted from the loop's own. A dark lip
+    from the old paint remains along it.
+  - Glowing cyan eyes: the iris was MakeHuman's pale grey; `look_face.py`
+    blends the CC0 grey and light-brown eye textures and darkens the iris.
+  - Red, over-saturated skin and orange ears (hue 19 against 22 degrees,
+    saturation 0.64 against 0.50): skin-like texels of the baked face are
+    desaturated 20%, turned 3 degrees and lifted 8%; the face material goes
+    from roughness 0.6 to 0.8 (a grey sheen sat on the dark hair).
+  - Run v4: gate passes (86 bones, 76,664 triangles), deformation 5 poses
+    pass. `build/v3` is a stale rerun of the v2 chain and can be ignored.
