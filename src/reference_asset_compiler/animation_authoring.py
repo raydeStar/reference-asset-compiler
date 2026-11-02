@@ -297,7 +297,10 @@ def turn_in_place(packet, skeleton, spec):
     base = world_matrices(base_clip, skeleton)[0]
     y0, y1 = spec.get('yaw_window', [.1, .85])
     yaw = yaw_total * _smooth((times / times[-1] - y0) / (y1 - y0))
-    rz = Rotation.from_euler('z', yaw).as_matrix()
+    # One single-axis angle per frame must be shaped (frames, 1): SciPy 1.17 reads
+    # a flat (frames,) array as one rotation with `frames` axes and refuses it.
+    turn = Rotation.from_euler('z', yaw[:, None])
+    rz = turn.as_matrix()
     pole_local = {}
     for s in 'lr':
         thigh, calf, foot = (base[ix[f'{n}_{s}'], :3, 3] for n in ('thigh', 'calf', 'foot'))
@@ -305,7 +308,7 @@ def turn_in_place(packet, skeleton, spec):
         pole_local[s] = base[ix['foot_' + s], :3, :3].T @ ((calf - mid) / np.linalg.norm(calf - mid))
     worlds = np.repeat(base[None], frames, axis=0)
     root_track = np.zeros((frames, 7))
-    root_track[:, 3:] = Rotation.from_euler('z', yaw).as_quat()
+    root_track[:, 3:] = turn.as_quat()
     lift, dip, shift = spec.get('lift_cm', 6.), spec.get('pelvis_dip_cm', 1.5), spec.get('pelvis_shift_cm', 2.5)
     look = math.radians(spec.get('look_ahead_deg', 20.))
     spine = [(b, w) for b, w in (('spine_01', .25), ('spine_03', .25), ('neck_01', .2), ('head', .3)) if b in ix]

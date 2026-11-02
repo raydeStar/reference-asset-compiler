@@ -146,6 +146,13 @@ def main() -> int:
         return s
     hip_band = central(lo[2] + 0.55 * H, 0.03 * H, 0.16 * H)
     mid_x = float(np.median(hip_band[:, 0]))
+    # Gear worn on one side (pouches, a shoulder plate, a holster) drags the hip median sideways: CH-03 Raider's
+    # read 3.7 cm off and shifted both shoulders. The feet are a symmetric pair; take the midline between them
+    # when both are found.
+    soles = pts[pts[:, 2] < lo[2] + 0.04 * H]
+    left_f, right_f = soles[soles[:, 0] > mid_x], soles[soles[:, 0] < mid_x]
+    if len(left_f) > 20 and len(right_f) > 20:
+        mid_x = float(0.5 * (left_f[:, 0].mean() + right_f[:, 0].mean()))
 
     def torso_centroid(z, window=0.12 * H):
         s = slab(pts, z, 0.02 * H)
@@ -163,12 +170,22 @@ def main() -> int:
         joints[name] = [mid_x, y, float(z)]
     head_top = float(hi[2])
 
-    # Crotch: lowest z where the centre column is still populated.
-    crotch_z = None
-    for z in np.arange(lo[2] + 0.55 * H, lo[2] + 0.30 * H, -0.01 * H):
+    # Crotch: highest z below the hips where the centre column is nearly empty. "Nearly" is relative to the
+    # hips' own column: a few stray cloth vertices between the legs (inner skirts, a sagging seam) kept the
+    # strict empty test running down to the knees on CH-03 Raider (2026-11-01).
+    def column(z):
         s = slab(pts, z, 0.01 * H)
-        if np.count_nonzero(np.abs(s[:, 0] - mid_x) < 0.015 * H) == 0:
-            crotch_z = float(z)
+        return np.count_nonzero(np.abs(s[:, 0] - mid_x) < 0.015 * H)
+    hips_column = np.median([column(z) for z in np.arange(lo[2] + 0.47 * H, lo[2] + 0.55 * H, 0.01 * H)])
+    # The gap must hold for a run of levels: a belt hem or jacket edge leaves a thin empty band at the waist
+    # (CH-03 Raider again, 0.91 m), while the real crotch opens into the gap between the legs and stays open.
+    levels = np.arange(lo[2] + 0.55 * H, lo[2] + 0.25 * H, -0.005 * H)
+    low = [column(z) <= max(0, 0.15 * hips_column) for z in levels]
+    run = 8
+    crotch_z = None
+    for i in range(len(levels) - run):
+        if all(low[i:i + run]):
+            crotch_z = float(levels[i])
             break
     if crotch_z is None:
         crotch_z = lo[2] + 0.47 * H
@@ -201,19 +218,26 @@ def main() -> int:
 
     # Arms: points outside the torso width between hip and head height.
     for side, sign in (("l", 1.0), ("r", -1.0)):
-        arm = pts[(sign * (pts[:, 0] - mid_x) > 0.14 * H) & (pts[:, 2] > lo[2] + 0.40 * H) & (pts[:, 2] < lo[2] + 0.90 * H)]
+        # Below the chest an arm point must reach further out, so gear on the hips and thighs (a thigh pouch,
+        # a holster) is not read as arm; hands in A- or T-pose are well beyond it.
+        lat_ = sign * (pts[:, 0] - mid_x)
+        arm = pts[(lat_ > np.where(pts[:, 2] > lo[2] + 0.62 * H, 0.14 * H, 0.18 * H))
+                  & (pts[:, 2] > lo[2] + 0.40 * H) & (pts[:, 2] < lo[2] + 0.90 * H)]
         if len(arm) < 50:
             raise RuntimeError("arm_{0}: too few vertices beyond the torso".format(side))
-        lateral = sign * (arm[:, 0] - mid_x)
-        centres, arc = centerline(arm, lateral, 20)
+        shoulder_template = np.array([mid_x + sign * T["upperarm_l"][0] * H,
+                                      joints["spine_05"][1] + (T["upperarm_l"][1] - T["spine_05"][1]) * H,
+                                      lo[2] + T["upperarm_l"][2] * H])
+        # Order the arm by distance from the shoulder, not by sideways reach: in an A-pose the thumb sticks out
+        # further sideways than the fingertips hang, which ended the chain at the thumb and put the wrist 0.2 m
+        # high on CH-03 Raider (2026-11-01).
+        reach = np.linalg.norm(arm - shoulder_template, axis=1)
+        centres, arc = centerline(arm, reach, 20)
         hand_len = 0.105 * H
         total = arc[-1]
         if total < 0.3 * H:
             notes.append("arm_{0}: short arc {1:.2f} m; sleeve or pose may be tight to the body".format(side, total))
         wrist = at_arc(centres, arc, max(0.0, (total - hand_len) / total))
-        shoulder_template = np.array([mid_x + sign * T["upperarm_l"][0] * H,
-                                      joints["spine_05"][1] + (T["upperarm_l"][1] - T["spine_05"][1]) * H,
-                                      lo[2] + T["upperarm_l"][2] * H])
         shoulder = shoulder_template
         elbow = 0.5 * (shoulder + wrist)
         # Bend the elbow toward the measured centreline at its mid arc.

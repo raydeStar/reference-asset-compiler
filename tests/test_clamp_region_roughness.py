@@ -76,6 +76,17 @@ class ClampRegionRoughnessTests(unittest.TestCase):
         self.assertGreater(report["roughness_in_lift_mask"]["after_mean"],
                            report["roughness_in_lift_mask"]["before_mean"])
 
+    def test_reads_the_studio_runners_png_maps(self):
+        for name in (f"{STEM}.jpg", f"{STEM}_metallic.jpg", f"{STEM}_roughness.jpg"):
+            path = self.source / name
+            Image.open(path).save(path.with_suffix(".png"))
+            path.unlink()
+        result = self.run_clamp()
+        self.assertEqual(result.returncode, 0, result.stderr)
+        written = np.asarray(Image.open(self.output / f"{STEM}_roughness.png").convert("L")).astype(float) / 255
+        self.assertGreater(written[16:32, 16:32].mean(), 0.40, "the eye must reach the floor")
+        self.assertEqual(sha256(self.output / f"{STEM}.png"), sha256(self.source / f"{STEM}.png"))
+
     def test_refuses_missing_region_mask(self):
         self.mask.unlink()
         result = self.run_clamp()
