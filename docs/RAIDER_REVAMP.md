@@ -582,3 +582,29 @@ Add every new item before it is used.
     - `lengthen_forearms.py` is updated to verify the reconstructed forearm
       and hand dimensions (`shoulder_to_fingertip_m = 0.735`,
       `hand_and_forearm_span_m = 0.402`) without destructive cylinder surgery.
+- 2026-11-02: rebuild v2, reproducible (`scripts/revamp/raider/build_raider.ps1 -Run v2`,
+  `build/v2/final/raider_hero_rigged.fbx`, `evidence/raider-v2-final.jpg`,
+  `evidence/raider-v2-rig.jpg`, `evidence/raider-v2-face.jpg`).
+  - Mark passed Argon's forearms on the model and asked for everything on
+    main, looking good and reproducible. Argon had written the assembled and
+    production meshes in place, so the rig, face, shoulder and mouth fixes,
+    the finals and the speech demo were still on the old arms, and
+    `prod/raider-landmarks-fingers.json` was bound to an intermediate mesh.
+  - Rerunning `place_hands.py` and `prep_production.py` from the recorded
+    inputs reproduces both meshes vertex for vertex with identical textures
+    (the GLB bytes differ only in packing).
+  - `build_raider.ps1` now runs the whole chain from those inputs into one
+    run folder and overwrites nothing outside it: hands, production mesh,
+    landmarks, fingers, rig, MakeHuman skin, face (`face/bake-v15`),
+    shoulders, mouth, gate and deformation, renders and speech. The speech
+    line and its alignment, until now one-off commands, are
+    `speak_line.ps1` and `align_visemes.py` (same 59 visemes, same 0.7161
+    scale).
+  - Run v2: gate passes (86 bones, 76,581 triangles, hero tier 80k, 4
+    influences, 0 unweighted); deformation suite 5 poses pass; the new
+    forearms and gauntlets bend with the elbows and fists close as before.
+    Known limits unchanged: the overhead test pose lifts the collarbones only
+    15 degrees, so the head reads sunk; the lower lip's inner edge is rough.
+  - The repository's lint now covers these scripts: one statement per line
+    (split mechanically, kept only where the parsed program was identical),
+    and `scripts/revamp/*` gets the Blender stages' E402 allowance.
