@@ -500,3 +500,20 @@ Add every new item before it is used.
     from a 1.5 cm slab put the forearm against the sleeve's edge; parts of
     the cuff beyond 10 cm from the axis stayed behind and tore.
   - The forearm is one flat skin tone; the reference's has painted shading.
+- 2026-11-01: forearms v3 (`evidence/raider-forearm-check-v3.jpg`,
+  `evidence/raider-forearm-closeups-v3.jpg`, `evidence/raider-forearms-v3.jpg`,
+  `prod/raider_hero_production-v3.glb`). Mark on v2: "not attached to the
+  rest of the arms correctly", and the forearm was a flat tone.
+  - The forearm and gauntlet cuff now carry the reference's own painting of
+    those parts: strips along his right forearm in the reference, copied
+    into unused hand-atlas space (u 0.69-0.88, v 0-0.125, with matte
+    roughness), wrapped so the front shows the front and mirrored for the
+    left arm. The glTF exporter kept embedding the imported originals until
+    the saved PNGs were loaded as fresh images on the material.
+  - The join: the forearm starts 1 cm inside the cuff's slanted edge per
+    direction, at 78% of the sleeve's inner radius there, and a dark lining
+    spans the opening from the sleeve wall to it. Tried and dropped: a round
+    tube (poked out one side, showed the hollow sleeve on the other); a top
+    ring sized to the rolled cuff (wider than the sleeve above it, so it
+    poked through); squeezing the top ring to the sleeve wall by ray casts
+    (crumpled it). A sliver of lining still shows at the left cuff's edge.
