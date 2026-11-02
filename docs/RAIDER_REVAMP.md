@@ -297,7 +297,29 @@ Add every new item before it is used.
     show arms raised, elbow, knee, fist and spread holding together.
   - Still rough: thin threads at the armpits from the shoulder strap with
     the arms raised. No face rig yet.
-- Next: Mark's look at the body rig; then the face rig (jaw, blinks,
-  speech shapes) on the painted head. (open-source UE skeleton,
+  Mark rejected rig v1 ("theyre all fails. stretching mesh, weird bends").
+  The rule-based weights kept the gear on but bent limbs as stiff segments
+  with hard creases.
+- 2026-11-01: rig v2 (`evidence/raider-rig-v2.jpg`,
+  `rig/attempt004/mhskin4/raider_hero_rigged.fbx`). Weights now come from a
+  MakeHuman body (MPFB 2 `game_engine` rig, hand-made CC0 weights) by
+  `scripts/blender/skin_from_makehuman.py`:
+  - the MakeHuman skeleton is posed onto his joints (trunk left as is;
+    limbs, fingers and head moved, turned and stretched, parents first;
+    0 mm joint error). An earlier pass that also turned the trunk bones
+    swung the hips and shoulders 15-44 cm off, and scaling the rig and the
+    parented body together double-scaled the body; both fixed;
+  - every vertex copies the weights of the body surface under it;
+    MakeHuman bones are shared among the Manny bones of the same region;
+  - inside the hands the hand-and-finger share is redistributed over his
+    measured finger bones (MakeHuman's closed fingers tore a fist into spikes);
+  - 13 small pieces ride one bone.
+  Gate passed (86 bones, 76k triangles); deformation suite passed 5 poses.
+  The full pose sheet (`pose_sheet.py`, 8 poses, painted and clay, two
+  angles) holds for arms out, elbows, lunge, twist and fists. Limits: arms
+  overhead bunch the sleeves and push the shoulder plate toward the head; a
+  deep squat pushes the jacket hem into the thighs.
+- Next: Mark's look at rig v2; then the face rig (jaw, blinks, speech
+  shapes) on the painted head. (open-source UE skeleton,
   MakeHuman face wrapped onto the painted head for blinks and speech,
   carrying the paint by bake).

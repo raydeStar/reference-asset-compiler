@@ -1531,4 +1531,11 @@ the same way in an A-pose (the forearms hang beside the belt), weights spread al
 shoulder weight down the long straps, and a limb radius cannot separate a baggy sleeve from the jacket side
 8 cm away. `rebind_layered.py` labels arm, leg and torso regions by spreading along the welded surface from
 sure seeds, lets limb bones weigh only their own region, and puts small rigid gear on one bone. Do not
-retry heat on this kind of mesh or tune radii; fix region seeds instead. The face rig is still open.
+retry heat on this kind of mesh or tune radii.
+
+Mark rejected those weights too (stiff segments, hard creases, stretching). Clothing is skinned from a
+properly weighted body underneath it: `skin_from_makehuman.py` poses MPFB's MakeHuman body and
+`game_engine` rig onto the character's joints and copies its hand-made weights onto every garment vertex
+from the body surface below. Pose only the limbs, fingers and head onto the target; turning MakeHuman's trunk
+bones to match Manny's swings the hips and shoulders. Keep the hand weights on the measured fingers. The face
+rig is still open.
