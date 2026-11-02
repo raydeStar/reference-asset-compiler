@@ -431,3 +431,23 @@ Add every new item before it is used.
     two blinks and a small head nod; EEVEE frames muxed with ffmpeg. This is
     demo lip-sync from a synthesized voice only: arbitrary recorded audio
     needs a phoneme aligner such as Rhubarb (MIT, needs a download).
+- 2026-11-01: shoulders v4 (`evidence/raider-shoulders-v4.jpg`,
+  `rig/shoulder-v4/raider_hero_rigged.fbx`, `fix_shoulders.py`).
+  - Mark found arms-out and arms-overhead weird. The skin-coloured flaps at
+    the armpits in the overhead pose were the face mesh's neck: it reaches
+    into the collar and flares out to 0.28 m either side at chest height,
+    weighted to the neck alone, so lifting the jacket off it exposed it.
+    Below 1.54 m it now takes the nearest body vertex's weights, blending
+    into its neck weights over 4 cm, and stays under the jacket.
+  - Chest skin beside the armpit carried up to 0.8 upper-arm weight; the
+    arm's share is now capped inside the shoulder joint (none 6 cm in) and
+    weights near the joint are averaged across the layered shells.
+  - Tried and dropped: moving the clavicle's share out to the upper arm
+    (put more arm weight on the chest; no visible gain) and making the
+    pauldron rigid at half clavicle, half upper arm (its inner layer poked
+    through as white streaks).
+  - Gate passes (86 bones, 74,350 triangles); deformation suite: 5 poses
+    pass. The pose sheet's overhead test lifts the collarbones only 15
+    degrees, which is what makes the head look sunk; at a natural 30 degrees
+    it reads normally. Arms-out is nearly unchanged apart from a small skin
+    patch at the left armpit, now gone.
