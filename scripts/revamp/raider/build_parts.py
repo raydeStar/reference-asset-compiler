@@ -1,5 +1,23 @@
 """Split the dense acquired mesh by part label, close each part's openings, reduce each part to its own
-triangle budget, save dense and reduced part files, render label and shape views."""
+triangle budget, save dense and reduced part files, render label and shape views.
+
+  $B -b --factory-startup --python build_parts.py -- <dense.glb> <face-labels.npy> <part-names.json> <out-dir>
+      [--clean-edges] [--budget-scale S]
+
+--clean-edges (for labels re-cut by recut_labels.py; parts-v2 was built without it) keeps the overlays' edges
+clean. Each overlay shell grows outward only, so its underside is the acquired surface. The cloth under it sinks by
+up to INSET, fading in over INSET_RINGS rings from the overlay's outline, so the two reduced surfaces no longer
+cross in a zig-zag under the edge. Without it a strap's edge showed a saw-tooth of jacket through its underside.
+Each overlay's outline is pulled in by OUTLINE_GAP along the surface: neighbouring overlays share their re-cut
+outline exactly, and prep_production.py's weld fused the chest plate, straps, pouches, belt and buckles of v6 into
+one shell.
+(Relaxing the reduced outline along itself was tried and dropped: at a sharp tooth it folded a triangle over, and the
+shell's thickness then threw that vertex metres away.)
+
+--budget-scale multiplies every part's triangle budget, so the parts can be reduced once, straight to the
+production mesh's density, and prep_production.py has nothing left to reduce: its second collapse, across the
+joined closed shells, is what turned the shells' rims into spikes on the rigged Raider.
+"""
 import bpy
 import bmesh
 import sys
@@ -7,9 +25,13 @@ import json
 import math
 import numpy as np
 from mathutils import Vector, Euler
+from mathutils.bvhtree import BVHTree
 sys.stdout.reconfigure(line_buffering=True)
 a = sys.argv[sys.argv.index("--") + 1:]
 src, labp, names, out = a[0], a[1], json.load(open(a[2])), a[3]
+CLEAN = "--clean-edges" in a
+INSET, INSET_RINGS, SLIVER, OUTLINE_GAP = 0.003, 3, 0.0005, 0.0005
+SCALE = float(a[a.index("--budget-scale") + 1]) if "--budget-scale" in a else 1.0
 BUDGET = {"hair": 8000, "face": 4000, "beard": 3000, "skin": 1500, "glove": 12000, "jacket": 26000, "trousers": 14000,
           "boot": 10000, "boot_strap": 3000, "plate": 5000, "strap": 5000, "belt": 2000, "buckle": 600, "pouch": 6000,
           "thigh_pouch": 2000, "kneepad": 2500}
@@ -80,6 +102,47 @@ def relax(P, tris, movable, iters):
         P[movable] = avg[movable]
     return P
 
+def sink(P, tris, fixed):
+    """Lower the cloth an overlay covers by up to INSET along its normal, fading in from the overlay's outline."""
+    fn = np.cross(P[tris[:, 1]] - P[tris[:, 0]], P[tris[:, 2]] - P[tris[:, 0]])
+    vn = np.zeros_like(P)
+    for k in range(3):
+        np.add.at(vn, tris[:, k], fn)
+    vn /= np.maximum(np.linalg.norm(vn, axis=1, keepdims=True), 1e-12)
+    e = np.concatenate([tris[:, [0, 1]], tris[:, [1, 2]], tris[:, [2, 0]]])
+    ring = np.where(fixed, 0, INSET_RINGS).astype(float)
+    for r in range(1, INSET_RINGS):
+        near = (ring[e[:, 0]] == r - 1) & (ring[e[:, 1]] > r)
+        ring[e[near, 1]] = r
+    P = P.copy()
+    P -= vn * (INSET * ring / INSET_RINGS)[:, None]
+    return P
+
+def pull_in_outline(bm):
+    """Move an open sheet's outline OUTLINE_GAP inward along the surface (at most half way to its neighbours)."""
+    bm.normal_update()
+    moves = {}
+    for v in bm.verts:
+        if not v.is_boundary:
+            continue
+        near = [e.other_vert(v) for e in v.link_edges]
+        inner = [u for u in near if not u.is_boundary] or near
+        d = sum((u.co for u in inner), Vector()) / len(inner) - v.co
+        d -= v.normal * d.dot(v.normal)
+        if d.length > 1e-9:
+            moves[v] = d.normalized() * min(OUTLINE_GAP, 0.5 * d.length)
+    for v, d in moves.items():
+        v.co += d
+
+def split_bowties(bm):
+    """Give each fan of faces its own copy of a vertex where two stretches of open edge touch.
+
+    Thickening (or a skirt) at such a vertex stacks four faces on one rim edge; the smooth recut leaves a few more
+    of them than the triangle-edge labels did.
+    """
+    for v in [v for v in bm.verts if sum(e.is_boundary for e in v.link_edges) > 2]:
+        bmesh.utils.vert_separate(v, [e for e in v.link_edges if e.is_boundary])
+
 def reduce(obj, target):
     tris = len(obj.data.polygons)
     if tris > target:
@@ -124,9 +187,13 @@ for i, n in enumerate(names):
         owned_v[tris[own[sel]].ravel()] = True
         P = V[uniq].copy()
         P = relax(P, tris, ~owned_v, 80)
+        if CLEAN:
+            P = sink(P, tris, owned_v)
         lm.vertices.foreach_set("co", P.ravel())
         bm = bmesh.new()
         bm.from_mesh(lm)
+        if CLEAN:
+            split_bowties(bm)
         bnd = [e for e in bm.edges if e.is_boundary]
         nb = len(bnd)
         # a short skirt folded inward on every open edge hides cracks between neighbouring parts
@@ -143,24 +210,46 @@ for i, n in enumerate(names):
         lm.materials.append(mat)
         lo = bpy.data.objects.new(n, lm)
         low_col.objects.link(lo)
-        reduce(lo, BUDGET[n])
+        reduce(lo, int(BUDGET[n] * SCALE))
         kind = "base"
     else:
         lm, _, _ = mesh_from(own, n)
         lm.materials.append(mat)
         lo = bpy.data.objects.new(n, lm)
         low_col.objects.link(lo)
-        reduce(lo, BUDGET[n] // 2)
+        reduce(lo, int(BUDGET[n] * SCALE) // 2)
+        if CLEAN:
+            # the reduction leaves near-zero-area slivers; their normals throw the shell's vertices far off
+            bm = bmesh.new()
+            bm.from_mesh(lo.data)
+            bmesh.ops.dissolve_degenerate(bm, edges=bm.edges[:], dist=SLIVER)
+            bmesh.ops.triangulate(bm, faces=bm.faces[:])
+            split_bowties(bm)
+            pull_in_outline(bm)
+            bm.to_mesh(lo.data)
+            bm.free()
         sol = lo.modifiers.new("shell", 'SOLIDIFY')
         sol.thickness = SHELL[n]
-        sol.offset = 0.6
+        sol.offset = 1.0 if CLEAN else 0.6
         sol.use_rim = True
-        sol.use_even_offset = True
+        sol.use_even_offset = not CLEAN     # even thickness divides by the fold angle's cosine: spikes at folds
         sol.use_quality_normals = True
         sol.nonmanifold_thickness_mode = 'CONSTRAINTS'
         bake_mods(lo)
         kind = "shell"
         nb = 0
+        # a shell vertex far off the acquired surface is a spike, whatever made it
+        tree = BVHTree.FromPolygons([v.co[:] for v in dm.vertices], [q.vertices[:] for q in dm.polygons])
+        off = max(tree.find_nearest(v.co)[3] for v in lo.data.vertices)
+    if CLEAN:
+        # a triangle with two corners at one point (98 of them on the acquired face) collapses in the painter's
+        # exact-position normal proxy, which refuses the whole mesh
+        bm = bmesh.new()
+        bm.from_mesh(lo.data)
+        bmesh.ops.dissolve_degenerate(bm, edges=bm.edges[:], dist=1e-6)
+        bmesh.ops.triangulate(bm, faces=bm.faces[:])
+        bm.to_mesh(lo.data)
+        bm.free()
     for p in lo.data.polygons:
         p.use_smooth = True
     try:
@@ -168,6 +257,13 @@ for i, n in enumerate(names):
     except Exception:
         pass
     report[n] = {"kind": kind, "dense_tris": int(own.sum()), "open_edges": nb, "reduced_tris": len(lo.data.polygons)}
+    if kind == "shell":
+        report[n]["furthest_from_surface"] = round(off, 4)
+    if CLEAN:
+        co = {}
+        canon = [co.setdefault(tuple(round(x, 9) for x in v.co), v.index) for v in lo.data.vertices]
+        report[n]["collapsed_faces"] = sum(len({canon[i] for i in q.vertices}) < len(q.vertices)
+                                           for q in lo.data.polygons)
     print("PART", n, json.dumps(report[n]))
 json.dump(report, open(out + "/parts-report.json", "w"), indent=2)
 sc.collection.children.unlink(dense_col)  # keep dense in the file but out of the scene renders

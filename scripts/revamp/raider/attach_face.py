@@ -182,8 +182,36 @@ fbvh = BVHTree.FromBMesh(fbm)
 bm = bmesh.new()
 bm.from_mesh(body.data)
 bm.faces.ensure_lookup_table()
+
+
+def closed_shells(bm):
+    """Faces of pieces with no open edge: the armour, pouches and straps are closed shells, the neck and chest skin
+    belong to open cloth parts. The skin rules below read a bright copper highlight on the chest plate as skin and
+    cut holes in it."""
+    seen, keep = set(), set()
+    for f in bm.faces:
+        if f.index in seen:
+            continue
+        stack, grp = [f], []
+        seen.add(f.index)
+        while stack:
+            g = stack.pop()
+            grp.append(g)
+            for e in g.edges:
+                for h in e.link_faces:
+                    if h.index not in seen:
+                        seen.add(h.index)
+                        stack.append(h)
+        if all(len(e.link_faces) == 2 for g in grp for e in g.edges):
+            keep.update(g.index for g in grp)
+    return keep
+
+
+shell = closed_shells(bm)
 over = []
 for f in bm.faces:
+    if f.index in shell:
+        continue
     c = body.matrix_world @ f.calc_center_median()
     loc, nrm, _, dd = fbvh.find_nearest(c)
     if loc is not None and dd < 0.01 and (body.matrix_world.to_3x3() @ f.normal).dot(nrm) > 0.3:
@@ -199,7 +227,7 @@ fz = [v.co.z for v in new["face"].data.vertices]
 fmin = min(fz)
 neck_top = (arm.matrix_world @ arm.data.bones["head"].head_local).z + 0.02
 for f in bm.faces:
-    if f in over or f.material_index != 0:
+    if f in over or f.material_index != 0 or f.index in shell:
         continue
     c = body.matrix_world @ f.calc_center_median()
     if not (fmin - 0.02 < c.z < neck_top and abs(c.x) < 0.14):
@@ -242,7 +270,8 @@ for f in bm.faces:
                     seen.add(h.index)
                     stack.append(h)
     near = fbvh.find_nearest(body.matrix_world @ grp[0].calc_center_median())[3] < 0.05
-    if len(grp) < 12 or (near and len(grp) < 60):
+    closed = all(len(e.link_faces) == 2 for g in grp for e in g.edges)
+    if len(grp) < 12 or (near and len(grp) < 60 and not closed):
         frag += grp
 bmesh.ops.delete(bm, geom=frag, context='FACES')
 bmesh.ops.delete(bm, geom=[v for v in bm.verts if not v.link_faces], context='VERTS')

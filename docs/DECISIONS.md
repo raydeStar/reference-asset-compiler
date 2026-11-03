@@ -1539,3 +1539,53 @@ properly weighted body underneath it: `skin_from_makehuman.py` poses MPFB's Make
 from the body surface below. Pose only the limbs, fingers and head onto the target; turning MakeHuman's trunk
 bones to match Manny's swings the hips and shoulders. Keep the hand weights on the measured fingers. The face
 rig is still open.
+
+## 2026-11-03 — Layered characters: cut parts smooth, reduce once, make armour solid, cut UVs like a pattern
+
+Mark found CH-03 Raider "uggo" up close in Framewright: saw-toothed straps and plate edges, spikes, seams across
+the plates, and holes in the back. A clay render showed most of it was in the geometry, not the paint; the dense
+acquisition itself is smooth. `build_parts.py` cut each part along the dense mesh's triangle edges (per-face
+labels), thickened the overlays partly inward, and `prep_production.py` then collapsed the joined closed shells a
+second time, spiking their rims. `recut_labels.py` now diffuses each part's share over the surface and splits
+triangles where the leading shares are equal, so outlines cross triangles and neighbours share one cut; hair and
+beard pieces cut off from the head and islands under 1 cm^2 take the label around them (a 478-triangle hair patch
+on the jacket's back became a hole once the head was swapped in). `build_parts.py --clean-edges` grows shells
+outward only and without even thickness (it divides by the fold angle and threw vertices metres away), dissolves
+slivers, splits bow-tie vertices, pulls each overlay's outline in 0.5 mm, sinks the cloth under each shell 3 mm, and
+reports each shell's furthest vertex and collapsed faces. `--budget-scale` with `prep_production.py
+--body-budget` reduces once, straight to the production density. Rejected and retained: protecting the open edge
+in the collapse (interiors became fans; a pouch tore open) and relaxing the reduced outline (it folded a triangle at
+a tooth and the shell flung that vertex away).
+
+Holes in closed shells came from three places, each found by checking the shells after every stage, not by
+looking from outside: zero-area triangles dropped on export after the second collapse; `prep_production.py`'s weld,
+which fused neighbouring shells along a shared re-cut outline into one piece (fixed by the outline pull-in);
+and `attach_face.py`'s neck clean-up, whose "bright warm paint near the neck is skin" rule cut copper highlights out
+of the chest plate. That clean-up now never deletes from a closed shell. Viewers like Framewright cull back faces,
+so review with culling on and check shells closed (`plate_check.py` counts each shell's open edges).
+
+The armour overlays are closed shells, but their weights came from the cloth below vertex by vertex, so in Manny's
+frames the shoulder plate bent 96 mm and the belt 85 mm. `rigid_parts.py` gives each shell one weight set (the
+area-weighted mean, twist bones folded into their limb; a shell over a ball joint rides the limb by at least 0.7;
+one straddling a hinge is left alone) and locks the surface under it. Three lock rules failed first: the nearest
+piece wins (a strap 5 mm between the chest plate and a belt pouch tore 24-fold), a weight-overlap gate (the cloth
+under the shoulder plate's inner edge went free), an even blend where pieces meet (cloth lagged under a pouch).
+The kept rule gates by body region, blends by pull and lets the covering piece count ten times. Measure poke with a
+ray along the bind normal turned with the piece: the posed vertex normal tilts with the cloth around it and finds
+the piece's far side. On v7 every shell is closed, torso pieces bend under 3 mm, the shoulder plate squashes evenly
+by up to 19 mm instead of folding, and the thigh pouch's poke fell from 34 mm to 1.5 mm.
+
+The body atlas from one Smart UV Project had about 10,000 saw-edged islands, and the painter's views disagree at
+every island edge. `body_paint_prep.py --part-uv` (`part_uv.py`) cuts each part like a pattern: at folds over 75°
+on shells and only at fold-backs (130°) on cloth, since at 75° the jacket's wrinkles cut it to patches, plus the
+cheapest paths joining a tube's open loops, weighted to run down the back and the undersides. About 3,000
+islands remain, most of them hidden rims and skirts. Re-baking old paint into a new layout carries its smears
+across, so the body was repainted. A paint run was refused before inference when 98 triangles of the acquired face
+had two corners at one point (the painter's exact-position normal proxy rejects the mesh); `--clean-edges` now
+dissolves those. The painter's smears on surfaces the reference does not show (the shoulder plate's outer face)
+remain; better UVs do not fix them.
+
+`build_raider.ps1 -From parts` now runs all of this inside the run folder, then `manny` (Manny axes with the torso on
+Manny's exact frames, shoulder re-split, solid armour). The rig gate counts the stand-in acquired head in the
+intermediate mesh and the speaking face, eyes and teeth in the final one against the 80k hero ceiling: v7 used
+`-BodyBudget 60000 -HeadBudget 17000 -HandBudget 5700` (79,602 triangles).

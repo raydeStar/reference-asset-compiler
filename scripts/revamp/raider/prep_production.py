@@ -1,7 +1,14 @@
 """Make the assembled Raider a single real-scale production mesh for the rig stage: join body, head and
 hands (materials kept), scale to the declared height with the soles on the floor, centred, facing -Y.
 
-  $B -b --factory-startup --python prep_production.py -- <assembled.glb> <out.glb> [height_m]
+  $B -b --factory-startup --python prep_production.py -- <assembled.glb> <out.glb> [height_m] [--body-budget N]
+      [--head-budget N] [--hand-budget N]
+
+--body-budget raises the body's triangle budget so parts already reduced to the production density
+(build_parts.py --budget-scale) are not collapsed a second time: that second collapse, across the joined closed
+shells, is what spiked the shells' rims and opened holes in them on the v5 Raider. --head-budget lowers the
+acquired head's: it only stands in until the face stage swaps in the speaking face, but the rig gate counts it
+against the hero tier's 80k ceiling. --hand-budget sets each hand's.
 """
 import bpy
 import bmesh
@@ -11,10 +18,16 @@ import numpy as np
 from mathutils import Matrix
 a = sys.argv[sys.argv.index("--") + 1:]
 src, out = a[0], a[1]
-height = float(a[2]) if len(a) > 2 else 1.82
+height = float(a[2]) if len(a) > 2 and not a[2].startswith("--") else 1.82
 # RAC's hero tier allows 60-80k triangles for everything the skeletal mesh ships (profiles/triangle-budgets.json);
 # spend it on the face and hands first
 BUDGET = {"raider_head": 18000, "raider_hand_r": 6000, "raider_hand_l": 6000, "raider_body": 46000}
+if "--body-budget" in a:
+    BUDGET["raider_body"] = int(a[a.index("--body-budget") + 1])
+if "--head-budget" in a:
+    BUDGET["raider_head"] = int(a[a.index("--head-budget") + 1])
+if "--hand-budget" in a:
+    BUDGET["raider_hand_r"] = BUDGET["raider_hand_l"] = int(a[a.index("--hand-budget") + 1])
 bpy.ops.wm.read_factory_settings(use_empty=True)
 bpy.ops.import_scene.gltf(filepath=src)
 obs = [o for o in bpy.context.scene.objects if o.type == 'MESH']
