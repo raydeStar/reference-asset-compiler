@@ -5239,3 +5239,18 @@ hierarchical runner run and matches the old dense mesh (99.89% of vertices
 identical, max shift 0.0035% of the diagonal). A game was using the GPU during
 the run. Four-view matcap sheet:
 `docs/evidence/geometry-launcher-fox-20261031.jpg`. Not a candidate for any asset.
+
+## 2026-11-03 — Raider v7: Manny rig, solid armour, rebuilt and repainted body
+
+Branch `raider-revamp` (PR raydeStar/reference-asset-compiler#7), uncommitted at the time of writing. The Raider
+rig now sits on UE5 Manny's axes with the torso on Manny's exact frames, and its armour, pouches and belt move as
+solid pieces (`manny_axes.py`, `shoulder_skin.py`, `rigid_parts.py`; `plate_check.py` measures bend, poke-through,
+stretch and closed shells in dumped Manny frames). After Mark's close look in Framewright, the body was rebuilt from
+the dense acquisition with smooth part cuts, clean shells reduced once, pattern-cut UVs and a new paint
+(`recut_labels.py`, `build_parts.py --clean-edges --budget-scale`, `part_uv.py`, `nonmetal_mask.py`). All of it
+runs from `build_raider.ps1 -From parts`, which adds the `parts`, `paint` and `manny` stages; the decisions and the
+failed variants are in `DECISIONS.md` (2026-11-03). `save_textures.py` writes the PNGs the Unreal import reads.
+Run v7 passes the rig gate at 79,602 triangles. Every shell is closed and the game's protected files are unchanged.
+v7 is in the game's Raider review slot (the s5 FBX stays in `build/v5/ue`) and in a scratch Framewright copy.
+Open: the painter's smears on the shoulder plate's outer face; the Unreal scripts still live in the git-ignored
+`build/v5/ue` folder.

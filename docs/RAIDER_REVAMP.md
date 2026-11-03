@@ -670,3 +670,25 @@ Add every new item before it is used.
     scalp, smoother than the reference's textured short cut; a deep squat
     pushes the jacket hem into the thighs; the mouth corners tear past 0.7
     open (the demo caps there).
+- 2026-11-03: Manny rig, solid armour, rebuilt body v7 (`build_raider.ps1 -Run v7 -From parts -BodyBudget 60000
+  -HeadBudget 17000 -HandBudget 5700 -MannyRef <manny_refpose.json>`; `evidence/raider-v7-closeups.jpg`,
+  `evidence/raider-v7-in-engine.jpg`, `evidence/raider-v7-four-views.jpg`).
+  - Animation targets Manny only. `manny_axes.py` gives the torso (pelvis to neck_02) Manny's exact frames inside
+    `solve_frames` and aims only the limbs: the pelvis-to-head lean matches Manny's own skeleton within about 1
+    degree in idle, jog and attack. `shoulder_skin.py` re-splits clavicle and upper-arm weights along the arm.
+  - Solid armour (`rigid_parts.py`, measured by `plate_check.py`): the shoulder plate no longer folds around the arm
+    (96 mm bend before, an even 19 mm squash now), torso pieces bend under 3 mm, knee pads not at all. Mark: "that is
+    much better".
+  - Mark then found many textures "uggo" up close in Framewright, with seams on the plates and a missing face on the
+    back. The seams follow UV cuts (about 10k Smart UV islands), but most of the ugliness was geometry: parts cut
+    along triangle edges and the joined shells collapsed a second time. Body rebuilt from the dense acquisition:
+    smooth re-cut labels (`recut_labels.py`), clean shells reduced once (`build_parts.py --clean-edges
+    --budget-scale 0.54`), pattern-cut UVs (`body_paint_prep.py --part-uv`), a new Hunyuan3D-Paint run (12 views,
+    768, 4096; one run refused before inference on collapsed faces, the next passed the topology/UV gate after the
+    usual teardown crash). Mark passed the clay geometry ("mostly ok").
+  - The holes were in closed shells: the second collapse dropped slivers, the production weld fused neighbouring
+    shells (v6), the face stage's neck clean-up cut the chest plate's copper highlights as skin, and a stray hair
+    label on the back left a gap behind the collar. All fixed in the stages; v7's shells are all closed.
+  - v7: gate passes (79,602 triangles), 16 solid pieces, in the game and in a scratch Framewright copy beside s5.
+    Still rough: the painter's smears on the shoulder plate's outer face (the reference does not show that side),
+    some leather straps still painted blotchy; the elbow patches stay soft (they straddle the hinge).

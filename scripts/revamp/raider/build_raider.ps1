@@ -21,11 +21,28 @@
     work\raider-head\textures\paint-attempt002-rough60\raider-head*   calibrated head paint
   Blender needs MPFB 2 with MakeHuman's CC0 system assets for the skin and face stages. ffmpeg muxes the video.
 
-  Stages, in order: hands, production, materials, landmarks, fingers, rig, skin, face, shoulders, mouth, look,
-  check, renders, speech. -From starts at a stage when the earlier ones are already in the run folder.
+  Stages, in order: parts, paint, hands, production, materials, landmarks, fingers, rig, skin, face, shoulders,
+  mouth, look, manny, check, renders, speech. -From starts at a stage when the earlier ones are already in the run
+  folder; the default, hands, starts from the accepted -Parts and -Assembled inputs above.
+
+  -From parts rebuilds the body from the dense acquisition as well, inside the run folder: the part labels re-cut
+  along smooth lines (recut_labels.py), clean shells reduced once to the production density (build_parts.py
+  --clean-edges --budget-scale), pattern-cut UVs (body_paint_prep.py --part-uv), a Hunyuan3D-Paint run
+  (scripts\run_hy3d21_texture.ps1, which checks VRAM and never retries), part masks, the non-metal calibration and
+  the painted head placed. Its inputs: <Work>\<Dense>, <Work>\<Labels>\face-labels.npy and part-names.json,
+  <Work>\<Reference>, the head paint, and RAC_LEGACY_ROOT for the painter. Pass -BodyBudget above the body's
+  reduced triangle count so the production stage does not collapse it a second time, and -HeadBudget low enough
+  that body, hands and the stand-in acquired head stay under the rig gate's 80k hero ceiling; the final check counts
+  the speaking face, eyes and teeth as well (-HandBudget 5700 made room for them on v6).
+
+  manny puts the final rig on the UE5 Manny axes (manny_axes.py, the torso on Manny's exact frames), re-splits the
+  shoulder weights (shoulder_skin.py) and makes the armour solid (rigid_parts.py). It needs a Manny reference-pose
+  dump (-MannyRef, or RAC_MANNY_REFPOSE), which is Epic content and stays out of the repository.
 
 .EXAMPLE
   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\revamp\raider\build_raider.ps1 -Run v2
+.EXAMPLE
+  powershell -NoProfile -ExecutionPolicy Bypass -File scripts\revamp\raider\build_raider.ps1 -Run v6 -From parts -BodyBudget 52000
 #>
 [CmdletBinding()]
 param(
@@ -36,8 +53,18 @@ param(
     [string] $BodyPaint = 'body-paint\attempt002-pbr',
     [string] $BodyParts = 'body-paint\attempt002-masks',
     [string] $HeadPaint = 'work\raider-head\textures\paint-attempt002-rough60',
-    [ValidateSet('hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face', 'shoulders', 'mouth',
-                 'look', 'check', 'renders', 'speech')][string] $From = 'hands',
+    [string] $Parts = 'parts-v2\raider-parts-v2.blend',
+    [string] $Assembled = 'assembled\raider-v3.glb',
+    [string] $Dense = 'sources\raider-dense-acquired.glb',
+    [string] $Labels = 'parts-v2',
+    [double] $BudgetScale = 0.54,
+    [string] $Reference = 'sources\raider-reference-v1.png',
+    [int] $BodyBudget = 46000,
+    [int] $HeadBudget = 18000,
+    [int] $HandBudget = 6000,
+    [string] $MannyRef = $env:RAC_MANNY_REFPOSE,
+    [ValidateSet('parts', 'paint', 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face',
+                 'shoulders', 'mouth', 'look', 'manny', 'check', 'renders', 'speech')][string] $From = 'hands',
     [string] $Blender = $env:RAC_BLENDER,
     [string] $FFmpeg
 )
@@ -53,8 +80,8 @@ $python = & (Join-Path $repo 'scripts\resolve_python.ps1')
 if (-not $Blender) { $Blender = (& $python (Join-Path $repo 'scripts\rac_env.py') --blender) | Select-Object -Last 1 }
 if (-not $Blender -or -not (Test-Path -LiteralPath $Blender)) { throw 'Blender not found; set RAC_BLENDER or pass -Blender.' }
 
-$stages = 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face', 'shoulders', 'mouth', 'look',
-          'check', 'renders', 'speech'
+$stages = 'parts', 'paint', 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face', 'shoulders',
+          'mouth', 'look', 'manny', 'check', 'renders', 'speech'
 $start = [array]::IndexOf($stages, $From)
 function Want([string] $name) { return [array]::IndexOf($stages, $name) -ge $start }
 function Step([string] $name, [scriptblock] $body) {
@@ -85,15 +112,56 @@ $rigDir = Join-Path $out 'rig'; $skinDir = Join-Path $out 'skin'; $faceDir = Joi
 $shoulderDir = Join-Path $out 'shoulders'; $mouthDir = Join-Path $out 'mouth'; $final = Join-Path $out 'final'
 New-Item -ItemType Directory -Force -Path $skinDir, $faceDir, $shoulderDir, $mouthDir, $final | Out-Null
 $lineage = Get-ChildItem (Join-Path $W 'hand-src') -Filter '*.lineage.json' | Select-Object -First 1
+# the body this run starts from: the accepted inputs, or the parts and paint this run built itself
+$partsDir = Join-Path $out 'parts'; $paintDir = Join-Path $out 'paint'
+$ownBody = (Want 'paint') -or (Test-Path -LiteralPath (Join-Path $paintDir 'pbr\raider-body.obj'))
+if ($ownBody) {
+    $partsBlend = Join-Path $partsDir 'raider-parts-v2.blend'; $bodyGlb = Join-Path $out 'raider-body-assembled.glb'
+    $bp = Join-Path $paintDir 'pbr'; $parts = Join-Path $paintDir 'masks'
+} else {
+    $partsBlend = Join-Path $W $Parts; $bodyGlb = Join-Path $W $Assembled
+    $bp = Join-Path $W $BodyPaint; $parts = Join-Path $W $BodyParts
+}
 
-Step 'hands' { B @((Join-Path $W 'parts-v2\raider-parts-v2.blend'), '--python', "$here\place_hands.py", '--',
-    (Join-Path $W 'assembled\raider-v3.glb'), (Join-Path $H 'textures\paint-attempt001\raider-hand-r.glb'),
+Step 'parts' {
+    BF @('--python', "$here\recut_labels.py", '--', (Join-Path $W $Dense), (Join-Path $W "$Labels\face-labels.npy"),
+        (Join-Path $W "$Labels\part-names.json"), $partsDir)
+    if ($LASTEXITCODE -ne 0) { return }
+    Copy-Item (Join-Path $W "$Labels\part-names.json") $partsDir
+    BF @('--python', "$here\build_parts.py", '--', (Join-Path $partsDir 'dense-recut.glb'), (Join-Path $partsDir 'face-labels.npy'),
+        (Join-Path $partsDir 'part-names.json'), $partsDir, '--clean-edges', '--budget-scale', "$BudgetScale")
+}
+Step 'paint' {
+    $attempt = Join-Path $paintDir 'attempt'; $masks = Join-Path $paintDir 'masks'
+    New-Item -ItemType Directory -Force -Path $attempt, $masks | Out-Null
+    B @($partsBlend, '--python', "$here\body_paint_prep.py", '--', (Join-Path $paintDir 'raider-body-paintmesh'), '--part-uv')
+    if ($LASTEXITCODE -ne 0) { return }
+    # the wrapper checks free VRAM, never retries, and exits 0 only when the topology/UV gate passed
+    & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $repo 'scripts\run_hy3d21_texture.ps1') `
+        -Mesh (Join-Path $paintDir 'raider-body-paintmesh.glb') -Reference (Join-Path $W $Reference) `
+        -OutputObj (Join-Path $attempt 'raider-body.obj') -Views 12 -Resolution 768 -RunnerKind studio -Atlas 4096
+    if ($LASTEXITCODE -ne 0) { return }
+    B @($partsBlend, '--python', "$here\part_uv_mask.py", '--', (Join-Path $attempt 'raider-body.obj'), $masks, '4096')
+    if ($LASTEXITCODE -ne 0) { return }
+    & $python "$here\nonmetal_mask.py" (Join-Path $masks 'nonmetal-uv-tris.npy') (Join-Path $masks 'nonmetal-mask.png') 4096
+    if ($LASTEXITCODE -ne 0) { return }
+    & $python "$here\calibrate_pbr.py" $attempt $bp --stem raider-body --mask (Join-Path $masks 'nonmetal-mask.png') --floor 0.6
+    if ($LASTEXITCODE -ne 0) { return }
+    BF @('--python', "$here\obj_to_glb.py", '--', "$bp\raider-body.obj", "$bp\raider-body.glb")
+    if ($LASTEXITCODE -ne 0) { return }
+    B @($partsBlend, '--python', "$here\place_head.py", '--', "$bp\raider-body.glb",
+        (Join-Path (Resolve-Path $HeadPaint).Path 'raider-head.glb'), $bodyGlb)
+}
+Step 'hands' { B @($partsBlend, '--python', "$here\place_hands.py", '--',
+    $bodyGlb, (Join-Path $H 'textures\paint-attempt001\raider-hand-r.glb'),
     (Join-Path $H 'references\primary.png'), $lineage.FullName, (Join-Path $W 'evidence\seg-proto\parts-v2.npy'), $assembled) }
-Step 'production' { BF @('--python', "$here\prep_production.py", '--', $assembled, $prodRaw, '1.82') }
+# --body-budget: a body reduced once already (-From parts) is not collapsed again
+Step 'production' { BF @('--python', "$here\prep_production.py", '--', $assembled, $prodRaw, '1.82', '--body-budget', "$BodyBudget",
+    '--head-budget', "$HeadBudget", '--hand-budget', "$HandBudget") }
 # materials: the body's and head's real metalness (the packed map had metallic = roughness), the plates toned to the
 # reference's worn iron, the arm and chest skin to the reference's tone, and the jacket's slit below the collar closed
 Step 'materials' {
-    $bp = Join-Path $W $BodyPaint; $hp = (Resolve-Path $HeadPaint).Path; $parts = Join-Path $W $BodyParts
+    $hp = (Resolve-Path $HeadPaint).Path
     $pbr = Join-Path $out 'raider_hero_production-pbr.glb'; $toned = Join-Path $out 'raider_hero_production-toned.glb'
     BF @('--python', "$here\fix_pbr_maps.py", '--', $prodRaw, $pbr,
         "raider-body_roughness=$bp\raider-body", "raider-head_roughness=$hp\raider-head")
@@ -141,6 +209,19 @@ Step 'look' {
         (Join-Path $final 'raider_hero_rigged.blend'), (Join-Path $final 'raider_hero_rigged.fbx'))
 }
 $finalBlend = Join-Path $final 'raider_hero_rigged.blend'; $finalFbx = Join-Path $final 'raider_hero_rigged.fbx'
+Step 'manny' {
+    if (-not $MannyRef -or -not (Test-Path -LiteralPath $MannyRef)) {
+        throw 'manny needs the Manny reference-pose dump: pass -MannyRef or set RAC_MANNY_REFPOSE'
+    }
+    $axes = Join-Path $final 'raider_hero_rigged_manny-axes.blend'
+    $shoulders = Join-Path $final 'raider_hero_rigged_manny-shoulders.blend'
+    B @($finalBlend, '--python', "$here\manny_axes.py", '--', $MannyRef, $axes)
+    if ($LASTEXITCODE -ne 0) { return }
+    B @($axes, '--python', "$here\shoulder_skin.py", '--', $shoulders)
+    if ($LASTEXITCODE -ne 0) { return }
+    B @($shoulders, '--python', "$here\rigid_parts.py", '--', "$bp\raider-body.obj", "$parts\painted-face-parts.npy",
+        "$parts\painted-face-parts.json", (Join-Path $final 'raider_hero_rigged_manny.blend'))
+}
 Step 'check' {
     BF @('--python', (Join-Path $repo 'scripts\blender\gate_rig.py'), '--', $finalFbx, $profileFile, (Join-Path $final 'gate-rig.json'))
     if ($LASTEXITCODE -ne 0) { return }
