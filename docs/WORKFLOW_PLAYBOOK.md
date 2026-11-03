@@ -312,6 +312,24 @@ challenger or bounded semantic donor. The ninja's best legacy texture combined
 a Hunyuan body with a constrained TRELLIS head donor; that does not justify
 unmasked whole-body replacement.
 
+### Final material pass (every character)
+
+The painter gives every surface one kind of paint, so up close metal, leather and cloth all read as painted
+plastic. Every character mesh gets the material pass before texture review:
+
+```powershell
+& $blender -b <rigged.blend> --python scripts\blender\finish_materials.py -- <out.blend> <maps-dir> `
+  --face-parts <face-parts.json> [--profile profiles\materials\character-finish.json] [--object <body>] [--material <painted>]
+```
+
+`face-parts.json` names each body face's part; the profile maps parts to material classes (metal, leather, cloth,
+skin) and gives each class its relief, roughness, metalness, edge wear and grime. Patterns are evaluated in 3D, so
+there are no seams at UV island edges, and the painted colours are modulated, never replaced. It writes a base
+colour, a packed occlusion/roughness/metal map and a tangent-space normal map, wired into the material. A normal
+map needs its own texture asset in the engine import (on the Raider it first shared the roughness/metal asset's
+name and turned the whole body into metal). Review it with back-face culling, in Blender studio light and in the
+engine.
+
 ### Texture acceptance
 
 Render beauty evidence with the `calibrated` display profile:

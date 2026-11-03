@@ -22,7 +22,7 @@
   Blender needs MPFB 2 with MakeHuman's CC0 system assets for the skin and face stages. ffmpeg muxes the video.
 
   Stages, in order: parts, paint, hands, production, materials, landmarks, fingers, rig, skin, face, shoulders,
-  mouth, look, manny, check, renders, speech. -From starts at a stage when the earlier ones are already in the run
+  mouth, look, manny, finish, check, renders, speech. -From starts at a stage when the earlier ones are already in the run
   folder; the default, hands, starts from the accepted -Parts and -Assembled inputs above.
 
   -From parts rebuilds the body from the dense acquisition as well, inside the run folder: the part labels re-cut
@@ -38,6 +38,11 @@
   manny puts the final rig on the UE5 Manny axes (manny_axes.py, the torso on Manny's exact frames), re-splits the
   shoulder weights (shoulder_skin.py) and makes the armour solid (rigid_parts.py). It needs a Manny reference-pose
   dump (-MannyRef, or RAC_MANNY_REFPOSE), which is Epic content and stays out of the repository.
+
+  finish is the material pass every character gets (scripts\blender\finish_materials.py with
+  profiles\materials\character-finish.json): metal, leather, cloth and skin each get their own relief, roughness,
+  metalness, worn edges and grime, baked into the atlas with a new normal map. It writes
+  final\raider_hero_rigged_manny_finished.blend and its maps under final\finish.
 
 .EXAMPLE
   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\revamp\raider\build_raider.ps1 -Run v2
@@ -64,7 +69,7 @@ param(
     [int] $HandBudget = 6000,
     [string] $MannyRef = $env:RAC_MANNY_REFPOSE,
     [ValidateSet('parts', 'paint', 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face',
-                 'shoulders', 'mouth', 'look', 'manny', 'check', 'renders', 'speech')][string] $From = 'hands',
+                 'shoulders', 'mouth', 'look', 'manny', 'finish', 'check', 'renders', 'speech')][string] $From = 'hands',
     [string] $Blender = $env:RAC_BLENDER,
     [string] $FFmpeg
 )
@@ -81,7 +86,7 @@ if (-not $Blender) { $Blender = (& $python (Join-Path $repo 'scripts\rac_env.py'
 if (-not $Blender -or -not (Test-Path -LiteralPath $Blender)) { throw 'Blender not found; set RAC_BLENDER or pass -Blender.' }
 
 $stages = 'parts', 'paint', 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face', 'shoulders',
-          'mouth', 'look', 'manny', 'check', 'renders', 'speech'
+          'mouth', 'look', 'manny', 'finish', 'check', 'renders', 'speech'
 $start = [array]::IndexOf($stages, $From)
 function Want([string] $name) { return [array]::IndexOf($stages, $name) -ge $start }
 function Step([string] $name, [scriptblock] $body) {
@@ -221,6 +226,16 @@ Step 'manny' {
     if ($LASTEXITCODE -ne 0) { return }
     B @($shoulders, '--python', "$here\rigid_parts.py", '--', "$bp\raider-body.obj", "$parts\painted-face-parts.npy",
         "$parts\painted-face-parts.json", (Join-Path $final 'raider_hero_rigged_manny.blend'))
+}
+Step 'finish' {
+    $fin = Join-Path $final 'finish'; New-Item -ItemType Directory -Force -Path $fin | Out-Null
+    $manny = Join-Path $final 'raider_hero_rigged_manny.blend'
+    B @($manny, '--python', "$here\face_parts.py", '--', "$bp\raider-body.obj", "$parts\painted-face-parts.npy",
+        "$parts\painted-face-parts.json", (Join-Path $fin 'face-parts.json'))
+    if ($LASTEXITCODE -ne 0) { return }
+    B @($manny, '--python', (Join-Path $repo 'scripts\blender\finish_materials.py'), '--',
+        (Join-Path $final 'raider_hero_rigged_manny_finished.blend'), (Join-Path $fin 'maps'),
+        '--face-parts', (Join-Path $fin 'face-parts.json'))
 }
 Step 'check' {
     BF @('--python', (Join-Path $repo 'scripts\blender\gate_rig.py'), '--', $finalFbx, $profileFile, (Join-Path $final 'gate-rig.json'))
