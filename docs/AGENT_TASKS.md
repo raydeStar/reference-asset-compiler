@@ -92,6 +92,28 @@ crash, never kill GPU processes) apply to every task below.
   its ledger with the same receipt discipline, and the differences from the cat
   are written up in `docs/HANDOFF.md`.
 
+### 9. The Raider's character build, for the next character
+- **Why:** Mark wants the v7 route reproducible on the next test character. The new stages are already
+  character-agnostic: `finish_materials.py` with `profiles/materials/character-finish.json`, `recut_labels.py`,
+  `build_parts.py --clean-edges --budget-scale`, `part_uv.py`, `rigid_parts.py`, `plate_check.py`, `manny_axes.py`,
+  `save_textures.py`. What still ties the build to CH-03 Raider (`scripts/revamp/raider/`):
+  1. Part segmentation: `sam_parts.py` lists hand-picked automatic mask ids and click prompts on the Raider's
+     reference image. Needs an automatic labeller into the part vocabulary (open-source grounded segmentation;
+     the weights are a download, so ask first) or a short click-labelling step the reviewer does per character.
+  2. Measured landmarks: `refine_labels.py` hard-codes collar, belt and knee heights in the Raider's normalised
+     space. Derive them from `derive_humanoid_landmarks.py` instead.
+  3. Reference colours: `tone_metal.py` and `tone_skin.py` carry colours measured on the Raider's reference.
+     Sample them from the reference inside each part's 2D mask.
+  4. Names: about 17 scripts hard-code `raider`, `painted`, `Material.001` and `raider_body/head/hand`. Move names,
+     part vocabulary, budgets and material classes into a character profile (`profiles/characters/`).
+  5. One-off fixes: `fill_holes.py` (a box round the jacket's back slit), `place_head.py` and `place_hands.py`
+     specifics, the face wrap and bake paths.
+  6. The Unreal import and play scripts live in the git-ignored `build/v5/ue` and target the Raider's review slot.
+- **Done when:** `build_character.ps1 -Profile <character>` (the Raider build, generalised) runs a second
+  humanoid from its dense acquisition, reference and head/hand acquisitions through parts, paint, rig, Manny,
+  finish and the UE import with no script edits, the Raider rebuilds identically from its own profile, and the
+  differences are written up in `docs/HANDOFF.md`.
+
 ### 8. Higher-resolution texture paint
 - **Note (2026-09-05):** a head-only second paint on the same UVs is now a
   two-command route (`scripts/blender/extract_head_transport.py`, then

@@ -1589,3 +1589,16 @@ remain; better UVs do not fix them.
 Manny's exact frames, shoulder re-split, solid armour). The rig gate counts the stand-in acquired head in the
 intermediate mesh and the speaking face, eyes and teeth in the final one against the 80k hero ceiling: v7 used
 `-BodyBudget 60000 -HeadBudget 17000 -HandBudget 5700` (79,602 triangles).
+
+## 2026-11-03 — Every character gets a material pass after the paint
+
+Mark judged the repainted Raider "A quality, not AAA": metal, leather and cloth all read as the same paint. Better
+UVs and a cleaner mesh do not change that; the painter has no notion of a material. `finish_materials.py` bakes one
+from a per-face part map and `profiles/materials/character-finish.json`, using procedural patterns in object
+space (no UV seams) and Cycles' occlusion and pointiness for grime and worn edges, into a new base colour,
+occlusion/roughness/metal map and normal map. Tuned on the Raider: scratches in one direction read as brushing
+(they now cross and are sparse); on grey-painted straps, fine leather grain with deep creases read as fur (calmer
+grain and creases); a 64-sample bake looked the same as 16, so the fur was the pattern, not noise. On the GPU the
+whole pass takes under a minute after Cycles' first kernel compile. In the Unreal import a normal map must get its
+own texture asset; sharing the `_MR` name replaced the roughness/metal map and made the body fully metallic.
+`build_raider.ps1` runs it as the `finish` stage.
