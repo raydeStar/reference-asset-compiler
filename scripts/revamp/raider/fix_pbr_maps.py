@@ -6,7 +6,10 @@ metallic too: the whole body and head were 47-99% metallic. Plates read as chrom
 (obj_to_glb.py now wires separate maps separately; this repairs meshes packed before that.)
 
 For each material named here, the packed texture is rebuilt from the calibrated pair (green roughness, blue
-metallic) after checking that the pair's roughness map is the one already on the material, texel for texel.
+metallic) after checking that the pair's roughness map is the one already on the material, texel for texel. A body
+packed correctly to begin with carries the exporter's own name for the packed map (raider-body_metallic); when the
+named image is absent, an image named after the same stem is taken instead, and the rebuilt map keeps the name
+given here, so the names downstream (tone_metal.py, the UE import's texture files) do not change.
 
   $B -b --factory-startup --python fix_pbr_maps.py -- <production.glb> <out.glb> <image_name>=<maps_dir>/<stem> ...
 """
@@ -31,10 +34,15 @@ def pixels(img):
 
 report = {}
 for image_name, stem in pairs:
-    node = next((n for m in bpy.data.materials if m.node_tree for n in m.node_tree.nodes
-                 if n.type == 'TEX_IMAGE' and n.image and n.image.name == image_name), None)
+    images = [n for m in bpy.data.materials if m.node_tree for n in m.node_tree.nodes
+              if n.type == 'TEX_IMAGE' and n.image]
+    node = next((n for n in images if n.image.name == image_name), None)
+    if node is None:
+        prefix = os.path.basename(stem) + "_"
+        node = next((n for n in images if n.image.name.startswith(prefix)), None)
     if node is None:
         raise SystemExit(f"no material uses image {image_name}")
+    report.setdefault("matched", {})[image_name] = node.image.name
     cur = pixels(node.image)
     rough = pixels(bpy.data.images.load(stem + "_roughness.png"))
     metal = pixels(bpy.data.images.load(stem + "_metallic.png"))

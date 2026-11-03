@@ -226,8 +226,12 @@ def build_joints(plan, remap, old_rig):
     return J
 
 
-def solve_frames(manny, J):
-    """Each bone's UE component-space rotation for this character."""
+def solve_frames(manny, J, exact=()):
+    """Each bone's UE component-space rotation for this character.
+
+    Bones named in `exact` take Manny's frame unchanged (no aiming); their children then aim from that frame, so
+    none of the exact bones' would-be aim correction is handed down the chain as a roll.
+    """
     mb = {b["name"]: b for b in manny["bones"]}
     Pm = {n: np.array(b["pos"], float) for n, b in mb.items()}
     Rm = {n: quat_matrix(b["quat"]) for n, b in mb.items()}
@@ -252,7 +256,7 @@ def solve_frames(manny, J):
         if n in IK_COPIES:
             Re[n] = Re[IK_COPIES[n]]  # Manny's IK bones carry their limb's rotation
             continue
-        if n in COPY_MANNY:
+        if n in COPY_MANNY or n in exact:
             Re[n] = Rm[n]
         elif n in TWO_VECTOR:
             c = AIM[n]
