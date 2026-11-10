@@ -7,6 +7,16 @@
 ![engine](https://img.shields.io/badge/Unreal%20Engine-5.8-black.svg)
 ![blender](https://img.shields.io/badge/Blender-5.2%20LTS-orange.svg)
 
+## At a glance
+
+- **What it does:** turns one concept image into a rigged, textured, animation-ready Unreal Engine 5 character. AI proposes candidates (Hunyuan3D for geometry and PBR), and numeric gates, deformation tests and engine checks decide what gets promoted.
+- **Headline result:** the cat below went from one reference image to a playable UE 5.8 gallery **in one working day with two human approvals**.
+- **See it:** the [walk-cycle capture](docs/images/ayric-workshop-v051/walk.gif) shows 24 actual UE animation poses, with [media provenance](docs/images/ayric-workshop-v051/provenance.json).
+- **Run it (Windows only):** after the [Quick start](#quick-start) install, `.\scripts\workflow_doctor.ps1 -Profile ledger` checks the compiler with no AI or DCC tools, and the [CC0 crate example](examples/crate/README.md) runs from a fresh clone without a GPU.
+- **Reproducible:** every stage writes a receipt with the SHA-256 of what it consumed and produced.
+
+## Overview
+
 **Open-source, evidence-gated pipeline from one concept image to a rigged,
 textured, animation-ready Unreal Engine 5 character.** AI image-to-3D
 (Hunyuan3D) for geometry and PBR textures, Blender for retopology, UV, rigging
