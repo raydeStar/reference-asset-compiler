@@ -1,0 +1,237 @@
+{
+  "date": "2026-11-03",
+  "purpose": "visual review of Raider shoulder and waist equipment",
+  "review_status": "pending human review; no ledger promotion",
+  "production_ready": false,
+  "geometry_provenance": "Original approved-reference-conditioned acquisition, v7 SAM face labels projected onto it. No new inference.",
+  "inputs": {
+    "approved_reference": {
+      "path": "../rac-gpu-efficiency/work/raider-revamp/sources/raider-reference-v1.png",
+      "sha256": "1b12b9d9060be70b79c42ec102bff228392b4d057c79002a87414a428a362854",
+      "bytes": 1393617
+    },
+    "dense_acquisition": {
+      "path": "../rac-gpu-efficiency/work/raider-revamp/sources/raider-dense-acquired.glb",
+      "sha256": "bbd22f6576ab18f696920a78a445d283f095c5a1be452a393142397919a4306e",
+      "bytes": 11944820
+    },
+    "assembled_registration": {
+      "path": "../rac-gpu-efficiency/work/raider-revamp/build/v7/raider-assembled.glb",
+      "sha256": "60e06e4296f33107aa7de7ec241749235595e2ef129af0db91bdec53501e4cd3",
+      "bytes": 54574968
+    },
+    "production_transform": {
+      "path": "../rac-gpu-efficiency/work/raider-revamp/build/v7/raider_hero_production-raw.glb.json",
+      "sha256": "f9452a907a45e3f0e755c4f6ca1f8e5446390cb19ffb863820716164aaa32d15",
+      "bytes": 567
+    },
+    "opus_native_input": {
+      "path": "../rac-gpu-efficiency/work/raider-revamp/build/v7/final/raider_hero_rigged_manny_finished.blend",
+      "sha256": "8d9a2e31157684e41481f0e772df317daf713209ca809d1f84cb005d0e8466ea",
+      "bytes": 37316352
+    },
+    "opus_parts": {
+      "path": "../rac-gpu-efficiency/work/raider-revamp/build/v7/final/finish/face-parts.json",
+      "sha256": "9d8a49632afb01cc6624d274e966da241362491fd4a6a222bc2ade15439c0bb0",
+      "bytes": 587360
+    },
+    "framewright_input": {
+      "path": "work/raider-seams-20261103/Framewright-v7-input.glb",
+      "sha256": "363b2f8dfbad9ca08c8472d9016d4c98da260109dd44644fb0e3057dcec17dc8",
+      "bytes": 12369036
+    },
+    "raider_hero_rigged_manny_finished-basecolor": {
+      "path": "../rac-gpu-efficiency/work/raider-revamp/build/v7/final/finish/maps/raider_hero_rigged_manny_finished-basecolor.png",
+      "sha256": "bb5c4f7aa89a40d21ff1148832c72540cec7590a640d8ab1f855565f1bc55777",
+      "bytes": 11679502
+    },
+    "raider_hero_rigged_manny_finished-normal": {
+      "path": "../rac-gpu-efficiency/work/raider-revamp/build/v7/final/finish/maps/raider_hero_rigged_manny_finished-normal.png",
+      "sha256": "52a0c78f4ab19728f3609f8d07d78fbf960f429a5e865529a5232934f9161d50",
+      "bytes": 54603424
+    },
+    "raider_hero_rigged_manny_finished-orm": {
+      "path": "../rac-gpu-efficiency/work/raider-revamp/build/v7/final/finish/maps/raider_hero_rigged_manny_finished-orm.png",
+      "sha256": "760909208d586cf642bffb9f50ea4c5b166c9da66f72f87a00ec8236149da946",
+      "bytes": 14379259
+    },
+    "user_pouch": {
+      "path": "work/raider-seams-20261103/user-evidence/pouch.png",
+      "sha256": "7f14abd69f2e2f1a1364e8b51eb735a066ba9d51c750fb7fb731f8842b91da77",
+      "bytes": 566072
+    },
+    "user_shoulder": {
+      "path": "work/raider-seams-20261103/user-evidence/shoulder.png",
+      "sha256": "afc2f60e7efb33cdcc91f7f469b27f7f4cdfe4dc9d69491e7bf6b14a027ce0e2",
+      "bytes": 460212
+    }
+  },
+  "outputs": {
+    "Raider_Seam_Repair.glb": {
+      "path": "work/raider-seams-20261103/delivery/Raider_Seam_Repair.glb",
+      "sha256": "bf45fb64b02ed4365c5343d89c61f76636e92e7124b37dbbae64a4eb98ca4274",
+      "bytes": 12676128
+    },
+    "Raider_Seam_Repair.blend": {
+      "path": "work/raider-seams-20261103/delivery/Raider_Seam_Repair.blend",
+      "sha256": "1888c8edd369921bd9d35bfa122d57211aa004f4bc0d1487db18d3efa4a06a2e",
+      "bytes": 127133480
+    },
+    "Review.html": {
+      "path": "work/raider-seams-20261103/delivery/Review.html",
+      "sha256": "b5cba54b7ec7922245eb3b5b98af5911310c501a71d5b9c962a1a9a802b6fbdb",
+      "bytes": 1307175
+    },
+    "Shoulder_and_Pouch.jpg": {
+      "path": "work/raider-seams-20261103/delivery/Shoulder_and_Pouch.jpg",
+      "sha256": "df3e4852210a9a6f504747be3183e3348e458c6416d9865631a9cd45174b9fbf",
+      "bytes": 160830
+    },
+    "Opus_Replay.zip": {
+      "path": "work/raider-seams-20261103/delivery/Opus_Replay.zip",
+      "sha256": "35925be8f4dae96014f63be8c72c11d291d68bfe6ed3719a3f1bf37c23ca4e57",
+      "bytes": 24833
+    },
+    "glb-comparison.json": {
+      "path": "work/raider-seams-20261103/delivery/glb-comparison.json",
+      "sha256": "9a6bb639c340bfdf1faaa4b03cbb857bcf3b5698836b925c502b4c37b6012f57",
+      "bytes": 1339
+    },
+    "gate-rig.json": {
+      "path": "work/raider-seams-20261103/delivery/gate-rig.json",
+      "sha256": "35e7c8155dce68fa0bcded1a338364a9205e18422359468bcdb2a3bfa7ad4730",
+      "bytes": 4399
+    },
+    "pose-audit.json": {
+      "path": "work/raider-seams-20261103/delivery/pose-audit.json",
+      "sha256": "13c2d6f0151ac5d45c15bf0f728dc799778380d19817335ee2d443bed67747c7",
+      "bytes": 3686
+    },
+    "report.json": {
+      "path": "work/raider-seams-20261103/delivery/depth-check/report.json",
+      "sha256": "d78434a57d170d4f083fdbd6ed33be2aae13d72eda9c653138331918c4aa617b",
+      "bytes": 2224
+    },
+    "rim-check.json": {
+      "path": "work/raider-seams-20261103/delivery/rim-check.json",
+      "sha256": "5e2d3ee3090e44f0e5f548cb25c33b8745584f596231fd128ef4724ba2127f0a",
+      "bytes": 291
+    }
+  },
+  "rejections": {
+    "limited_patch": {
+      "reason": "Side transition and painted shoulder outline remain.",
+      "path": "work/raider-seams-20261103/Raider_Seam_Repair.glb",
+      "sha256": "3390bf0f5e21ca23c806d1e1355839d357bac43704527894fdffd97e3680f8af",
+      "bytes": 12653144
+    },
+    "all_overlays_removed": {
+      "reason": "Uncovered the missing front pouch backing; rejected.",
+      "path": "work/raider-seams-20261103/review/Raider_Seam_Repair.glb",
+      "sha256": "d7c869ddae5d8281a2318ea3a83f7383ee24b7f1488faa7e2ba65ca6ca4324b7",
+      "bytes": 12464576
+    },
+    "fitted_before_pocket_bind": {
+      "reason": "Rest appearance retained; broader pouch strain range under twist (q05/q95 0.936/1.031).",
+      "path": "work/raider-seams-20261103/fitted/Raider_Seam_Repair.glb",
+      "sha256": "1992642c630b3187a277ba1942be7dbb2e79a0aa1cb939ec5e4906044d49ca1b",
+      "bytes": 12676128
+    }
+  },
+  "camera_profile": {
+    "path": "work/raider-seams-20261103/depth-cameras.json",
+    "sha256": "db3beed7b03c6c27886f61359068ed4481722dca014f3889655e32aef025ae58",
+    "bytes": 565
+  },
+  "rejected_front_pouch_fraction": 0.2260991253644315,
+  "depth_fractions": {
+    "front-pouch": 0.005924198250728863,
+    "rear-pouch": 0.005465460084221844,
+    "shoulder": 0.026475766534896854,
+    "side-waist": 0.0028165236051502147
+  },
+  "shoulder_still_flagged": true,
+  "shoulder_adjudication": {
+    "flagged_pixels": 1261,
+    "reference_absent_here": 67,
+    "candidate_absent_reference_present": 22,
+    "common_samples": 1172,
+    "source_abs_ray_depth_error_median_mm": 16.566,
+    "candidate_abs_ray_depth_error_median_mm": 0.891,
+    "candidate_closer_to_acquisition_on_common": 702
+  },
+  "skin": {
+    "bones": 88,
+    "triangles": 76154,
+    "max_influences": 4,
+    "unweighted": 0,
+    "face_shape_count": 34,
+    "bind_and_facial_payloads_unchanged": true
+  },
+  "limitations": [
+    "Shoulder and back pouch are integrated with the torso; not detachable closed accessories.",
+    "Rounder pauldron and soft side leather remain.",
+    "Inherited raised-arm collar gap. No UE/cooked/gameplay validation."
+  ],
+  "fixed_views": {
+    "arm_raised": {
+      "path": "work/raider-seams-20261103/delivery/views/arm_raised.png",
+      "sha256": "c5ef1bf19935b142a8bdea65ad3c3a61952ebe9e1b4b788aa611bd1d2faa82e7",
+      "bytes": 527332
+    },
+    "back": {
+      "path": "work/raider-seams-20261103/delivery/views/back.png",
+      "sha256": "602515f7ea6a4f29040aea146aa44b24243eea369d6d5ad09b88fa1068269947",
+      "bytes": 459039
+    },
+    "front": {
+      "path": "work/raider-seams-20261103/delivery/views/front.png",
+      "sha256": "6d781e1a85d3330d874b40f6e7d09ff7040039737bebb395d8e031739668914c",
+      "bytes": 479097
+    },
+    "pouch": {
+      "path": "work/raider-seams-20261103/delivery/views/pouch.png",
+      "sha256": "bc6566707b43759a6f9d2dfba4f297e2a6bd46b3ece228c4edd6902dd34f53db",
+      "bytes": 443186
+    },
+    "shoulder-side": {
+      "path": "work/raider-seams-20261103/delivery/views/shoulder-side.png",
+      "sha256": "76b1c9e6c1574fbbe93bdce277ee87ff3e9452b59baddf679c115cee1888a7d2",
+      "bytes": 465554
+    },
+    "shoulder": {
+      "path": "work/raider-seams-20261103/delivery/views/shoulder.png",
+      "sha256": "e2c8e0a6e455bfe74c6901d115d2e782d4391e9a3d247f7bd709f506d803e8d3",
+      "bytes": 460676
+    },
+    "side": {
+      "path": "work/raider-seams-20261103/delivery/views/side.png",
+      "sha256": "78ecbd227958397cb84a8cca38bd9f448138383d04593856941f16a4475add9a",
+      "bytes": 427396
+    },
+    "three-quarter": {
+      "path": "work/raider-seams-20261103/delivery/views/three-quarter.png",
+      "sha256": "667dde0d5136280c7539a59129e98a164c2ce32d277ccd2e840a18f882c685c7",
+      "bytes": 479645
+    },
+    "torso_twist": {
+      "path": "work/raider-seams-20261103/delivery/views/torso_twist.png",
+      "sha256": "1786d62a92e33edcd5768a831f52955a3c74e8580041ff7f29635c59bb38712f",
+      "bytes": 467686
+    },
+    "waist-oblique": {
+      "path": "work/raider-seams-20261103/delivery/views/waist-oblique.png",
+      "sha256": "340c3b72d31d4cf2c01641ec0b8a454bc7ee296154f0e51cf91a253c17a55496",
+      "bytes": 476657
+    }
+  },
+  "replay": {
+    "result": "Fresh directory run completed; triangulation differs slightly. Only the delivery is visually reviewed.",
+    "glb": {
+      "path": "work/raider-seams-20261103/replay-check/Raider_Seam_Repair.glb",
+      "sha256": "d3e0b4904d9177b9966e369ad1bc19af3505ee40e1723be600fc42b6a76a61ff",
+      "bytes": 12676256
+    }
+  },
+  "repo_verification": "945 passed, 39 skipped, 198 subtests; lint, 328 syntax parses and installed wheel passed."
+}

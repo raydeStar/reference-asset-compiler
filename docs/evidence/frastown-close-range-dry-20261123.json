@@ -1,0 +1,120 @@
+{
+  "materials": "Dry base color, tangent normals and RAC material response. Scene rain is a separate effect.",
+  "approval": "pending",
+  "views_m": {
+    "grip": 0.32,
+    "fittings": 0.46,
+    "cart_track": 0.39,
+    "edge": 0.4
+  },
+  "assets": {
+    "gunwale": {
+      "file": "gunwale/Frastown-gunwale-Dry-Close-Review-v03.glb",
+      "sha256": "8abd00df3fa1ac3003dd57f4436565c8385951e1fe332ec8df07a6699d211a4e",
+      "original_paint_mesh_gate": {
+        "source_mesh": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\rac-frastown-texture\\gunwale\\transport.obj",
+        "reference": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\rac-frastown-texture\\gunwale\\concept-crop.png",
+        "output_obj": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\rac-frastown-texture\\gunwale\\painted-v01.obj",
+        "output_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\rac-frastown-texture\\gunwale\\painted-v01.glb",
+        "vertices": 10599,
+        "triangles": 5524,
+        "painted_vertices": 10599,
+        "faces_equal": true,
+        "geometry_delta": 1.8043787461576186e-07,
+        "uv_delta": 5.2387473100974136e-08,
+        "views": 6,
+        "resolution": 512,
+        "texture_size": 4096,
+        "atlas": 4096,
+        "downsample_disabled": true,
+        "map_format": "png",
+        "maps": [
+          "painted-v01.png",
+          "painted-v01_metallic.png",
+          "painted-v01_roughness.png"
+        ],
+        "release_stages": true,
+        "vram": {
+          "device": "NVIDIA GeForce RTX 4090",
+          "free_bytes_at_start": 24154996736,
+          "peak_allocated_bytes": 10285163008,
+          "peak_reserved_bytes": 11760828416
+        }
+      },
+      "close_density": {
+        "atlas_px": 3072,
+        "contact_mm_per_texel_p95": 0.7062690854072571,
+        "contact_texels": 857986,
+        "position_error_m": 0.0,
+        "triangle_count": 5524,
+        "frozen_transport_sha256": "b07adfefc290290de2e09270d88b9e4db2bb828fbec625339d475f8c81c336a5"
+      },
+      "raw_paint_disposition": "Rejected. Lit source contaminated base color with blue and warm reflections.",
+      "close_finish": "New dry base color plus surface relief authored in metres over dedicated grip and tread UVs. RAC material-sweep and prune-payload built the deliverable."
+    },
+    "deck": {
+      "file": "deck/Frastown-deck-Dry-Close-Review-v04.glb",
+      "sha256": "b4df4683bd8691ffd484f9a8c7e332cc94fd55c58e3e9d67ba2e2fda99acf9f3",
+      "original_paint_mesh_gate": {
+        "source_mesh": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\rac-frastown-texture\\deck\\transport.obj",
+        "reference": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\rac-frastown-texture\\deck\\concept-crop.png",
+        "output_obj": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\rac-frastown-texture\\deck\\painted-v01.obj",
+        "output_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\rac-frastown-texture\\deck\\painted-v01.glb",
+        "vertices": 1880,
+        "triangles": 984,
+        "painted_vertices": 1880,
+        "faces_equal": true,
+        "geometry_delta": 1.876957403069167e-07,
+        "uv_delta": 4.85879642569015e-08,
+        "views": 6,
+        "resolution": 512,
+        "texture_size": 4096,
+        "atlas": 4096,
+        "downsample_disabled": true,
+        "map_format": "png",
+        "maps": [
+          "painted-v01.png",
+          "painted-v01_metallic.png",
+          "painted-v01_roughness.png"
+        ],
+        "release_stages": true,
+        "vram": {
+          "device": "NVIDIA GeForce RTX 4090",
+          "free_bytes_at_start": 24154996736,
+          "peak_allocated_bytes": 10327377920,
+          "peak_reserved_bytes": 11364466688
+        }
+      },
+      "close_density": {
+        "atlas_px": 3072,
+        "contact_mm_per_texel_p95": 0.830410361289978,
+        "contact_texels": 5741756,
+        "position_error_m": 0.0,
+        "triangle_count": 984,
+        "frozen_transport_sha256": "12ab2244357172ef5fdcdf1109ed56eccb3a2da42a001bd4eec86fad78edc500"
+      },
+      "raw_paint_disposition": "Rejected. Lit source contaminated base color with blue and warm reflections.",
+      "close_finish": "New dry base color plus surface relief authored in metres over dedicated grip and tread UVs. RAC material-sweep and prune-payload built the deliverable."
+    }
+  },
+  "framewright": {
+    "gunwale": {
+      "id": "4db7c282-63e8-465e-bf6b-5559d7202263",
+      "sha256": "8abd00df3fa1ac3003dd57f4436565c8385951e1fe332ec8df07a6699d211a4e",
+      "url": "http://127.0.0.1:5179/assets/collection/071754aa-bb53-498d-b857-520fc2fa0246/4db7c282-63e8-465e-bf6b-5559d7202263"
+    },
+    "deck": {
+      "id": "8d9c7954-87b6-4c5a-a546-a618f5faadc2",
+      "sha256": "b4df4683bd8691ffd484f9a8c7e332cc94fd55c58e3e9d67ba2e2fda99acf9f3",
+      "url": "http://127.0.0.1:5179/assets/collection/071754aa-bb53-498d-b857-520fc2fa0246/8d9c7954-87b6-4c5a-a546-a618f5faadc2"
+    },
+    "comparison": {
+      "id": "cbe7ba4c-1b30-45b9-8c92-22e84e1a6879",
+      "url": "http://127.0.0.1:5179/assets/collection/071754aa-bb53-498d-b857-520fc2fa0246/cbe7ba4c-1b30-45b9-8c92-22e84e1a6879"
+    }
+  },
+  "visual_source_decision": "The user prioritized dry surface quality at hand distance over literal keyframe appearance. Keep rainfall and pooling at scene level.",
+  "technical_decision": "RAC Hunyuan3D-Paint generated PNG candidates and passed the geometry/UV gate. Both raw paint looks were rejected for fixed reflections in base color. The deck worker exited abnormally after writing the passing validation and candidate. It was not retried. Use repacked metre UVs with authored dry color and relief, then run RAC material-sweep and prune-payload.",
+  "camera_observation": "Framewright model viewer has a span × 0.4 orbit-target floor, about 80 cm on a 2 m asset. Verified closeups use target distances of 32–46 cm. Carry actual camera distance and matched A/B lighting in VR review.",
+  "comparison_sha256": "173a444a59be582645dfb950704cc8b134d37c4d36e6bf8d37038c7ad5876a56"
+}

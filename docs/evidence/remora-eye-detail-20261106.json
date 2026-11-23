@@ -1,0 +1,49 @@
+{
+  "schema": "reference-asset-compiler.evidence.v1",
+  "date": "2026-11-06",
+  "asset": "Remora",
+  "decision": "Mark approved eyes73 eye detail (lashes + lid occlusion) and asked to formalize it into RAC with a copyable README; lashes made optional with a lighter preset for men.",
+  "source": {
+    "path": "work/remora-airship-20261106/delivery70/Remora_Tunic_Clean.glb",
+    "sha256": "09a154930aed5655fadaea06f1e64e3dcff2b57cc869491960f0c9ade62019cd"
+  },
+  "approved_candidate": {
+    "path": "work/remora-airship-20261106/eyes73/run/Remora_Eye_Detail.glb",
+    "framewright_asset_id": "4fe48374-aa25-4df7-9bec-4771cb75a38a",
+    "sha256": "93afce20b134d09100133f3bd1b378a6c1cb9b96350c8674d3d5a6168faf752a"
+  },
+  "rac_replay": {
+    "byte_identical_to_approved": true,
+    "recipe": "examples/polish/remora-eye-detail.json",
+    "attempt": "work/remora-airship-20261106/eyes74/replay",
+    "output_sha256": "93afce20b134d09100133f3bd1b378a6c1cb9b96350c8674d3d5a6168faf752a",
+    "review": "work/remora-airship-20261106/eyes74/replay/steps/review",
+    "recipe_sha256": "5e021c67cc2dc90eddf9d5382947115591bf5d61a8da01351f21a0f650aebdc8"
+  },
+  "presets": {
+    "comparison": "docs/evidence/eye-detail-presets-20261106.jpg",
+    "subtle": "3b9765fbe51a4237d3acf4cc581138b503113dd859f624a2e379640496956a89",
+    "none": "1fc9b1018913453968d012bebaa67009c8c4668cff43077b3222a2023412283e"
+  },
+  "code": {
+    "scripts/eye_detail.py": "6c3e3e01c2a0957a0495d10025bf7d6ab062f47e79b09609ea4a6651506fc903",
+    "src/reference_asset_compiler/eye_detail.py": "74c58f91cec8bdae9b9bf31765ddc589355604ffa7ad2e2f4f24c32d3133239d",
+    "tests/test_eye_detail.py": "8839ddaf35e74cb2201f5f94049a2b00c298b38a7d5792b558bdf3cfa78b2379"
+  },
+  "rejected": [
+    "roots on the recessed aperture edge: hidden inside the ~4 mm lid tube",
+    "most-forward vertex as the margin: lashes jumped to the lid crease",
+    "3 px strands on a 1024 px card: sub-pixel at viewing distance",
+    "first rac polish attempt eyes74/replay-failed-dashdash: stage script did not strip the runner leading --; retained"
+  ],
+  "limits": [
+    "subtle/none presets shown on Remora only; not yet tried on a male head",
+    "no tearline",
+    "lashes translate with the lid, no curl",
+    "unskinned node-transformed heads only"
+  ],
+  "visual_acceptance": "approved by Mark for Remora (pronounced)",
+  "production_ready": false,
+  "ledger_promoted": false,
+  "verification": "scripts/verify.ps1 exit 0 (work/remora-airship-20261106/eyes74/verify-eye-detail2.log); post-lint stage output still 93afce20...faf752a"
+}

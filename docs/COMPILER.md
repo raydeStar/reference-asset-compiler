@@ -21,6 +21,10 @@ asset retired by Ayric on 2026-09-01; its lessons are kept because they still
 apply. Dated measurements have moved to the *Historical results* appendix at
 the bottom of this page; the current state per asset is `STATUS.md`.
 
+For a painted character or prop whose surfaces still respond alike under a
+moving light, see [Finishing painted surfaces](MATERIAL_SWEEP.md). This
+optional stage runs on CPU and preserves the original rig and paint.
+
 ## What it does and why each step exists
 
 | Stage | Script | Why |

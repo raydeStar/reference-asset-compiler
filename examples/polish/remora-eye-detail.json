@@ -1,0 +1,41 @@
+{
+  "schema": "reference-asset-compiler.polish-recipe.v1",
+  "source": {
+    "path": "../../work/remora-airship-20261106/delivery70/Remora_Tunic_Clean.glb",
+    "sha256": "09a154930aed5655fadaea06f1e64e3dcff2b57cc869491960f0c9ade62019cd"
+  },
+  "acquisition_provenance": "Approved Remora concept conditioned the acquired Pixal head/body; delivery70 is the accepted tunic-clean authority. Eye detail adds lid-margin lash cards and an eyeball occlusion shell derived from that acquired head's own apertures and helper eyeballs. Approved by Mark 2026-11-06 (eyes73).",
+  "steps": [
+    {
+      "id": "eyes",
+      "stage": "eye-detail",
+      "config": {
+        "schema": "reference-asset-compiler.eye-detail-recipe.v1",
+        "head_mesh": "head",
+        "eye_mesh": "eyes",
+        "skin_material": "skin",
+        "name_prefix": "Remora",
+        "scale_to_local": 1.0097113,
+        "seed": 73,
+        "lashes": "pronounced",
+        "occlusion": "default"
+      }
+    },
+    {
+      "id": "review",
+      "stage": "polish-review",
+      "config": {
+        "schema": "reference-asset-compiler.polish-review-recipe.v1",
+        "resolution": 768,
+        "samples": 12,
+        "moving_light": true,
+        "closeups": [
+          {"name": "eyes-front", "center": [0, 1.5715, 0.105], "axis": [0, 0, 1], "width": 0.09},
+          {"name": "eyes-left", "center": [0, 1.5715, 0.105], "axis": [-0.7, 0, 1], "width": 0.09},
+          {"name": "eyes-right", "center": [0, 1.5715, 0.105], "axis": [0.7, 0, 1], "width": 0.09},
+          {"name": "face-profile", "center": [0, 1.56, 0.08], "axis": [1, 0, 0], "width": 0.2}
+        ]
+      }
+    }
+  ]
+}

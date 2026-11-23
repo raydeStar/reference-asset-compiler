@@ -51,6 +51,10 @@ def main(argv=None):
     p.add_argument("--triangles", type=int, default=60000)
     p.add_argument("--texture-size", type=int, default=2048)
     p.add_argument("--cage", type=float, default=0.015)
+    p.add_argument("--below-eyes", type=float, default=0.10,
+                   help="Keep acquired locks this far below the eye line, in template metres")
+    p.add_argument("--skin-near", type=float, default=0.04,
+                   help="Reject scan skin colours within this distance from fitted skin")
     p.add_argument("--scan-landmarks", help="the face detector's JSON of the scan's front render: place the hair "
                    "by the face (transfer_mesh_hair.py --place-by-face)")
     p.add_argument("--scan-camera", help="that render's camera JSON")
@@ -76,9 +80,11 @@ def main(argv=None):
 
     blender = [a.blender, "-b", "--factory-startup", "--python-exit-code", "1", "--python"]
     py = sys.executable
-    run([py, HERE / "classify_scan_hair.py", a.template, a.scan_conform, work / "classified.npz"])
+    run([py, HERE / "classify_scan_hair.py", a.template, a.scan_conform, work / "classified.npz",
+         "--below-eyes", a.below_eyes])
     run(blender + [HERE / "blender/cut_scan_hair.py", "--", Path(a.scan).resolve(), Path(a.scan_receipt).resolve(),
-                   Path(a.scan_conform).resolve(), work / "classified.npz", work, "--yaw-deg", a.yaw_deg])
+                   Path(a.scan_conform).resolve(), work / "classified.npz", work, "--yaw-deg", a.yaw_deg,
+                   "--skin-near", a.skin_near])
     place = (["--place-by-face", "--scan-landmarks", a.scan_landmarks, "--scan-camera", a.scan_camera,
               "--scan-receipt", a.scan_receipt, *(["--binding", a.binding] if a.binding else [])]
              if a.scan_landmarks else [])
@@ -101,7 +107,8 @@ def main(argv=None):
         print("WARNING: " + warning, file=sys.stderr)
     receipt = {"stage": "build_mesh_hair", "scan": str(a.scan), "scan_sha256": sha(a.scan),
                "scan_conform_sha256": sha(a.scan_conform), "head": str(a.head), "head_sha256": sha(a.head),
-               "yaw_deg": a.yaw_deg, "placement": {k: v for k, v in placement.items() if k != "vertices"},
+               "yaw_deg": a.yaw_deg, "below_eyes_m": a.below_eyes, "skin_near_m": a.skin_near,
+               "placement": {k: v for k, v in placement.items() if k != "vertices"},
                "clearance": {k: v for k, v in clear.items() if k != "vertices"},
                "scan_landmarks": str(a.scan_landmarks) if a.scan_landmarks else None,
                "triangles_requested": a.triangles, "triangles_shipped": shipped,

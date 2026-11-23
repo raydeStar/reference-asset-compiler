@@ -31,26 +31,32 @@ the bundle. The summary:
   when only the picture exists. The launcher inspects a live ComfyUI queue only
   to avoid GPU contention. The preserved original ComfyUI graph at
   `workflows/geometry/comfyui/hy3d_final_cut.json` is historical and optional.
-- Existing-mesh PBR **texturing** enters through `scripts/run_hy3d21_texture.ps1`,
+- Fresh whole-mesh PBR **texturing** enters through `scripts/run_hy3d21_texture.ps1`,
   which hash-verifies and runs the studio copy of the Hunyuan3D-Paint 2.1 runner
   at `${RAC_LEGACY_ROOT}/scripts/run_hy3d21_pbr.py`. The bundled
   `workflows/texture/hunyuan3d21/` files are provenance copies; do not execute
   them directly or edit their path logic mid-experiment.
+- Scoped finishing of acquired characters uses `rac polish-init` / `rac polish`
+  and registered concept-conditioned AI references. The canonical operating
+  standard is [docs/CHARACTER_SURFACE_WORKFLOW.md](docs/CHARACTER_SURFACE_WORKFLOW.md);
+  it includes exposed-surface checks after geometry removal and consumer replay.
 - TRELLIS.2 and IntrinsicAnything are isolated texture challengers, not the
   default; IntrinsicAnything is stopped.
 - Humanoid rigging is `scripts/run_rig_candidate.ps1`: Auto-Rig Pro when the
   user's Blender has it, otherwise the free landmark rig in this repository.
 - Blender performs topology/UV preservation, review, rigging, deformation,
   and export.
-- The compiler normalizes, gates, packages, imports, and verifies existing
-  authorities. It does not generate geometry, repaint textures, or author a
-  fresh humanoid rig.
+- The core compiler normalizes, gates, packages, imports, and verifies existing
+  authorities. Optional polish stages create retained texture/material derivatives;
+  they do not change an authority or approve its ledger automatically. Geometry
+  generation and fresh humanoid rig authoring use their explicit upstream routes.
 
 Run `scripts\workflow_doctor.ps1` (optionally `-Profile ledger|geometry|texture|ue`)
 before asking the user what is installed. It reports the local routes without
 launching inference. If the task is texture repair, do not reinstall ComfyUI
-nodes or propose a ControlNet workflow; follow Stage 4 of the playbook and the
-exact instruction in `docs/CLAUDE_RESUME_TEXTURES.md`.
+nodes or propose a ControlNet workflow. Start with `docs/CHARACTER_SURFACE_WORKFLOW.md`
+and Stage 4 of the playbook. `docs/CLAUDE_RESUME_TEXTURES.md` routes current work
+and retains the older female texture escalation as historical context.
 
 The earlier experimental studio is the tree `RAC_LEGACY_ROOT` points at (a
 separate, machine-local checkout that is not part of this repository). Recipes

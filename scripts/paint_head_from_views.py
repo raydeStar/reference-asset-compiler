@@ -263,6 +263,8 @@ def main():
     p.add_argument("--template-landmarks", help="landmarks on a front render of the template")
     p.add_argument("--template-camera", help="camera JSON of that render")
     p.add_argument("--hair-size", type=int, default=2048)
+    p.add_argument("--preserve-asymmetry", action="store_true",
+                   help="keep each source brow and its surrounding scars; do not borrow the opposite brow")
     a = p.parse_args()
     out = Path(a.out_dir)
     out.mkdir(parents=True, exist_ok=True)
@@ -378,7 +380,7 @@ def main():
     off_eyes = np.minimum(np.linalg.norm(where - eye_l, axis=-1), np.linalg.norm(where - eye_r, axis=-1)) \
         > eye_radius + 0.002
     off = np.abs(where[..., 0] - mid_x)
-    if brows is not None:
+    if brows is not None and not a.preserve_asymmetry:
         front_face = where[..., 1] < eyes[:, 1].mean() + 0.05
         around_brows = texel & front_face & off_eyes & (where[..., 2] > eyes[:, 2].mean() + 0.006) \
             & (off > 0.015) & near_polyline(where[..., [0, 2]], brows, MIRROR_REACH)
@@ -388,6 +390,7 @@ def main():
     else:
         around_brows = np.zeros_like(texel)
         mirror_alpha = np.zeros(texel.shape, np.float32)
+        record["brow_mirror"] = {"enabled": False, "reason": "preserve source asymmetry" if a.preserve_asymmetry else "no brow landmarks"}
     # Review aid: where the brow region lies (grey) and what was transplanted (white), in UV.
     Image.fromarray((np.maximum(around_brows * 0.35, mirror_alpha) * 255).astype(np.uint8)).save(
         out / "brow_mirror_mask.png")
@@ -399,7 +402,10 @@ def main():
     keep_brows = np.zeros_like(zone)
     if brows is not None:
         front = where[..., 1] < eyes[:, 1].mean() + 0.03
-        keep_brows = front & near_polyline(where[..., [0, 2]], brows, BROW_BAND)
+        # A healed scar can extend above the hairs. Keep that source-bound area
+        # when asymmetry matters; symmetry is a poor surgeon, sir.
+        keep_brows = front & near_polyline(where[..., [0, 2]], brows,
+                                           MIRROR_REACH if a.preserve_asymmetry else BROW_BAND)
         zone &= ~keep_brows
     hairy |= painted & zone & (lum < NECK_HAIR_DARKER * skin_lum)
     # The side of the face and the temples: every picture has hair there (sideburns, locks

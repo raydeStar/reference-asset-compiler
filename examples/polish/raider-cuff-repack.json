@@ -1,0 +1,18 @@
+{
+  "schema": "reference-asset-compiler.polish-recipe.v1",
+  "acquisition_provenance": "Concept-conditioned Raider, before the successful isolated cuff repack. Exercise UV transport on a retained earlier candidate, not the approved final delivery.",
+  "source": {
+    "path": "../../work/raider-polish-20261105/tailoring02/Raider.glb",
+    "sha256": "9bdfba5928d1ffb71f2f981af1766454df3b9a972de53fc0ff7ab515e14c6f4b"
+  },
+  "steps": [
+    {"id": "inspect-before", "stage": "inspect-surface"},
+    {"id": "repack", "stage": "repack-surface", "config": {
+      "schema": "reference-asset-compiler.repack-surface-recipe.v1",
+      "mesh": "raider", "material": "painted", "new_material": "Raider cuff replay atlas",
+      "resolution": 2048, "padding": 12
+    }},
+    {"id": "bounds", "stage": "repair-bounds"},
+    {"id": "inspect-after", "stage": "inspect-surface"}
+  ]
+}

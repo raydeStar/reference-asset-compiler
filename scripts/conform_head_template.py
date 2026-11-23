@@ -112,6 +112,12 @@ def main(argv=None):
     p.add_argument("--acquisition-landmarks",
                    help="the same detector on a front render of the acquisition (render_mesh_view.py --arrays)")
     p.add_argument("--acquisition-camera", help="that render's camera JSON")
+    p.add_argument("--jaw-weight", type=float, default=JAW_WEIGHT,
+                   help="pull of the picture's jaw outline against the acquisition (default %(default)s). "
+                        "Raise it when hair or reconstruction widens the scan's jaw beyond the approved picture.")
+    p.add_argument("--contour-68", type=int, nargs=2, metavar=("FIRST", "LAST"),
+                   help="68-point layout only: hold face-outline points FIRST..LAST to the picture "
+                        "(default 3 13, the jaw below the ears; 1 15 adds the cheekbone outline)")
     a = p.parse_args(argv)
     if a.picture_landmarks and not (a.template_landmarks and a.template_camera):
         p.error("--picture-landmarks needs --template-landmarks and --template-camera")
@@ -211,7 +217,14 @@ def main(argv=None):
         img_px, layout = read_landmarks(a.picture_landmarks)
         if layout != tpl_layout:
             raise SystemExit("picture and template landmarks use different layouts")
-        sets = LANDMARK_SETS[layout]
+        sets = dict(LANDMARK_SETS[layout])
+        if a.contour_68 and layout == 68:
+            lo, hi = a.contour_68
+            if not 0 <= lo <= 3 or not 13 <= hi <= 16:
+                raise SystemExit("--contour-68 must span at least 3..13 within 0..16")
+            extra = tuple(range(lo, hi + 1))
+            sets["jaw"] = extra
+            sets["features"] = tuple(i for i in sets["features"] if i not in range(3, 14)) + extra
         feature_tris = tris[(active & body)[tris].all(1)]
         ids, bary, found = tc.bind_pixels(t.verts, feature_tris, cam, tpl_px)
         use = np.array([i for i in sets["features"] if found[i]])
@@ -226,7 +239,9 @@ def main(argv=None):
         goal = first.copy()
         goal[:, 0], goal[:, 2] = back[:, 0], -back[:, 1]
         before_mm = np.linalg.norm(front(first[use]) - back[use], axis=1) * 1000
-        weight = np.where(np.isin(use, sets["jaw"]), JAW_WEIGHT, LANDMARK_WEIGHT)
+        if not 0 < a.jaw_weight <= 20:
+            raise SystemExit("--jaw-weight must be in (0, 20]")
+        weight = np.where(np.isin(use, sets["jaw"]), a.jaw_weight, LANDMARK_WEIGHT)
         lm = tc.SurfaceLandmarks(ids=ids[use], bary=bary[use], points=goal[use],
                                  weight=weight, free_axis=1)
         # The picture outranks the acquisition at the lid margins and lips. Only
@@ -252,6 +267,7 @@ def main(argv=None):
             "registration": {"scale_px_per_m": float(ps), "rotation": pr.tolist(),
                              "translation_px": pt.tolist(), "stable": stable.tolist()},
             "constrained": use.tolist(),
+            "weights": {"features": LANDMARK_WEIGHT, "jaw": float(a.jaw_weight)},
             "feature_error_mm_before": {"median": float(np.median(before_mm)),
                                         "max": float(before_mm.max())},
             "feature_error_mm_after": {"median": float(np.median(after_mm)),

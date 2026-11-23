@@ -14,6 +14,76 @@ crash, never kill GPU processes) apply to every task below.
 
 ## No GPU needed
 
+### Game review road follow-ups (2026-11-07)
+- **Delivered:** `scripts/run_game_review.ps1` ([GAME_REVIEW.md](GAME_REVIEW.md)): recipe to playable review in The
+  Aether Wars with in-game face/body closeups, named looks, a pose sheet and before/after sheets. Remora's attempts:
+  `work/remora-airship-20261106/game90/`.
+- **Hand landmarks:** delivered as road step 02a (`fit_hand_landmarks.py`); Remora 18/24 and 15/24 joints inside,
+  right pinky still ~1 cm out. Remaining: per-finger refinement for the pinky, and a hand closeup angle that the
+  attack's crossed forearm does not hide. Done when Mark passes the hands in game.
+- **Loose garments:** with heat weights Remora's tunic hem reads acceptably; revisit only if a review flags it.
+- **Hair look:** delivered; Mark picked hair shading along a baked flow map, now the default `hair_look`.
+- **Animations do not pass (Mark, 2026-11-07).** The motion pass shows all 20 player animations deforming without
+  tearing, but Mark judged the animations in game and they do not pass. Ask him what fails (timing, poses, blends, the
+  powers' Character02 hand-on-hip ending, feet) before tuning; the motion sheet is evidence, not the verdict.
+- **Face:** delivered; Mark passed Remora V11's face in game (2026-11-07). The closed-lid repaint and mouth fit are
+  road defaults (`auto`). The shut lid still shows the open eye's liner along its bottom
+  edge, patchy where painted lash strokes cross it. The game repo's `Tools/Characters/Remora.json` and `Character02.json` still name
+  `mouth-parting` (should be `mouth-parling`); fix there only with Mark's go-ahead. Expressions are subtle at the
+  game's table weights; a per-face expression gain is not built.
+
+### Surface finishing reuse after the Raider port (2026-11-06)
+- **Delivered:** `rac polish-init` / `rac polish`; inspected/restored acquired
+  surfaces, UV/map transport, registered guides, explicit AI handoff, material
+  finishing, bounds and packed fixed-view review. The real collar replay matches
+  Candidate05 byte for byte. Candidate06 ear finishing also replays exactly,
+  with retained AI references and explicit guide material subsets. See `docs/POLISH_WORKFLOW.md` and
+  `docs/evidence/raider-polish-pipeline-20261106.json`.
+- **Second-asset evidence:** Remora has retained AI hair/face lineage, actual
+  Framewright review, a reusable acquired-hair runner and a byte-identical
+  local face/collar replay (`work/remora-airship-20261106/checkpoint67.json`).
+  The exposed-tunic repair now runs through `rac polish`, with retained actual AI
+  inputs/prompt, packed multiview review, byte-identical fresh replay and actual
+  Framewright acceptance (`docs/evidence/remora-surface-canon-20261106.json`).
+  [Canonical surface workflow](CHARACTER_SURFACE_WORKFLOW.md) is the entry point.
+  No new generic anatomy inference is claimed by this completed second-asset proof.
+- **Next reusable work:** generalize the reviewed Remora component selections
+  and bounded anatomy/weight repairs without assuming its mask fits another
+  character; keep the frozen local replay as the comparison authority. Keep selection and
+  visual acceptance explicit. Do not treat a repaired collar as a full automatic
+  character reconstruction.
+- **Done when:** a second source has retained acquisition lineage, explicit
+  region/camera choices, a completed AI request/response, repeated finishing
+  output, and visual review under its actual consumer lighting. No production
+  promotion from a successful CLI run or packed render alone. AI generation is a
+  separate provider/GPU action; the deterministic finishing and checks use CPU.
+
+### Ennix sharp-turn contact review (2026-10-23; rejected and set aside)
+- **User direction:** the current Ennix character was rejected during manual
+  gameplay and the user requested Character02 instead. Preserve all evidence;
+  do not continue Ennix polish without a new request. The feedback does not
+  identify a specific mesh, animation or gameplay defect.
+- **Technical status:** correction and paired game panels are complete
+  in `work/ennix-turn-contact-20261023/`. TurnV1 has <0.001 cm measured planted
+  ankle excursion at both rates, positive observed sole clearance, unchanged
+  path/leg lengths and 212 preserved original game files. These measurements do
+  not override the user's rejection. Cooked/performance work is separate.
+  Evidence: `docs/evidence/ennix-turn-20261023.json`.
+- **Why:** the current idle/walk candidate clears observed terrain at 30/60 Hz,
+  but its planted ankle yields up to 10.445/9.414 cm during sharp turns. Ground
+  clearance and planted-foot sliding are separate acceptance gates.
+- **Start with:** `docs/ENNIX_ANIMATION_POLISH.md`,
+  `docs/evidence/ennix-polish-20261023.json` and the paired movies in
+  `work/ennix-idle-walk-20261023/presentation/`. Human rejection is recorded in
+  `work/ennix-turn-contact-20261023/manual-verdict-20261023.json`.
+- **Touches:** a separate Ennix turn/transition candidate and its review profile;
+  preserve Character02 assets, shared game code and default player.
+- **Done when:** approved turning behavior reduces the measured plant excursion
+  without introducing knee/hip jumps, ground penetration or hand/scarf clipping;
+  fresh saved-asset reload and all eight actual-game cases pass at both rates,
+  with four-view/moving evidence and explicit human visual acceptance. No claim
+  of completion from the positive sole-gap score alone.
+
 ### 1. Export skeletons at unit root scale
 - **Why:** every compiled skeleton arrives in UE with a 100x scale on the root
   and bone offsets in metres (`docs/DECISIONS.md`, "Compiled skeletons carry a

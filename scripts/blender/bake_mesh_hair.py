@@ -53,7 +53,7 @@ def main():
     p.add_argument("--size", type=int, default=2048)
     p.add_argument("--cage", type=float, default=0.015)
     a = p.parse_args(argv)
-    out = Path(a.out)
+    out = Path(a.out).resolve()
     out.mkdir(parents=True, exist_ok=True)
     bpy.ops.wm.read_factory_settings(use_empty=True)
     scene = bpy.context.scene

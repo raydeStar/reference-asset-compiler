@@ -96,45 +96,7 @@ def fill_unweighted_from_nearest(obj, deform_names) -> int:
     return len(missing)
 
 
-def main() -> int:
-    argv = sys.argv[sys.argv.index("--") + 1:]
-    fbx_path, landmarks_path, profile_path, out_fbx, report_path = (Path(a).resolve() for a in argv[:5])
-    for path in (out_fbx, report_path):
-        if path.exists():
-            raise RuntimeError("Refusing to overwrite rig candidate evidence: {0}".format(path))
-    landmarks = json.loads(landmarks_path.read_text(encoding="utf-8-sig"))
-    profile = json.loads(profile_path.read_text(encoding="utf-8-sig"))
-    if landmarks.get("skeleton_profile") != profile["profile_id"]:
-        raise RuntimeError("Landmark file targets a different skeleton profile")
-    payload_hash = sha256(fbx_path)
-    if landmarks.get("payload_fbx_sha256") != payload_hash:
-        raise RuntimeError("Landmarks are not bound to this payload FBX")
-
-    bpy.ops.wm.read_factory_settings(use_empty=True)
-    scene = bpy.context.scene
-    scene.unit_settings.system = "METRIC"
-    scene.unit_settings.scale_length = 1.0
-    if fbx_path.suffix.lower() in {".glb", ".gltf"}:
-        # Browser candidates keep their PBR materials through native glTF.
-        # The legacy landmark hash key remains accepted for existing callers.
-        bpy.ops.import_scene.gltf(filepath=str(fbx_path))
-    elif fbx_path.suffix.lower() == ".fbx":
-        bpy.ops.import_scene.fbx(filepath=str(fbx_path))
-    else:
-        raise RuntimeError("Rig input must be GLB, glTF or FBX")
-    if [o for o in bpy.data.objects if o.type == "ARMATURE"]:
-        raise RuntimeError("Payload already carries an armature")
-    meshes = [o for o in bpy.data.objects if o.type == "MESH"]
-    if len(meshes) != 1:
-        raise RuntimeError("Payload must contain exactly one mesh")
-    body = meshes[0]
-    bpy.ops.object.select_all(action="DESELECT")
-    body.select_set(True)
-    bpy.context.view_layer.objects.active = body
-    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
-    fingerprint_before = geometry_fingerprint(body)
-    triangles = sum(max(0, len(p.vertices) - 2) for p in body.data.polygons)
-
+def build_skeleton(landmarks, profile):
     joints = {k: Vector(v) for k, v in landmarks["joints"].items()}
     bone_spec = landmarks["bones"]
     required = list(profile["required_bones"])
@@ -212,6 +174,55 @@ def main() -> int:
         if spec.get("deform") is False:
             armature_data.bones[name].use_deform = False
     deform_names = {b.name for b in armature_data.bones if b.use_deform}
+    return rig, deform_names
+
+
+def main() -> int:
+    argv = sys.argv[sys.argv.index("--") + 1:]
+    fbx_path, landmarks_path, profile_path, out_fbx, report_path = (Path(a).resolve() for a in argv[:5])
+    for path in (out_fbx, report_path):
+        if path.exists():
+            raise RuntimeError("Refusing to overwrite rig candidate evidence: {0}".format(path))
+    landmarks = json.loads(landmarks_path.read_text(encoding="utf-8-sig"))
+    profile = json.loads(profile_path.read_text(encoding="utf-8-sig"))
+    if landmarks.get("skeleton_profile") != profile["profile_id"]:
+        raise RuntimeError("Landmark file targets a different skeleton profile")
+    payload_hash = sha256(fbx_path)
+    if landmarks.get("payload_fbx_sha256") != payload_hash:
+        raise RuntimeError("Landmarks are not bound to this payload FBX")
+
+    bpy.ops.wm.read_factory_settings(use_empty=True)
+    scene = bpy.context.scene
+    scene.unit_settings.system = "METRIC"
+    scene.unit_settings.scale_length = 1.0
+    if fbx_path.suffix.lower() in {".glb", ".gltf"}:
+        # Browser candidates keep their PBR materials through native glTF.
+        # The legacy landmark hash key remains accepted for existing callers.
+        bpy.ops.import_scene.gltf(filepath=str(fbx_path))
+    elif fbx_path.suffix.lower() == ".fbx":
+        bpy.ops.import_scene.fbx(filepath=str(fbx_path))
+    else:
+        raise RuntimeError("Rig input must be GLB, glTF or FBX")
+    if [o for o in bpy.data.objects if o.type == "ARMATURE"]:
+        raise RuntimeError("Payload already carries an armature")
+    meshes = [o for o in bpy.data.objects if o.type == "MESH"]
+    if "rigid_part_binding" in profile:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from rigid_part_binding import bind_rigid_parts
+        return bind_rigid_parts(meshes, landmarks, profile, build_skeleton,
+                                fbx_path, landmarks_path, profile_path, out_fbx, report_path)
+    if len(meshes) != 1:
+        raise RuntimeError("Payload must contain exactly one mesh")
+    body = meshes[0]
+    bpy.ops.object.select_all(action="DESELECT")
+    body.select_set(True)
+    bpy.context.view_layer.objects.active = body
+    bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+    fingerprint_before = geometry_fingerprint(body)
+    triangles = sum(max(0, len(p.vertices) - 2) for p in body.data.polygons)
+
+    rig, deform_names = build_skeleton(landmarks, profile)
+    armature_data = rig.data
 
     # Heat-based automatic weights. Heat fails on meshes with split vertices or
     # layered shells, so try the approved mesh first, then a welded proxy whose

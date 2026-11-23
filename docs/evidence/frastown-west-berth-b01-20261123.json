@@ -1,0 +1,56 @@
+{
+  "date": "2026-11-23",
+  "scope": "Frastown West Berth batch 01 · environment structure · review candidate",
+  "engines": {
+    "blender": "5.3.0",
+    "unreal": "5.8.4-58902052+++UE5+Release-5.8"
+  },
+  "regression": {
+    "asset": "DK02_StraightGunwale",
+    "expected_cm": 200.0,
+    "rejected_import_cm": 2.0,
+    "corrected_import_cm": 200.0,
+    "failure": "Using the FBX global metre scale with metre vertices produced centimetre-sized meshes in this native import path.",
+    "fix": "Apply metres-to-centimetres to evaluated render meshes and UCX meshes at export. Write a centimetre FBX from identity transforms and import at scale 1.0.",
+    "reuse": "The existing RAC character exporter already applies centimetres to geometry. The modular exporter applies the same convention to render and collision copy geometry, leaving source masters in metres.",
+    "validator": "Compare all six signed min/max pivot-relative bounds after Blender X/Y/Z -> UE X/-Y/Z. Sorted overall dimensions alone miss mirrored axes and shifted origins.",
+    "verified_meshes": 17,
+    "maximum_pivot_relative_bounds_error_cm": 6.628036499023438e-05,
+    "native_sockets": 53,
+    "full_plate_dimensions_cm": [
+      200.0,
+      200.0,
+      13.82
+    ],
+    "corrected_control_fbx_sha256": "638fc0b278ec54501d08a85f4302800c8456ab83e9ed0ba76d54dd5cbf190466"
+  },
+  "review_findings": [
+    "The first render overemphasized broad orange oxide patches. The final finish reduces large oxide islands, puts wear in two parallel cart tracks, and sharpens only the trail of palms along the grip crown.",
+    "Keep deck elevation and measured connection length separate from trim-inclusive bounding dimensions. A landing can snap cleanly while its guard extends beyond its tread envelope.",
+    "Real open geometry generated a broken shadow below the gallery. A still pair at 64 mm baseline captures spatial structure, while moving-headset shimmer remains a runtime review item.",
+    "For modular VR review, pair the model revision with named snap positions, signed engine bounds, first-article cameras and assembly evidence. A single GLB bounds box cannot identify an import-scale error or joint error per part."
+  ],
+  "framewright": {
+    "asset_id": "f4949cec-3b66-4917-9069-6a2fd65d7c71",
+    "review_note_ids": [
+      "98386380-da84-41c6-9345-dfb64925b6b2",
+      "d237ccf8-09d8-4ad2-ba88-55e2d7c6e543",
+      "e28e4efe-548d-45de-bf64-261fbc5bc22b",
+      "cf113e58-2ec3-400b-936c-6d3a4bd38d62"
+    ],
+    "review_glb_sha256": "41b9517ddbec874c42c6a07f398beac1e59dfe10393c7b012004a600a7127aa9",
+    "project_id": "8b2756f3-ab0f-41c4-9729-0d0cc3fcd048",
+    "project": "Frastown",
+    "collection_url": "http://127.0.0.1:5179/assets/collection/071754aa-bb53-498d-b857-520fc2fa0246"
+  },
+  "assembly": {
+    "sha256": "6b30212da6e02c75b73eaad74f70b460929bffc9350fb75beb7bba8b8fecc4e0",
+    "grate_open_fraction": 0.78046875,
+    "rail_joint_max_gap_mm": 0.0002980232238769531
+  },
+  "engine_receipt_sha256": "1e5fdf5f103849e04e82c16345697b77eff53f758c8b6d9dfc72704cb7dd3c66",
+  "artistic_approval": "pending",
+  "packaged_vr_runtime_review": "pending",
+  "delivery": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown",
+  "rac_ledger": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\rac\\frastown-west-berth-b01"
+}

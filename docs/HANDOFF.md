@@ -4636,6 +4636,2845 @@ Epic's Game Animation Sample excluded).
   `anim-ual-20261014/swordidle-v1`, game step `blade_idle`. Evidence: game
   `Saved/GameShots/blades-20261014c/`, `slip-20261014/slip.json`.
 
+
+## 2026-10-16 — Artiss Tomb review project created; source export has no rows
+
+Mark requested a new Framewright project for the Tomb of King Artiss asset
+commission. The painterly, slightly gritty brief supersedes the October 3
+photoreal direction for this commission. No game import, publishing, pushes,
+or human approval records are authorized.
+
+Created and activated Framewright project `45863b1c-3352-4eea-bfc5-70a22ddeb40a`,
+**The Aether Wars — Tomb of King Artiss**, at `http://127.0.0.1:5179/`. Saved
+art direction, world rules, centimetres/axes/pivots, separate moving and
+pre-fractured parts, and budgets in its World settings. Actual browser inspection
+confirmed the name and saved fields. The existing saved release runtime is
+v0.1.0, commit `aa72003a5117be7b98ca853b83f6b0601facf210`; its database is under
+Framewright's `artifacts/framewright-win-x64/App_Data/`. Started this runtime
+with generation/voice/music lanes disabled; no Docker or existing creative
+application was stopped. A launch helper lives in the new ignored workspace.
+
+The user's table was empty. Their subsequent `Artiss Tomb Requisitions.html`
+also contains no records: `rows=[]` is populated only through
+`window.claude` and `db.collection("requisitions").onSnapshot`. `briefText()`
+exports only `Approved to build` rows. The supplied source SHA-256 is
+`5c893be60de3c11808af0ac390b4a883f5376160539a5d6521151fb2084385df`.
+The Aether Wars `Docs/ArtissTomb.md` confirms the new direction but lacks the
+commission's exact IDs, measurements, priorities and replacement list.
+Requested the live Claude artifact link or plain text/JSON records. No guessed
+asset list or generation attempts were created.
+
+Evidence: `work/artiss-tomb-2026-10-16/` contains the original HTML copy,
+`project-request.json`, `framewright-project.json`, `Open-Artiss-Review.ps1`,
+`verify_intake.py`, and `evidence/` with a pre-intake SQLite backup, before/after
+API snapshots and `review-project-receipt.json`. Read-only comparison proves all
+28 existing project-scoped tables unchanged, including 357 asset revisions;
+existing project fields are unchanged except the active selection.
+
+RAC commit inspected: `35c51530a63b280681b041b58ed6f3fc70605ae4`.
+`verify.ps1`: 757 passed, 15 skipped, 198 subtests; lint, 241 stage syntax files,
+wheel build and isolated installed CLI pass. `workflow_doctor.ps1 -Profile all`
+passes with the existing `RAC_LEGACY_ROOT=C:/Comfy/blender-reference-studio`;
+no inference launched. Unreal remains open on `L_ArtissTomb_MCP`; unrelated
+untracked comparison JPGs remain untouched. Next step is receipt and intake of
+the real requisition rows, then one visible asset gate at a time. The overall
+commission remains incomplete.
+
+## 2026-10-16 — Corrected Artiss requisitions; candidate production underway
+
+The subsequent Markdown and JSON attachments agree on 30 requisitions. Mark
+explicitly held CH-01, CH-02 and DH-03 and commissioned the remaining 27.
+`work/artiss-tomb-2026-10-16/COMMISSION.md`, `requisitions-source.json` and
+`commission.json` preserve the corrected scope. Framewright has 30 labelled
+collections in the separate Tomb project; held collections remain empty.
+
+AR-01 has a prepared review set in `assets/AR-01/review-delivery-v5/`: separate
+glass/bezel, off/on assemblies, GLB/FBX, packed Blender, maps and emissive mask.
+Actual browser inspection confirms both painted states. The 60 cm glass,
+interchange bounds, two closed manifold parts and 11,764 triangles are measured.
+Fixed views and 15 m viewing distance / 6 m mounting height are staged beside
+the models. Minor shallow shading remains on the hidden mounting rear.
+
+DH-01, GV-01, HC-01 and HC-04 modeling candidates are in Framewright. Acquired
+and reduced candidates also cover TW-01's four main modules, HC-02, AR-03,
+HC-06, GV-04 and HC-03. DH-01 now has painted 16/12 m rings and an optional
+rotation preview in `assets/DH-01/review-delivery-v1/`; its 40 m render is clear.
+HC-04 pillar and TW-01 wall/arch have painted masters; additional parts,
+variants and proofs remain. AR-02, GV-03 and CH-03 references are candidates,
+not canon approval. AU-01's ten original DSP sounds are imported as 48 kHz,
+mono, 24-bit WAVs; decode, headroom and loop-boundary checks pass. Listening is
+pending. `commission.json` and individual receipts carry current counts;
+images, intact meshes and references do not count as completed kits.
+
+Failures retained: early reduction calls supplied GLB instead of native Blender;
+the pillar acquisition included a floor-shadow flap removed by a measured cut;
+floor flattening exposed nonmanifold edges, repaired in a separate closed
+remesh; the relief's ordinary-prop budget softened its face and was replaced
+by an auto hero-budget candidate. Hunyuan Paint produced validated geometry,
+UVs and maps then exited with `-1073741819` during teardown. Failed child
+executions remain beside artifact validation; no inference is retried. Distinct
+assets continue under the unchanged GPU admission guard.
+
+No human approval, production promotion, TheAetherWars import, publication or
+push occurred. This large commission remains in progress. Check live process
+ownership and exact per-attempt logs before starting another GPU job.
+
+### 2026-10-16 — Metallic bronze direction and survey lens surface cleanup
+
+Mark requested stronger metallic response on the lens, extended it to all bronze,
+then identified mesh/shading aberrations exposed by the specular highlights.
+Current AR-01 authority for review is
+`work/artiss-tomb-2026-10-16/assets/AR-01/review-delivery-v9/`.
+Framewright v3 OFF `d00005d6-0ce0-4e18-9586-007ef5cf931d`, ON
+`575879e4-9cfe-499d-bf57-b210b4102bde`, bezel
+`51f43e0a-a956-4499-8689-521961db5cbe`. v1/v2 remain accessible.
+Bronze metallic 1, roughness .18-.36; backing .27. The acquired mesh was faired
+(max movement 18.43 mm, mean 4.66 mm) and radial normals regularized, retaining
+per-corner UVs, 9,504 bronze triangles, 2,260 glass triangles, the 60 cm aperture,
+separate parts and original material maps. Closed/manifold/nondegenerate checks
+and actual GLB/FBX reimport measurements passed. OFF/ON were opened in Framewright;
+orbit reflections inspected. Some painted line irregularity remains in the albedo.
+Local v7/v8 intermediate evidence is retained. No replacement primitives or AI
+retry was used for the cleanup.
+
+`bronze_finish.py` performs the selective PBR-data pass. Its warm-colour mask is
+limited to declared bronze/limestone assets, with existing metallic evidence used
+for pale highlights; it must not be blindly applied to timber, leather or iron.
+24 local derivatives and editable companions are recorded in
+`evidence/bronze-finish-batch-v1.json`. Eight library models were staged via
+`stage_bronze_finish.py`; exact IDs are in `evidence/bronze-finish-framewright.json`.
+Their original geometry, UVs, normals, animation and colour-image bytes are intact.
+All non-bronze texels retain their earlier material data. Five painted masters were
+inspected in four views. DH-01's metallic animation played and paused at 2.2 s in
+Framewright. World settings now explicitly include metallic bronze and surface
+cleanup; the previous blanket negative against glossy rendering was removed.
+No approval endpoints, publishing, push, or TheAetherWars import were performed.
+
+Current accounting includes retained earlier revisions: 25 images, 30 model
+receipts, 10 audio files, 15 requisitions with material, only AR-01 and DH-01 review
+sets prepared. The full commission remains incomplete; CH-01, CH-02, DH-03 held.
+GPU phase v3 acquired cabinet/station/raider and painted HC-06/GV-04, then stopped
+on HC-03 cleat paint exit -1073741819 with no validation artifact. No retry;
+HC-02 rope paint was not started. HC-06 painted coordinate restoration remains
+pending; GV-04 was restored and staged as an incomplete master. HC-04 fractures
+and exposed rib have local derivatives, with further review/staging still pending.
+HC-07/HC-08 generated references remain in the generated_images directory and
+have not yet been staged. Preserve these outstanding steps when resuming.
+
+## 2026-10-16 — Pillar/relief review sets, hemp states and Raider base
+
+Continued the 27-requisition Artiss commission in Framewright project
+`45863b1c-3352-4eea-bfc5-70a22ddeb40a`; CH-01, CH-02 and DH-03 remain held.
+No game import, publication, push, human approval or production certification.
+
+- HC-04: `work/artiss-tomb-2026-10-16/assets/HC-04/review-delivery-v1/` contains
+  15 model exports with Blender/FBX companions: intact, lean, exposed rib,
+  assembled and exploded fracture sets, and ten separate closed fragments.
+  Each GLB/FBX pair agrees on bounds within 1e-5 m. The original 5.5 m height,
+  base origins, front bronze rib and partition volume were verified. Current
+  intact revision `515ced3b-44c4-495b-b468-bc23258abb01`; exposed rib
+  `43bbc291-1677-4e39-91c8-36ae30cf2b7c`; exploded inspection
+  `6529c56f-5b76-454e-8fe6-d242396027d4`. Individual part IDs are in
+  `evidence/pillar-relief-framewright.json`; all fragments have CPU posters.
+- HC-06: 4.2 x 2.6 x 0.3 m carved relief, 40k triangles, plain stone back at
+  x=0, exact GLB/FBX audit and four-view review. Staged as
+  `77794118-1eb4-4e09-a512-df0869b17eb0`. Both this relief and HC-04 were
+  inspected and orbited in Framewright; review-completion receipts saved.
+- AU-01: all ten audio elements decoded with readyState 4 and no error.
+  Gimbal loop advanced to 10.58854/20 s and was paused via the UI. This is
+  playback evidence only; human auditory review remains pending.
+- HC-02: distinct paint attempt returned validated geometry/UV output but
+  child teardown failed (-1073741819); no inference retry. The selected local
+  `rope-states-v5` removes three isolated triangle scraps, uses dielectric
+  hemp, and contains 3 m hanging, 1.3 m burnt/frayed and floor-coil states.
+  Fixed side views and supplemental coil top/underside/elevated views were
+  inspected. Models staged as `1ef199a5-a58d-4967-b884-a4f703e3d38f`,
+  `69616cd8-ddae-448a-ac66-0ab7371f0703`, and
+  `dd8ff2fa-626a-41b2-a347-b7efdd9cf672`. Coil opened/orbited in Framewright.
+  Ring-threaded and cleat-tied states remain; the rope kit is incomplete.
+- CH-03: NPC reduction selected a 15k target; exported painted base has
+  14,993 triangles at 1.82 m. Four views and Framewright inspected, no doubled
+  face. Staged as `de639a39-9598-48b2-970e-ede0f4e17698`, explicitly unrigged.
+  Its distinct paint attempt validated then failed during teardown, retained
+  without retry. Armour variants, weapons, heavier Bulwark, UE skeleton and
+  deformation gates remain. Read CHARACTER_ANIMATION before any clips.
+- AR-02/GV-03/HC-07/HC-08: normalized/reduced cabinet, station, scaffold and
+  gauge case inspected. Both bounded source fairing and dense-source normal
+  transfer experiments were rendered in four views. Neither was selected as
+  finished cleanup: the case and cabinet still have planar-face artifacts.
+  Do not paint these experiments blindly. Use source-preserving planar/feature
+  cleanup, and separate wheel/lid/doors with proper pivots. All original,
+  faired and normal-transfer artifacts and failed CPU audits remain.
+
+Five review sets are prepared: AR-01, DH-01, HC-04, HC-06, AU-01. Receipt totals
+are 27 images, 50 models (including retained revisions), 10 audio, 17 requisitions
+with material. This is not 27 finished requisitions. `commission.json` and
+`docs/STATUS.md` carry the current scope; `evidence/diagnoses-2026-10-16.json`
+records the failures. HC-03 cleat paint still has no validated artifact and
+must not be automatically retried. All launched GPU attempts and CPU render
+batches in this phase are terminal. Recheck GPU ownership/free VRAM before
+new inference; the last snapshot had less than the 21 GiB launcher threshold.
+
+Next useful gates: finish HC-01 separation/pivots and its paint so HC-02 can
+thread through it; resolve HC-03 via a separately justified approach; finish
+GV-03 wheel/dial separation and 1.2 m interaction height, GV-04 glass core and
+size/mount variants, then the remaining architecture and full kit components.
+The source requisition table remains `work/artiss-tomb-2026-10-16/COMMISSION.md`.
+
+## 2026-10-16 — Forged cleat set and retained mechanism fit experiments
+
+Continued the same Artiss Framewright project and 27-item authorized scope.
+Six sets are now prepared for human review: AR-01, DH-01, HC-03, HC-04, HC-06,
+AU-01. Three canon holds remain empty. No human approval, game import, publish
+or push. The overall commission is incomplete.
+
+HC-03 `work/artiss-tomb-2026-10-16/assets/HC-03/review-delivery-v1/` contains
+20 cm compact, 28 cm standard and 35 cm upswept cleats, each 5,000 triangles,
+with x=0 wall backs, packed editable Blender, paired GLB/FBX and maps. The
+three actual interchange pairs pass closedness, width and coordinate checks.
+A distinct built-in ImageGen forged-iron swatch was UV-baked on CPU; calibrated
+metallic 1 and roughness 0.31/0.37/0.43 use no micro-normal map. The generated
+stone-only RGBA collar decal keeps its original alpha. Exact prompts and
+original sources are in `material-source-v1`; the previous Hunyuan crash is
+retained without retry. Four views of all three, the live standard-cleat orbit
+and the live decal were inspected. IDs:
+- 20 cm: `3ffcc21a-622e-45d9-8e90-0a665233a5de`
+- 28 cm: `5ec3854a-cd49-4061-9c92-8db4e949222b`
+- 35 cm: `a4c4aa3a-bcb4-4849-9560-7488c26059b6`
+- decal: `15c91d6f-b33d-48af-8c30-886d8692ba48`
+
+HC-01 `swivel-separated-v3` is a LOCAL modeling derivative only. A negative
+elliptical-cylinder partition separated the acquired ring and collar. V1 left
+disconnected collar slivers; v2 removed them but over-averaged and thinned the
+rope groove. V3 keeps the gentler source fairing, no slivers, closed parts and
+top/centre pivots. Four views inspected. Do not call it complete: calibrate the
+nominal 1.2 m band independently of axle bosses; apply the reference's mixed
+limestone/bronze collar rather than its diagnostic all-bronze material, restore
+score marks, make two wear states and review motion. No new HC-01 import.
+
+HC-02 `cleat-fit-v1` through `v7` remain rejected/unselected local experiments.
+The source hanging rope has zero nonadjacent triangle self-intersections.
+Projection onto nearest hardware surfaces introduced path discontinuities;
+v5 avoided hardware but had 279 rope self-intersections and visually looked
+like a loose loop. V6 still had eight self-intersections and the same weak
+construction. V7's compact neck/figure-eight trial had 902 hardware and 310
+self-intersection pairs. No trial was staged. `cleat-fit-rejections.json` and
+`evidence/rope-self-contact-diagnosis*.json` preserve reasons and counts.
+Physical gauge also needs consistency: current hanging source has roughly
+12.9 cm median body diameter; attachment trials explored 3.2 and 1.8 cm to fit
+20-35 cm cleats. Do not silently replace the three staged rope states with
+these unselected trials. Next gate: credible compact hitch fitted to the actual
+cleat, closedness plus hardware/self-contact checks and four-view inspection;
+then a consistent family and through-ring state.
+
+All launched CPU batches are terminal. No local GPU inference ran: preflight
+showed 18,485 MiB free and 62% utilization, below the paint runner's 21 GiB
+threshold, with the user's Unreal editor open. Preserve those applications.
+Current receipts: 28 images, 53 models including retained revisions, 10 audio,
+17 requisitions with material, six complete review sets. Phase snapshot:
+`work/artiss-tomb-2026-10-16/evidence/phase-five-review-state.json`.
+
+## 2026-10-16 — Requested compact rope coil revision
+
+Mark rejected the oversized loose coiled rope and requested more turns and
+thinner strands. The current HC-02 floor coil is now Framewright v2, asset
+`2c5f7fb7-d506-4c6b-a74a-162abfcb5b37`, parent
+`dd8ff2fa-626a-41b2-a347-b7efdd9cf672`. The original remains an earlier revision.
+Files: `work/artiss-tomb-2026-10-16/assets/HC-02/rope-coil-tight-v3/` contains
+GLB, FBX, packed editable Blender, map, delivery and export audits. Nominal hemp
+diameter is 16 mm; a 3 m centreline makes 5.22 turns in a 30.6 x 33.3 cm footprint,
+maximum height 3.02 cm, with the acquired fray shortened to 6 cm. Base pivot is
+at zero. The source AI-acquired painted hanging rope remains untouched.
+
+Local v1 retained ten triangle crossings; v2 radial clamping/local smoothing
+failed its assertion with ten crossings and up to 7.42 mm unwanted movement.
+Neither was staged. V3 instead refines source triangles only where deformation
+would make them cross, preserving interpolated UVs: 42 crossings became two,
+then zero with 276 added triangles (15,270 total). GLB and FBX were re-imported;
+both are closed, nondegenerate, UV-bearing, with zero detected nonadjacent
+self-intersections and exactly matching bounds. Fixed front/three-quarter/side/
+back/top/underside/elevated views and actual Framewright yaw 0.98/pitch 0.90 were
+inspected. Proof: `evidence/framewright-coil-tight-v3.jpg`; local rejection
+history: `assets/HC-02/coil-redesign-history.json`. The new coil is left open.
+
+HC-02 is still a partial kit: ring-threaded and credible cleat-tied states
+remain, and family gauge consistency needs review. There are still six
+prepared requisition sets, zero human approvals, and three held collections.
+Current receipts: 28 images, 54 models including revisions, ten audio. No GPU
+inference, game import, publication, push or human approval was performed.
+Before this user correction, GV-04 emitter work only inspected source geometry;
+`emitter-inspection.npz` and `evidence/emitter-radial-section.png` are diagnostic.
+Glass-core separation and size/mount variants remain the next emitter gate.
+
+## 2026-10-16 — Emitter review set prepared
+
+GV-04 now has four review variants in
+`work/artiss-tomb-2026-10-16/assets/GV-04/review-delivery-v2/`: 4 m and 2 m rods,
+each with floor and wall sockets. Floor rods run +Z from z=0; wall rods project
+outward along +X from x=0. The smaller size is the 2 m cell option. Every file
+has two closed parts: bronze frame/limestone socket and faint amber driftglass.
+GLB glass uses metallic 0, roughness 0.24, transmission 0.72, IOR 1.46 and
+emission strength 0.14. Packed Blender, paired FBX, maps and README are included.
+
+The source is the existing AI-acquired and painted bronze emitter. A negative
+cylinder divided its core from the frame; it is not replacement positive
+artwork. The first 96-sided cut added excess hidden topology; the selected
+32-sided cut yields 18,788 triangles (15,000 source budget plus 3,788 closure
+triangles). Radial core normals remove false dents in glass highlights without
+moving its acquired surface. No painted-mesh reduction or new GPU inference
+was performed. The paint teardown failure stays failed; validated artifacts
+and lineage are preserved, with no retry.
+
+The first delivery trial did not rotate its wall versions because the imported
+objects used quaternion mode; it remains unselected. V2 explicitly selects XYZ
+mode and asserts the long-axis bounds. All four actual GLB/FBX pairs passed:
+two closed nondegenerate parts, retained UVs, explicit socket origins, exact
+4/2 m length, maximum paired bounds delta 0.000000582 m. Four fixed views for
+each variant and close-up glass/bronze views were inspected. The live Framewright
+4 m floor and 2 m wall models were orbited; all four are visible in the library.
+
+Framewright IDs: 4 m floor `e70f4d0c-c16a-4626-ab30-9288f0c94129` (current v2,
+earlier master retained); 2 m floor `1448d25d-c079-4ef6-8d3e-4a9c7511f962`;
+4 m wall `8107bf89-ad29-4440-8349-bd9da4333430`; 2 m wall
+`535181d6-df46-413b-ba8a-654fcf3c3409`. Proof files are
+`evidence/framewright-emitter-4m-floor-v2.jpg`,
+`evidence/framewright-emitter-2m-wall-v2.jpg` and
+`evidence/framewright-emitter-variants-v2.jpg`. The filtered library is left open.
+
+Seven of 27 requisition sets are prepared for human review; none is human
+approved. FX-01 interaction is separate unfinished work. Three held collections
+remain empty. There are 96 asset records including revisions: 28 images,
+58 models and ten audio. All CPU jobs are terminal. No game import, publication
+or push occurred. Phase evidence: `evidence/phase-six-review-state.json`.
+Next substantial gate: TW-01 remaining modules, 6 m grid seams and walkable
+visible-surface collision. The rest of the full commission remains active.
+
+
+## 2026-10-16 — TW-01 six-module architecture review prepared
+
+`work/artiss-tomb-2026-10-16/assets/TW-01/review-delivery-v1/` contains the six
+required modules, exact staged GLBs, editable packed Blender, FBX and local
+texture maps: 41 hash-verified package files, 73,101,305 bytes. Wall/arch are
+current Framewright v3/v2 with earlier revisions retained. Pilaster and trim
+are downstream cuts/deformations of the acquired painted pillar/wall. Floor
+and ceiling retain their AI acquisition lineage; no procedural replacement
+geometry was authored. All six GLB/FBX pairs pass closed-surface, origin, UV
+and grid-dimension checks (maximum paired bounds delta 0.000000525 m). All
+Blender/FBX companion maps resolve within the package.
+
+The floor is a 6 x 6 m slab with an exact visible-surface UCX collider in FBX.
+961 rays have zero height delta, and the four-tile GLB inspection assembly has
+zero gap/step at four joins. Opposing texture edge UVs match at 301 samples
+per axis. The distinct built-in ImageGen albedo was conditioned on the original
+floor reference; mirrored quadrant UVs preserve that image while making seams
+continuous. Exact prompt: `assets/TW-01/floor-material-source-v1/prompt.json`.
+The rejected local paint remains preserved; no inference retry occurred.
+
+The ceiling's first paint attempt produced validated geometry/maps but exited
+-1073741819 during teardown. Its failure remains recorded. Generic bronze
+masking then incorrectly made warm limestone metallic; unselected v3 is kept.
+V4 rasterizes measured crossed-rib regions into a technical PBR map, retaining
+the AI albedo, UVs and geometry. Stone is metallic 0/roughness .78 and bronze
+metallic 1/roughness .27. The fixed-view set plus two views illuminated from
+below and actual Framewright underside orbit were visually inspected.
+
+All six models and the four-tile floor were inspected in Framewright. The
+ceiling is `2d17e3a3-1c87-4f3c-a6c8-9c8e0e459bb6`; all other IDs are in the
+package `review-completion.json`. Live screenshot proofs are under `evidence/`
+with `framewright-{wall-grid-v3,arch-grid-v2,floor-tile-v2,floor-grid-v1,
+ceiling-v4,pilaster-v1,trim-v1}.jpg` names. The full final-state snapshot is
+`evidence/phase-seven-review-state.json`.
+
+Eight of 27 sets are prepared for human review; nineteen remain unfinished,
+and CH-01/CH-02/DH-03 remain held and empty. Framewright contains 103 records
+including earlier revisions, with 86 current visible records: 28 images,
+48 models and ten audio. No human approval, game import, publication or push.
+Native walking/cooked runtime checks remain outside this review commission.
+All inference and CPU rendering workers from this phase are terminal.
+Next suitable gate: HC-05 collapsed arch, derived from the acquired painted
+TW-01 arch, with 4 m scale, blocking/partly-dug states and fracture evidence.
+The complete original commission remains active.
+
+
+## 2026-10-16 — HC-05 collapsed outer arch review prepared
+
+`work/artiss-tomb-2026-10-16/assets/HC-05/review-delivery-v2/` is the selected
+50-file, 183,468,856-byte review package. The AI-acquired painted TW-01 arch
+was scaled to 4 m wide/high and fractured into 13 closed stones; nine wall
+fragments supply surrounding masonry. Four surviving jamb fragments remain
+fixed; the others were settled on CPU. Blocked and partly dug states contain
+22/17 stones and 48,814/38,446 triangles including their dust planes. Removing
+five front/upper pieces preserves every retained pose. The source arch size
+is not the collapsed extent: the blocked stones span about 5.33 x 5.29 x 1.94 m.
+
+All 22 individual GLBs have canonical +X fronts and base pivots, with exact
+assembly matrices in fragment-placement.json. The separate feather keystone
+is supplied upright for inspection and fallen in both assemblies. Actual
+GLB/FBX re-import audits passed closed surfaces, UVs, paired bounds and convex
+collision containment. FBX has 22/17/1 UCX hulls. All eight editable/FBX
+companions resolve maps inside the package. Both states block CPU straight
+standing-capsule sweeps at 61 transverse positions; this is not a native
+physics/navigation, jump/climb or cooked-runtime test.
+
+Settles v1/v2 were rejected for drift/temporary retaining-wall support. The
+selected v3 uses only the floor and four surviving jambs. Initial collision
+faces failed convex containment; conservative support-plane hulls replace
+them with 2 mm support margins. Canonical rotation required a fresh keystone
+hull. A final portability audit found the canonical keystone pointing back
+to fracture-v1 images; exact-hash rebinding retained all image bytes and the
+previous companions. Re-import and map audits passed after that correction.
+
+The dust is built-in ImageGen output conditioned on the painted arch review;
+exact prompt/source are in assets/HC-05/dust-source-v1/. Its transparent PNG
+is separate and also mapped to noncolliding planes in both assemblies.
+Both states and the keystone were orbited in actual Framewright; the dust
+image was inspected there. Three models plus one image were staged and their
+served bytes hash-verified. IDs and screenshots are bound in review-completion.
+`evidence/hc05-framewright-review-proof.jpg` compares the actual viewer states.
+
+Nine of 27 authorized requisition sets are prepared; eighteen remain, several
+with partial candidates. Three held sets remain empty. Framewright has 107
+total records and 90 current visible records: 29 images, 51 models, ten audio.
+Current snapshot: evidence/phase-eight-review-state.json. No human approval,
+TheAetherWars import, publication or push. The original commission stays active.
+Next suitable work: HC-01 swivel ring dimensions/material allocation/motion,
+then the remaining HC-02 thin-gauge attached rope family. Prior rejected rope
+fits remain unselected; the corrected tight floor coil is already staged.
+
+
+## 2026-10-16 — HC-01 swivel ring review prepared
+
+Selected package: work/artiss-tomb-2026-10-16/assets/HC-01/review-delivery-v1/.
+It contains 44 hashed files, 97,670,164 bytes, with light/aged full assemblies,
+separate rings and scored collars, and six-second fractional-motion exports.
+All eight GLB/FBX pairs were re-imported and audited. Packed editable static
+and animated Blender files and local maps pass companion closure checks.
+The eight exact GLBs were staged and served-hash-verified in Framewright;
+light static assembly replaces the old clay as current revision, preserving it.
+All eight were inspected in the actual viewer; light motion advanced from
+0.24 to 3.41 seconds and aged from 0.24 to 1.90 seconds, then both were paused.
+Six fixed front/three-quarter/side/back sheets were inspected before staging.
+
+Ring band diameter is 1.2 m excluding axle bosses. Collar width is 1.6 m with
+top pivot; ring centre is its bearing pivot. Ring/collar triangles: 3,490/7,348.
+Canonical separate parts face +X, Z up, metres in Blender. The source assembly
+retains its tilted reference pose. The continuous rope groove survives.
+Source v4 calibrates band dimensions; rejected profile v5/v6 lost sufficient
+source coverage or distorted the groove. Selected v7 uses bounded fairing,
+preserving all faces/UVs; final maximum vertex displacement from v4 is 15.777 mm.
+The selected source passes 33 band-clearance poses over +/-2 degrees. A wider
++3.25 to +4 degree probe contacts the collar shoulder; failure is retained.
+Intentional axle/housing contacts are explicitly masked as bearing seats.
+This is story-scale fractional give, not full rotation or a physical solver.
+
+Light and aged paint passes are distinct requested variants of the same
+geometry, each with preserved geometry/UV validation. Both child runners
+crashed with -1073741819 during teardown after producing validated maps.
+Neither was retried; execution receipts retain their failures. A built-in
+ImageGen aged reference supplies the second wear treatment. A separate
+built-in ImageGen transparent chisel-score image is UV-projected and CPU-baked
+onto the existing collar atlas. Sources and exact prompts are in HC-01's
+wear-reference-v1/ and score-source-v1/. Metal response is confined to bronze;
+pale stone remains nonmetallic. No procedural replacement art was introduced.
+
+Default FBX simplification attenuated the small motion; selected FBXs use
+one-frame sampling with bake_anim_simplify_factor=0. Actual re-imported FBX
+actions span frames 2..182 versus GLB 1..181, each six seconds at 30 fps.
+Audit samples each actual range and checks fixed collar/centre, +/-2 degree
+travel and return to rest. Earlier FBXs remain in motion-fbx-before-exact-v2.
+FBX interchange does not preserve the complete glTF PBR graph; native material
+setup and Unreal physics/cooked validation remain outside this commission.
+
+Ten of 27 authorized sets are prepared; seventeen remain unfinished. Three
+held collections remain empty. phase-nine-review-state.json confirms 115 total
+records and 97 current: 29 images, 58 models, ten audio. The actual UI proof is
+evidence/hc01-framewright-review-proof.jpg. No human approval, TheAetherWars
+import, publication or push. The commission remains active. Next useful gate:
+HC-02 consistent thin-gauge hanging/burnt/attached rope family; retain rejected
+cleat-fit v1..v7 and the already staged tight floor coil.
+
+
+## 2026-10-16 — HC-02 complete thin rope family prepared
+
+Selected package: work/artiss-tomb-2026-10-16/assets/HC-02/review-delivery-v1/.
+All five requested states are present at nominal 16 mm gauge: 3 m hanging,
+1.3 m burnt/frayed, tight floor coil, rope through the bronze ring and rope
+tied to an iron cleat. Attached ropes are also exported separately from their
+hardware, giving seven GLB/FBX pairs, packed editable Blender and local maps.
+The manifest binds 51 files, 74,697,867 bytes. Three actual-mesh detail images
+are staged as inspection aids. No new AI image or GPU inference was launched.
+
+Thin states preserve the painted AI source with gauge 0.1251530387 and a 6 cm
+fray. The coil is the already selected 15,270-triangle tight-coil-v3, reused
+under its existing Framewright id, not regenerated. Hanging/burnt retain top
+pivots. The two earlier oversized models are retained as revision parents.
+Attachment pivots align with the cleat mounting origin and collar top mount.
+Blender coordinates remain metres, +Z up, +X front, with glTF axis conversion.
+
+The earlier cleat-fit-v1..v7 remain rejected. v8..v10 compact clove-style
+crossing paths still intersected; v9 quantified the crossing source regions.
+CPU position-based path contact relaxation in v11/v12 brought the geometry
+close, but coarse painted triangles still cut across tight bends. Selected
+v13 adaptively splits only affected source triangles, including both self-
+and hardware-contact faces: 15,392 rope triangles, zero nonadjacent self or
+hardware intersections in both reimported formats. It uses v12's saved path
+and retains UV interpolation. Full and detail four-view sheets show a compact
+crossing hitch around the 35 cm cleat horn. Reference topology is documented:
+https://www.animatedknots.com/clove-hitch-knot-rope-end
+This is an asset fit, not real load-bearing knot certification.
+
+Ring-fit-v1 had clear geometry but an unsupported broad arc. A distinct v2
+gravity experiment buckled the pinned free tail; refinement reached its
+ceiling and stopped. Selected v3 measures the actual lower-band Y=0 triangle
+section, takes a 14 mm offset upper envelope, and drapes the acquired rope
+over it with vertical ends. It retains 14,994 rope triangles and an exact
+3 m centreline. The actual exports have zero rope/hardware/self intersections;
+full four-view and close contact renders were inspected. The assembled ring,
+collar and rope remain separate objects. This static drape does not claim a
+coupled animated rope simulation.
+
+The initial companion audit failed because imported glTF images were lazy
+packed payloads with has_data false: checking that flag skipped map extraction.
+repair_rope_maps.py materializes pixels, writes local PNGs and repacks all
+seven editable companions. Prior Blender/FBX files are preserved in
+companions-before-map-repair-v1. The burnt GLB's vertex tint is additionally
+CPU emission-baked into the native/FBX albedo; vertex colours are retained.
+The actual burnt FBX four-view render matches the intended dark frayed end.
+Seven actual GLB/FBX pairs then passed closedness, UVs, bounds, pivots, burn
+colour and intersection checks; all fourteen companion map checks pass.
+
+All seven models and all three detail images were opened in Framewright.
+Both hardware assemblies were orbited; the coil was viewed from above.
+Exact source/served hashes are bound in framewright.json; review-completion
+binds consumer screenshots and actual export checks. The two-panel UI proof
+is evidence/hc02-framewright-review-proof.jpg. sync_progress.py now counts
+unique asset ids rather than duplicate receipts when a package reuses an
+existing model. Only the coil had duplicate receipts; both are preserved.
+
+Eleven of 27 authorized sets are prepared; sixteen remain unfinished. Three
+held collections remain empty. phase-ten-review-state.json confirms 124 total
+records and 104 current: 32 images, 62 models, ten audio. No human approval,
+TheAetherWars import, publication or push. The full commission remains active.
+Next suitable gate: GV-01 gyrosphere part separation/centre pivots before paint,
+then the remaining cabinets, gate, valve/case mechanisms and larger kits.
+
+## 2026-10-16 — Artiss GV-01 gyrosphere review set prepared
+
+- Continued after the status-only turn: eleven sets were prepared; GV-01 was
+  still a fused 5k clay. The commission remains 27 authorized plus three held.
+- Partitioned acquired ring/core surfaces with negative tools, recentered each,
+  corrected nested clearances and retained every earlier attempt. Early cuts
+  overlapped; median-profile normal interpolation made black artifacts. The
+  selected `surface-v6` uses CPU uniform source remeshing and bounded fairing,
+  then 7,598 triangles across four closed, independently pivoted parts. No
+  replacement primitive artwork or new geometry inference was used.
+- Hunyuan3D-Paint v1 used reference-v1, six views/768/2048 atlas. It validated
+  identical faces with geometry delta 8.95e-8 and UV delta 5.15e-8, then the child
+  exited -1073741819 on shutdown. The failed execution is retained, no retry.
+  Bronze is metallic 1/roughness .30 without micro normals. Driftglass is
+  nonmetallic, roughness .18, transmission .28, IOR 1.48. A built-in ImageGen
+  feather source and exact prompt are retained; its decal was CPU-baked only
+  onto the inner ring's outward band because the first paint missed that motif.
+- `assets/GV-01/review-delivery-v1/`: six exact GLB/FBX pairs, packed assembly
+  and pickup Blender files, local maps, 1024 RGBA actual-render inventory image,
+  inspection sheets/receipts, source and failure lineage. Actual exports pass
+  closure, UV, dimensions/pivots, no nonadjacent self/interpart crossings at rest,
+  and map locality. Paired maximum bounds delta 6.333e-8 m. 45 hashed files,
+  47,025,176 bytes. Fixed views and all eight Framewright entries inspected.
+- Assembly current revision f75e4c13-1212-434b-9fc5-deafad4c4140 supersedes the
+  retained fused-clay candidate. `evidence/gv01-framewright-review-proof.jpg`
+  shows the actual assembly and feather ring UI. Phase eleven has 132 total,
+  111 current (34 images/67 models/10 audio), 12 prepared and 15 unfinished.
+  CH-01/CH-02/DH-03 remain empty; no TheAetherWars import, publish, push or approval.
+- Next suitable gate: GV-02 drifting-cradle acquired geometry/part inventory,
+  before paint. Its full rings, yokes, counterweights, chains and click teeth
+  must be checked against COMMISSION.md, not inferred from the gyrosphere.
+
+## 2026-10-16 — GV-02 modeling checkpoint and requested progress count
+
+Confirmed twelve of the twenty-seven authorized requisition sets prepared for
+Framewright review, fifteen unfinished, and CH-01/CH-02/DH-03 still held. The
+live project contains 135 total records and 114 current visible records:
+37 images, 67 models and ten audio. Approval remains zero; held collections
+remain empty. No Unreal import, publication or push.
+
+GV-02 now has three retained ImageGen references and successful, hash-bound
+single-view AI acquisitions: toothed ring, limestone counterweight, and ceiling
+suspension yoke/chain. Existing job handles had expired after interruption;
+execution receipts and generated artifacts confirmed success without retry.
+The ring and weight were already normalized/reduced; this continuation finished
+yoke normalization (3 m, ceiling top pivot) and auto-budget reduction (15k).
+Ring/weight reductions are 20k/10k. Four fixed clay views of all three sources
+were inspected. Evidence: work/artiss-tomb-2026-10-16/assets/GV-02/
+modeling-checkpoint-v1.json. No source is selected for paint yet.
+
+Continue with source-derived ring fairing and actual band-diameter calibration
+for separate 5/7/9 m centre-pivot rings, counterweight base-pivot correction,
+separate moving suspension components, and a supported GV-01 cradle assembly.
+The counterweight's preliminary top pivot is a modeling convenience, not its
+final standalone pivot. Preserve all acquired authorities and avoid the generic
+normalizer's DH-01-specific ring-diameter constants. Review the fitted assembly
+before texturing. Commission progress is synchronized; the overall goal remains
+active and incomplete.
+
+## 2026-10-16 — GV-02 painted cradle prepared in Framewright
+
+Completed the drifting-cradle review set at
+`work/artiss-tomb-2026-10-16/assets/GV-02/review-delivery-v1/`: eleven GLB/FBX
+pairs, packed editable Blender assembly, portable maps, fixed-view evidence and
+source/repair lineage. The assembly has 61 separate parts and 226,478 triangles:
+three 12k rings at nominal band diameters 5/7/9 m, six 1.2 m limestone weights,
+three chain/yoke suspensions and the existing 35 cm GV-01 in a central holder.
+Rings use centre pivots/local X axes; standalone weight is base-pivoted; ceiling
+assemblies use top mounts. The inner ceiling mount has an explicit 11-degree
+angle. No physical motion/gameplay is implemented or implied.
+
+Retained all modeling failures: intersecting contact caps, nearly deleted link,
+noninterlocked chain, local reflective ring fold and inner hanger crossing.
+Selected source-derived v8 suspension plus v2 fitted assembly after actual GLB
+closure/intersection and Gauss linking checks. Three reference-conditioned paint
+jobs saved validated geometry-preserving output but each crashed during teardown
+(-1073741819); wrappers succeeded, no retry. A coarse weight material face mask
+made stone metallic; v2 uses the acquired AI metallic mask for bronze/limestone.
+
+Close-up final review exposed sharp remnants in the ceiling eye. Positive
+fairing thinned it too far and Taubin fairing retained the notch. Final source
+repair retains the acquired plate, fits the clean acquired chain-link surface
+into its eye envelope, unions and CPU-rebakes original paint. First diffuse bake
+of metallic sources was black; source-only nonmetallic copies fixed the albedo
+bake. Failed derivatives are preserved under painted-components-v2/v3/v4;
+selected ceiling repair is v5 and full painted assembly is v2.
+
+All 22 actual GLB/FBX reimports pass closure, UV, nondegenerate faces, pivots,
+dimensions and zero nonadjacent self/interpart crossings at rest. Maximum paired
+bounds difference 4.76837e-7 m. Local maps verified in delivery directory. All
+11 actual models were inspected in Framewright, each with screenshot evidence;
+assembly 2c50272e-50ac-483f-a6fa-02e638208ae2 is the working painted revision of
+the retained modeling candidate. Delivery manifest: 101 files, 145,401,854 bytes.
+
+Phase twelve live snapshot: 147 total records, 125 current (37 images, 78 models,
+10 audio). Thirteen of 27 sets prepared, fourteen unfinished. Three held sets
+remain empty and all human approval fields remain absent. No TheAetherWars
+import, publish or push. Goal remains active. Next P0 scope is TW-02; remaining
+P1/P2 sets still require their original full deliverables.
+
+
+## 2026-10-16 — Artiss TW-02 first repaint group reviewed, full scope remains open
+
+Prepared `work/artiss-tomb-2026-10-16/assets/TW-02/review-group-01-v2/`: throne,
+canopy and pale limestone plinth, with exact staged GLBs, editable Blender, FBX,
+local maps, fixed views, source/reference hashes, execution receipts and browser
+proof. The original GLB binary payloads, mesh/UV/normal/topology accessors and
+local nodes remain; a rigid +90-degree Z parent establishes +X front. All three
+retain 40k triangles. Companion surface deltas are at most 0.000000430 m.
+
+Four AI mapping jobs saved validated output but terminated with -1073741819
+during teardown. No automatic retries. The second plinth mapping is a distinct
+pale-ivory palette proposal after the first ochre result was rejected in the
+actual browser. Throne material v1 missed bronze and stretched the inner-arm
+decoration; v2 metallized some warm stone; v3 clipped an inlay response. Selected
+v4 constrains the metallic regions and maps an ImageGen stone swatch onto the
+existing plain inner-arm/rear surfaces. Canopy material v2 and plinth paint v2
+were inspected with it. Exact built-in ImageGen prompts are retained in the
+package and `assets/TW-02/imagegen-prompts-group01.json`.
+
+Current Framewright models: throne `ec2d5bc8-f473-442c-af6a-c5ddd4bef77e`, canopy
+`2fd5cc14-3813-4631-9dbe-814de60aa638`, plinth `227e0c5e-6586-4557-b666-9eb042ac3b82`.
+The earlier ochre plinth is a retained parent revision. Phase thirteen records
+156 total / 132 current assets (41 images, 81 models, ten audio). Complete sets
+remain 13/27; TW-02 is partial, with 3/121 models prepared and 118 models plus
+13 surface images remaining. Do not create a TW-02 review-completion receipt.
+
+Next: six existing static guardian statue repaints in `source-group-02`; source
+hashes and four-view beauty renders were inspected. The 2/6 m kneeling, 2.5/8 m
+shield and 2.5/7.5 m sword variants have different UV/index signatures. Generate
+three style references then map separately to the six locked meshes. These are
+TW-02 statues, not the held CH-01/CH-02 enemies. Three holds remain empty. No
+human approval, TheAetherWars import, publish or push. All invoked GPU and render
+processes were terminal when this group was recorded.
+
+
+## 2026-10-16 - Artiss count check and TW-02 guardian paint transports
+
+Mark asked how many assets remain. Verified phase-thirteen and current status:
+13 of 27 authorized requisition sets prepared, 14 unfinished; CH-01, CH-02 and
+DH-03 remain held. TW-02 alone still needs 118 model repaints and 13 surface
+images, so requisition count must not be described as individual-object count.
+
+Continued the existing goal with six static guardian transport preparations.
+Reinspected all six four-view clay sheets, added a source-group argument to the
+work-only prepare_tw02_paint.py, and ran Blender CPU export/reimport successfully.
+All 299,999 faces matched; maximum normalized geometry delta 9.260625e-7 and UV
+delta 7.164965e-7. Selected source hashes and output hashes were independently
+reread. Receipt: work/artiss-tomb-2026-10-16/assets/TW-02/source-group-02/
+transport-summary-v1.json. Six unique UV authorities are retained; no cross-size
+atlas copying. Next: three pose-specific style references and AI-conditioned
+mapping, followed by fixed-view/material review. No new inference, Framewright
+mutation, approval, game import, publish or push in this status continuation.
+
+
+## 2026-10-16 - Artiss TW-02 six guardian repaints prepared; banners staged next
+
+Continued the active 27-set commission without changing the three holds or
+review-only boundary. Delivered six pre-existing static guardian statues in
+work/artiss-tomb-2026-10-16/assets/TW-02/review-group-02-v2/: kneeling 2/6 m,
+shield 2.5/8 m, sword 2.5/7.5 m. These are not CH-01/CH-02 enemies.
+
+Built-in ImageGen produced three pose-specific material references, retained
+with exact prompts in group02-reference-prompts-v1.json. Six separate guarded
+Hunyuan paint jobs retained their distinct UV authorities. Every job saved
+validated topology/UV-preserving maps then exited -1073741819 during teardown;
+all six failures/commands are retained, with no automatic inference retries.
+Material v1 incorrectly treated warm stone/cloak paint as bronze; v2 bounds
+metal response to existing fittings. Actual Framewright revealed the sword
+helmet eye slit missing. Sword v3 recovers only the original acquired dark slit
+through the original UVs; no hand-drawn feature or geometry change. The two
+sword v2 revisions remain linked as history; group-v1 package is marked rejected.
+
+All six current models inspected in actual Framewright. Original mesh, normals,
+UV, topology and node bytes preserved, with one rigid +90Z parent for +X front.
+Six new Blender/FBX pairs reopen with local maps and maximum symmetric surface
+vertex difference 3.371748e-7 m. All 24 final FBX material views match selected
+GLB views, mean byte difference at most .0008431 and maximum channel delta 6.
+Packed-image warning text occurred at Blender shutdown; actual local-map reopen
+and rendered-appearance checks passed. Bundle: 265 hashed files,
+287676973 bytes, delivery SHA256 2cf0fe94e23892ed4977ca1e8745afa6585fee5c48868235fe90e962b133ddae.
+All manifest hashes reread successfully. No TW-02 review-completion.json created.
+
+Current state: 170 records / 144 visible assets (47 images, 87 models, 10 audio).
+13 authorized requisition sets prepared, 14 unfinished; TW-02 9/121 models ready
+for human review, 112 models and 13 surface images unfinished. Held collections
+empty and human approvals zero. Receipt: evidence/tw02-group02-review-state.json.
+
+Next group: source-group-03 has seven old banner cloth/hardware variants, copied,
+hash checked, source four-view renders inspected, and all UV transports verified.
+Three additional ImageGen references are saved and imported: feather-in-three-
+rings crimson cloth, bronze rod and bronze bracket. Exact prompts are in
+assets/TW-02/group03-reference-prompts-v1.json. No banner inference launched.
+Five distinct jobs prepared in tw02-paint-group03-queue.json; torn/intact OBJ
+hashes match exactly per size, so mapped RGB may be reused, but preserve each
+source's original 4096 alpha mask/MASK cutoff/double-sided setting. Details in
+source-group-03/material-invariants.json and next-gate.json. Check rod rigid
+orientation for local -Y instead of blindly using the generic +90Z parent.
+
+All paint, CPU render and package sessions are terminal. Browser remains on the
+current 7.5 m sword statue. No core compiler edits, game import, publish or push.
+
+
+## 2026-10-16 - Artiss TW-02 banners and bronze fittings prepared
+
+Previous goal turn was concrete progress: six statues delivered plus banner
+references and transports. This turn completed seven more model variants in
+Framewright project 45863b1c-3352-4eea-bfc5-70a22ddeb40a. Bundle:
+work/artiss-tomb-2026-10-16/assets/TW-02/review-group-03-v1/ (300 hashed files,
+226,021,651 bytes), manifest SHA256
+c9bc4b1a83f5ae9a37b35270720599670dc56f484f00420eefc814556c99a858.
+
+Four banners: intact/tattered 1.5 x 6 and 2 x 9 m, cloth material v3. Three
+hardware variants: 1.8/2.3 m bronze rods and wall bracket, material v1.
+Five distinct image-conditioned mapping jobs ran once each, all producing
+validated locked-geometry/UV maps before failed Windows teardown -1073741819.
+Actual failures are retained; wrapper success is not a clean-process claim.
+The torn variants share exact normalized OBJ bytes with intact donors; no fake
+second inference receipts. Original 4096 alpha pixels/MASK/cutoff/two-sided
+settings survive byte-identically. Source mesh/UV/normal/node bytes are exact;
+rigid orientation only: cloth/bracket +90 Z, rods -90 Z for local -Y length.
+
+AI mapping squashed the feather emblem (v1 rejected). Source-coordinate UV
+transfer of the already AI-conditioned reference recovered it; upper patch v2
+had a lighting transition. v3 transfers continuous reference cloth within the
+mapped border/fringe. No new geometry, drawn motif or inference retry. Gold
+thread remains nonmetal; bronze hardware is metallic 1, roughness .26-.36.
+Four fixed views per model and all seven actual browser models were inspected.
+GLB plus packed Blender and FBX reopen with local maps. Maximum companion vertex
+delta 1.6996636986732483e-7 m. All 28 actual FBX beauty views were compared:
+opaque models mean RGB-byte difference <.001; tattered explicit cutoff opacity
+maps introduce small edge-filter differences (max mean .19979, max single
+channel 60). Exact source alpha also remains in portable RGBA albedo maps.
+Browser evidence is in browser-review-group03-v1/ and the delivery bundle.
+
+Current API: 177 records / 151 visible assets (47 images, 94 models, 10 audio),
+13 prepared requisition sets / 14 unfinished. TW-02 now 16/121 models prepared,
+105 models and 13 surface images remaining. CH-01/CH-02/DH-03 collections empty;
+human approvals zero. No game import, publishing, push or production claim.
+Evidence: evidence/tw02-group03-review-state.json and repaint-progress-v1.json.
+
+Next group: source-group-04 contains eight existing balustrade/rail variants.
+All source sheets inspected and UV transports verified; references still needed.
+6m curb/rail have two nodes sharing a single original 78k mesh, unlike reduced
+3m variants. Generic transport refused two mesh objects; retained CPU failure
+log and empty curb-6m-uv-v1 rejection. Explicit --shared-instances transport v2
+paints one shared mesh, recording all node transforms; preserve both target
+instances. Other six use v1 transports. No group04 inference launched.
+No core compiler changes; scripts and work products remain isolated under work/.
+
+
+## 2026-10-16 Artiss status answer and TW-02 group04 mapping checkpoint
+
+Mark asked how many remain: current commission confirms 13/27 prepared sets,
+14 unfinished, excluding CH-01/CH-02/DH-03 holds. TW-02 remains 16/121 prepared
+models, with 105 models and 13 surface images unfinished. Six inspected new
+limestone reference images are now imported and content-hash verified; live
+Framewright counts 157 current visible assets, 94 models. No model completion
+was inferred from references or raw paint output.
+
+Group04 references/prompts and exact generated-file copies are retained in
+assets/TW-02/group04-reference-results-v1.json and group04-reference-prompts-v1.json.
+First five-job AI mapping queue is RUNNING in exec session 9336: stair panel
+and 3m curb terminal with validated output then teardown -1073741819, 6m curb
+running at checkpoint, straight rails next. No automatic inference retries.
+An earlier malformed 3.16m reference alias was rejected by CLI before inference;
+its empty execution list and original log are retained under source-group-04/
+preflight-rejected-reference-path-v1. Exact alias mapping fixed before launch.
+Three remaining jobs have a prepared tw02-paint-group04b-queue.json, not started;
+wait for queue A terminal and inspect GPU before launching. Six-metre transports
+and paint folders use v2, others v1; preserve shared source nodes and pivots.
+
+finish_tw02_material.py now supports explicit stone response and rigid -90 Z
+linear orientation. Stair derivative painted-group-04-v1/stair-panel-3.16m
+preserves original binary mesh/UV/normal/node data, metallic zero, roughness
+.74-.84 and no normal/emissive texture. It still needs fixed views, companions
+and actual browser inspection. No group04 review closure or production claim.
+No game import, publish, push, human approval, core compiler edit or worktree.
+
+
+## 2026-10-16 Artiss TW-02 group04 delivered; group05 painting started
+
+Previous status turn made concrete progress: six stone references imported and
+first surface derivative created. This continuation completed the eight-model
+limestone group, including exact source geometry preservation, four-view material
+inspection, portable companions, actual FBX appearance comparison and all eight
+Framewright Director inspections. No human approval or full TW-02 closure.
+
+Bundle assets/TW-02/review-group-04-v1: 332 hashed files, 284,466,709 bytes.
+Manifest SHA256 a869360560b21009193fbcb31009295807d763fb77236433ae05b531d8e66313.
+Eight original GLBs keep complete original binary prefixes, mesh/accessor/normals/
+UV/topology data and source nodes/local pivots. New rigid orientation only: linear
+-90 Z, symmetric post/cap +90 Z. Original 6m repeated nodes and 78k shared meshes
+remain, 156k scene triangles each. Stone metallic zero, broad roughness .74-.84,
+no normal or emission texture. Stair motifs are feathers in rings.
+
+Eight AI mapping attempts each saved validated outputs then failed Windows
+teardown -1073741819. No inference retries. The earlier bad 3.16m alias was a CLI
+input error before inference and its empty execution list/log are retained.
+Original generic two-node transport refusal is retained separately. All group04
+GPU/CPU handles (9336,59626,96052,56727,57244) are now terminal. No source edits.
+
+Blender and actual FBX companions reopen with local maps. Maximum symmetric
+vertex delta 8.940696716308594e-7 m. All 32 actual FBX beauty views inspected;
+max mean sRGB-byte difference .0007807414, max individual channel 7. Shared
+mesh material-slot warnings did not alter rendered repeated sections; verified
+against actual GLB views. Browser screenshots and operator inspection retained.
+Current API 195 records / 169 visible (57 images,102 models,10 audio). TW-02
+24/121 models prepared; 97 models and 13 surface images remain. Overall 13/27
+sets prepared,14 unfinished; all three held collections empty, human approvals0.
+
+Next group05: four exact old lighting props copied, source sheets inspected,
+locked UV transports verified (10k/15k-class originals), four built-in ImageGen
+surface references generated/inspected/copied/imported. Prompts/results in
+group05-reference-prompts-v1.json and group05-reference-results-v1.json.
+Fresh RTX4090 preflight: 22837MiB free and no paint/Comfy inference process.
+First four-job mapping queue NOW RUNNING in exec session 71042, command
+python work/artiss-tomb-2026-10-16/paint_batch.py
+work/artiss-tomb-2026-10-16/tw02-paint-group05-queue.json. Follow same handle;
+no restarts or retries. No group05 model derivative or completion claimed.
+
+Before material binding: lantern has one original material with a transmission
+texture; retain its exact mask and glass response rather than stripping all
+extensions. Wall torch mounting plate lies on positive X, with broad planar
+surfaces normal to X (areas .1094/.1259m2) and centre x .0945/.1334m. Physical
+front is -X; use 180 Z to canonical +X, not generic +90 Z. Preserve source pivots.
+Source-review.json records measured evidence. Other three use +90 Z.
+No core compiler changes, game import, publish, push, approval or worktree.
+
+## 2026-10-16 - Artiss lighting review group and user-requested lantern smoothing
+
+Prepared TW-02 group05 in work/artiss-tomb-2026-10-16/assets/TW-02/review-group-05-v5/:
+floor brazier, hanging lantern, standing brazier and wall torch. Exact staged GLB,
+packed editable Blender, FBX, local maps, source/AI receipts, rejected candidates,
+actual browser captures, four-view GLB/FBX inspection and hashed manifest retained.
+All four distinct mapping jobs saved validated outputs and failed teardown with
+-1073741819; no inference retry. Session71042 and all CPU review jobs are terminal.
+
+Mark asked to smooth the lantern and compare the nicer one in the earlier project.
+Read-only comparison used both the earlier acquired dense asset and the actual
+Realistic Asset Review project model; screenshot at TW-02/earlier-lantern-framewright-comparison.png.
+Current v10 uses 12 bounded Taubin pairs (0.42/-0.43, max3mm), freezes927 glass
+vertices, and filters smooth normals. Every original UV and triangle index remains,
+10,000 triangles, original maps/pivots and node transforms retained. Guard backtracks
+86 vertices to avoid all new inverted/collapsed faces. This explicit user-authorized
+lantern cleanup is the sole exception to the material-only TW-02 scope.
+
+V7 normal recalculation barely changed reflections. V8 nearest dense normal donor
+introduced local artifacts and was rejected. Its CPU script needed fixes for missing
+PIL in Blender, read-only vector arrays and degenerate donor faces; these were CPU
+implementation repairs, no AI retries. V9 looked smoother but numerical check found
+26 rotated triangles; v10 guards those areas. Slight handmade edge waviness remains.
+Prior v2 glass looked opaque in Framewright; v3 whole-mesh alpha caused sorting,
+v4 verifier wrongly assumed one source primitive, v5 missed mask border triangles.
+V6 partitions the original face multiset into opaque bronze and masked thin-glass draws;
+v10 retains that material handling and adds the requested surface cleanup.
+
+Final Framewright lantern revision6: aa77a865-083c-41f7-aef5-a3b1bbe8a905,
+SHA256 740badcb26eae8f40917fd235f6ac75e0271b95f8fa6ca9ca906e5434486b1ae.
+WebMCP confirmed current project, current revision and content hash while actual
+model was open. Final screenshot and context in browser-review-group05-v5/.
+Bronze remains metallic1 with roughness.38-.46; no normal texture or doubledspecular.
+
+FBX actual four-view renders pass operator review; original transmission stays in
+GLB/Blender, while FBX needs explicit alpha fallback without refraction. Lantern
+interior slightly brighter, max meanRGB byte difference .714291; other three below
+.001078. Geometry, bounds and local maps verified on companion reopen. No human
+approval, game import, publishing or push. Previous revisions retained.
+
+Group manifest SHA256 eb2b211ba5ca8005f6fdc55992cfd5d8ff186817385d4ff5e47ea3adb5fc7d7f.
+Live project204total/173current (57images106models10audio), held collections0,
+human approvals0. TW-02 now28/121models prepared;93models+13surfaceimages remain.
+Overall13/27sets prepared,14unfinished,3held. Goal remains active and incomplete.
+
+Next: five group06 chain sources were copied/hash-verified and four-view rendered,
+but source sheets still need visual review, shared-link/instance/UV inspection,
+references and first AI mapping. No group06 inference or reference generation yet.
+
+## 2026-10-16 - Artiss lighting refinement and black-and-brass direction
+
+Mark requested smoother floor brazier, then allowed modestly higher face counts
+for other reflective assets and favoured the standing brazier's black-and-brass
+palette. Refined the acquired floor brazier, standing brazier and wall torch:
+14,995 to 24,733; 15,000 to 24,900; 10,000 to 16,600 triangles. Adaptive subdivision,
+5 mm bounded fairing and filtered normals preserve original UV vertices, maps,
+materials, base/mount vertices, node transforms and pivots. New UVs interpolate
+within original faces; per-face ancestry retained. No new inverted/collapsed or
+degenerate triangles. Minor acquired handmade edge waviness remains.
+
+All three staged as current Framewright v2 revisions, preserving predecessors:
+floor e7c52e1e-07b8-4acf-bd3a-29ff6221666c;
+standing f2226e2f-7654-4809-8f45-c254a98349ea;
+wall torch e3cb2e0c-7bcb-477d-b701-02b1e1104058.
+Four GLB/clay and actual FBX views per model inspected, plus actual Framewright
+Director Mode views and count/hash checks. Portable bundle:
+work/artiss-tomb-2026-10-16/assets/TW-02/review-lighting-smooth-v1/.
+171 hashed files, 271,234,123 bytes; manifest SHA256
+f3fad245c2a9e9bac09a886aaac3e2c692bd887c08921a58a32796b25371c030.
+Six companions reopened with local maps; maximum surface-vertex delta
+8.429369557916289e-08 m; maximum FBX mean RGB byte difference .0033988953.
+
+Saved selective density/black-brass direction in Framewright World and local
+commission.json. Staging completed remote writes before a default CP1252 read
+failed on UTF-8 commission.json; resumed only the local metadata with explicit
+UTF-8, without repeating imports or World writes. Recovery receipt retained.
+Earlier bundle and revisions intact; no inference or inference retry this pass.
+No human approval, game import, publish, push or production-ready claim.
+
+Latest state: evidence/tw02-lighting-smooth-review-state-v1.json: 207 total /
+173 current assets (57 images, 106 models, ten audio); 13 of 27 sets prepared,
+14 unfinished. TW-02 remains 28/121 models prepared; 93 models and 13 surface
+images unfinished. CH-01, CH-02 and DH-03 remain held and empty. Goal active.
+Group06 chain source copies and five beauty sheets inspected; verify shared-link
+binary/UV identity before reference-conditioned AI mapping. No chain inference
+has started. The brass is smoother; the ledger remains stubbornly honest.
+
+
+## 2026-10-16 - Artiss chain repaint group06 and mechanical source inspection
+
+Completed five TW-02 material review candidates: ceiling chain anchor, 20 cm
+single forged-iron link and nominal 1/3/6 m chains. Proved exact shared link
+geometry/normal/UV/index/material identity before reusing its mapping. Two built-in
+ImageGen surface references conditioned two distinct Hunyuan3D-Paint attempts.
+Both saved validated geometry/UV-preserving maps, then failed teardown with
+-1073741819. Wrapper exits were zero because validated artifacts existed; actual
+failed child receipts are retained. No inference retry. All jobs are terminal.
+
+Blackened anchor plate/arms with brass pins/bolts, dark iron links, broad roughness
+and removed old noisy normals. Original binary geometry/UV/normal/node/pivot
+payloads retained exactly. One rigid parent sets +X front and chains along local
+-Y; axis audit has zero deviation from rigidly rotated source points. Lengths
+measure .999981/2.999981/5.999981 m, with original end pivots.
+
+Known inherited flaw: 1/3/6 m link nodes have translations only, leaving all links
+coplanar and overlapping instead of physically interlocked. Preserved for the
+explicit material-only repaint. Flagged in all three Framewright notes, inventory,
+fixed-view review observations and README. Material-review prepared count does
+not mean physical assembly validation; assembly correction remains open.
+
+Five GLB and actual FBX four-view sheets plus each Framewright full-view model
+inspected. Ten Blender/FBX companions reopen with portable maps, maximum symmetric
+vertex delta 5.448300726129673e-07 m. Max FBX mean RGB-byte delta .0026067098.
+Package: work/artiss-tomb-2026-10-16/assets/TW-02/review-group-06-v1/;
+198 hashed files, 202,898,340 bytes; delivery manifest SHA256
+bf69bef2be108715c40ad5f303a24a12182d7a52797682b1560a1316c0db0c8a.
+Framewright IDs: anchor99f4f467-08f7-437b-a4c7-101ddc591be2;
+single4c37620d-dee7-480c-9237-a0e83f6eb8c8;
+1md2306e66-ddf5-4f7e-b33e-eb94ade37ef4;
+3m7f83e3dc-80d2-429e-b648-25a5a14a04b2;
+6maa4d54c6-c519-485a-acae-55709f27d4db.
+
+Current evidence/tw02-group06-review-state.json: 214 total / 180 current assets
+(59 images,111 models,10 audio). TW-02 33/121 material review models,88 models and
+13 surface images unfinished; overall13/27 sets prepared,14 unfinished. CH-01,
+CH-02,DH-03 held and empty. Zero human approvals. No game import,publish,push.
+
+Next gate prepared: all13 group07 mechanical sources copied/hash-verified and
+four beauty views inspected (source-group-07/source-review.json). Cog2/4m may share
+one source but prove array identity first; cog6m and all pipes differ in topology.
+Condenser3 meshes/4 materials,winch4 shared meshes/64 nodes,gauge2 meshes/3 materials
+need component-aware transport preserving glass and dial artwork. No group07
+references/UV transports/inference yet. GPU free22,493MiB and C free67.0GB before
+packaging. Source-only rendering completed. Existing dirty files preserved.
+Goal remains active; five surfaces dressed, one inherited chain tangle confessed.
+
+## 2026-10-16 - Existing-project audit and selective material correction
+
+Mark asked to check the other project because several assets already exist and
+not everything should become brass. Stopped the remaining group07 repaint queue
+and inspected The Aether Wars — Realistic Asset Review
+(bff69ad8-3084-4321-aebc-95a73e0971e1): 347 total records / 224 current assets.
+All 13 mechanical models and the four lighting props match the selected source
+hashes exactly. Existing lighting models were opened in Framewright; comparison
+screenshots and inventory are in work/artiss-tomb-2026-10-16/evidence/
+mechanical-existing-project-audit-v1/. Original project and asset content checked
+unchanged. That project is left active for comparison: switch explicitly before
+future Artiss writes.
+
+Corrected Artiss World and commission.json direction: reuse first, preserve
+material diversity, selective bronze/brass, and targeted cleanup only. Preserve
+completed smoother lighting variants and the bronze metallic-response request.
+The winch is an exception: existing metadata records Mark's 2026-10-04 SEND BACK
+veto and request for a new acquisition. Do not repaint that rejected source.
+The condenser's legacy quartz core needs checking against Artiss driftglass canon.
+
+Before this correction, built-in ImageGen made eleven mechanical references,
+staged only as reference images in Artiss. All now carry unselected-reference and
+reuse-review-first tags plus clear notes; no model imports followed. Thirteen
+UV transports passed, including component-only condenser/gauge/winch transports.
+Cog2/4m geometry/UV arrays differ, so separate mapping was used. Three cog attempts
+saved validated maps and then each failed teardown (-1073741819); failure receipts
+retained, no retries. Coordinator PID40504 was stopped during cog6m, while its
+child was allowed to finish (terminal at 2026-10-17T02:41:00Z). All jobs are now
+terminal. Pipe jobs never began. Executable queue emptied with exact original
+preserved as superseded-paint-queue.json; queue-hold.json records the boundary.
+
+Current Artiss: 225 total / 191 current (70 images,111 models,10 audio). Eleven
+new images are unselected history, not completed work. Prepared counts unchanged:
+13/27 requisition sets, TW-02 33/121 models. Three held collections remain empty;
+zero human approvals. No game import, publish, push or production certification.
+Next: follow reuse-dispositions.json; carry suitable existing sources forward
+after per-asset canon/axis/pivot/material checks, rather than restarting the old
+brass queue. Preserve all source and derivative evidence. The brass department
+has been reminded that restraint is also a material property.
+
+## 2026-10-16 - Ten existing mechanics staged as reuse comparisons
+
+Previous turn was progress: live other-project audit changed the plan and stopped
+the broad brass queue. This turn carried ten existing mechanical sources into
+Artiss while preserving their material division: 2/4/6 m cogs, 1/2/4 m pipes,
+elbow, tee, flange, valve wheel. Original acquired binary geometry, UVs, normals
+and texture images are exact. Only normal-map strength (.12), removal of the
+out-of-range doubled specular color boost, rigid canonical orientation parent,
+and recovery of original documented socket empties changed. No AI work or mesh
+generation. Existing source pivots retained; pipes run -Y and axle pieces face
++X in Blender +Z-up metres. Artiss is active; the older project remains intact.
+
+All ten GLB four-view sheets and actual Framewright viewers inspected. Packed
+Blender and FBX companions reopen with local maps; max paired vertex delta
+5.960464477539062e-07 m. Forty actual FBX views match GLB to a maximum .001885732
+mean RGB byte; cog6m/elbow/valve FBX sheets additionally inspected. Package:
+work/artiss-tomb-2026-10-16/assets/TW-02/review-group-07-reuse-v1/;
+368 hashed files, 1,254,204,123 bytes; manifest SHA256
+e08b174665c0c3b8372f03b8dbb6187a5559a32e7d0aa7ee63ec725fbc1df2d3.
+Ten IDs and exact served hashes in framewright-imports.json. Scripts:
+reuse_tw02_mechanics_v1.py, stage_tw02_group07_reuse_v1.py,
+close_tw02_group07_reuse_v1.py. Initial close metadata update returned HTTP400;
+replaced verbose appended notes with concise notes and verified copied files
+before resuming. No failed inference/retry involved.
+
+Important scope: these are reuse comparisons, not completed Artiss repaints.
+Original fine rust/speckling remains, especially elbow. Each is tagged
+reuse-comparison/surface-alignment-open and inventory state is
+reuse_comparison_prepared. Targeted painterly simplification remains open;
+do not resume the old brass reference queue or claim geometry must be remade.
+Gauge/condenser need separate component/budget/canon checks; prior-vetoed winch
+needs a new acquisition. Completed smoother lighting variants are unchanged.
+
+Live evidence/tw02-group07-reuse-state.json: 235 total / 201 current assets
+(70 images,121 models,10 audio). Overall13/27 prepared sets,14 unfinished.
+TW-02 still33/121 surface candidates prepared,88 model surfaces and13 images
+unfinished, including the10reuse comparisons. Three held collections empty,
+zero human approvals. No game import,publish,push or production certification.
+Preflight C free66.08GB, GPU free22,037MiB, no inference/DCC conflicts. Verify
+passed757tests,15skips,198subtests,lint,241stage syntax files,wheel isolation.
+No GPU inference launched. All render/package sessions terminal. Goal active.
+
+
+## 2026-10-16 - Reused mechanics receive selective painterly surfaces
+
+Continued the existing-project correction, preserving the exact ten group07
+meshes, UVs, normals, canonical parents, source pivots and recovered sockets.
+Three cogs retain iron teeth/spokes with brass hubs; six pipe pieces stay iron;
+the valve retains its brass rim/spokes and dark hub. No new geometry acquisition.
+Seven built-in ImageGen reference revisions replaced references that wrongly
+added brass to iron. Valve reference v1 remained suitable. Prompt/result/selection
+receipts: assets/TW-02/group07-reference-{prompts,results,selection}-v2.json.
+Ten distinct locked Hunyuan3D-Paint 2.1 jobs produced validated outputs, then each
+failed teardown with -1073741819. Wrapper exit zero is not a successful child;
+failed receipts retained, no inference retried. Normal maps disabled; scalar
+metal response and broad roughness ranges preserve the intended material split.
+
+Cog v2 maps leaked gold onto recessed iron sidewalls. An unlit diagnostic proved
+albedo spill, not reflection. All three v2 reviews are rejected. A CPU Blender
+material-node bake on the acquired mesh/UVs limits brass to the central hub and
+restores charcoal value outside it; broad AI wear is retained. Selected cog v3,
+other seven v2. Scripts: finish_tw02_mechanics_v2.py,
+bake_cog_material_boundary_v3.py, finish_cog_material_boundary_v3.py,
+stage_tw02_group07_surfaces_v2.py, close_tw02_group07_surfaces_v2.py under the
+Artiss work root. paint_batch.py gained a separate uv_revision source selector.
+Original flange/bolt/rim waviness remains visible; this was a surface pass, not
+geometry cleanup. Notes and fixed-view receipts preserve that limitation.
+
+All ten four-view beauty/clay sets and actual Framewright viewers inspected.
+Packed Blender and FBX companions reopen with local maps; maximum paired vertex
+delta 5.960464477539062e-07 m. All forty actual FBX views compared numerically to
+GLB, worst mean RGB-byte difference .0015335083. Representative cog6m/elbow/valve
+FBX sheets visually inspected. Seven other FBX sets are recorded as numeric
+comparisons to inspected GLBs, not separately visually approved. No human gate
+recorded. Artiss is active with the library filtered to reused geometry.
+
+Package: work/artiss-tomb-2026-10-16/assets/TW-02/review-group-07-surfaces-v2/.
+412 hashed files, 453,271,888 bytes. Manifest SHA256
+822391793a582ef421be2a7d109aae6a037346498b1018cb34222674f3d1af5d.
+All package file hashes, served GLBs, original binary geometry prefix, source
+hashes and current unapproved revisions verified by the closure script.
+Prior reuse package and rejected candidates remain intact. Metadata points to
+the portable package; import IDs/served hashes are in framewright-imports.json.
+
+Current evidence/tw02-group07-surfaces-state-v2.json: 252 total / 201 current
+assets (121 models,70 images,10 audio),13/27 sets prepared,14 unfinished.
+TW-02 advances to43/121 prepared surface candidates,78 models+13 images open.
+CH-01,CH-02,DH-03 stay empty. Human approvals zero. No game import, publication,
+push or production claim. All mapping/render/package sessions are terminal.
+No core source changes; previous full verify remains757passed,15skips,
+198subtests,lint,241stage syntax files,wheel isolation. This pass verified the
+actual changed artifacts and exports rather than rerunning unrelated tests.
+
+Read-only next-gate audit: remaining-components-inspection-v2.json and
+remaining-budget-proposals-v2.json under evidence/mechanical-existing-project-audit-v1/.
+Gauge100,380tris has separate glass380/casing82,701/dial17,299; preserve readable
+dial and clear glass. Condenser175,124tris has body96,541/inneriron443/core78,000/
+window140; legacy emissive quartz must become non-glowing driftglass. Automatic
+5k/15k proposals are starting candidates, not mandatory reduction targets. User
+permits more geometry when it improves appearance. Check reduction/rebake fixed
+views before selecting. Prior-vetoed winch still needs new acquisition. Chain
+1/3/6m coplanar-link physical assembly issue remains open. Goal remains active.
+The brass department has finally learned to share the room.
+
+
+## 2026-10-17 - Morning resume: reused gauge and condenser
+
+The user resumed the Artiss goal after sleep. Existing published Framewright
+service was down; its original database was intact. Automatic review rejected
+one custom background launch with only "blocked by policy". The direct installed
+Framewright.exe --urls http://127.0.0.1:5179 command succeeded, preserving data
+and configuration. Live service session 50221 / initial PID22068 stays running.
+Recovery receipt: evidence/framewright-recovery-2026-10-17.json under the Artiss
+work root. Artiss remains active; the older project was not modified.
+
+Gauge v1 locked mapping had validated output with failed teardown. Overnight
+condenser v2 had only a stale running execution record, no output, no OS process
+and no surviving session40802; exit is unknown, not inferred to be a crash.
+The user's morning continuation authorized a fresh v3 version using the selected
+non-glowing reference v2. It wrote validated maps and failed teardown too;
+failed child receipts remain and no completed crashed mapping was retried.
+Original interrupted receipt and separate observation are preserved.
+
+Specialty v4 derivatives preserve source binary geometry/UV/normal data and
+original nodes/pivots/sockets, adding only rigid +X orientation. Gauge keeps
+original dial artwork/secondary UVs/glass. Condenser keeps inner iron/window;
+its existing insert now has non-emissive teal driftglass, no geometry remake.
+Iron bodies and selective brass fittings use broad roughness and no normal map.
+Source100,380/175,124triangles remain under repaint-only scope; automatic budget
+proposals are not applied or claimed as runtime acceptance.
+
+Both GLB beauty/clay sets, both actual FBX four-view sets, both Framewright
+viewers and local maps checked. Initial package assertion wrongly required UVs
+on scalar window glass; repair allows only verified untextured scalar parts.
+The first condenser FBX lost colour because FBX skipped vertex-colour multiply
+nodes. Rejected file and four views retained. V2 bypasses only multiplication
+by verified white RGBA vertex colours; GLB/packed Blender unchanged. Both FBXs
+use explicit opacity approximations because transmission/refraction cannot be
+carried by this exporter. All four companions have max vertex delta1.6858739e-7m.
+
+Package assets/TW-02/review-specialties-v1:112 files,163,123,134bytes,manifest
+c3ad22fc0f039741d46d64967572b7135a6f38bb134b27eaca7da008aa9070f5.
+Gauge Framewright4311ff4c-4457-4a78-adcc-54eb01325d9b;
+condenser82b3fb1f-e165-480e-8cdf-ea90555ef8a7.
+Closure verifies source hashes, binary/mesh/UV/node preservation, protected
+materials, non-emission, exports, maps and served hashes. No core source changes;
+artifact checks proportional to these changes, previous full verify retained.
+
+Current evidence/tw02-specialties-state-v1.json:255total/203current
+(123models,70images,10audio),13/27sets prepared,14unfinished;TW02 45/121models,
+76models+13imagesremain. Three held sets empty; human approvals zero. No game
+import, publication,push or production claim. Goal active. Next remaining source
+surfaces; rejected winch requires new acquisition. The brass knows its place.
+
+
+### Next source gate checked: existing crypt/temple doors
+
+Activated older review project only to read its current assets, matched eight
+exact source hashes, then restored Artiss in a finally block. Sources staged in
+assets/TW-02/source-group-08 with live notes, materials, nodes and animation
+metadata. All eight source four-view beauty sets inspected. Both assemblies have
+seven-second OpenClose clips and 299,999/300,000 triangles; individual components
+are independent 15k-30k reduced UV authorities. No new Artiss repaint imported.
+Before mapping, check dense-to-reduced correspondence; use source-derived bakes
+where needed and preserve animation/pivots/sockets. Reuse-gate-v1.json records
+the next step. Limestone frames and existing metal divisions remain the direction.
+Old crypt-frame budget report misclassified a door as vegetation because notes
+say leaves; it is not authority for any new triangle target. All CPU source
+render jobs finished; no GPU inference was launched for this door gate.
+
+## 2026-10-17 - Eight existing door surface candidates prepared
+
+Completed TW-02 group 08 in work/artiss-tomb-2026-10-16/assets/TW-02/review-group-08-v2.
+Crypt and temple assemblies plus six standalone components reuse exact older
+project geometry/UV/normal/animation bytes. Two dense leaf pairs share mirrored
+geometry and UVs; four distinct AI mapping jobs sufficed. Six CPU transfers keep
+the existing reduced UV authorities. No new geometry acquisition or remodelling.
+Limestone frames, crypt pale insets/iron rails, temple iron panels/bronze trim.
+
+Crypt leaf v1 made stone metallic; v2/v3 rectangular masks crossed rails or left
+gold strips. V4 uses original albedo material boundaries and preserves mapped
+luminance. Frame v1 gold stone rejected. Four mapping children produced validated
+output then failed teardown -1073741819; no inference retry. CPU crypt-right v1
+crashed in NumPy with 0xc000001d; preserved log/crash and separate v2 with
+NPY_DISABLE_CPU_FEATURES=AVX2,FMA3 passed. Underlying CPU crash cause unproven.
+
+First crypt upload failed because appended stale textures exceeded the existing
+68,157,440-byte request limit. V2 removes unreachable images and deduplicates
+payloads: crypt assembly 89,776,916 -> 31,470,480 bytes; temple 76,871,132 ->
+23,517,172. Every used image/accessor byte unchanged; service settings untouched.
+FBX verification initially used Blender's default one-frame import offset. The
+stored 1-168/24fps motion matches with anim_offset=0; do not alter source curves.
+Maximum hinge matrix delta 4.418358e-7, vertex delta 7.748604e-7 m. All eight
+actual FBX four-view sets visually match GLBs, worst mean RGB byte delta .002246.
+Eight live Framewright viewers inspected; both assemblies scrub and play their
+original seven-second OpenClose clips. Full screenshots in package/browser.
+
+372 hashed files,667,420,925 bytes; manifest
+7c295d88810a8a8ba73ab1871e5286077d88febd753ade1252e49a955bcbb31b.
+Framewright assembly IDs crypt e401af1a-8f8b-4fe2-b122-6468ba21da6a,
+temple 7f9d8b69-31cf-470b-a4b8-cb54b27ff69d. Six part IDs in framewright-imports.json.
+evidence/tw02-doors-state-v2.json:267 total/215 current(131 models,74 images,10 audio).
+TW02 now53/121 prepared,68 models+13images remain. Overall13/27 sets,14unfinished,
+3 held collections empty,human approvals0. No game import,publish,push or production
+claim. Goal active. All artifact sessions terminal; Framewright server remains.
+Next remaining older-project surfaces; rejected winch still needs fresh acquisition.
+No core source edits; artifact-specific geometry/maps/animation/browser checks
+completed, previous full verify retained. The doors open; the ledger stays open.
+
+
+## 2026-10-17 - Six existing limestone trim and pillar candidates prepared
+
+Completed TW-02 group 09 in work/artiss-tomb-2026-10-16/assets/TW-02/review-group-09-v4.
+Reused floor border, pillar base/capital, cornice, crown and skirting from the
+older Framewright project, with live source hashes matched before copying.
+All source geometry/UV/normal buffers and original local nodes remain exact.
+Four linear pieces receive only rigid placement wrappers: +X front, rear/base
+start pivot, Start to End along -Y 6m. Physical endpoint labels reverse; no
+remeshing or flattening. Inherited nominal-bound deviations remain recorded.
+
+Six image-conditioned mapping jobs wrote validated output then failed teardown;
+zero inference retries. Amber first-pass albedo looked too metallic despite
+metallic zero. V3 CPU material grade makes pale matte limestone. Optional darker
+pillar-base v4 comparison remains local and unselected. One initial CPU bake
+failed with a selected parent empty; deselecting non-mesh objects fixed setup.
+
+Framewright showed blank linear models although Blender rendered them. Installed
+Three.js GLTFLoader treats extras.pivot as a numeric vector; our descriptive
+string caused NaN bounds. Four linear v4 files rename only this key to
+pivot_description. Exact binary, material and transform equality verified;
+loader regression reproduces v3 failure and confirms finite v4 bounds. All six
+actual Framewright models inspected. Pillar base/capital retain selected v3.
+Final IDs and all screenshots are in package/framewright-imports.json and browser/.
+
+GLB/packed Blender/FBX local-map and geometry checks passed; max surface-vertex
+delta 1.0941958e-6 m. All actual FBX four-view plus close renders inspected;
+worst mean RGB byte difference .003431. 311 hashed files,206,083,437 bytes;
+manifest7955ad61ed95f48d24435350dfb312136412aed00a63b9cc0ab58986aa8acbfe.
+Rejected surfaces, failed checks, blank viewer proofs and mapping receipts retained.
+
+Evidence tw02-trim-state-v4.json:284total/227current(137models,80images,10audio).
+TW02 now59/121 models prepared,62models+13images remain. Overall13/27 authorized
+sets prepared,14unfinished;3held collections empty,human approvals0. No game
+import,publish,push or production claim. Goal active. Artifact jobs terminal;
+Framewright stays running and Artiss library is filtered to reused limestone.
+No core source edits. Next remaining older-project surfaces; rejected winch
+still needs fresh acquisition. Six old stones, spared an unnecessary rebirth.
+
+
+## 2026-10-17 — Artiss TW-02 group 10: 27 reused driftglass variants
+
+Completed `work/artiss-tomb-2026-10-16/assets/TW-02/review-group-10-v4/` after
+source-currentness, material, exported-companion and actual Framewright checks.
+The older project's current hero/wall revisions superseded twelve stale
+inventory entries; prior selections and the failed first currentness assertion
+are retained. All 27 target geometries, UVs, normals and local nodes are exact
+source reuse. Four built-in ImageGen surface references conditioned four paint
+jobs; all wrote validated outputs and then failed teardown (no retries). Three
+small forms received CPU map transfers onto their existing UVs.
+
+Selected surfaces are non-emissive glass in cyan, blood-red or violet, with an
+optically rough stone foot and no metal or micro-normal. Cluster v1 gloss and v2
+albedo-band comparisons are retained. FBX initially lost base colour behind
+identity white vertex multiplication. Verified white RGBA1 is bypassed only in
+the v4 FBX export; GLB and saved Blender stay unchanged. FBX opacity is an
+explicit approximation of transmission, not equivalent refraction. All 27 GLB,
+actual FBX four-view sets and Framewright screenshots were inspected. Exact
+served hashes and local companion maps verified; max companion vertex delta
+0.0000004054 m. No core code changed; prior full verify remains relevant.
+
+Package: 1,077 hashed files, 1,324,362,736 bytes. Manifest SHA256
+03706583926aecc816efa38b5b80ab8857fb5d47091732162deceadb3e89531a.
+Receipt: `work/artiss-tomb-2026-10-16/evidence/tw02-driftglass-state-v4.json`.
+Artiss: 315 records / 258 current assets (164 models, 84 images, 10 audio).
+TW-02: 86/121 models prepared; 35 models + 13 images remain. Overall 13/27
+sets prepared, 14 unfinished, three held empty, zero human approvals. No game
+import, publish or push. All artifact jobs terminal; Framewright stays running.
+Continue the remaining old-project surfaces, then the rejected winch acquisition.
+
+
+## 2026-10-17 — Artiss TW-02 cave batch and user-requested head debris cleanup
+
+Prepared nine reused models in `work/artiss-tomb-2026-10-16/assets/TW-02/review-group-11-v1/`:
+ceiling fissure, five stalactite sizes, abyss bridge, fallen column and crowned
+head. Old-project current-record/hash checks selected the existing geometries.
+Ceiling rubble remains rejected: underside is the old flat plate without the
+requested hanging debris. Five built-in ImageGen limestone references conditioned
+five Hunyuan existing-mesh paint runs. All wrote validated maps and then failed
+teardown (-1073741819); no inference retry. Smaller stalactites have different
+UVs and received four CPU projection bakes, keeping their exact source meshes.
+Head and fissure were temporarily oriented for mapping only; delivered poses stay.
+
+Mark then flagged floating head debris. Selected head v2 removes eight small
+connected components (134 triangles); the remaining 14,866 triangles retain
+bit-identical positions, UVs, normals, tangents and face winding. Bounds, nodes,
+pivot, materials and fallen pose remain unchanged. This is an explicit cleanup
+exception to repaint-only scope, not an exact-topology claim. Original source,
+v1 rejected reviews and revision history retained. Current Framewright head:
+238faf0e-893b-4220-a9e8-cb13c67c45f1, SHA256
+fdc45856b83cd98a83b542b733f8378afdb09a9af2186f32dd6b3e1f73f9dd0b.
+Actual browser face view confirms debris absent. Pure limestone response across
+this group: zero metal, no micro-normal. No blanket-brass treatment.
+
+All GLB and actual FBX four-view and player-facing close renders inspected,
+all nine actual Framewright viewers inspected, served hashes checked. Portable
+Blender/FBX maps and placements passed; maximum vertex delta1.0662403156e-6 m.
+Worst actual-FBX mean RGB byte difference .001725833. An initial note used the
+RGBA mean (.0013); receipts were corrected to the RGB value, prior manifest kept
+outside the closed package. Package447files/482776362bytes; manifest SHA256
+997423d87f828d48f29dbd9623f4fc75e0518745016d92256342061560cee0ae.
+Evidence: `evidence/tw02-cave-state-v1.json`. Artiss330records/272current:
+173models,89images,10audio. TW-02 now95/121prepared,26models+13images remaining.
+Overall13/27sets prepared,14unfinished,3heldempty,humanapprovals0. No game import,
+publish,push or production claim. Goal active. All artifact jobs terminal;
+Framewright server remains running. No core source changes; prior full verify
+remains relevant. His majesty's airborne gravel has been dismissed.
+
+Ahead-of-queue source work: `inspect_tw02_furnishing_sources.py` selected17current
+old-project sources into `assets/TW-02/source-group-12/`. All17fixed source view
+sets rendered. Book lectern, three assembled chests, relic pedestal, three urn
+states, weapon rack and coin pile beauty/matcap sheets inspected. Six chest
+base/lid matcap sheets inspected; still need their beauty and open/interior
+views. Carpet needs top view; its standard views are edge-on. No group12 paint,
+reference generation or imports yet. Coin pile keeps SEND BACK: a flat3cm scatter
+instead of15–25cm mound; one12ktrianglecoin instanced120times=1.44M renderedtris.
+Chests each have an existing7-second open/close clip and separate hinge parts;
+part UV/density differs substantially from assembly. Do not blindly map a shared
+atlas or reduce these painted authorities. Preserve wood/ceramic/cloth/material
+separation; only identified metal fittings get brass. Continue these sources,
+then geometry repair for rejected winch, ceiling rubble and coin pile.
+
+## 2026-10-17 — Furnishing material economy correction and active mapping queue
+
+Mark corrected the wooden utilitarian rack: wood is scarce and signals wealth.
+Read the local `TheAetherWars/Docs/ArtissTomb.md` (lines 53/62), the commissioned
+HC-07/HC-08 specs and the older Brave World buoyant-wood seed. The standalone
+World Bible v1.0 was not located; do not pretend the seed outranks the current
+commission. Evidence and exact source hashes are in
+`work/artiss-tomb-2026-10-16/evidence/material-economy-correction-v1.json`.
+Saved and re-read the corrected Framewright World direction and commission
+manifest. No game-project writes, publish, push, human approval or hold release.
+
+Generated three initial furnishing surface references with built-in ImageGen,
+then rejected wooden rack v1 before mapping/import and generated iron-only v2.
+Selected workspace images are `assets/TW-02/weapon-rack-reference-v2.png`,
+`book-lectern-reference-v1.png`, and `relic-pedestal-reference-v1.png`.
+Prompts: `tw02-group12-references-v1.json` and
+`tw02-group12-rack-reference-v2.json`. All selected images are in Framewright;
+the iron rack reference was visually checked there and its screenshot saved in
+`assets/TW-02/browser-review-group12-v1/weapon-rack-reference-v2.png`.
+The lectern is explicitly a prestige Archive furnishing, not the HC-07 camp
+table. Common chest surfaces AND interior oak must become practical non-wood
+storage; royal/relic timber needs an explicit high-status role. Parkour beam
+also needs its material role checked. DH-03 stays held.
+
+Three UV transports passed exact triangle matching with sub-1e-6 coordinate/UV
+round-trip error. `paint_batch.py tw02-group12-simple-paint-v1.json` is ACTIVE
+in exec session 80423, finite order rack, lectern, pedestal. It has no retry.
+Rack maps and validation exist but its execution still says running at this
+checkpoint; preserve the real terminal outcome, do not call it successful.
+Native process query at 14:48:59 UTC returned exit code 0 but unsignalled wait
+state 258 for child PID 17232; the launcher has not returned. No process was
+killed. Own launchers: batch PID 35100, CLI 24820, PowerShell 44940, venv shim
+28248; confirm fresh ownership if inspecting. Preflight had 22,569 MiB free,
+no competing inference, and about 80 GiB disk headroom.
+
+`review_furnishing_surfaces_v1.py` is ACTIVE in session 86950 (PID 35420).
+It waits for each terminal mapping receipt, calls
+`finish_furnishing_surfaces_v1.py`, then produces four fixed views. It never
+records visual acceptance. Finish uses iron metallic=1, roughness .48-.60 for
+the rack; selective bronze/wood for lectern; height-and-colour-gated bronze on
+the limestone pedestal. Original binary mesh/UV/normal/node bytes are kept.
+Inspect resulting views before packaging; change masks if warranted. No group12
+model is yet imported or counted prepared. Progress remains 95/121 models,
+26 models + 13 images left; 13/27 requisition sets prepared, 14 unfinished,
+three held. Reference-only live count is 333 total / 275 current assets.
+
+Supplemental furnishing source renders are terminal in
+`source-closeups-group12-v1/`. All chest interiors and lid undersides, carpet
+top and urn interior inspected. Chest assembled closeups crop part of the lid;
+keep them as interior details and add full open-pose evidence before delivery.
+Urn top reveals an irregular triangular inner-wall patch: inspect geometry
+before accepting its source for repaint. Carpet still has old crown/crystal
+artwork; needs the Artiss feather/rings. Coin pile remains rejected, not a
+surface-only fix. `evidence/furnishing-checkpoint-v1.json` holds the exact state.
+No core code edits; `git diff --check` passes (newline warnings only).
+
+## 2026-10-17 — Three lore-consistent furnishings prepared in Framewright
+
+Closed `work/artiss-tomb-2026-10-16/assets/TW-02/review-group-12-simple-v1/`:
+blackened iron weapon rack v2, prestige Archive timber/bronze lectern v1 and
+limestone relic pedestal v1. All source geometry, UVs, normals, node transforms
+and base pivots retained; only surface maps and a rigid canonical +X parent
+differ. Rack v1 had tan horizontal streaks on sidewalls visible in the unlit
+closeup; rejected before import. V2 projects a new built-in ImageGen iron
+swatch through the existing side/end UVs, preserving the front/rear AI paint.
+Generated swatch source: `exec-af4c04cd-28c8-46f5-9313-ba89b634925a.png`, copied
+to `assets/TW-02/iron-swatch-v1.png` with prompt and provenance. No new GPU
+inference was needed for the correction.
+
+The finite mapping queue and CPU review watcher both ended. All three painter
+jobs produced validated geometry/UV-preserving maps then failed teardown with
+exit -1073741819; wrapper exit 0 does not erase that. No inference retry.
+GLB four views, beauty/unlit close views, packed Blender, actual FBX four views
+and close view, dimensions, axes, base pivots and all three live Framewright
+models inspected. Maximum companion vertex difference 0.0000001333 m; worst
+FBX mean RGB byte difference .001156. 184 hashed files / 161,007,642 bytes;
+manifest `3e96c282dedf76fb21ecde9fe35d880b917bf565023b629f7bc94c268508394a`.
+Framewright IDs: rack `0f5ed625-d3d2-49a9-a98d-15b07944067b`, lectern
+`f728f1a0-be04-4384-91e1-6e99fe8700bc`, pedestal
+`d7307ec8-97d1-4b11-a695-adc0be5c5b3a`.
+
+`evidence/tw02-furnishing-state-v1.json`: 336 total / 278 current assets
+(176 models, 92 images, 10 audio). TW-02 now 98/121 models prepared; 23 models
+and 13 images remain. Overall 13/27 authorized sets prepared, 14 unfinished;
+CH-01/CH-02/DH-03 empty, no human approvals, no game import, publish or push.
+Next: common chest inside and out must use iron/sheet metal; evaluate royal
+and relic furnishing roles separately. Preserve source chest hinges/animation
+and separate source UV layouts; no blind animation export through the
+door-specific packaging branch. Urn inner-wall defect, carpet sigil, coin pile,
+winch and ceiling rubble still unresolved. Artiss remains active.
+
+
+## 2026-10-17 — Common chest corrected to iron, including the animated interior
+
+- Reused the older project's common chest base, lid and assembly. Two built-in
+  ImageGen references conditioned two Hunyuan mapping jobs. Both saved validated
+  results then failed during teardown; no inference retry and no clean exit claim.
+- Base v3 removes stretched interior bands; lid v4 removes jagged material-mask
+  fringes using a continuous AI iron swatch and measured black straps across both
+  existing material regions. Rejected versions and references remain.
+- Assembly v1 receives three CPU map transfers into its independent original UVs.
+  First panel bake failed because the original panel material used TEXCOORD_1;
+  a temporary UV0 texture carrier fixes this. The successful hardware bake was
+  reused by hash. Final original accessors, geometry, UV sets, nodes, sockets and
+  seven-second OpenClose animation are retained, plus the canonical +X parent.
+- GLB, packed Blender and FBX companions passed geometry/placement/animation
+  comparisons. Four views, open/interior beauty and unlit checks, actual FBX
+  appearance and three actual Framewright models were inspected. Framewright
+  playback advanced, and poses at 0/3/7 s close/open/close correctly.
+- Package `work/artiss-tomb-2026-10-16/assets/TW-02/review-group-12-common-v1/`:
+  335 hashed files, 230,449,698 bytes; manifest SHA256
+  `b4ec8f7b9869760834bec30b1856c99cd66781b5967890052ad7a2faa4e28ac3`.
+  Maximum vertex delta 1.26441e-7 m; hinge-matrix delta 1.47772e-7;
+  worst FBX mean RGB byte difference .0003624.
+- TW-02 now 101/121 prepared models, with 20 models and 13 images left. Overall
+  13/27 authorized sets prepared; 14 unfinished. Three holds stay empty. Live
+  Framewright: 341 total records, 283 current (179 models,94 images,10 audio).
+  Human approval remains zero. No game import, publishing, push or production claim.
+  Source assembly density is retained for material review, not runtime approval.
+- Next: prestige royal/relic chest surfaces; later the rejected winch, rubble and
+  coin mound need geometry work. Original chain assembly issues remain open.
+
+### 2026-10-17 — Reused wooden chests as floating treasure caches
+
+- Mark requested the wooden chests and other pertinent assets from the older
+  Aether Wars project. Checked local buoyant-wood lore and saved the direction
+  in Artiss World canon. Rare buoyant timber is appropriate for valuable caches;
+  ordinary equipment remains iron/canvas/stone/salvage. DH-03 was not released.
+- Verified the older project's source hashes and copied two assembled wooden
+  chests, three stone ledges, a handhold and an iron swing ring. Original acquired
+  mesh, UV, image and hinge-animation bytes are retained. Added canonical parents
+  and whole-chest motion controllers; stone/ring normal strength is .12.
+- Seven additions are in the separate Framewright collection **Floating caches
+  and traversal - source reuse** (`efdb17b4-7154-49e1-b989-22c548e1b051`). Ledge
+  suffixes denote 150/250/400 cm elevation, not span; all span 150 cm. Updated
+  labels after inspecting the live bounds. Existing ropes/anchors are referenced
+  in puzzle notes instead of being duplicated.
+- Both chests retain seven-second OpenClose and add twelve-second FloatHover,
+  FloatRoute and FloatAndOpen. Preview altitude is 1 m, bob +/-12 cm, route
+  4 m out-and-back. Motion is a review preview, not implemented physics/puzzles.
+  All seven actual Framewright models inspected; common hover and royal combined
+  motion played, and both open poses checked. Royal hover left selected for review.
+- `assets/FLOATING-CACHES/review-delivery-v3/` contains full GLBs, seven packed
+  Blender files, thirteen clip-specific/static FBXs with local maps, fixed views,
+  browser proof and source/motion receipts. Native reloads and sampled exported
+  transforms passed. Max world-matrix delta 4.76838e-7; vertex delta 1.33281e-7 m.
+  Worst paired FBX/GLB mean RGB byte difference .222015, maximum byte delta 13.
+- Retained helper-import failures, partial package v1, complete earlier v2 and
+  earlier appearance comparisons. FBX alternate UV mapping initially rotated
+  the interior grain; selected v3 transports those loop UVs in the export copy.
+  Neutral doubled specular tint becomes scalar strength. The comparison renderer
+  now optionally preserves authored specular instead of resetting only one side
+  of that equivalent representation. Canonical GLB materials remain exact.
+- Bundle: 333 hashed files / 1,324,753,690 bytes, manifest SHA256
+  `af410074564019f7604398d336acc9684a2964e2a2b217e05e3ca114a3aec73d`.
+  Live state: 348 total / 290 current assets (186 models,94 images,10 audio).
+  Original scope remains 13/27 sets prepared,14 unfinished; TW-02 remains
+  101/121 material-review models, with 20 models and 13 images left. Source reuse
+  does not count as a new painterly pass. Three held collections stay empty;
+  human approval remains zero. No game import, publishing, push or GPU inference.
+- Next: continue remaining commissioned gates. Royal chest's inherited interior
+  corner texture blemish is visible in browser proof and remains a surface-pass
+  follow-up; source chest density near 200k triangles is not runtime acceptance.
+
+### 2026-10-17 — Royal and relic chest surface review package
+
+- Reused six older-project models: royal/relic bases, lids and animated
+  assemblies. Selected revisions are royal base v3, relic base v4, both lids v1
+  and both assemblies v1. Royal timber remains prestige material with black
+  iron and selective bronze; relic surfaces use pale stone and bronze.
+- Four built-in ImageGen references conditioned Hunyuan mapping. Each wrote
+  validated maps then failed teardown with exit -1073741819; all four failed
+  execution receipts are retained, with zero inference retries. Separate AI
+  wood/stone swatches repaired stretched interior maps through original UVs.
+- Rejected base v1 interiors and v2 corner grain discontinuities. Smooth
+  triplanar sampling fixes the royal interior in v3. Relic v3's symmetric
+  mask crossed the rear crest; v4 uses measured offset cavity bounds and
+  restores the exterior. Four views caught the leak; rejected evidence remains.
+- The royal assembly panel bake failed the geometry guard because the reduced
+  standalone panel differs from the dense original (size ratio .968). Kept
+  that guard intact. Reused the matching analytic UV1 surface frame directly
+  (target residual below 8e-8 UV, donor below .022); other surfaces CPU-baked.
+  Successful hardware bake reused by SHA. Original geometry, UVs, normals,
+  sockets, hinge nodes and OpenClose remain exact under a canonical +X parent.
+- Packed Blender retains alternate material UVs including the split metallic
+  and roughness maps. Only the FBX export copy transports material UV1 loops
+  into UV0. Six model format comparisons, eighteen actual FBX targeted views,
+  four-view GLB sets and interior/open/unlit views inspected. Added wide views
+  after initial interior framing cropped the raised lid; partial views retained.
+- All six Framewright models inspected; both seven-second OpenClose clips
+  played, both open poses checked at 3 s. Relic lid-to-hinge gap is inherited
+  and remains unresolved; playback is not hinge-fit acceptance. Densities
+  10,000 / 10,000 / 99,998 / 10,000 / 199,997 / 199,996 triangles remain for
+  surface review only. Floating-cache variants from the preceding entry unchanged.
+- `assets/TW-02/review-group-12-prestige-v1/`: 431 hashed files / 490,366,464
+  bytes; manifest SHA256
+  `4745b918b1027a9bad7cfd05db2f02f1b2d39184dc8f8c006d959a281cb96ded`.
+  Maximum companion vertex delta 1.685874e-7 m, sampled hinge-matrix delta
+  1.477711e-7; worst paired FBX mean RGB byte difference .002835592.
+- Live state: 358 total / 300 current assets (192 models,98 images,10 audio).
+  TW-02 now 107/121 material-review models; 14 models and 13 images remain.
+  Overall 13/27 authorized sets prepared,14 unfinished; three held collections
+  empty and zero human approvals. No game import, publishing or push. Relic
+  assembly is left open at 3 s in Framewright. Next: remaining surface gates,
+  with winch/rubble/coin geometry rejections and source hinge/chain issues open.
+
+### 2026-10-17 — Three ceramic urn surface candidates
+
+- Prepared intact v2, original eight-piece fractured assembly v1 and original
+  broken arrangement v1 in `assets/TW-02/review-group-12-urn-v1/`. Ivory slip,
+  terracotta and teal Artiss feather-in-rings pigment; no wood or metal.
+- Built-in ImageGen reference conditioned one Hunyuan mapping. Validated maps
+  preceded a teardown failure, exit -1073741819. Failed receipt retained; zero
+  inference retries. V1 had a duplicated rear emblem and stray inner-lip paint.
+  V2 projects a generated ceramic swatch through unchanged rear UVs and extends
+  source scalar clay onto the inward lip. Rejected V1 evidence preserved.
+- Original scalar interior/fracture materials remain exact. The unlit diagnostic
+  originally skipped scalar materials, rendering clay black. An optional flag
+  now carries scalar base colour into emission without modifying asset materials.
+- CPU-baked selected intact exterior onto the eight-piece assembled exterior
+  atlas. Bake placement passed (centre offset .000093 m, size ratio .99996).
+  Shared maps with broken arrangement only after exact fragment geometry/UV/
+  normal/index equality checks. Original transforms and canonical +X preserved.
+- Four GLB views per model, elevated interior/unlit checks, nine paired FBX views,
+  packed Blend/FBX local maps, pivots and bounds verified. Maximum companion
+  surface-vertex delta 2.403895e-7 m; worst mean RGB byte difference .000322978.
+  Actual Framewright three candidates inspected. Main user tab preserved; used
+  separate temporary tab after user navigation invalidated one screenshot.
+- Sealed 176 hashed files / 192,409,089 bytes, manifest SHA256
+  `c5976b37a8b3e0b18a96623548869f5b206218f8057593f6e320a4fbeb9ff984`.
+  State receipt `evidence/tw02-urn-state-v1.json`: 362 total / 304 current assets
+  (195 models,99 images,10 audio). TW-02 110/121 material-review models; 11 models
+  and 13 images remain. Full authorized scope 13/27 sets prepared,14 unfinished;
+  CH-01,CH-02,DH-03 held empty. No human approval, game import, publish or push.
+- Source densities 22,500 / 114,544 / 114,544 triangles remain surface-review
+  densities. Runtime optimization remains open. Next: remaining traversal,
+  vines/carpet and surface images; winch/rubble/coin geometry problems plus
+  inherited chain layout and chest hinge fit remain separately unresolved.
+
+### 2026-10-17 — Five traversal surface candidates
+
+- Added painterly material derivatives for grab-ledge-150cm/250cm/400cm,
+  handhold and swing-ring. Exact old runtime authorities reused, original
+  geometry/UV/normal bytes and pivots retained under +X orientation parent.
+  Stone uses broad teal/ivory/ochre paint and matte roughness; ring uses dark
+  iron with broad smooth metallic highlights. No wood, brass or micro-normals.
+- Three built-in ImageGen references are saved with full prompts in
+  `tw02-traversal-references-v1.json`. Three finite mapping jobs wrote validated
+  outputs then failed teardown (-1073741819); receipts retained, zero retries.
+- Initial byte-equal ledge atlas check failed. Geometric/UV correspondence also
+  rejected direct sharing. CPU-baked the inspected 150 cm donor onto each
+  original target atlas in temporary Y-translated glTF frames; placement centre
+  offset 0 and size ratio 1.0. Final mounts retain top elevations 150/250/400 cm;
+  all ledges span 150 cm. Existing source geometry is 4,198 triangles per ledge,
+  5,000 per handhold/ring.
+- Four-view beauty/matcap sets, ten targeted close/unlit views, ten actual paired
+  FBX views, all three formats' pivots/bounds, local map resolution and five
+  Framewright candidates checked. Initial .75 ledge close framing clipped ends;
+  retained rejected evidence and selected full views at 1.05. Maximum companion
+  surface-vertex delta 1.3328004e-7 m; worst mean RGB byte difference .001619657.
+- `assets/TW-02/review-group-15-traversal-v1/`: 248 hashed files / 238,023,575
+  bytes; manifest SHA256
+  `006c1583d747eb78c7adfd03a83e83fa64b99c127c6e6679fb430927feaad0cd`.
+  Actual Framewright verification used a temporary background tab; main user
+  tab preserved. Three references and five models imported with served SHA checks.
+- State receipt `evidence/tw02-traversal-state-v1.json`: 370 total / 312 current
+  (200 models,102 images,10 audio). TW-02 now 115/121 material-review models,
+  six models and 13 images left. Full scope remains 13/27 sets prepared,
+  14 unfinished, three held empty. Human approval zero; no game import/push/publish.
+- Swing ring remains the original one-mesh static mount/ring; separate moving
+  parts and swing mechanics are explicitly open, not inferred from surface
+  success. Existing floating-cache supplement unchanged. Next surface targets:
+  carpet, vines and lore-correct parkour beam; winch/rubble/coins need geometry
+  repairs, alongside inherited chain layout and chest hinge-fit follow-ups.
+
+### 2026-10-17 — Carpet, climbing vines and lore-correct iron beam
+
+- Reused exact old authorities for dais-carpet, climbing-vines and parkour-beam.
+  Three built-in ImageGen references/full prompts: `tw02-misc-references-v1.json`.
+  Original geometry, UVs, normals, base datums and source dimensions retained
+  under the canonical +X parent. Ordinary beam now iron; vines natural matte
+  vegetation; carpet woven cloth. Scarce timber reserved for prestige/floating
+  chest assets. Floating-cache supplement remains unchanged.
+- Three distinct image-conditioned mapping jobs wrote geometry-preserving maps
+  then failed teardown (-1073741819), zero retries. Carpet paint transport used
+  rigid X+90 only temporarily to expose its top; original final floor mesh exact.
+- Rejected carpet v1: missing feather, distorted border. CPU-baked the generated
+  reference onto original top UVs in v2; underside inspection found its inherited
+  noisy border. v3 preserved the clean top and baked a quiet desaturated generated
+  field onto original underside UVs. Both repair scripts/receipts and prior
+  rejected/superseded views retained. No geometry approximation or AI retry.
+- Four standard views/model, seven close/albedo views (including carpet top and
+  underside), seven actual paired FBX views and all three actual Framewright
+  models inspected. Local packed Blender/FBX maps, original dimensions and base
+  datums verified. Maximum companion vertex delta 9.6109602e-7 m; worst paired
+  mean RGB byte difference .000413895. Temporary browser tab closed; user's
+  existing tab preserved. Source densities 20k/30k/6.5k remain review densities.
+- `assets/TW-02/review-group-15-misc-v1/`: 191 hashed files / 117,141,643 bytes;
+  manifest SHA256 `ef2eb8708c180285d44b864c5ea6caabed7aada28d86421abccda1f795cabd66`.
+  Selected carpet v3; vines/beam v1. Models: carpet
+  `4af86c86-73c9-42e3-a579-17905582cfd6`, vines
+  `f0f935cf-531a-44cf-87a6-8c116e95f393`, beam
+  `3332eee6-55d2-40ca-93f3-2423190c0068`. Three references also imported.
+- `evidence/tw02-misc-state-v1.json`: 376 total / 318 current assets
+  (203 models,105 images,10 audio). TW-02 118/121 prepared material models;
+  three models and 13 images remain. Full commission stays 13/27 prepared sets,
+  14 unfinished, three held empty. Human approval zero; no game import/push/publish.
+- Next: ceiling rubble, winch and coin pile need geometry repair; 13 surface
+  images remain. Inherited chain link layout, chest hinge fit and one-piece
+  swing mount stay separately open. All jobs from this pass are terminal.
+
+### 2026-10-17 — Artiss TW-02 surface images and geometry clarification
+
+- Mark answered **Make separate corrected alternatives** for ceiling rubble,
+  chain winch and coin pile. Exact question/answer retained in
+  `work/artiss-tomb-2026-10-16/evidence/tw02-geometry-alternatives-authorization-v1.json`.
+  This authorizes corrected review derivatives while preserving originals;
+  it does not record human visual approval or authorize game import.
+- Completed 13 surface images using built-in ImageGen: six decals, a ritual
+  floor inlay, three seals and three murals. Replaced old royal heraldry with
+  feather/rings and tied the Artiss portraits to HC-06. Removed blood-red and
+  emitting-quartz treatments; discovery preserves the raw survey-glass silhouette.
+  Mural events remain illustrative candidates requiring lore review.
+- Fourteen successful ImageGen calls, including one visual iteration: cobweb v1
+  rejected for opaque cloth-like membranes; v2 has fine silk with transparent
+  gaps. Originals and rejected candidate retained. No GPU job or inference retry.
+  Checked all 13 on pale/dark diagnostic backgrounds and in actual Framewright.
+- Package `assets/TW-02/review-group-16-images-v1/`: 97 hashed files,
+  68,750,538 bytes, manifest SHA256
+  `3b3b65a0818efb8966a6e9b704e4dda6f5aeeb7d414dbfbea6a41849c0458ad1`.
+  Includes exact RGBA outputs, prompts/source lineage, alpha statistics,
+  26 diagnostic composites and 13 browser captures. Temporary tab 5 closed;
+  user's existing Framewright tab preserved.
+- `evidence/tw02-surface-images-state-v1.json`: 389 records /331 current
+  (203 models,118 images,10 audio). TW-02 118/121 models and 13/13 images
+  prepared. Overall still 13/27 sets prepared,14 unfinished; three held empty,
+  zero human approvals. Next: corrected geometry alternatives for the three
+  outstanding models. Inherited chain layout, chest fit and swing mount remain
+  separate open gates. No game import, publishing or push.
+
+### 2026-10-17 — Artiss TW-02 corrected ceiling rubble alternative
+
+- Continued Mark's explicit authorization to make separate corrected alternatives
+  for ceiling rubble, chain winch and coin pile. Original ceiling GLB SHA256
+  `9cb73f3fdb0498e6420838a70cb54324dcde3d25b31ec696503d5232139d7d2a`
+  is unchanged and copied into the new package. No approval or import into the game.
+- Built-in ImageGen edited the old ceiling reference to show connected hanging
+  blocks; one successful guarded Hunyuan3D-2 acquisition produced raw candidate
+  `695e9208e4045f62609e86f3448f4e92dfc6e13c68a34a4a4b11eb5749e872b7`.
+  Normalized to 6 x 6 x 1 m and top-centre pivot. QEM auto chose 20k triangles,
+  p99 deviation 0.007398 m / max 0.017064 m before final dimension restoration.
+- Actual reduced GLB had three disconnected single triangles, despite the
+  reduction Blender report showing zero boundary edges. Their diagonals were
+  4.318, 0.941 and 0.719 cm. Cleanup v2 stopped before mutation at its speculative
+  2.5 cm guard; v3 removed those measured remnants only and restored dimensions.
+  Selected clean geometry: `assets/TW-02/ceiling-rubble-correction-clean-v3/`.
+  One closed component, 19,994 triangles. First UV transport is retained but unused;
+  final paint used `ceiling-rubble-corrected-uv-v2` with underside facing the camera.
+- A second built-in ImageGen reference supplied broad painterly limestone planes.
+  One Hunyuan3D-Paint attempt produced face/geometry/UV-validated outputs then
+  failed during shutdown, exit -1073741819. No inference retry. Initial surface
+  binder stopped because Blender lacks scipy; separate v2 used system Pillow for
+  scalar roughness conditioning, with no installation. AI albedo unchanged,
+  metallic zero, roughness .820-.839, no normal map. Mount socket at origin.
+- `assets/TW-02/review-group-17-ceiling-v1/` contains exact GLB, portable packed
+  Blender, FBX, maps, original source, acquisition and failed-step evidence,
+  fixed views and actual Framewright captures. All four GLB views, underside,
+  unlit top and six corresponding FBX views inspected. Both exports have one
+  closed component and matching sockets; maximum companion vertex delta
+  0.0000003372 m, worst mean FBX image difference 0.0004924 RGB byte value.
+- Framewright model `fe416e58-3733-446c-94b9-6320e07820bc`, reference
+  `3af4e10f-166b-4db4-8f3a-dfe0b48db583`; served hashes verified. Model inspected
+  from below at yaw .90 / pitch -.86, paint on. Temporary browser tab 6 closed,
+  user's main tab unchanged. No generation jobs left running at checkpoint.
+- Package: 129 files /81,209,989 bytes, manifest SHA256
+  `a4f2737d39957658f855e801792a36d420c692eaf1fc5cf575dc2ac7960f072d`.
+  `evidence/tw02-corrected-ceiling-state-v1.json`: 391 total /333 current assets
+  (204 models,119 images,10 audio). TW-02 119/121 models and 13/13 images prepared;
+  corrected chain winch and coin pile remain. Overall 13/27 sets prepared,
+  14 unfinished, three held empty, zero human approvals. Goal remains active.
+
+
+## 2026-10-17 — Artiss TW-02 corrected chain winch alternative
+
+Prepared `work/artiss-tomb-2026-10-16/assets/TW-02/review-group-18-winch-v3/` and verified current Framewright model `18f331d7-26ba-4ddb-ae75-4d00c6772a6f`, v2; reference `8e362495-2c46-4942-ab0d-a105c5f84f02`. Original old-project winch SHA256 `07f19d687ccaffff71e39fb6a44d7cd2d4c8339c88231981b8882574885fc68e` is unchanged and copied into provenance. Mark's October 4 veto required a new acquisition, not another repair. Built-in ImageGen prompt `tw02-new-winch-reference-v1.json` produced `assets/TW-02/new-winch-mechanism-reference-v1.png`; one guarded Hunyuan3D acquisition succeeded, candidate SHA256 `7691c23ec4ed83b0a7117261c0f169b6534df2d2c51a0cd6971aee1073a4df6c`.
+
+Measured bearing cuts create a base-pivot iron frame, axle-centred drum and crank/bronze gear. Dimension adjustment preserves circular mechanisms while fitting nominal 2.4 m width, 1.2 m depth and 1.8 m height. Automatic QEM selected 15k triangles before paint. The old individual acquired link was flattened without world-space changes, automatically reduced 6k to 2k, and CPU-rebaked; worst-view SSIM 0.992 lit / 0.995 unlit. Forty-one shared copies form two wraps and six tail steps. Total evaluated triangles 97k; unique shared geometry 17k. Selected radius .315 m, 34 steps over two wraps, lead .15 m, tail step .13 m. Earlier layouts intersected their neighbours and remain rejected evidence.
+
+The paint attempt produced topology/UV-validated maps then failed during shutdown (-1073741819); no inference retry. Imported flat custom normals were removed. Actual exported mesh checks found eleven small self-crossing triangle pairs under the feet/lower rail and at the back gear bearing cap. A bounded local fairing moved 27 gear vertices at most 2 mm and 115 frame vertices at most 6 mm, preserving face count and UVs; an unbounded trial stopped before export. The reviewed smooth normal field was transferred through exact UV-corner correspondence after repair. Static GLB/FBX both pass closed, nondegenerate, self/interpart intersection and 40/40 actual adjacent-link checks. Maximum companion vertex delta 2.1811249e-7 m; maximum four-view mean RGB byte difference .00160853. FBX copies link mesh data to avoid shared-mesh material binding warnings; GLB and Blender retain instances.
+
+133 files / 75,246,257 bytes; manifest SHA256 `8a0af55abf1012f20163185db69299eb8b3db012196b37b17c8858feb1ff3894`. Live browser proof is `browser/chain-winch-corrected-v5.png`; temporary IAB tab 7 closed, user's main tab untouched. No active inference jobs remain. First receipt writing failed on NumPy float32 after geometry saved; recovery re-read saved outputs instead of repeating geometry. First link rebake refused a parent-transform mismatch and was retained; separate flattened source resolved it.
+
+State `evidence/tw02-corrected-winch-state-v1.json`: 394 total / 335 current assets (205 models, 120 images, ten audio); TW-02 120/121 models and 13/13 surface images prepared. Overall 13 prepared requisition sets / 14 unfinished; three held collections empty; no human approvals. Next: corrected coin-pile alternative using acquired individual coins. Keep original coin source; avoid the earlier rejected fused pile. Static winch review is not chain payout, ratchet gameplay, collision or cooked-runtime validation. No game import, publishing or push.
+
+## 2026-10-17 — Artiss TW-02 corrected treasury mound and surface-set checkpoint
+
+Prepared `work/artiss-tomb-2026-10-16/assets/TW-02/review-group-19-coins-v1/`; Framewright model `bd2a14c7-18e0-4a45-96b0-4deda240fdf8`, reference `ab8a668f-212f-4006-9afd-8f3c120ee07b`. The original coin-pile SHA256 `12ee503ab31a482f202cb65a79d809bd1603d94ea9cdd055bec1af728cb3b602` is unchanged and included as provenance. User authorization for separate corrected alternatives is retained. No new geometry inference: extracted one original acquired coin, rigidly oriented it and automatically reduced 12k to 2k triangles before one fresh Hunyuan3D-Paint pass. Built-in ImageGen reference and exact prompt are `royal-coin-reference-v1.png` and `tw02-royal-coin-reference-v1.json`. The paint produced validated maps then failed shutdown (-1073741819); no retry. Scalar gold response is metallic 1, roughness .38, no normal map. Crowns remain readable on both sides; the lower mint mark was not reproduced and is disclosed.
+
+A 200-triangle runtime proposal was rejected by the reducer's 1,000-triangle minimum before reduction. A separately diagnosed 1k derivative passed, followed by CPU rebake and appearance inspection: worst lit SSIM .97302, unlit .97354. Detailed 2k master retained. Initial coin extraction failed on Vector-minus-NumPy before saving and was corrected in a separate output. CPU physics v1/v2 were stopped only by verified owned PID after expensive full-geometry setup. V3 used temporary conservative contact proxies, but its final-second movement reached .19585 m and the lopsided 78 x 94 cm scatter was visually rejected. V5/v6 loose contact arrangements were also rejected for implausible voids/cantilevers. All evidence remains; no failed inference was retried.
+
+Selected arrangement v4 uses bidirectional actual-mesh ray contacts and bounded edge-intersection clearance for 614 coins in 37 irregular-height treasury stacks. Final 49.279 x 43.596 x 20.542 cm, base-centre pivot, 1k shared geometry / 614k evaluated triangles, static curated arrangement with no dynamics claim. Exact GLB SHA256 `988d3f9885c2f3cc3a0a40ca7fb098448fa56ef0946a14b85d807ae222e5325c`. Both actual GLB and FBX are closed, nondegenerate and free of nonadjacent self/interpart intersections. Reopened Blender is exact; FBX maximum paired vertex delta 2.1400163e-8 m. Four views of both exports were inspected; local maps resolve. Actual Framewright proof is `browser/coin-pile-corrected.png`, yaw .90 / pitch .42, paint on. Temporary IAB tab 8 closed; user's tab untouched. No active generation jobs remain.
+
+Sealed 110 files / 67,062,699 bytes; manifest SHA256 `79f72fc4074b7d2eece68fe81be7655f23c592b4298d2aae032137a39e0c1948`. State `evidence/tw02-corrected-coins-state-v1.json`: 396 total / 337 current assets (206 models,121 images,10 audio); TW-02 121/121 model surfaces and 13/13 image surfaces prepared. Overall 14/27 requisition sets prepared, 13 unfinished, three held collections empty, zero human approvals. TW-02's inherited chain layout, chest hinge fit and one-piece swing mount remain flagged; LODs, gameplay collision and cooked-runtime validation remain open. No game import, publication, push or approval. Continue AR-02 cabinet planar cleanup and moving-part separation; goal remains active.
+
+
+## 2026-10-17 — Artiss AR-02 cabinet partial review delivery
+
+Prepared `work/artiss-tomb-2026-10-16/assets/AR-02/review-cabinet-v3/`; current Framewright model `e3604082-f255-444e-912d-98c8b7a9e81f` (v2), reference `c6770a05-a4ab-406f-92ea-2e0597b51129`. Current GLB SHA256 `3cc1355c7d90efb184af9d387378ebfdadd7d6ea19ee002898921f281f3316d8`. The original image-conditioned acquisition and automatic 15k QEM remain the geometry lineage. Bounded planar projection, separate door cuts, jamb/mullion clearance and fitted source-derived glass yield 15,266 triangles: body 11,262, doors 1,418/1,336, glass 600/650. Nominal 2 m high, 1.278 m wide, .650 m deep, base-centred body, +X front/+Z up, hinges at (.271, +/-.505, .302) m. Doors open 95 degrees in an eight-second OpenClose clip; panes follow their respective doors.
+
+Rejected normal-only/generic fairing, hinge clipping, vanished Boolean pane, intersecting flattened panes and sliver-removal trials are retained with hashes/reasons. Actual GLB triangulation exposed a degenerate face missed by native polygon checks; 0.1 micrometre welding and coplanar dissolution preserve surface position within 13.2 micrometres and remove that failure. The UV stage allocated charts to 35 microscopic cut triangles. Six-decimal OBJ serialization then collapsed otherwise valid vertices, so paint attempt v1 was rejected by the normal proxy before inference. The distinct high-precision OBJ was tested by the actual CPU loader before paint v2. That one inference saved geometry/UV-preserving maps then failed during shutdown (-1073741819), with no inference retry. Global one-to-one face matching restored only UV corners onto the inspected geometry; one greedy matching attempt is retained as rejected. AI albedo bytes remain unchanged; scalar bronze/stone/back responses and no normal map are the selected material treatment.
+
+Both exact GLB and FBX have five closed/nondegenerate parts and no interpart intersections at all 193 sampled animation frames. Maximum companion vertex delta 5.9604645e-8 m and hinge world-matrix delta 3.5017729e-7. Four closed/open views inspected; FBX uses disclosed scalar-opacity glass while GLB/native retain transmission. Initial static open export reset to default pose; export_current_frame produced the real open proof. The first library candidate `03afe174-3a76-450c-850c-707f660e9702` rendered blank: the already-documented Three.js reserved extras.pivot convention interpreted prose as a vector on parented doors. Metadata-only revision renamed that key, preserving all binary data. Actual-loader finite bounds and live Framewright render/playback now verified; the predecessor remains in history. Temporary IAB tab 9 closed, user's main tab unchanged. No GPU job remains from this checkpoint.
+
+Sealed 126 files / 37,188,209 bytes, manifest SHA256 `1978da59f90912b24d467a6efa79902d6d229e3327056d40820c738956c4cd19`. A cp1252 import-receipt serialization error was repaired to explicit UTF-8 before sealing; model bytes were unaffected. State `evidence/ar02-cabinet-state-v3.json`: 398 total /338 current assets (207 models,121 images,10 audio), 14/27 prepared sets, 13 unfinished, three held empty, zero human approvals. AR-02 remains partial: map drawers, scroll racks, label plaques, astrolabe-like/sextant-like exhibits, strapped crates and cargo tags. User's model-count question was answered as about 50 (45-60 depending on reuse), counting individual props/variants once, excluding VFX/postprocess/held items and not counting every child mesh or fracture shard as a new model. No game import, publish, push or human approval. Goal remains active.
+
+## 2026-10-17 — Artiss AR-02 map chest and clean interior revision
+
+Prepared `work/artiss-tomb-2026-10-16/assets/AR-02/review-map-cabinet-v4/`. Current Framewright assembly `45877279-b7a7-4a32-8ebb-d163bd4be2b9`, frame `d95eb159-918d-41dd-8332-e0355111077d`, tray `9d1bb5e8-1be3-49ef-b31d-987cc645a181`; source reference IDs `ad852139-3fef-4a26-abbd-ceedc56948c3` and `34af6752-3664-4ae9-8453-728c91ab05a6`. Image-conditioned frame/tray acquisition preceded cleanup. Auto reduction selected 9k triangles each. Acquired frame back was compressed to a usable 5 cm thickness and shelves fitted before painting; three shared tray instances fit with no crossings. The 125 x 80 x 75 cm chest has 36k evaluated / 18k unique triangles and an eight-second drawer preview with 43 cm travel. Materials are dark iron, bronze and pale limestone; no timber.
+
+Both paint jobs saved validated outputs before shutdown failure -1073741819, no retries. Exact face-corner transfer restored inspected topology and smooth normals. Initial live Framewright review revealed gold stripes and triangular paint seams inside the drawers and shelves. v2 crossed separate UV charts and failed; v3 fixed trays but left partially classified frame faces. Selected v4 maps interior faces into one contiguous clean region of the existing AI-painted atlas. Image bytes, exterior UVs, geometry, normals and animation are unchanged. 1428 tray faces / 4284 UV loops and 3581 frame faces / 10743 UV loops were corrected. All rejected evidence retained; only original v1 and corrected v4 were staged as revision families.
+
+Actual GLB/FBX surfaces pass closure, nondegenerate, finite UV and self/interpart-intersection checks, including 193 motion frames. Closed/open four-view exports, elevated interior views, and all three actual Framewright models inspected. Live playback advanced 0.17 to 6.77 seconds; paused open at 4 seconds. Browser proofs are sealed under `browser/`; temporary tab 10 closed, user's main tab unchanged. No human approvals, game import, publication or push. Package has 182 files / 98,783,684 bytes; manifest SHA256 `b82dda6049a42d14f3c8a50f963308fd046ab7fc32b1460a09722378583070cd`.
+
+State `evidence/ar02-map-state-v4.json`: 406 total / 343 current assets, 210 models / 123 images / 10 audio. Fourteen prepared requisition sets, thirteen unfinished, three held empty. About 50 individual models/variants remain (45-60 depending on reuse), excluding effects/postprocess/held items and counting repetitions once. AR-02 remains partial. New built-in ImageGen scroll-rack reference `assets/AR-02/scroll-rack-reference-v1.png`, prompt `ar02-scroll-rack-reference-v1.json`; one successful guarded acquisition is at `assets/AR-02/scroll-rack-geometry-v1/candidate.glb` (93.13 seconds). It is not staged or normalized yet. Next: scroll-rack modeling gate, then remaining catalogue pieces. Goal remains active.
+
+## 2026-10-17 — Artiss AR-02 scroll rack review delivery
+
+Prepared `work/artiss-tomb-2026-10-16/assets/AR-02/review-scroll-rack-v2/`; current Framewright model `9c15c2c5-04db-4a9d-8453-85da57f28d33`, reference `b83c3a80-71de-4043-9c69-b3deca9ddc10`. The 150 x 90 x 40 cm rack has three real empty troughs and rear bracing, base-centre pivot, +X front/+Z up, black iron and selective bronze, no timber. Image-conditioned acquisition preceded automatic reduction from 1,387,412 to 9,000 triangles. Removing inward foot flash and fairing one inherited upper-post fold (17 vertices, maximum 2.00005 mm) yielded 8,904 triangles and 4,438 shared vertices. All rejected geometry remains recorded.
+
+One paint attempt saved validated maps then failed shutdown -1073741819; no retry. Bijective face-corner transfer restored AI UVs to exact inspected geometry and smooth normals. Elevated unlit/PBR review exposed bronze projection stripes on the lower two trough floors. Selected v2 remaps 1,233 faces / 3,699 UV loops to one contiguous clean dark region of the existing top-floor atlas, preserving AI image bytes, geometry, normals and exterior UVs. Rejected v1 closeup remains in provenance.
+
+Actual GLB and FBX pass closure, nondegenerate-face, UV, dimensions, origin, connected-component and self-contact checks. Companion maximum symmetric vertex delta is 5.372690026206328e-8 m. Four GLB/FBX views, specular modeling views, elevated interiors and actual Framewright paint-on at three zoom levels inspected. Best browser proof: `browser/scroll-rack-detail.png`. Temporary tab 11 closed, user's tab unchanged. Package: 113 files / 39,015,988 bytes, manifest SHA256 `fe643f92bc1d99f724d917fd3328e07779f04f6b4a66e7c875428062fdbfcfbd`.
+
+`evidence/ar02-scroll-state-v2.json`: 408 total / 345 current assets (211 models, 124 images, ten audio). Fourteen prepared sets / thirteen unfinished, three held collections empty, zero approvals. AR-02 remains partial. Label plaque acquisition succeeded once; its rear background flash and duplicate overlapping rear skin were removed in modeling v2, 1,758 triangles, 30 x 18 x 3 cm with wall-mount origin. Four clay views and exported geometry/UV preflight pass. First paint attempt is underway; plaque not yet staged. About 50 individual models/meaningful variants remain (45-60 depending on reuse), excluding effects, postprocess and held items. No game import, publication or push. Goal remains active.
+
+## 2026-10-17 — Artiss AR-02 label plaque review delivery
+
+Prepared `work/artiss-tomb-2026-10-16/assets/AR-02/review-label-plaque-v1/`; Framewright model `41a8b990-69af-40a9-9285-ecdd6955a179`, reference `7b9d9562-cb2c-4711-90c4-e183a1f5a2be`. Built-in ImageGen reference `label-plaque-reference-v1.png`, exact prompt `ar02-label-plaque-reference-v1.json`; one guarded acquisition took 130.24 seconds, source candidate SHA256 `46c672a58ee0199f6a85b70e8aba0e6a7dda3005976cd8b05f2ed0cdc8b0e6ab`. Dense 1,168,740 triangles reduced automatically to 4,500 before cleanup. The acquired background flange distorted thickness normalization; cutting at original X=.026 and remapping thickness preserved the front, but v1 retained two overlapping capped shells and failed the actual-export self-contact audit. Rejected evidence remains. V2 retains the acquired front shell and removes the redundant inner/rear skin, leaving 1,758 triangles / 881 vertices, 30 x 18 x 3 cm, wall mounting at X=0, Y/Z-centred origin, +X front/+Z up. Four clay views and actual exported surface audit pass.
+
+UV preflight with the actual painter loader passed all 1,758 faces and nonzero finite UVs. One paint attempt saved validated maps then failed shutdown -1073741819; no retry. Geometry delta 6.0423e-8 and UV delta 4.7591e-8 in normalized transport. Bijective face-corner correspondence restores UVs onto exact inspected geometry and smooth normals; max correspondence delta 1.27062e-7 m. Original AI albedo bytes retained, bronze metallic 1 / roughness .30, limestone metallic 0 / roughness .78, no micro-normal map. Actual exported GLB SHA256 `4f9f3cb4372d828ce2ac851d3ed03a4b71a23218117993518e74f8f2f8a1d0b3`.
+
+Both actual GLB and FBX pass closure, nondegenerate faces, single connected component, no self-contacts, UV, dimensions and mount-origin checks. Packed Blender exact; maximum FBX vertex delta 1.311341701892843e-8 m. One local atlas resolves in both companions; four FBX views match GLB. Live Framewright inspected paint-on at default/close distances, side yaw .26 and front yaw 1.46, pitch .26. Proofs `browser/label-plaque-side.png` and `browser/label-plaque-front.png`; temporary tab 12 closed, user's tab unchanged. Blank plaque intentionally awaits exhibit-specific lettering. No human approval, game import, publication or push.
+
+Sealed 89 files / 26,333,712 bytes, manifest SHA256 `4fcf1d83589bfb443f5bef2d92a29e55e8796fcc9905bf7a2b15eb37e6789c88`. State `evidence/ar02-label-state-v1.json`: 410 total / 347 current assets, 212 models / 125 images / 10 audio, 14 prepared sets / 13 unfinished, three held empty, zero approvals. About 50 individual models/meaningful variants remain, range 45-60 depending on reuse; repetitions counted once and effects/postprocess/held items excluded. AR-02 next: astrolabe-like and sextant-like exhibits, strapped crates, cargo tags. No owned GPU or render job remains from this checkpoint. Goal remains active.
+
+## 2026-10-17 — AR-02 catalogue acquisition and unresolved astrolabe fitting
+
+Rechecked the active older Framewright project through its read-only live SQLite catalogue: 357 records, no matching astrolabe, sextant, survey instrument, compass, cargo tag or crate labels/notes. Receipt `work/artiss-tomb-2026-10-16/evidence/ar02-catalogue-reuse-audit-v1.json`. Built-in ImageGen references and exact prompts are `assets/AR-02/{astrolabe,sextant,strapped-crate,cargo-tag}-reference-v1.png` and `ar02-{astrolabe,sextant,strapped-crate,cargo-tag}-reference-v1.json`. Four references are imported and hash-verified in the Artiss project; receipt `assets/AR-02/catalogue-reference-import-v1.json`. No corresponding new model is delivered yet. Crate is iron/canvas and tag is fired clay/iron, preserving scarce-timber direction.
+
+All four guarded image-conditioned geometry acquisitions succeeded once: astrolabe 74.73 seconds, SHA256 e304c9390ebac3004895d6286adb1817029cc701a9e96fac46dddabcda3b6d0b; sextant 94.75 seconds, 245b9d42455a57e852024a34101979d95802b184f6a0f5a22622c25b06c1468d; crate 84.31 seconds, 0b2511fbf7326153b6b9fe31ce56da62178bef78635e55b450b12478fe79e745; tag 79.78 seconds, 95e57da876f2d0f614a6f36f711e9fc7da3630d13dde2e5b784b066909559033. Normalized/reduced versions and four-view evidence retained. Astrolabe 4.5k reduction was visually rejected; user-authorized higher curve budget gave 9k before separation. Crate is 9k, sextant 4.5k, tag 1.8k before cleanup. A reduction invoked before normalization completed failed path resolution without running; after confirmed normalizer completion, the reduction ran. No inference crash or retry.
+
+Astrolabe v1 had coincident boolean caps; v2 had local contacts, tiny degenerate cut faces and a detached sight-tab remnant. V3 bounded fairing cleared contacts but retained one microscopic degenerate face and the remnant, so its assertion failed after saving. V4 removed those, retaining 15,158 triangles across three acquired parts. Actual exported GLB SHA256 6cc9c31d05e283655fb64f4cf182b09b90e09d20f5d33c207cc54a47f48e217a passes 55 x 48 x 12 cm dimensions, base height zero, closure, one component per part, positive volume, nondegenerate faces and zero self/interpart contacts at rest. The actual export audit is `astrolabe-modeling-v4/export-modeling-audit-v1.json`. Thirteen sighting-arm poses (-30 to +30 degrees) clear; all ten nonzero dial-tilt poses (-10 to +10 degrees) intersect the cradle, with some positive poses also intersecting the arm. This is a modeling feasibility test, not an exported rig/animation.
+
+Explicit assigned bronze diagnostic `astrolabe-specular-review-v5/beauty-sheet.png` inspected in four views: broad highlights improved, but uneven inner-rim remnants remain. Earlier v4 diagnostic was actually white/clay because its modified material was unused. V4 model is NOT selected for paint; `modeling-review-v1.json` records the failed fitting gate. Next: repair dial/cradle separation and recheck views/axes. Sextant separation, crate ground-skirt removal/lid split and tag ring separation are also pending. No active owned render or inference process remains.
+
+Live checkpoint `evidence/ar02-catalogue-modeling-state-v1.json`: 414 total / 351 current records, 212 models / 129 images / ten audio; 14 prepared sets, 13 unfinished, three held empty, zero human approvals. User count remains about 50 individual models/meaningful variants (45-60 depending on reuse), including those already underway, excluding repeated placements, effects/postprocess and held designs. Commission state updated. No game import, publication, push or human approval; goal remains active.
+
+## 2026-10-17 — AR-02 astrolabe review delivery
+
+Prepared `work/artiss-tomb-2026-10-16/assets/AR-02/review-astrolabe-v3/`, current Framewright model `8e8f075d-7ee6-4859-bf11-a1a37247903b`, existing reference `bd87d968-3de2-40e4-bbbb-364f968b2601`. 55 cm high x 48 cm wide x 12 cm deep, 14,062 triangles / 7,033 shared vertices, three separate acquired parts with base/axle pivots. The v5 cradle-only 22.2 cm clearance cut resolved dial collisions but retained sighting-arm contact during positive tilt. V6 fits the acquired arm in Y/Z by .8616226063, reducing radial extent from .2460474 to .212 m while preserving its depth and pivot. Four clay/explicit-metallic views inspected; both final actual GLB and FBX pass surfaces, dimensions, UVs and all 24 sampled poses: thirteen arm rotations (-30..30 degrees) and eleven dial tilts (-10..10), tested separately. This is a static exhibit with separate parts, not an exported animation or functioning survey instrument.
+
+One Hunyuan3D-Paint pass produced validated maps in about 158 seconds then failed during shutdown (-1073741819); no retry. Geometry delta 8.5600445e-8 and UV delta 2.9802822e-8 in paint transport. Bijective matching restores AI UVs to the three inspected parts, retaining geometry and custom smooth normals; maximum correspondence delta 9.5096563e-7 m. Unchanged AI albedo SHA256 73ab50a5c242e26911dc6787922913b58f7f4671e77a262c126188eb5282f165. Bronze dial and dark iron supports, metallic 1, roughness .30/.35/.40, no micro-normal map.
+
+The stock six-decimal OBJ export collapsed one microscopic UV chart before inference; a twelve-digit export passed the actual painter CPU loader. Later, the painted GLB collapsed one microscopic dial UV triangle again (surface area 4.5178261e-10 square metres). V1 package was rejected. Restoration from the exact pre-paint UV authority preserved geometry/normals and image bytes; first repair v2 stopped before export on a strict match assertion, inspection measured a common approximately .79 micrometre translation, and v3 used an explicit 2 micrometre per-corner correspondence bound plus UV change below 1e-6. The final GLB and FBX have zero degenerate UV triangles. One audit report serialization attempt failed on numpy float32; converting the measured scalar to float allowed unchanged geometry to pass and be reported. All negative evidence retained. Initial import receipt used Windows cp1252; original bytes were preserved separately and the receipt re-encoded as UTF-8 before sealing, with no model or metadata change.
+
+Packed Blender is exact; maximum FBX symmetric vertex delta 2.2351741790771484e-8 m. Four actual GLB/FBX views match visually. Live Framewright paint-on inspected at default yaw .90/pitch .42 and front yaw 1.54/pitch .26, including closer view. Proof `browser/astrolabe-detail.png`. The four catalogue reference cards were also inspected in the actual library. Temporary tab 13 closed; user's main tab unchanged. No owned render or inference job remains.
+
+Sealed package: 113 files / 36,947,171 bytes; manifest SHA256 7a96964d5b94d708bcc2fa17ae9b83f00809afd63839dd98d74db5feaac41dde. State `evidence/ar02-astrolabe-state-v3.json`: 415 total /352 current assets, 213 models /129 images /ten audio, 14 prepared sets /13 unfinished, three held empty, zero approvals. AR-02 next: sextant cleanup/separate parts, crate ground skirt/lid, tag ring separation. Full commission remains active, approximately 50 individual models/meaningful variants still to finish. No game import, publication, push or human approval.
+
+
+## 2026-10-17 — Sextant staged; packing crate geometry advanced
+
+Completed AR-02 sextant review package `work/artiss-tomb-2026-10-16/assets/AR-02/review-sextant-v1/`; Framewright model `7fa07e29-b039-43ca-86d5-27c6ec5adfa2`, reference `5213d2cb-5830-4d25-b434-cfc43f0e53e2`. Source-conditioned geometry was already acquired; a new 9k reduction and successive derived cuts separated the frame, index arm and two mirrors. Early cuts retained overlaps; actual-arm clearance subtraction removed the lower-shoe overlap, a 57-vertex disconnected cut remnant was removed, and one microscopic cap face was retriangulated. Selected `sextant-modeling-v6` retains 10,486 triangles /5,239 shared vertices at 32 cm high x38 wide x12 deep. Explicit base/axle pivots. Both actual GLB and FBX pass closure, positive volume, one component per part, no degenerate or self/interpart-contact faces, valid UV triangles, dimensions and static pose fit. This is a static catalogue exhibit, without an exported animation, swept-clearance or optical-accuracy claim.
+
+Twelve-digit UV transport passed the painter's exact CPU loader. One 768/6-view/2048-atlas paint pass saved validated maps, then exited -1073741819 during shutdown; no retry. Paint transport geometry delta 6.1439459e-8, UV delta 2.9802822e-8. Exact pre-paint UV authority restored to original geometry/normals with bijective correspondence, maximum 5.9749987e-8 m. Unchanged albedo SHA256 bfd644d1f9c15bbe912ea0d8731d12dad39feb41e530fbed5e826fa351f04a78. Dark iron and bronze, roughness .36 frame /.30 arm /.22 mirrors, coated reflective plates, no micro-normal map. Packed Blender exact; FBX maximum symmetric surface-vertex delta 1.6763806e-8 m. Four GLB/FBX views and live Framewright default/detail views inspected; temporary tab14 closed, user's tab untouched. Proof `browser/sextant-detail.png`. 94 files /34,284,079 bytes; manifest e2e2ce48722921e8e06261f884c49105f2c6df5ac78a8b1fb99e7b8524391a3c. State `evidence/ar02-sextant-state-v1.json`:416 total /353 current,214 models /129 images /10 audio,14 prepared sets /13 unfinished,three held empty,zero approvals. No game import, publication or push.
+
+The next packing props were measured in `assets/AR-02/packing-geometry-inspection-v1.json`. Crate backdrop skirt extended the false original bounds; cutting below z=.025 then renormalizing the true crate restores60x90x60cm. `strapped-crate-modeling-v1` has separate lift-off lid, hollow acquired body and1.6mm seam clearance. Actual export passes 8,876triangles /4,442 shared vertices,two closed nondegenerate parts,no self/static contacts and15 sampled vertical lifts0–35cm. Closed/open four views inspected. Elevated interior showed diagonal interpolated normals; `strapped-crate-modeling-v2` retains exact geometry and gives the new planar cut faces flat normals. V2 actual export audit passed; final visual selection and UV/paint remain pending. Cargo tag still needs ring/plate separation. Active render session85750 is the v2 closed/interior review; confirm terminal completion before using its receipts. No inference job remains.
+
+
+Follow-up in the same pass: render session85750 completed exit0. Inspected v2 closed four views, body four views and elevated interior; the planar normal correction removes the diagonal patches. `strapped-crate-modeling-v2/operator-selection-v1.json` selects this geometry for candidate paint only. `ar02-strapped-crate-paint-v1.json` uses revisionv1 with precision UV revisionv2; `prepare_paint_batch.py` is running as terminal session63956. Confirm its terminal completion, then run `export_strapped_crate_precise_uv_v2.py` in Blender and `check_strapped_crate_paint_input_v2.py` using the paint environment Python. Only then launch the one-shot paint job after a fresh GPU check. No crate inference has launched. Reinspect exposed interior materials after paint; closed-reference painting may not cover the hollow interior adequately. Cargo tag separation remains next. Goal remains active.
+
+
+## 2026-10-17 — Packing crate staged; cargo tag texture correction underway
+
+Previous user status turn was no progress by design (count answer). This goal
+turn advances the crate through material/export/browser verification and stages
+closed plus raised-lid inspection copies in AR-02. See STATUS for IDs and hash.
+Both actual GLB/FBX passed topology/UV/dimension and 15 sampled lift fits. Cavity
+rim receives scalar iron after the first paint projected exterior stripes onto
+new cut surfaces. Exterior AI paint is unchanged. Package manifest verified.
+
+Cargo tag v1 temporary swept cutter self-intersected; v2 uses a valid extruded
+annulus, v3 normalizes 16 x 8 x 2.5 cm overall, v4 cuts the source split-ring gap.
+All final exported modeling checks passed (2740 triangles). v3 UVs were never
+painted. One paint pass on v4 through UV-v3 produced valid maps, then child exit
+-1073741819 during shutdown; no retry. Front doubled feather rejected. CPU bake
+from the acquired reverse paint to front uses unchanged geometry and UVs;
+`rebake_cargo_tag_front_v2.py`, view queue `ar02-cargo-tag-painted-v2-views.json`.
+Inspect before package/import. Goal active; held CH-01/CH-02/DH-03 remain empty.
+
+
+### 2026-10-17 follow-through — Cargo tag delivered; AR-02 inventory closed
+
+CPU reverse-face paint transfer v2 passed four views and actual FBX inspection;
+no geometry, normal or UV changes. The tag is staged as
+`bc30f36d-7cf0-4e2a-8dcd-5872387797b2`, package `review-cargo-tag-v2/`, manifest
+`44ce62259ba7850585a907fb21e7d55963551886713816930bc86ae737be9763`.
+Live Framewright default/front-detail evidence is packaged. Both owned paint
+jobs and all CPU renders finished; no owned work remains running.
+
+`verify_archive_catalogue_v1.py` verified all eight requirement mappings, every
+manifest file hash, actual export audit bindings and served model/reference
+bytes across the eight packages. Eleven model entries represent eight base
+prop designs plus reusable/inspection components. Updated current model notes
+with kit review status, without changing content or approval. AR-02 now
+`review_candidates_prepared`; complete commission is still active. Live total:
+419 records, 356 current (217 models / 129 images / 10 audio), 15 prepared sets,
+12 unfinished, three held empty, zero human approvals. Inventory receipt hash
+`4d0b64bba563f2bc9171b92ba6b7c514791cc3eaf071d6023868f4a86fb8499d`.
+Next: inspect existing AR-03 acquisition and old-project reuse before advancing
+its modeling gate. No core code edits or additional full test-suite run needed;
+asset-specific actual export/bake/consumer checks performed.
+
+## 2026-10-17 — Vault gate fitted; valve-wheel reuse investigated
+
+Continued the full Artiss commission. Read-only old-project verification corrected
+AR-03 reuse audit v1's empty case-sensitive query: v2 verifies four exact temple
+records/hashes. Their distinct crest/rectangular design remains in TW-02; proceed
+with the already-acquired AR-03 ring/feather gate and exact existing AR-01 lenses.
+
+Retained five separation probes. Rejected global angle beveling because it tore
+irregular triangles; caught quaternion/Euler mode mismatch via the actual open
+render, invalidating early clearance claims. Explicit rotations, circular rear
+meeting-edge relief and front hinge edges now produce real clear movement.
+Dense implicit fairing was deliberately cancelled on only owned Blender PID 22040
+after over 19 CPU minutes; its cancellation receipt and failed wrapper exit remain.
+Zero-dense-smoothing remesh v2 followed by bounded explicit fairing v2 is clean.
+Fairing v1 inverted small faces; local displacement backtracking resolved them.
+
+Final modeling derivative: assets/AR-03/gate-modeling-v5/, 23,576 triangles,
+three closed single-component parts, no nonmanifold/degenerate/self-contact
+faces. Both closed and open four-view sheets inspected. Re-imported fitted GLB
+passes exact 6 x 10 m envelope/base and all 101 one-degree opening samples,
+including clearance from two exact AR-01 lens assemblies mounted at 6 m.
+UV transport passed. Started the single gate-texture-v1 paint attempt after GPU
+preflight (22,733 MiB free); preserve its live job, do not retry a failure. No
+AR-03 model import/approval yet. Materials, companions, animation, consumer
+review and immutable package remain before marking its review preparation done.
+
+Independent GV-03 read-only reuse audit verified old wheel/flange/pedestal.
+Existing painted six-spoke 60 cm wheel fitted to acquired station at 1.2 m,
+with source-cut axle; station-modeling-v2 has 14,204 clean triangles and 73
+native 360-degree samples with no moving contact. Four views show a cut ledge
+below wheel still needing visual cleanup. Indicator regions and pedestal paint
+remain; do not treat native fit as exported/consumer proof. Nothing staged.
+Full commission remains active; held three remain held, no game import/push.
+
+### 2026-10-17 — AR-03 vault gate review package completed
+
+Prepared `assets/AR-03/review-gate-v2/`: exact 6 x 10 m gate, separate frame
+(12,836 triangles), positive-Y leaf (5,296), negative-Y leaf (5,444), plus fitted
+inspection assembly with unchanged AR-01 lenses (47,104 evaluated triangles).
+Both leaves use explicit hinge origins at (0.405, +/-1.84, 0) m; eight-second
+VaultGateOpenClose clip opens 100 degrees. Every one of 193 actual GLB and FBX
+frames clears the static frame/lenses and other leaf. Packed Blend/FBX companions
+and local maps passed re-import checks; four-view material comparisons inspected.
+
+Paint's single pass saved valid maps then crashed on shutdown (-1073741819),
+retained without retry. Initial derived metallic map was entirely zero because
+the AI prediction placed bronze below limestone. Corrected with a calibrated
+mask from unchanged albedo (11 semantic samples, 56.423% atlas pixels > 0.5).
+Geometry, normals and UVs retained. Framewright current assembly
+`c26bfa6c-5e9a-41bf-9931-e09ba6560c7d`, frame
+`a3d450af-12a5-4d2e-bc0c-2b3ce4adbd26`, leaves
+`97caf5bc-ca24-4b25-92c8-c349c35fe7cc` and
+`b8fc2bcf-93be-468d-9939-a1c45a74baa2`. Earlier matte assets retained as v1
+revision family members. Live clip selection/play/scrubbing and closed/open
+appearance checked; screenshots in `review-gate-v2/browser/`. Owned browser tab
+17 closed; user's tab preserved.
+
+Closure: 201 hashed files / 166,503,826 bytes, manifest SHA256
+`a479a9331eb63ce932e4a412a75bfee62caefb7dc57c9f278a42e443c94ff949`.
+Live state: 427 records / 360 current assets (221 models, 129 images, ten audio),
+16 prepared / 11 unfinished authorized requisitions, three held empty, no human
+approval. Repo verification passed 757 tests / 15 skipped, 198 subtests, lint,
+syntax and installed-wheel checks. Full commission remains active.
+
+GV-03 also advanced: station-modeling-v7 repairs the cut opening with an adjacent
+acquired front-wall patch, preserving the old wheel/paint and 1.2 m pivot. V4/v5
+whole-depth patch derivatives had self contacts; V6 closed the main hole but a
+close-up exposed a smaller opening; V7 widened the front-wall patch and passes
+all native topology/clearance checks at 14,204 total triangles. Four views and
+close-up inspected. Built-in imagegen edited a pedestal-only paint reference,
+stored with exact prompt in `gv03-pedestal-reference-v1.json`. V1 extraction
+refused the invalid V4 topology; v2 UV launch failed before execution because
+PYTHONPATH was missing; the corrected launch passed (9,000 triangles, 58.601%
+atlas occupancy). First actual isolated paint attempt launched after 22,716 MiB
+free VRAM preflight: `assets/GV-03/pedestal-texture-v2/`. Do not retry a crash.
+Indicators, materials and actual export/consumer checks remain before GV-03
+review preparation can be called complete.
+
+## 2026-10-17 — GV-03 alignment station prepared for review
+
+Closed `assets/GV-03/review-station-v2/` after exact geometry/normal restoration,
+semantic bronze/stone/glass response checks, actual GLB/FBX motion audits and live
+Framewright inspection. The first actual paint saved valid geometry/maps then
+failed shutdown (-1073741819); no retry. Selected pedestal material v3 retains
+the AI albedo and distinguishes bronze from stone by calibrated source colour.
+The prior whole-depth patch failures, UV launcher failure and package-v1 scalar
+axle texture assertion remain evidence. Package v2 allows a verified scalar
+material without demanding nonexistent image maps.
+
+Three source-face display overlays, offset 0.8 mm and masked by the existing
+amber paint regions, light in sequence. They are intentional open non-collision
+layers; the 14,204 rigid triangles are closed, nondegenerate and free of self
+contacts. Total with overlays: 15,238 triangles. The reused 60 cm wheel retains
+its geometry/paint at (0.22, 0, 1.2) m on +X; the standalone axle is recentred
+at its measured centre, with assembly placement recorded. Ten-second
+`AlignmentThreeClicks`: 30/60/90 degree stops, indicators 1/2/3, then reset.
+Actual GLB and FBX each pass all 241 frames; fixed-view companions stay within
+the recorded appearance tolerance. Minor FBX white-gold emission response
+variation is documented, with all shapes/material regions retained.
+
+Live main model `9bf4a270-3888-4064-a50f-81e8a4cb93d9`, pedestal
+`85e4d25e-7670-4234-a808-eacc38bfdb64`, wheel
+`d3f62d46-6e8d-4a50-8d2f-94981691c109`, axle
+`18eeba58-5bbb-41c8-9630-2855e5ef5ff4`, state-comparison image
+`cbe89f49-daac-4018-892b-3981686344bb`. All served bytes verified. Selected clip,
+Play advancement and 0/1/2/3 states inspected at 0/2/4/6.5 seconds; screenshots
+in `review-station-v2/browser/`. Owned tab 18 closed, user tab preserved.
+
+Eight GLB/packed Blend/FBX variants/parts are packaged locally; four core models
+and one evidence image staged. 340 files / 203,613,603 bytes; manifest
+`443f8216db2e329dfb2c3a7e72b4c1eac185e501824b8b6f4ca8a111bc69d375`.
+Live 432 records / 365 current assets (225 models, 130 images, ten audio).
+17 prepared / 10 unfinished authorized sets; three held empty, no human approval,
+no game import, push or publication. Next: HC-07 reuse audit before new camp work.
+
+## 2026-10-17 — Artiss HC-07 reuse and camp candidates (continuing)
+
+Read-only old-project/source hash audit: `work/artiss-tomb-2026-10-16/evidence/hc07-reuse-audit-v1.json`. Preserve original TW-02 rack/lantern and AR-02 crate; camp versions have separate bytes and collection metadata. Created three sizes with separate lids, an assembled stack (2 mm clearances, upper footprints inside lower lid, no intercrate contacts), and an iron lantern palette. Lantern v1 was too dark; inspected v2 retained the glass mask and geometry. Source lectern was rejected for cheap camp use. Scaffold v3 modeling clears all seven nonadjacent self-contact pairs after removing 15 vertices of tiny detached scraps; 14,970 triangles, closed manifold. Single scaffold paint attempt saved validated output then crashed on shutdown (-1073741819), retained without retry. Normals-only comparison remains in progress. Built-in imagegen produced table, pickaxe, shovel and tarp references; selected for AI acquisition, not human approval. Finite four-job queue `hc07-geometry-queue-v1.json` is running; ledger table, pickaxe and shovel succeeded at this checkpoint. No Unreal import, publication, push or approvals.
+
+### 2026-10-17 - HC-07 complete camp review candidates; HC-08 acquisition
+
+- Prepared HC-07 in `work/artiss-tomb-2026-10-16/assets/HC-07/review-camp-v1/`: eleven models, packed Blend/FBX/maps, source/export views and live Framewright screenshots. Seven reuse/scaffold models plus pickaxe, shovel, tarp and iron ledger table are staged. All served hashes match; no human approval or game import.
+- Reused existing iron rack, lantern and iron/canvas crate; added three crate sizes and a separate clearance-checked stack. New AI geometry was cleaned before paint. The shovel's connected shadow spur required a second cut; the table needed an explicitly selected 18,000-triangle revision under the user's higher-poly instruction. Prior alternatives are retained. Five paint processes saved validated maps then failed at shutdown; no retries.
+- Package has 507 hashed files / 380,203,857 bytes, manifest SHA256 `4fffeadc09016e3c897678bc311c0d57279599ee9f1af433240127fbf7f53583`. Snapshot: 447 records, 380 current assets (236 models, 134 images, ten audio), 18 prepared and nine unfinished authorized requisitions, three held empty, zero approvals.
+- HC-08 reuse audit selects the existing AR-02 sextant and scaled astrolabe. Three new AI-conditioned acquisitions (pack, short sword, fictional flat iron disc) succeeded once each; four clay views inspected. Normalization/reduction in progress. Case panel cleanup and lid/interior mechanics remain before paint. The larger commission remains active.
+
+## 2026-10-17 — HC-08 Ennix gear prepared for Framewright review
+
+Completed `assets/HC-08/review-ennix-gear-v1/`: six component models and four
+assemblies. New canvas pack, short sword, flat iron disc and brass survey case
+retain AI-conditioned lineage. Sextant and portable astrolabe reuse reviewed
+AR-02 authorities without moving their original records. The separate-lid case
+holds three discs; both loaded poses, a sword pair and full gear layout are staged.
+The case required planar panel cleanup and clasp fitting; rejected derivatives
+remain retained. The disc uses 6,272 triangles after the automatic low-count
+candidate looked too angular. Actual GLB/FBX hinge and cap sweeps pass, along with
+portable map/geometry checks and source/export fixed views. All ten models were
+inspected in Framewright; proof is in `browser/`. Four paint executions failed on
+shutdown after validated maps were saved; no retry occurred. Interior case UV
+streaking, static straps and pending FX-02 effects are explicit limitations.
+
+Manifest: `8e9dea7e06030a4330e450a7c8e9b675cae450371f69255b432fd42431cd1b3a`,
+583 files, 826,416,846 bytes. Main live model:
+`e2871f45-7f52-42e2-9e0b-6dbe1e4a0233` (Ennix complete gear layout).
+State snapshot `evidence/hc08-gear-complete-state-v1.json`: 461 records, 394 current
+assets (246 models, 138 images, ten audio), 19/27 authorized requisitions prepared,
+eight unfinished. Three held collections empty; zero human approvals. No game
+import, publish or push. Continue DH-02 reuse and references next.
+
+## 2026-10-17 — Hero sword feedback supersedes HC-08 completion
+
+Mark requests no crossguard, canvas-wrapped grip, close-up hero quality and a
+Suikoden IV short-sword silhouette. HC-08 is reopened; previous component, pair
+and complete-layout candidates and their package remain intact. A new built-in
+ImageGen reference is retained with exact prompt and user-image lineage in
+`hc08-hero-sword-reference-prompt-v1.json`. Selected reference has no quillons,
+a narrow ferrule and overlapping pale woven canvas. One AI geometry acquisition
+is running; no human approval is recorded. Prepared count returns to 18/27.
+DH-02's helmet, shield and ledger pack each acquired once successfully and are
+normalized/reduced. Reused blade and iron torch candidates are staged with
+portable companions. Torch v1 palette was too dark; v2 retains visible iron.
+No game import, publish or push; three held collections remain untouched.
+
+### 2026-10-17 — Ennix hilt refinement and style lock
+
+Mark clarified the lower collar should be longer and squarer, reflective
+black with a tungsten-carbide appearance. Canvas stays natural; blade stays
+steel. He then requested matching black on the brass pommel, and reinforced
+that the result must remain Arcane-ish like the project. Built-in ImageGen
+references v2 and v3 retain exact prompts; v3 is selected for new acquisition.
+The successful v1 acquisition is superseded by this design change and preserved.
+No material claim substitutes for a close-up operator review. DH-02 CPU audits
+pass helmet/shield; ledger pack has one nonadjacent contact requiring cleanup.
+
+### 2026-10-17 — HC-08 hero sword modeling selected, paint running
+
+Latest black-pommel reference is `hero-short-sword-reference-v3.png`; matching
+prompt is `hc08-hero-sword-reference-prompt-v3.json`. AI geometry v2 succeeded
+once in 75.02 seconds. Normalized to 70 cm; deliberate 14,000-triangle budget
+retains 13,998 triangles, up from the old 5,000. Collar fit v2 rejected for 25
+contacts; v3/v4/v5 bounded repairs retain acquired geometry and clean the lip.
+Selected `hero-short-sword-modeling-v5` passes actual topology and full/close-up
+views. Paint attempt v1 is running against reference v3. No approval recorded.
+Arcane-ish direction is explicitly reaffirmed: broad painted wear, deliberate
+bevels and controlled highlights; reflective black fittings, natural canvas,
+normal steel blade. Existing library sword, pair and layout remain current until
+the new surface, exports and browser views are inspected. DH-02 pack's 3 mm
+local repair retained its one contact; v2 is not selected for paint.
+
+### 2026-10-17 — HC-08 hero kit v2 prepared in Framewright
+
+User's Arcane-ish reminder remains binding. Current sword is guardless with
+natural woven canvas, a longer squared reflective black collar and matching
+black pommel/upper band; steel blade retains its AI albedo. AI acquisition v2,
+bounded modeling v5 and material v2 produce 13,998 triangles at 70 cm nominal.
+Material v1 softened the wrap edges excessively; v2 preserves those edges and
+uses the AI canvas swatch at a 4.5 cm repeat. Geometry/UV/normals unchanged by
+material work. Paint's single attempt saved validated maps then exited
+-1073741819 during shutdown; failure receipt retained, no retry.
+
+Current Framewright IDs: sword `6555e2d4-f4b1-453f-ace1-c30ac63ec950`, pair
+`7632742c-0691-474d-a478-95650da21ef6`, full layout
+`66d90ce7-a630-4bb8-9e55-eaff542226e2`. All three live views and hilt close-up
+inspected; full UI proofs in `assets/HC-08/browser-v2/`. Original revisions
+remain. Revision attachment inherited old labels/notes, so exact new import
+metadata was restored and verified afterward. Pair/layout contain 27,996 /
+104,634 triangles; no intergroup contacts. All 12 source/FBX view comparisons
+pass (worst mean RGB byte delta 0.00776); max companion geometry delta below
+0.000000324 m. Seven other kit models remain byte-identical.
+
+`assets/HC-08/review-ennix-gear-v2/` contains ten models with packed Blend, FBX,
+local maps, geometry/material lineage, failure/selection receipts and browser
+proofs: 645 hashed files, 787,661,162 bytes. Delivery SHA
+`aede3ce7f97a6c94518c199d14c4030adff2abef95949432ad3f695ca33ea799`.
+Snapshot `evidence/hc08-gear-complete-state-v2.json`: 471 records, 400 current
+(248 models, 142 images, ten audio), 19 prepared / eight unfinished requisitions.
+All three held collections empty, zero human approvals; no game import/push.
+
+DH-02 pack v4 clears its last fold contact by moving one local patch at most
+2 mm; earlier 3/6 mm smoothing attempts remain rejected. Helmet/shield/pack
+each ran one paint attempt, saved validated maps, then failed at shutdown with
+the known code. Restored exact acquired surfaces/normals in
+`assets/DH-02/painted-group-01-v1/`; four-view material review is next, then
+three arrangements and portable exports. No GPU job remains running.
+
+### 2026-10-17 — DH-02 fallen Raider gear prepared for review
+
+All five props and three arrangements now pass live Framewright inspection;
+proofs are in `assets/DH-02/browser-v1/`. New helmet/shield/pack retain acquired
+geometry and smooth normals, AI albedo, broad roughness and no micro-normal
+overlay. All four fixed material views inspected. Reused old blade and iron
+torch remain separate from Ennix's revised hero sword. No fine wood or gore.
+Pack ledger is an integrated exposed edge, not a separately opening book.
+
+First arrangements were rejected because rigid straps held the pack body above
+the floor. Selected `painted-group-03-v2/` uses side-resting packs and rigid
+placements only; each arrangement has five parts, 40,792 triangles and zero
+intergroup contacts. Each prop's lowest vertex reaches the floor. Static straps
+and these poses do not certify physics. All three layouts inspected from four
+fixed views and an elevated live view. Framewright's rotated hierarchy bounds
+are conservative; actual exported vertex bounds are recorded in companion audits.
+
+New current model IDs: helmet `26d4dd87-a628-4a57-aed1-e2fc57dbd19c`, shield
+`80ccc1be-f5f1-4ab1-9203-641821f2f9ba`, pack
+`3fe0f336-b4bb-499a-92d8-627a5dcd3e1a`; arrangements
+`dcbd8501-f4f9-4727-ac36-116376828b13`,
+`896fe676-4bcf-4f1d-a444-996c19b38722`,
+`abad9d67-5046-4b51-abbd-6fab3042d679`. Receipts:
+`reuse-library-v1.json` and `final-library-v1.json`. All 32 source/FBX appearance
+comparisons pass; worst mean RGB byte delta 0.155323, all companion vertex
+deltas below 2e-6 m. First CPU new-prop package failed due to `-painted-review-`
+versus `-review-` folder naming; partial v1/log retained. Corrected
+`review-new-props-v2` passes; no AI inference repeated.
+
+Complete portable `assets/DH-02/review-fallen-gear-v1/`: 506 hashed files,
+563,999,790 bytes; manifest
+`6c592f3ff40ed06e650279c96595b9d257b337ee6fd69e4c1c94b4f4a65797aa`.
+Latest snapshot `evidence/dh02-gear-complete-state-v1.json`: 477 records,
+406 current (254 models, 142 images, ten audio), **20 prepared / seven unfinished**.
+Remaining: CH-03, DN-01, FX-01, FX-02, RC-01, FX-03, TA-01. CH-01/CH-02/DH-03
+remain held empty; zero human approvals, no game import/push/publication.
+No background processes remain. Browser tab 19 is marked for handoff on the
+third arrangement; user tab 1 remains untouched. Goal remains active.
+
+### 2026-10-17 — DN-01 seven-model partial checkpoint in Framewright
+
+Continued the commission under Mark's Arcane-ish reminder. Reuse audit
+`evidence/dn01-rc01-reuse-inventory-v1.json` checked the other Aether Wars
+project and this collection before acquisition. Four passage modules reuse
+TW-01 walls/floor/ceiling with invertible UV-preserving transforms: straight,
+10-degree descent, 20-degree descent and 90-degree turn. Each has 43,766
+triangles, four separate parts, a walking-level entrance pivot and 3 x 4 m
+clearance. Slopes use vertical shear so connector planes remain vertical.
+Actual GLB and FBX each pass 651 interior and 42 connector probes per module;
+four source views plus entrance/exit/cutaway views inspected for each.
+
+Vent and canvas references were generated with retained exact prompts, then
+each conditioned one successful AI geometry attempt. Selected vent v7 locally
+retopologizes a small acquired rear-edge patch after bounded fairing and
+nonplanar hole-fill attempts failed; 14,930 triangles, closed, zero contacts.
+Cloth v7 repairs acquisition pinholes, discards only enclosed negative-volume
+cavities, reduces to 5,000 triangles and clears two local contacts. Dense-normal
+transfer showed voxel ripples, so selected smooth vertex normals replace it.
+All modeling views and topology checks pass before paint. One paint attempt per
+asset saved maps with validated transport and then exited -1073741819 during
+shutdown; failures retained, no retries. AI albedo, broad material response,
+pale limestone, selective bronze and matte canvas remain; no cheap wood or
+micro-normal overlay.
+
+Four passage models and standalone vent/cloth passed source/FBX/live review.
+Fitted assembly v4 uses five separate cloth copies, measured slot centres and
+about 32 cm hanging lengths. Outer openings are narrower; guessed placements
+v1-v3 failed fitting checks and remain preserved. Only intentional concealed
+pin bands contact the lintel; the hanging bodies are clear. Six-part assembly
+has 39,930 triangles and is static: no draft physics or motion claim.
+
+Seven current model IDs, sources and served hashes are recorded in
+`assets/DN-01/module-library-v2.json`, `vent-cloth-library-v1.json` and
+`vent-assembly-library-v4.json`. All seven full UI proofs are in `browser-v1/`.
+The turn's `passage-turn-90-interior.png` is an exterior orbit capture;
+`passage-turn-90-inside.png` is the actual interior proof. FBX neutral-tint
+transport follows the existing specular lesson: export-copy scalar equivalence,
+authored-specular comparisons, source GLB/packed Blender unchanged. All 28
+paired comparisons pass, worst mean RGB byte delta 0.119517. A Windows default
+encoding error corrupted module labels; explicit UTF-8 repair was read-verified
+in live metadata, receipts and UI without changing geometry.
+
+Partial portable checkpoint `assets/DN-01/review-passage-progress-v1/` has
+541 hashed files / 273,591,306 bytes; manifest
+`4625c6fd55b7c4393e0850ab62de4513ec6992ad9202bbd84e8a6993c779bd1f`.
+Snapshot `evidence/dn01-passage-progress-state-v1.json`: 486 records / 415
+current (261 models, 144 images, ten audio). **20 prepared / seven unfinished**;
+DN-01 remains partial. Next: cloth deformation, sliding wall slab, rotating
+floor ring, prefractured collapsible ceiling, full-kit audit. Other unfinished
+IDs remain CH-03, FX-01, FX-02, RC-01, FX-03, TA-01. Three held collections
+empty; zero human approvals, no game import/push/publication. No background
+render/inference processes remain. Tab 19 is retained on the fitted vent;
+user tab 1 untouched. Goal stays active.
+
+### 2026-10-17 — DN-01 complete passage kit, five additional live models
+
+Prepared `assets/DN-01/review-passage-kit-v1/` using the earlier seven-model
+checkpoint plus five new models. The continued Arcane-ish direction keeps pale
+limestone, selective metallic bronze, broad painted wear and matte canvas.
+No new inference was needed: TW-01 walls/pilasters/floor, GV-02's acquired ring,
+TW-02's corrected ceiling and the acquired DN-01 vent/cloth supplied geometry.
+Fracture caps are the only newly created surfaces; exterior UVs and source
+lineage remain. No game import, publication, push or human approval.
+
+Sliding wall model `482ff374-4f60-4d90-8e42-2ca2986c2b01` has 47,604 triangles,
+a 3 x 4 m clear opening and 3.1 m +Y travel; installation needs an adjoining
+wall pocket. Ring `f581faec-2835-43bb-8d05-8f0fbe3e4eee` has 12,344 triangles,
+3 m ring diameter and 3.3 m square foundation, with an explicit centre axle.
+Both have eight-second open/turn/reset clips. Source sweeps and actual GLB/FBX
+frame samples verify stationary fixed parts and no moving/fixed contacts.
+
+Ceiling `01f863fd-30be-48bd-8e8c-be4431161495` and exploded inspection
+`baeb6654-3ae1-4c72-927e-072e0d6146f0` each have nine closed pieces and 25,162
+triangles. The corrected source was fitted to 3 x 3 x 0.5 m and partitioned,
+retaining painted exterior normals/UVs and matte limestone fracture caps.
+Relative volume error is 3.33e-11. Nine individual fragment GLBs with base
+pivots reassemble within 2e-6 m; metadata retains placements. Set assembly top
+to 4.5 m above floor for at least 4 m clearance. Chaos setup is not claimed.
+
+Animated vent `28f458c8-aa7d-4f00-9003-10b5fe4c530b` has six meshes, 39,930
+triangles and twenty bones. `DraftCanvasBreeze` is an eight-second authored
+preview, not certified cloth simulation. All 193 frames in Blend/GLB/FBX clear
+the hanging bodies and retain fixed pins; maximum free motion 0.02687 m,
+maximum source/export deformation delta 2.10e-7 m. A false-contact check from
+split UV seams was fixed in evaluation geometry only. First mechanical package
+failed on inherited hinge names; explicit object bindings fixed v2. Breeze
+package v2 was rejected for an imported 80-triangle bone-display helper; v3
+removes identified helpers and checks the exact six-mesh set. Failures retained.
+
+All five new models were inspected in live Framewright; all three clips played
+and were paused. Proofs: `assets/DN-01/browser-v2/`. Source detail/four-view and
+FBX appearance reviews pass; across all twelve models, 48 paired views have
+worst mean RGB byte delta 0.119517. Receipts: `mechanisms-library-v1.json`,
+`mechanism-export-audit-v1.json`, `breeze-export-audit-v2.json`, and
+`fragment-export-audit-v1.json`. Original passage exports retain their walking
+and connector audits. Tab 19 is retained on the animated vent; user tab 1
+untouched. No render/inference processes remain.
+
+Full portable kit: **852 hashed files / 508,035,408 bytes**, manifest
+`99c786de1ce1f5171fe866208ced05f2cfbb5c88fec564f2a72bf8e0c8da63ad`.
+`evidence/dn01-frozen-package-audit-v1.json` reverified all files and twelve
+served GLB hashes. Its operator visual addendum covers the exact three breeze
+detail images whose frozen generation-time receipt still says pending; frozen
+package bytes remain unchanged and this is not human approval.
+Snapshot `evidence/dn01-passage-complete-state-v1.json`: **491 records / 420
+current assets** (266 models, 144 images, ten audio), **21 prepared / six
+unfinished**. Remaining CH-03, RC-01, FX-01, FX-02, FX-03, TA-01; three held
+collections empty, zero human approvals. Next is RC-01 cell reuse/modeling.
+The commission goal remains active.
+
+## 2026-10-17 - RC-01 component paint checkpoint and requested overnight shutdown
+
+Mark requested a clean shutdown at midnight tonight, explicitly MST. An optional
+timezone question was offered; while unanswered, the literal schedule is
+2026-10-18T00:00:00-07:00, which is 01:00 Denver MDT. Start closeout at 00:45
+Denver. One-time heartbeat `artiss-midnight-mst-closeout` uses COUNT=1, targets
+this chat, and asks to save, finish owned writes, update handoff, pause the goal,
+then write the operational ready receipt. Windows task
+`Codex-Artiss-OneTimeShutdown-20261018` was registered and read back with next
+run 2026-10-18T01:00:00-06:00. Its exact action was validation-tested in Windows
+PowerShell. It requests shutdown `/s /t 0` without `/f`, requires confirmed
+checkpoint and goal pause, and refuses a run more than ten minutes late.
+The authority is `work/artiss-tomb-2026-10-16/evidence/midnight-shutdown-request-v1.json`;
+the exported task XML and script `Invoke-ArtissMidnightShutdown.ps1` are adjacent.
+This is a future stop; the goal is active now. If Mark chooses Denver midnight,
+reschedule both events and update the request and STATUS. Do not write the ready
+receipt early or claim the PC has already shut down.
+
+RC-01 acquired bench, barred iron door and shackle cuff once each from retained
+ImageGen references. First auto-QEM derivatives had folds; rejected evidence
+remains. Bench v2 local fairing is selected at 10k triangles; real voxel/QEM
+door v3 is 20k and cuff v3 is 6k. Each selected modeling derivative is closed,
+positive-volume and has zero checked self-contacts. Paint uses the simplified
+painterly references; selected geometry/normals are restored through exact UV
+correspondence. Correct transports/UV authorities are **v2**, paint attempts
+**v1**. The initial wrong bench-audit filename and wrong Blend transport input
+failed before inference and are retained as CPU preparation failure receipts.
+All three paint jobs saved validated output and then exited -1073741819 during
+teardown. No job was retried. All source/paint validation and execution receipts
+remain under `assets/RC-01/<stem>-texture-v1/<stem>-paint-attempt001/painted.*.json`.
+
+Selected painted models: `assets/RC-01/painted-components-v1/<stem>/<stem>.blend`
+and `.glb`, for `cell-stone-bench`, `cell-barred-door`, `cell-shackle-cuff`.
+Four fixed painted views for each are operator-verified in
+`<stem>-painted-review-v1/review-receipt.json`. Bench metallic zero, roughness
+.70-.84; iron metallic .94, roughness .34-.50; no micro-normal map. Canvas/wood
+are not substituted into the cell. Door and cuff are still individual sources,
+not a completed door pair or wall fixture. Cuff wrist and attachment holes are
+visually open; it needs fitted links/mount, not another AI acquisition.
+
+TW-01-derived architecture: `assets/RC-01/painted-reuse-v2/cell-architecture/`.
+Interior x[-6,0], y[-3,3], z[0,4], +X front and +Z up, entrance-centre pivot.
+961 actual floor/ceiling ray pairs prove 4 m clearance; door opening 2.3 x 2.8 m.
+Architecture has not yet been visually reviewed as a furnished room.
+Emitter pair: `painted-reuse-v5/cell-emitter-pair/`; source original GV-04 remains
+unchanged. v3/v4 local repairs failed and remain; v5 adds a bounded one-sided
+fold separation, max displacement 0.0074727385 m. Both copied frame meshes now
+pass the individual self-contact test, and four painted views were inspected.
+There are **504 inherited frame/glass contacts** to characterize; do not call
+that pair contact-free. Geometry face/UV arrays and painted maps were preserved.
+
+Next work: fit new cuff plus GV-02 chain-link.glb and ceiling-mount.glb into the
+wall shackle; duplicate/mirror the door with hinge pivots and opening-clearance
+checks; furnish the room with the bench and pair; place
+`scratched-tallies-v1.png` and inspect its alpha edges on stone. Then interior,
+cutaway and export reviews, Framewright staging and live verification, and
+portable freeze. The complete cell is not ready and no RC-01 model has been
+staged. Seven reference/decal images are in its collection.
+
+`evidence/rc01-component-paint-checkpoint-v1.json` verified the four review-source
+hashes, all fixed-view hashes, selected paint validation, active project, held
+collections and approval fields. Live state: **498 records / 427 current assets**
+(266 models, 151 images, ten audio), **21 prepared / six unfinished**. Remaining
+CH-03, RC-01, FX-01, FX-02, FX-03, TA-01; held CH-01/CH-02/DH-03 empty. No human
+approvals, game import, push or publishing. No render/inference/export processes
+remain at this checkpoint; existing Blender MCP services were preserved.
+
+## 2026-10-17 23:10 MDT - RC-01 complete cell review set
+
+Continued within the scheduled midnight fixed-MST stop (01:00 Denver; closeout
+00:45 Denver). The shutdown task and heartbeat remain scheduled; readiness is
+not written early and the goal is still active.
+
+RC-01 is now prepared for human review. Frozen authority:
+`work/artiss-tomb-2026-10-16/assets/RC-01/review-cell-kit-v1/`, 655 hashed files,
+494,981,554 bytes; delivery manifest SHA256
+`ac11ac73270ca00f98f9ae0b1f11889cb64d11a61d81f5c19b5f87c8076a30df`.
+Seven portable GLB/Blend/FBX candidates, local maps, seven reference/decal
+images, source/FBX fixed views, six interior views and live browser evidence.
+Selected sources are pinned by `rc01-delivery-v2.json` and
+`assets/RC-01/framewright-stage-v1.json`. Models: stone bench, barred door pair,
+wall shackle, 2 m emitter pair, 6 x 6 x 4 m shell, furnished room and cutaway.
+The room has 198,260 triangles / 28 meshes; cutaway 157,116 / 23.
+
+The four-link shackle uses reused GV-02 hardware and the acquired cuff. Fittings
+v2 correct its base and explicitly animate Euler-mode hinge leaves; rejected
+v1 incorrectly keyed Euler values on quaternion-mode imported objects. Actual
+GLB and FBX audits both check every one of 193 frames of standalone and furnished
+door motion, zero contacts, +/-100 degrees. The original hardware is unchanged.
+The final emitter v11 resolves inherited cross-mesh overlap by unexpanded-frame
+Boolean trim, 100-micrometre inset, bounded local fairing and a 0.995 radial fit.
+Frame/glass and self-contact checks are zero in actual exports; 98.6582% of
+glass volume remains. Expanded-cutter and fairing-only failures are retained.
+Architecture v3 fixes an export-precision triangle on the right wall with a
+maximum 3.815-micrometre vertex shift. The tally is mapped onto a clear stone
+panel at z=0.95-1.25 m, avoiding the joint that broke the previous strokes.
+The cutaway retains that wall and removes the opposite wall, ceiling and jambs.
+
+All seven GLB/FBX audits pass. Portable companion geometry differs by at most
+6.74e-7 m, with local maps verified. All 34 appearance comparisons pass; worst
+mean RGB-byte delta 0.16334. FBX driftglass uses an explicit opacity approximation;
+GLB/Blend retain transmission. All seven models were inspected in Framewright.
+Standalone doors played through 3.87 s, full-room doors through 6.48 s; both
+captured paused open at 4 s. Cutaway camera yaw 2.46 / pitch 0.66 shows all
+furnishings. Screenshots and receipt are in `browser-review-v1/` and frozen
+`browser/`. Agent tab 19 is retained on that view; user tab 1 was untouched.
+
+Live state `evidence/rc01-cell-complete-state-v1.json`: 511 total records,
+440 current (273 models, 157 images, 10 audio), **22 prepared / five unfinished**.
+Remaining CH-03, FX-01, FX-02, FX-03, TA-01. Three holds remain empty and human
+approval fields remain zero. FX-01's field is not included in the cell model.
+No game import, push or publication. Packaging and rendering processes completed.
+The freeze script's initial CPU guard used len() on an integer sample count;
+it stopped before output creation, was corrected, then completed normally.
+`git diff --check` passes (line-ending notices only).
+
+Next unresolved asset gate: CH-03 painted base rigging/variant preparation, or
+the isolated native effects review workflow. Read CHARACTER_ANIMATION before
+clips; do not count reference sheets as Niagara/material delivery. Stop new
+jobs for the timed closeout regardless of remaining work.
+
+
+## 2026-10-17 23:45 MDT — CH-03 base rig and held stance, partial set
+
+The scheduled stop remains **2026-10-18 00:00 fixed MST = 01:00 MDT Denver**.
+Begin closeout at **00:45 MDT / 06:45 UTC**. Do not pause early or write the ready
+receipt until all owned work is saved and the goal is actually paused. The
+one-time heartbeat and Windows task were rechecked; the next run is 01:00 MDT.
+The task requires the ready receipt and uses shutdown /s /t 0 without /f.
+
+CH-03 base progress is frozen at
+`work/artiss-tomb-2026-10-16/assets/CH-03/review-raider-base-progress-v1/`:
+126 files, 93,827,199 bytes, manifest
+`481946a7b61193a356370aa45bae483470b24dfdf5bc9a29056eb242a46c7fdc`.
+Current Framewright model `03f12088-0e3b-4f7e-a1ff-d1c613763e73` (revision 3),
+SHA `56d4c32ed3d634cc30d8e0e98ddfab953d7d0e96a403243e49b381bacc8ce38f`.
+Four-view image `13938f74-0bf8-4264-9356-385594f4a5ba`. The source unrigged
+model and first rig remain earlier revisions. Revision linking inherits old
+metadata, so the current model/image names and notes were restored afterward.
+
+Auto-Rig Pro preflight succeeded. Original +X painted base was rigidly transported
+-Y for ARP; generic hand landmarks were rejected and 42 measured joints fit to
+actual glove surfaces. ARP detect/match/bind produced 100% weight coverage and
+max four influences while preserving the original mesh/UV data. Its first game
+export included c_traj_basebone; disabling arp_ge_master_traj removed it. Generic
+local-X stress poses twisted Manny bones along their length, so they were not
+accepted as bending evidence. Explicit world-axis hinge tests correctly exercised
+shoulders, elbows, knees and torso. All rendering was CPU; no new inference ran.
+
+Automatic hand weights caused spikes under curl. Local linear glove subdivision
+with two cuts exceeded the 20,000 NPC ceiling (21,043) and was rejected. One cut
+is 17,269 triangles. v2/v4 weights improved digits but pinched the wrist; v3's
+all-length distance fade flared distal tips; v5's proximal wrist guard and measured
+finger weights were selected. Final gloves remain coarse NPC geometry and need
+weapon-specific grip inspection. Actual surface/UV audit passed, maximum surface
+transport error 3.725 micrometres and UV error 1.3915e-6; both image pixel hashes
+are unchanged. The source and every rejected derivative remain intact.
+
+The first live GLB displayed 2 cm static bounds because its inherited armature
+scale was .01. Normalization v1/v2 using Blender transform_apply shifted the
+skin by .923 mm and was rejected. v3 explicitly transported mesh and armature
+data into world metres, cleared pose bases, and added a nondeforming root above
+pelvis/IK roots: existing joint heads unchanged, skin drift 6.892 micrometres.
+Final root/mesh scale is one; Framewright now measures 1.82 m. The stock gate's
+name allowlist omits its own declared root_bone; scoped
+`ch03-ue5-manny-explicit-root-v1.json` adds only root. The final 87-bone FBX passes
+all Manny hierarchy, required bone, four-influence and NPC budget checks.
+Framewright's separate rig badge remains Unknown skeleton because its compiler
+CheckoutPath is unconfigured; no application settings were changed.
+
+Selected authoring chain: `raider-rig-hands-v5` -> `raider-rig-normalized-v3` ->
+`raider-held-pose-v2` -> `raider-portable-v2`. The two-second
+Raider_Relaxed_Held_Pose has arms down, soft elbows, inward palms and relaxed
+fingers. It is not breathing/locomotion. The held GLB appends only rotation clip
+payload to an exact canonical bind GLB. The exported 49-sample stance check passes.
+Actual-export four-view start/interior/end inspection passes; normalization's
+worst mean view change is 0.002815 RGB bytes. Final FBX/GLB PBR channels are exact;
+posed skin difference is below 20 micrometres. FBX animation evaluation rewrites
+object transforms each frame, so axis normalization must happen after frame_set
+in comparisons. The largest earlier 28.6-micrometre joint residual was on IK
+helpers; deform joints were below 6 micrometres.
+
+Live consumer: agent tab 19 remains on the corrected raider with clip selected,
+paused at 1.0/2.0 seconds. Screenshot and state are in
+`assets/CH-03/browser-rig-review-v2/`. Both UI export choices were exercised;
+actual server export bytes with the clip match the staged GLB exactly, while
+zero-clip export keeps all mesh, node, skin, image, accessor and binary payload
+unchanged. User tab 1 was untouched. No human approval or production-ready claim.
+
+Latest `evidence/ch03-base-rig-progress-state-v1.json`: 515 total records,
+441 current (273 models, 158 images, ten audio), **22 prepared / five unfinished**.
+CH-03 is deliberately NOT marked prepared: three armour looks, blades, short
+carbine and Bulwark remain. Other unfinished IDs: FX-01, FX-02, FX-03, TA-01.
+Held CH-01/CH-02/DH-03 are empty. No game import, push or publication.
+
+Next: advance the raider variants/weapons via existing-asset reuse or source-bound
+AI acquisition/mapping, or prepare isolated native effects. Do not substitute
+reference images for actual Niagara/material deliverables. Respect the timed
+closeout regardless of remaining work. Preserve frozen package bytes.
+
+## 2026-10-18 00:32 MDT — CH-03 outfits and weapon progress before timed closeout
+
+Five new model candidates were staged and visually checked in the separate
+Artiss Framewright project. Bulwark `b584690e-092a-449b-b7e8-ccd87db54130` is
+2 m / 14,996 triangles; scout `736eb173-4148-4863-858e-80430376033e` is
+1.82 m / 14,998; guard `ceb48013-c5a0-40c6-b993-136d5767f013` is 1.82 m /
+14,999. All three are unrigged. Their body references condition separate AI
+acquisitions; they are not yet validated interchangeable skins. The existing
+base rig and frozen base-progress package remain intact.
+
+Clean blade `50ddc3d6-0c89-4718-bfc6-d92d7c10367d` reuses the earlier DH-02
+crossguard weapon at 70 cm / 5,000 triangles with geometry, UVs and normals
+unchanged. Source AI metal segmentation supports restrained steel instead of
+bronze; nonmetal albedo remains unchanged. This is a raider weapon, not Ennix's
+new guardless hero sword. Source originals remain intact.
+
+Carbine `17ac160f-1c03-4341-a6e7-18b467243859` is explicitly labelled geometry
+only, paint failed. The 65 cm source acquisition was compared at auto 5,000 and
+7,500 triangles; 7,500 better retains receiver and sight structure. Its paint
+process crashed with -1073741819 before any maps or validation, and was not
+retried. CPU audit finds finite geometry and UVs, no zero-area triangles and UVs
+inside the atlas; native cause remains unresolved. Preserve both reductions and
+the execution receipt. Moving trigger/parts, muzzle +X, grip pivot, paint and
+final exports remain pending.
+
+The three body paint jobs saved validated maps before native exit crashes;
+their failed execution receipts remain. Small faces initially painted black eye
+masks. New targeted image-conditioned head mapping improves the eyes but can
+bleed skin onto hair/collar. Selected v3 bodies use only a bounded face atlas
+composite: exact original geometry/UVs and all texels outside the face mask are
+preserved. Full-head and failed earlier derivatives remain. Faces and gloves
+are still coarse NPC geometry; this is not hero close-up certification.
+
+`assets/CH-03/review-unrigged-components-v1/` contains exact painted GLBs,
+packed editable Blender files, FBX companions, local maps, source references,
+acquisition/paint lineage, failures, actual-export views, browser proof and
+provenance scripts. **386 files / 305,689,361 bytes**, manifest
+`7010497471718b7f3a6b9a07e4875ea26530d8dbdfcd26d547d30a15631e15a8`.
+Companion reimports preserve triangle/part counts and vertices within 0.06
+micrometres. All four actual FBX four-view sheets and five live models were
+inspected. Framewright correctly shows sizes and lack of rigs; its generic
+static-prop label does not make these characters finished. Compiler integration
+remains unconfigured. No application settings changed; user tab 1 untouched.
+
+`evidence/ch03-components-progress-state-v1.json` verifies **529 total records /
+455 current** (278 models, 167 images, ten audio), **22 prepared / five unfinished**.
+CH-03 remains unfinished alongside FX-01, FX-02, FX-03 and TA-01. Held
+CH-01/CH-02/DH-03 are empty; no human approval, game import, push or publication.
+
+Next CH-03 gate: rigs, deformation and held poses for scout/guard/Bulwark,
+weapon-specific grips for all bodies, and carbine failure diagnosis before a
+distinct next attempt. The timed 00:45 MDT checkpoint / 01:00 MDT shutdown still
+takes precedence. No new GPU job is running. Do not rewrite frozen package bytes.
+
+### 00:39 MDT addendum — source-bound rig preparation and effects reuse audit
+
+Three new body sources were rigidly transported +X to ARP -Y with unchanged UVs
+and under 0.1 micrometre rotation error. Source-bound files are in
+`{scout,guard,bulwark}-rig-transport-v1/`. Measured 900 px front/back glove views
+are in `*-hand-surface-probe-v1/`. Scout and guard each have 42 newly measured
+joint points, using midpoint depths between front/back surface hits; both fitted
+front overlays were inspected. `*-hand-landmarks-v1/operator-review.json`
+records technical visual findings only; draft landmarks still require technical
+acceptance, body marker fitting and later deformation. No new rig or animation
+was created. Do not reuse the base raider's pixel coordinates blindly.
+
+Bulwark's middle/ring fingers are joined in both the dense source and reduction.
+`bulwark-dense-hand-probe-v1/` isolates this from triangle-budget loss. Its live
+Framewright notes now flag the defect. Resolve source-guided glove separation
+before independent digit binding; subdivision alone cannot add an absent gap.
+All these preparation files remain outside the frozen component package, whose
+bytes are unchanged. Overall inventory/counts are unchanged.
+
+`evidence/native-effect-reuse-audit-v1.json` verifies seven previous native
+source files against the original frozen AetherWars review hashes: ember,
+mist and pulse systems/materials, plus MF_AetherCorePulse. They are starting
+points only. New dampening span/desaturation/flare, bomb event sequencing,
+ring-indexed warmth/etching and painterly post-process remain unbuilt. The
+previous isolated AetherEffects project is UE 5.8. No Unreal editor launched,
+no prior effect changed, and no game project accessed. Use a new isolated
+review-only project and /Game/ArtissReview namespace for subsequent effects.
+
+## 2026-10-18 00:45 MDT — requested midnight MST closeout
+
+The timed stop is reached. `evidence/midnight-work-checkpoint-v1.json` records
+the saved commission, current inventory and exact progress hashes. No owned
+inference, render, export or queue process remains running. Observed Python
+processes 44104 and 10572 serve blender-mcp 40876 and were preserved; no unrelated
+service or application was stopped. All owned exec sessions have completed.
+
+Framewright project remains `45863b1c-3352-4eea-bfc5-70a22ddeb40a` with **529
+records / 455 current assets**: 278 models, 167 images, ten audio. **22 prepared /
+five unfinished**: CH-03, FX-01, FX-02, FX-03, TA-01. CH-01/CH-02/DH-03 remain
+held empty and zero human approvals are recorded. Agent tab 19 is left on the
+field guard review; user tab 1 was untouched. Five new model candidates and their
+sources are in Framewright. Frozen component package and independent audit pass;
+rig-preparation files remain separate and unbound.
+
+Resume CH-03 from the source-bound scout/guard hand measurements; resolve the
+Bulwark source glove connection before independent finger binding. Finish three
+Manny rigs, deformation, held poses and actual weapon grips. Carbine paint failed
+before output: diagnose before a distinct next attempt, then separate moving
+parts and set final weapon axes/pivot. Native FX and TA remain unbuilt; reuse
+audit points to previous source graphs in a separate isolated UE 5.8 review
+project. No new engine launch or GPU job was started near closeout.
+
+This checkpoint precedes `update_goal(status=paused)`. Only after the tool confirms
+paused may `evidence/midnight-closeout-ready-v1.json` be written with the exact
+authority deadline. The Windows task remains scheduled for **2026-10-18T01:00:00-06:00**,
+equivalent to the user's **midnight fixed MST**. Validation passed in Windows
+PowerShell 5.1, the task's actual executable. It requests graceful shutdown with
+`shutdown.exe /s /t 0` and no `/f`, only with a valid checkpoint/pause receipt.
+The actual shutdown has not yet occurred. Preserve all frozen bytes and unrelated
+dirty work; no push, publish, game import or human approval occurred.
+
+## 2026-10-18 — morning resumption, character design hold
+
+Mark resumed the Artiss commission and explicitly asked to wait on all character
+creation while he refines their designs. CH-03 is now held alongside CH-01,
+CH-02 and DH-03; existing character work and packages are preserved. Only FX-01,
+FX-02, FX-03 and TA-01 remain active unfinished requisitions (22 prepared).
+Authority: `work/artiss-tomb-2026-10-16/evidence/resume-noncharacter-v1.json`.
+The one-time shutdown executed at 01:00 Denver with exit 0, no force flag and no
+next run. No new shutdown is scheduled. Resume native effects in a separate
+Artiss review project; never import into TheAetherWars or infer human approval.
+
+## 2026-10-18 morning — Claude transfer checkpoint
+
+Mark requested the file location to pass the work to Claude. The complete
+transfer guide is `work/artiss-tomb-2026-10-16/HANDOFF_TO_CLAUDE.md`. It distinguishes
+22 prepared sets, four unfinished effects/post-process sets and four holds.
+All characters remain held; no human approval, import, push or publication.
+
+The isolated native FX-01 graph v3 and corrected StageV2 were saved. Probe v5
+(PID 17280) exited 0 and saved five captures, but only the flare responds
+visibly; steady/decay/settled states drop out. The next gate is control/channel
+diagnosis and fresh state proof, followed by lighting and review media. Earlier
+failed builds/teardown logs remain intact. FX-02/FX-03/TA-01 are still unbuilt.
+
+Live process inspection found no owned editor, render, export or inference
+writer. Framewright PID 12728 remains running at loopback port 5179, with its
+existing App_Data preserved; unrelated Blender MCP services were untouched.
+The transfer guide records the separate database location and exact asset,
+source, effect and receipt paths. No new pause or completion was claimed.
+
+## 2026-10-18 morning — FX-01 native review set prepared
+
+Mark asked to keep rolling after the transfer checkpoint. FX-01 is now prepared,
+raising the count to 23 prepared / three active unfinished / four held. Native
+source is `/Game/ArtissReview/FX01V6` in `effects/ArtissEffects`; portable package
+is `assets/FX-01/review-native-v1/Artiss-FX01-native-review-v1.zip`. The 29-file
+package audit passed. A separate fresh packaged process exited 0, resolved all
+native assets and captured the single field actor. Eight-second video playback
+reached 8 seconds/ended without error in Framewright; one video and two images
+were imported and served hashes match. Human approval remains pending.
+
+Correction to the prior checkpoint: the resting field was present. Diagnostic
+channel/opacity probes and measured pixels disproved the visual dropout
+inference. `effects/fx01-steady-state-correction-v1.json` preserves the comparison.
+V6 improves visibility and lighting and simplifies the graph. Earlier shutdown
+access violations and an overexposed lighting probe remain retained. Letting
+editor-owned resources drain before shutdown gave clean final capture/reopen
+exits. Framewright now has 458 current items (278 models,169 images,10 audio,
+one video), with all character holds intact.
+
+FX-02 source import completed in `/Game/ArtissReview/EventSourcesV1`: separate
+Spark Disc body/cap and three existing gyrosphere rings, with exact source maps
+and hashes. `effects/event-source-import-v1.json` records it. Native FX-02 event
+graphs, FX-03 reactions and TA-01 post-process are the next work; no new characters.
+
+
+## 2026-10-18 — Spark Bomb native review completed
+
+FX-02 corrected portable package is `work/artiss-tomb-2026-10-16/assets/FX-02/review-native-v2/`. Native 8 s/192-frame clip plus original four-second fuse audio uploaded and played to completion in Framewright (video `eea8a726-c6e6-4c1d-91f8-e610117884f6`, comparison `94798f45-85b0-42e1-a4a1-36cb423a7443`). Standalone reopening resolved 18 assets; editor scrub at 0.2 s produced 45-degree cap yaw. The original v1 package is retained as rejected binding evidence. New sequence `/Game/ArtissReview/FX02TimelineV3/LS_SparkBombReview`; map `FX02_ReviewStageV5`. No human approval or game import. Current scope 24 prepared / FX-03 and TA-01 active / CH-01 CH-02 CH-03 DH-03 held. FX-03 native candidates need feather/lighting review; TA-01 initial material compiled but captures remain.
+
+
+## 2026-10-18 — Artiss authorized review scope completed
+
+Recorded 2026-10-18T14:51:53.579897+00:00. All 26 currently authorized requisitions are prepared for human
+review; zero active builds remain. CH-01, CH-02, CH-03 and DH-03 stay held. No
+character work, inference, TheAetherWars import, publication, push or human
+approval occurred in this final native-effects pass. Current ledger and clean
+Claude transfer guide are under `work/artiss-tomb-2026-10-16/`.
+
+FX-03 current package: `assets/FX-03/review-native-v1/Artiss-FX03-native-review-v1.zip`
+(35 files; SHA256 cba887467409e94d66cc38610f0e3c7c12f60fbffc6e93cb00886aa5456d39a2).
+Packaged process 49024 exited 0, resolved 29 assets/all 11 bindings, captured two
+stills and verified the clock at 0.5 seconds. Main capture fx03-review-v2 supplied
+192 native frames. Video a6d30688-5229-4446-af27-3e5b7a2fd437 played to 8 seconds,
+ended without error at 1280 x 960. Comparison aa0ca449-f7e2-445f-8ce4-744d6559306a.
+Current map FX03_ReviewStageV6; sequence FX03V2/LS_GyrosphereLockReviewV3. Shared
+review clock requires per-instance routing on future gameplay integration.
+
+TA-01 current package: `assets/TA-01/review-native-v1/Artiss-TA01-native-review-v1.zip`
+(32 files; SHA256 42bcd5160c393abdb48fd9f231c5697c93a1891807cadc018334066cd507eabc).
+Packaged process 54208 exited 0, resolved 25 assets and captured the native ink
+result. Extended luminance range matches the game. Framewright comparison
+4a1751ce-62a5-4f9f-aabd-7159a0e6672a and detail
+579aa039-f562-4e20-9e92-db74426c80a0 loaded; served hashes match. Distants and low
+quality stayed inside repeated-control variation. The earlier multi-mode capture
+teardown crash remains recorded; no automatic crash retry or false clean exit.
+
+All four final native packages passed manifest hashes and ZIP CRC checks;
+`evidence/native-review-final-audit-v1.json` records their paths and checksums.
+FX-01 remains review-native-v1 (29 files); FX-02 remains corrected
+review-native-v2 (26 files), with rejected v1 retained. Current Framewright count:
+538 records / 464 current items = 278 models, 173 images, 10 audio, three videos.
+These include variants and review evidence, not 464 distinct requested assets.
+UI snapshot: `evidence/framewright-completed-review-v1.jpg`.
+
+Exact remaining gates: human collection review, future authorized gameplay /
+cooked-runtime / platform / GPU-performance checks, and Mark's design decisions
+for four held requisitions. No task-owned UnrealEditor-Cmd, Blender, ffmpeg,
+inference or export writer remains. Framewright PID 12728 stays running. The
+user's interactive TheAetherWars editor PID 44552 was observed read-only and
+left untouched. Preserve originals and unrelated dirty work. No shutdown is
+scheduled again; the midnight one-time task already ran and has no next run.
+
+Goal tool returned complete for the current authorized review scope. This does
+not release the four holds or record human approval. Receipt:
+`work/artiss-tomb-2026-10-16/evidence/review-scope-completion-v1.json`.
+
+## 2026-10-18 — Authorized game-map handover: Drift Well traversal and material pass
+
+Checkpoint 2026-10-18T17:38:11Z. Mark subsequently authorized a new Unreal map,
+using available assets and the linked lore, then explicitly handed editor
+control back while Claude continued UX work. This supersedes the original
+no-game-import boundary for this map task only; it does not approve assets or
+release character holds. The live map at this handover was Claude's newer Drift
+Well. Continue that map; preserve Confluence as an independent earlier draft.
+
+Game project: `C:/Users/Ayric/Documents/Unreal Projects/TheAetherWars`.
+Saved map: `Content/Artiss/Maps/L_ArtissTomb_DriftWell.umap`;
+Unreal path `/Game/Artiss/Maps/L_ArtissTomb_DriftWell`.
+Final map SHA256 `baaec22140cdf9551f98eba099dc38e646558eb1cf3c4ab61e09e3d25c75ce3a`.
+Interactive UnrealEditor PID **43716** remains open, showing the vault in game
+view. PIE is stopped; all task test callbacks are inactive. Temporary background
+and Slate throttling overrides were restored without saving editor settings.
+No task-owned background inference, export or render process remains pending.
+
+Focused changes are in game `builders/well_polish.py` and `well_materials.py`;
+`artiss_well.build()` now reapplies the polish. Twenty-one additions carry
+`artiss_well_polish_v1`; existing main actor identities were preserved. Changed
+the first lens position, fixed vault outer hinges, cleared cell/treasury
+approaches, bridged the first secret's threshold, widened/moored seven timber
+boards, added a lower recovery shelf/ramp join and pool steps, reused an
+independently floating wooden chest, placed the commissioned gyrosphere, and
+replaced magical crystal dressing with survey glass. Recovered 11 material
+component slots from original embedded images, including UV1 on the gauge and
+wooden chest interior. Shared source materials and all original maps remain.
+
+Evidence root: game `Saved/DriftWellReview/`; final index
+`checkpoint-final-v1.json`, runtime receipt `runtime-closeout-v1.json`.
+`pie-mechanics-v2.json` proves actual blade-lens hit, actual bomb breach,
+three-bomb chest transfer, bomb-only wall filtering, two-lens signal wiring and
+three-wheel cell wiring. Vault lens wiring used impact injection, not aimed
+projectiles. `pie-walk-v1.json` proves four ramp descents and preserves the failed
+pre-fix vault traversal. `pie-traversal-v2.json` proves the repaired doorway,
+recovery link and pool exit. v2/v3 jump misses remain retained; v4 proves seven
+board landings (100 kg load each), island arrival and floating chest state using
+ordinary jump/movement inputs. PIE-only invulnerability isolated traversal.
+`branch-audit-v1.json` reports main and nine optional routes clear. The first
+encounter wave activates with five template enemies; no complete combat claim.
+
+Material evidence: `Saved/DriftWellReview/material-repair/` and
+`Saved/DriftWellChestRepair/material-repair/`. Final direct-material scan covered
+4,944 slots with no DefaultTexture references; 12 material-instance slots were
+not recursively expanded. Backups before polish are preserved in the evidence
+root. Native viewport and layout captures are indexed by
+`native-viewports-v1.json` and `captures-final.json` under
+`Saved/AetherMcp/review-captures/`.
+
+Exact remaining work: first-time human play/aiming and camera feel; complete
+encounter balance/victory; save/load and cooked-runtime checks; GPU performance;
+optional Niagara waterfall refinement and separate native FX-package gameplay
+binding. Named Remora/Dalton/Ranke positions remain staging markers. CH-01,
+CH-02, CH-03, DH-03 and all new character production remain held. Current map
+design/checks are in game `Docs/DriftWell.md`; Confluence's document now clearly
+labels it as the preserved alternate. Do not rebuild or switch worlds while
+Python retains old World/Actor references. Claude's unrelated dirty UX, source,
+animation and project changes were not edited or reverted. No commit, push,
+publication, new shutdown task or human approval was recorded.
+
+Final verification: map file hash matched the saved checkpoint; editor PID
+43716 remained live. Focused builder/test-tool Python compilation and changed
+documentation whitespace checks passed. RAC's required CPU-only verification
+also exited 0: 757 tests passed, 15 skipped, 198 subtests passed; lint and 241
+stage syntax checks passed, and the built wheel passed isolated installation
+checks (`RAC_VERIFY_OK`). These repository checks do not certify Unreal gameplay.
+
+## 2026-10-18 — Ennix Loading Bay combat prototype
+
+Implemented Mark's accepted dangerous-improviser plan in
+`C:/Users/Ayric/Documents/Unreal Projects/TheAetherWars`, map
+`/Game/Artiss/Prototypes/L_Ennix_LoadingBay`. This is a separate rehearsal;
+Drift Well remains byte-identical to this session's baseline SHA256
+`e9b1efaa7362424229ea6a02f664df9da7d26abbdbcf44767b3dc146f332c979`.
+Claude's dirty UX/combat files were the initial baseline, not reverted.
+
+The room uses existing assets and copied enemy templates: two light enemies,
+then two light plus a heavy. It includes a bombable gallery partition, floating
+prestige timber, a cache perch, recovery basin/steps and gallery undercroft.
+The two new editable enemy properties default to zero outside the prototype;
+prototype values are 35 extra pressure, threshold 100, duration 3 seconds,
+fixed 1.6x stagger damage, no escalation. Collision allowances cannot reset
+from a mid-flight re-push. Existing team rules, speed thresholds and credit
+remain. Local sound/light and the existing hit-stop/reaction pipeline supply
+feedback. AAetherRehearsal restores the entire room on station interaction,
+death or escape below the floor; explicit world tagging isolates saves,
+travel-state capture, quests and discoveries from the campaign.
+
+Runtime checks exposed and fixed three map issues: static/unbuilt navigation,
+a partition pivot below the ramp that blocked explosion visibility, and an
+empty space under the gallery that allowed knockback to escape. The copied
+heavy's 1.5x capsule also made the shared AI's 100 cm melee threshold unreachable;
+this prototype uses 1.25x while the light enemies remain .85x. Shared AI and
+source enemy assets are unchanged. The heavy now lands attacks during repeated
+pushes. A native interaction regression in the dirty baseline also needed a
+narrow fix: a native owner handler must not be pre-empted by generic owner
+signalling, which stranded one double-door leaf.
+
+Game evidence root: `Saved/LoadingBayReview/`; guide: `Docs/LoadingBay.md`.
+`checkpoint-final.json` indexes hashes and the exact final receipts.
+`regression-v3.log` / `regression-summary.json`: 151/151 native tests passed
+after an authoritative editor build. `pie-mechanics-v6.json` proves actual
+bomb breach, embedded blade/timber recall, save refusal and complete reset.
+`pie-routes-v2.json` proves gallery and undercroft walking, timber and cache
+landings with ordinary movement and a measured 100 kg board load.
+`pie-reset-v1.json` separately verifies native station interaction, lethal
+fixture damage and out-of-bounds restart. `pie-direct-v3.json` and
+`pie-improvise-v2.json` hold final ordinary-resource combat runs.
+`pie-push-only-v2.json` records 14 accepted pushes over 20 seconds while the
+heavy remained active and hurt the player. Earlier failures remain retained.
+`native-changes-from-session-baseline.diff` separates these source edits from
+Claude's already-dirty changes. RAC verification also passed, CPU only:
+`work/artiss-tomb-2026-10-16/evidence/loading-bay-rac-verify.log`.
+
+Exact remaining gates: physical keyboard/mouse and controller feel; uncoached
+fresh-player comprehension and repeatable useful interactions; Mark's replay
+verdict; cooked runtime and performance. Automated runs do not grant the
+"I want another go" verdict. Do not propagate rules to Raiders' camp or vault
+before human review. All character production and CH-01/CH-02/CH-03/DH-03 remain
+held. No commit, push, publication or human approval was recorded.
+
+Interactive editor PID 40784 is left open on the saved Loading Bay; PIE and
+probe callbacks are stopped. Background/Slate throttle settings are restored
+without saving user configuration. No task-owned inference, export or bounded
+render remains pending. `Tools/ReviewLoadingBay.py` rebuilds only this prototype;
+its guards refuse any other map and active PIE. Do not rebuild Drift Well.
+
+## 2026-10-19 — Blade location and hit/catch HUD feedback
+
+Mark's playtest: throws look good and launch correctly, but lack perceived
+strength and awareness of where the blades went. Added native shared HUD layer
+`Source/TheAetherWars/AetherBladeFeedback.{h,cpp}`, transient per-hand observations
+in `AetherBladeFeedbackState.h` / `AetherPowersComponent`, landed-hit hook in
+`AetherThrownBlade`, and a narrow overlay insertion in the already-dirty HUD.
+Two numbered amber/teal markers, distance/state, screen-edge arrows, dimmed cover
+markers, hit/return-hit punctuation and separate catch pulses. Damage, travel,
+audio and maps are unchanged. Cancelled anticipation no longer plays a catch.
+Original dirty files were copied to game `Saved/BladeFeedbackReview/baseline/`.
+
+Game and editor targets build; 152/152 native tests pass. See game
+`Saved/BladeFeedbackReview/{game-build.txt,editor-build.txt,regression.log,
+regression-summary.json,live-closeout.json,checkpoint.json}`. Projection tests
+cover four aspect ratios including portrait and ultrawide. Existing real swept
+blade tests now check feedback alongside damage, deduplication and safe reset.
+Live markers rendered, but capture v1 used incorrect positional Rotator arguments;
+v2 used the corrected keyword/kit rotation but overlapped Mark's own input.
+Both probe runs are retained, classified as insufficient for full visual QA.
+Do not count their `complete` field as a pass: throw/recall checks also matter.
+
+Editor PID 32932 is running the Loading Bay in PIE under Mark's control. All
+review callbacks ended; temporary background/Slate throttle changes restored.
+No automated camera or input work remains. Exact artifact/source hashes and
+map-baseline comparison are in `checkpoint.json`. Mark should assess marker
+legibility, offscreen bearings, hit/catch emphasis and whether the throw feels
+stronger; audio/camera feel and cooked performance remain unaccepted. No human
+approval, new character production, map rebuild, publication or push occurred.
+
+RAC workspace verification also completed: 757 passed, 15 skipped, 198 subtests; lint, stage syntax and installed-wheel smoke checks passed. Receipt: work/artiss-tomb-2026-10-16/evidence/blade-feedback-rac-verify.log (RAC_VERIFY_OK).
+
+
 ## 2026-10-22 — Open-source animation methodology implemented and exercised
 
 Added `rac animation` preflight/derive/measure/compare/compare-models/review/summary/
@@ -5116,6 +7955,173 @@ plugin has no gameplay/cooked/crowd-cost acceptance; the existing Character02
 gameplay receipts still apply only to its installed Aether implementation.
 Human acceptance and production readiness remain false.
 
+
+## 2026-10-23 — Ennix idle/walk polish and actual game transition review
+
+The user requested using the reusable workflow to polish Ennix, test transitions
+in-game and present before/after evidence while preserving Character02. Added
+an explicit Ennix polish profile, native leg-frame calibration and coupled sole
+cleanup, quiet idle/hand clearance, bind-frame transport, installed-mesh sole
+sampling, and a configurable owned-pawn runtime review route. New animation uses
+CC0 Quaternius sources with Blender/MIT RAC code; existing Manny-derived motion
+is baseline comparison evidence only. Character acquisition provenance is intact.
+
+Final native candidate-v6 passes exported standing-pose checks, sampled hand/body
+checks, exact model-payload preservation, and both formats' all-frame reimports.
+An independent replay with maintained scripts produces identical bones and complete
+clip payloads. Four native views over two loops are retained for baseline and
+candidate. Idle has a 23 cm stance and scarf-clearing left hand; walk uses 4 cm
+swing clearance, 1.1 s loop and 105 cm/s authored speed. Mesh, weights, materials
+and bind transforms were not rewritten.
+
+Ennix exposed distinct native, Skeleton and SkeletalMesh reference frames. The
+adapter now reads the actual destination mesh bind and transports skin deformation,
+then sets the sequence's retarget-source asset to that mesh. Reload checks compare
+all evaluated clip frames with retargeting enabled. A final saved-asset audit caught
+reflected BlendSpace array edits that had not persisted: final V8 explicitly
+reassigns struct entries and verifies new V6 clips and 105 cm/s rows after reload.
+V2-V7 gameplay after-recordings are superseded for the final walk comparison.
+
+Final owned -game runs (after-v8-30/60) exercise eight start/stop/left/right/reversal
+cases, actual movement and collision. Both complete without errors, with
+1,695/3,390 frames and seven fresh animation-instance resets between independent
+cases. Minimum observed sole gaps are +0.347/+0.365 cm versus -11.000/-10.682 cm
+baseline. All 191 installed-mesh samples are queried each frame; hit coverage is
+99.836/99.847%, with no wholly unobserved foot frames. No negative observed gaps
+remain. Six-Hz hand/non-arm-body sampling finds zero intersections in 339 final
+poses per rate versus four baseline poses at 30 Hz. This excludes sleeves, cloth
+simulation, containment and unsampled frames. Straight-walk flat-support intervals
+remain locked, but sharp turns still yield 10.445/9.414 cm ankle excursion. This
+limitation is visible in the review, not hidden behind the penetration result.
+
+The candidate clips are saved separately under Ennix/AnimationPolish/20261023/V6;
+final blend space/AnimBlueprint are V8. Native source and all 195 checked game
+files are hash-identical, including original Ennix assets/config, Character02,
+default player and game DLL/source. No original game assets were replaced.
+Validation: 930 tests pass, 39 skips, 198 subtests, Ruff, 325 script parses and
+isolated-wheel workflow pass. Rejected attempts and logs remain retained.
+
+Review: work/ennix-idle-walk-20261023/presentation/review.html, paired game MP4s,
+four-view native movies and editable Blender/FBX/GLB exports. Browser automation
+rejected file-URL navigation; files and decoded video frames were inspected,
+but interactive browser playback was not verified. Delivery hashes and limitations
+are in delivery-receipt.json and docs/evidence/ennix-polish-20261023.json.
+New work remains local/uncommitted. Human review, perfect pivot contact, cooked
+runtime and performance acceptance remain open. Character02 remains default.
+
+
+## 2026-10-23 — Ennix sharp-turn foot position and 30/60 Hz review
+
+The user requested fixing the remaining sharp-turn slide, testing exits to idle
+and walking at both rates, and showing before/after while preserving Character02.
+Fresh before panels reproduced V8's 10.445/9.414 cm maximum declared-plant ankle
+excursion. The fixed 15 cm correction envelope and nearly extended support leg
+both constrained the old node. Added character-specific plant offset and optional
+pelvis reach compensation to the independent MIT RACAnimation plugin. Its default
+plant offset remains 15 cm and pelvis compensation defaults to zero. No shared
+Aether game code or binary was rebuilt or replaced.
+
+A clean separate host compiled the plugin. A new Ennix TurnV1 graph routes its
+output through the RAC node with 35 cm plant offset, up to 6 cm pelvis lowering,
+12 cm ground correction and 0.4 cm clearance. Source clips, timings, native model
+and exported Blender/FBX/GLB remain unchanged. The plugin uses installed mesh/bind
+sole samples; the generic installer now also accepts explicit sample-source hashes.
+Fresh reload verified parameters, all 191 samples, intended graph connectivity
+and retained V6 clip/V8 blend-space references.
+
+Both actual owned -game panels complete eight start/stop/left/right/reversal cases
+at 30 and 60 Hz: 1,695/3,390 frames, seven independent-case instance resets, no
+errors. Maximum planted-ankle XY excursion is below 0.001 cm at both rates. Minimum
+observed sole gaps remain +0.347/+0.365 cm, no negative observed contact, and ground
+hit coverage is 99.877/99.884%, with no entirely unobserved foot frames. Capsule
+path and leg lengths are unchanged. Pelvis lowering peaks at 1.937/3.031 cm;
+maximum added vertical step is 1.117/0.684 cm per frame. Foot rotation remains free
+for pivots; the positional metric is not a claim that every sole vertex is rigidly
+fixed. Hand/non-arm-body samples pass in 339 poses per rate at 6 Hz.
+
+Ordinary project plugins auto-enable when EnabledByDefault is unspecified. Made
+this descriptor explicitly false and checked a fresh ordinary startup: neither
+RAC class loads. Review launches use -EnablePlugins=RACAnimation; a second fresh
+reload with that flag succeeds. An incremental descriptor build succeeds with
+identical tested runtime DLL bytes. The game project file is unchanged.
+
+All 212 protected game files match their original hashes, including Character02,
+its Aether solver/DLL, default player, previous Ennix candidates and project file.
+Full RAC validation passes 936 tests, 39 skips, 198 subtests, Ruff, 325 script
+parses and the isolated-wheel workflow. Six new profile tests cover default
+opt-out, finite limits and wrong-mesh rejection. No AI inference or downloads.
+
+Evidence: docs/evidence/ennix-turn-20261023.json and the retained case at
+work/ennix-turn-contact-20261023/. Review includes paired turn-to-idle/walk and
+reversal recordings, four fixed camera angles and a slowed foot close-up. All
+23 videos decode; sampled frames from each view were inspected. Native media
+preview was queued; browser file-navigation restrictions mean interactive HTML
+playback is not verified. Human visual acceptance remains pending, with cooked
+and performance work separate. New work remains local/uncommitted.
+
+## 2026-10-23 — Ennix manual game review opened
+
+At the user's request, opened a visible 1440x900 `-game` session in
+L_AetherVault_MCP with sound, a 60 FPS cap and explicit RACAnimation opt-in.
+The setup-only script replaces the live controlled pawn with Ennix TurnV1 and
+sets that instance's WalkSpeed to 105 cm/s. Readiness confirms the expected mesh,
+AnimBlueprint and stable movement speed after two seconds, then unregisters
+the callback; no automated input or shutdown. The window is left running for
+the user. The prior live state was Character02; its saved default and all 212
+protected files remain byte-identical after launch. Human review is pending.
+Launch, readiness and preservation receipts are in
+`work/ennix-turn-contact-20261023/interactive-20261023-191407/`.
+The retained `launch_interactive.py` and `interactive_review.py` allow this
+manual review to be repeated without saving changes to either character.
+
+## 2026-10-23 — Ennix normal-speed manual gameplay restored
+
+The user found the 105 cm/s inspection launch too slow and requested normal
+gameplay with walking, jogging and turns. `launch_gameplay.py` now opens a
+visible owned game with the live pawn's existing 500 cm/s travel speed, Ennix
+TurnV1 and the same RAC contact solver. `interactive_gameplay.py` adds a
+session-only Left Alt hold-to-walk control at 105 cm/s; releasing restores 500.
+Existing Shift sprint remains 840 cm/s. The callback reads user input and
+records speed status; it never drives movement, saves assets or exits the game.
+
+Two startup attempts failed before pawn setup because FKey accepts neither a
+positional constructor nor a reflected key_name property in this runtime.
+Both failures and exact source snapshots are retained in gameplay-20261023-203322
+and gameplay-20261023-203416. Each owned window was closed normally. Engine
+source confirms FKey's native text importer; `Key().import_text('LeftAlt')`
+with an export round-trip assertion succeeds.
+
+Final readiness is in
+`work/ennix-turn-contact-20261023/gameplay-20261023-203542/ready.json`:
+controlled Ennix pawn, TurnV1 class, normal and maximum speed 500 cm/s, sprint
+840 cm/s. The window is left open for the user. All 215 checked files match,
+covering the 212 original protected files plus TurnV1 and RAC plugin DLLs.
+Full verification again passes (936 tests, 39 skips, 198 subtests, lint,
+325 parsed scripts and isolated wheel workflow). No new animation/contact
+benchmark at jogging speed or human acceptance is claimed.
+
+## 2026-10-23 — Character02 restored for manual gameplay after Ennix rejection
+
+The user rejected the current Ennix character and requested the second
+character. Interpreted as Character02 from the established selection history;
+no particular visual or motion defect inferred. Preserved Ennix sources,
+candidate assets, comparison media and its rejection receipt. Ennix's window
+had already exited normally at 20:37. Its session callback logged loss of the
+controller during exit and overwrote ready.json; the engine log retains the
+successful initial readiness. The new Character02 callback tolerates controller
+loss and keeps readiness separate from errors.
+
+Opened the saved default Character02 in a visible game window, without the
+Ennix mesh override or RACAnimation opt-in. Verified actual controlled pawn,
+Character02 mesh and animation graph, normal speed 500 cm/s and sprint 840.
+The temporary review control retains Left Alt for Character02's calibrated
+89.180502 cm/s walk; no movement is generated. Existing idle, walk, turns,
+attacks, recovery, equipment and contact assets were not edited. All 215
+protected files match after launch. Evidence and immutable launch scripts:
+`work/character02-turn-contact-20261023/gameplay-20261023-203913/`.
+The window is left open for user control. Full RAC checks had just passed in
+the preceding launch task; this change was syntax-checked and verified live.
+
 ## 2026-10-30 — Geometry VRAM calibration and stage release by default
 
 Branch `gpu-efficiency`. Ran each geometry runner twice on the RTX 4090, with
@@ -5254,3 +8260,988 @@ Run v7 passes the rig gate at 79,602 triangles. Every shell is closed and the ga
 v7 is in the game's Raider review slot (the s5 FBX stays in `build/v5/ue`) and in a scratch Framewright copy.
 Open: the painter's smears on the shoulder plate's outer face; the Unreal scripts still live in the git-ignored
 `build/v5/ue` folder.
+
+## 2026-11-03 — Raider: render the cut before repainting it
+
+Mark supplied close-ups of the pauldron and rear pouch. The Framewright
+finished-v7 GLB reproduced both; neutral clay and part-ID views exposed cuts
+through the face of each piece. A reversible CPU repair reuses the original
+image-conditioned acquisition, restores affected surfaces, transfers v7
+paint and fits the steel and leather response. The first repair left a side
+seam. Removing complete waist overlays then exposed missing front-pouch
+support; the delivered version retains and caps that section and binds the
+back panel coherently. Rejected renders and hashes are retained.
+
+Review `work/raider-seams-20261103/delivery/Review.html`. The packed Blender
+file passes the hero rig gate; the GLB preserves the source rig and facial
+morphs. A raised-arm collar opening is present in the original and candidate.
+The shoulder rim still triggers a depth inspection near grazing angles; the
+separate acquisition comparison is recorded, not a waiver. No runtime or
+human acceptance. [Procedure and limitations](RAIDER_SEAM_REPAIR.md).
+
+### 2026-11-03 — Raider post-paint material sweep
+
+The user liked the seam derivative and requested a reusable surface finish.
+`material-sweep` now bakes from explicit slot classes or reviewed per-pixel
+IDs. Raider uses four ID maps, three uniform optical finishes and one kept
+mouth cavity. Open `work/raider-material-sweep-20261103/delivery/Review.html`
+for ten matched static cameras and five moving-light positions. The adjacent
+GLB is the reviewed transport candidate; the Blender derivative retains the
+original rig and eight packed new data maps. Two runs produced the same GLB.
+Independent inspection decoded the class channels and normal lengths, checked
+the original binary prefix and unchanged base colour/AO bindings, and found
+76,154 triangles, 88 joints, and 34 facial morphs. Native hero rig check passed;
+mesh-facing cannot be independently verified by its eye-material naming heuristic.
+The same stage and generic studio review ran on a separate RC-01 shackle cuff.
+These are CPU/export checks; target-engine and artist material review remain
+open. [Instructions](MATERIAL_SWEEP.md) · [evidence](evidence/raider-material-sweep-20261103.json).
+
+### 2026-11-03 — Raider checked in Framewright Assets and Scene
+
+Loaded the verified studio GLB into the active local Framewright project
+alongside Opus's v7. Live inspection found the same four mixed materials had
+working specular, metalness, roughness and normal textures in both workspaces.
+Only Assets provided a reflection environment. Scene's default ambient and
+directional lights left most of the shoulder nearly black. A target preset
+for weathered metal lifted the shaded shape, softened the shoulder highlight
+and reduced glove and T-zone gloss. The app serves the tuned GLB under
+**Raider - Weathered Steel** in **Raider material review**, saved version 3.
+Matched captures from the final catalog asset passed the in-app review across
+ten views per workspace. The artist's visual acceptance remains open.
+[Capture settings, IDs and hashes](evidence/raider-framewright-20261103.json).
+
+### 2026-11-03 — stop turning every Raider part boundary into a wall
+
+Replaced the scene's Weathered Steel instance with **Raider - Continuous Outfit**
+in **Raider material review**, saved v4. The previous library models are still
+available. The dense acquisition already showed relief at the buckle and thigh
+strap. Keeping the fitted costume on one surface removes the sawtooth there;
+using the source reference restores the narrow jacket stitching instead of the
+broad color band. A first bake still drew a horizontal seam via the material
+IDs. A second bake improved that, but lost good paint on the chest, cuffs and
+knees; the delivered bake transfers the previous finish away from the repair.
+
+The two reusable CPU helpers are documented in the
+[fitted surface recipe](RAIDER_SEAM_REPAIR.md#fitted-outfit-for-framewright).
+The generic fitter reproduced the reviewed topology and vertex positions;
+a fresh material sweep reproduced the exact served file. Three rest-topology
+boxes, seven depth crops, the native hero rig gate, five pose probes and 14
+matched cameras in both Framewright workspaces were checked. The outer thigh
+pouch remains soft at close range. Visual acceptance belongs to the artist;
+the fitted outfit is not a detachable equipment set or a cooked game result.
+[Hashes, versions and checks](evidence/raider-continuous-20261103.json).
+
+### 2026-11-03 — right thigh pouch reference and Framewright close-up
+
+The artist liked the fitted Raider and requested a concept-derived side
+reference for the soft outer thigh pouch. Two frozen, conditioned views now
+supply the broad flap and narrow gusset. The original mesh and skin remain
+identical per triangle. A dedicated local atlas increases linear texel density
+2.70 times and separates matte leather from the small tarnished stud. Rejected
+previews and reasons are retained in the [receipt](evidence/raider-pouch-20261103.json).
+
+Framewright serves **Raider - Field Pouch** with the inspection camera under
+the glove in **Raider material review**, saved v5. Twelve fixed cameras in
+each workspace, a posed stride comparison, the native hero rig gate and a
+byte-identical replay from a fresh kit extraction were checked. The earlier
+model remains available. Artist acceptance of the new finish is open.
+[Workflow and delivery](RAIDER_SEAM_REPAIR.md#outer-thigh-pouch).
+
+### 2026-11-03 — Raider pouch feedback and whole-outfit review
+
+The artist liked the v5 outer thigh pouch. For the next look at the full outfit,
+`work/raider-pouch-20261103/delivery/Raider_Full_Character_Review.jpg` collects
+the existing front, three-quarter, side and back Framewright Scene captures.
+The saved scene still serves **Raider - Field Pouch**. Whole-character texture
+approval and review in motion remain open.
+
+## 2026-11-05 — Raider quality pass checkpoint (active, not delivered)
+
+The user delegated autonomous refinement toward AAA quality. Work is isolated in
+`work/raider-polish-20261105/`; the previous Field Pouch delivery remains unchanged.
+Generated registered front/back/side detail references for the outfit and face,
+then added focused arm and elevated leg references. New albedo, relief and response
+maps preserve existing UVs, rig and facial targets. Fixed the sleeve/cuff border
+with at most 4.48 mm of local adjustment; removed duplicate neck skin using proximity
+to the retained head, preserving rear straps. Color-only deletion damaged the straps
+and was rejected. The apparent black knee seams proved to be misplaced metalness:
+albedo-only renders were clean, and correcting the response removed the bands.
+
+`finish-assignments.json`, `finish-profile.json`, and `finish-masks/` replay the final
+material pass through `rac run-stage material-sweep`. `packed01/receipt.json` records
+lossless removal of unused payloads, 155,128,528 to 50,361,200 bytes; active images,
+retained buffer views, skins and animation remain byte-identical. New generic helper:
+`scripts/prune_glb_payload.py`; focused tests and consumer comparison still pending.
+
+`stance01` failed the exported pose check: glTF-imported display-bone tails did not
+point along anatomical joint segments. `stance02` aims shoulder-to-elbow and
+elbow-to-wrist and passes the check. `stance03` further relaxes the finger spread;
+its final pose verification remains to run. These are held poses, not locomotion.
+
+The deformation sweep caught inherited lower-face weights following the neck and
+coat instead of the head. `head-rig01/Raider_HeadRig.glb` fixes those weights and pins
+the collar to the torso; repeated head-turn renders now preserve facial shape.
+Closed eyelids still carry iris-colored paint; mouth interiors and newly exposed
+neck paint also need work. These are active quality failures, not acceptance.
+A 21,000-triangle surface-strand experiment (`groom01`) was rejected for too little
+visible improvement and too much triangle cost. No new hair layer is adopted.
+
+Automatic approval review denied starting the exact saved Framewright executable
+with "blocked by policy". A permission question was sent; no answer has arrived.
+No alternate launch route was attempted. Independent Blender work continues.
+No current Framewright review, cooked UE result, production promotion, or AAA claim.
+
+
+## 2026-11-06 — Raider packed review checkpoint and reusable repair stages
+
+Continued the user-delegated quality pass, preserving the approved Field Pouch.
+Current checkpoint: `work/raider-polish-20261105/review-candidate04/Raider.glb`
+(SHA-256 `55f0b07481d4df458d4196b661d7362dcce38455714f4b2229274a7138df41f6`)
+and `Raider_Native.blend` beside it
+(`912a5cb8acc2c905174babccccb81259844cb6ab740d5d0c8bf3db861f37670d`).
+This is a review candidate, not an AAA delivery or production promotion.
+
+Beyond the earlier checkpoint: repaired closed-eyelid and neck paint, moved lower
+teeth/tongue with the mouth control, lined the collar, improved sleeve/cuff paint,
+repacked isolated cuff UVs, and projected four registered cuff references. Fixed
+chest/armor weights exposed by raised-arm tests. The remaining neckline stripe
+was a crop boundary, corrected by continuing a narrow safe skin reference below
+it. Clamped-row streaks were rejected. The local jaw fold is repaired.
+
+The acquired right ear remained folded after multiple smoothing attempts. Those
+attempts and `review-candidate03` are superseded, not approved. `ear-patch01` had
+an overlapping root bridge; `ear-patch02` failed its edge-manifold check before
+output. `ear-patch03` fits the intact opposite ear's root directly to the existing
+opening, preserving 94 pre-existing face open edges and adding no nonmanifold
+edges. `ear-uv01` separates the patch's atlas; `ear-paint01` uses a registered
+built-in image_gen edit of color and clay guides to remove the doubled painted
+ear. `ear-finish02` smooths the lower attachment and classifies hair/skin response.
+All original facial control names remain, with mirrored donor deltas assigned to
+the matching left/right controls. The saved image and full prompt are in
+`references/ear-right.png` and `references/ear-right.prompt.txt` in the work root.
+
+Final native checks: 66,111 triangles, 88 Manny bones, all 55 required bones,
+34 facial controls, max four weights, no unweighted vertices, and 21/21 file
+images packed after reopening. The original native bone rest frames are retained;
+posed vertices match the exported GLB within 0.000000363 m. The exported relaxed
+held-pose check passes. It is a held stance, not a natural animation. Paired body
+range poses were inspected on `review-candidate02`; the later face/ear work has
+an explicit body/eye/clip invariance proof. Face range poses and studio/moving-light
+views were repeated on the final candidate. Native and transport renders are
+retained. `Review.html` is a local evidence gallery, not a Framewright capture.
+
+Added tested CPU stages `reference-patch` and `prune-payload`, with registry
+entries and focused tests. `reference-patch` pins source, donor and guide hashes,
+uses registered visibility and bounded mapping, and preserves geometry/rig/clip
+structures. `prune-payload` preserves retained bytes and sparse morph accessors
+while removing abandoned images. Fixed the projection sampling batch size at
+OpenCV's row limit. Full `scripts/verify.ps1` passes: 964 tests, 39 skips, 198
+subtests, lint, stage parsing, wheel build and isolated installed-wheel checks.
+Log: `work/raider-polish-20261105/verify-complete.log`. No local GPU inference,
+commit, push, or ledger promotion. The dirty worktree predating this pass remains.
+[Reusable workflow](REFERENCE_PATCH.md) and
+[hash-bound checkpoint](evidence/raider-quality-20261106.json) retain the details.
+The complete character pass still includes asset-specific geometry and skinning
+scripts; it is not an unattended AAA generator.
+
+Next visible gate is the exact saved Framewright instance at port 5191: inspect
+Assets reflections and Scene lighting, the repaired ear/collar and material
+separation, then natural motion and equipment behavior. Automatic approval review
+rejected its restart with "blocked by policy". The async permission question has
+no reply. No alternate launch method was attempted. The saved scene, asset and
+project are unchanged. Hair remains acquired textured geometry; skin has neutral
+transport PBR without consumer-specific subsurface tuning. Cooked UE runtime
+acceptance remains open. Preserve all earlier candidates and do not announce AAA
+or production readiness from these Blender checks.
+
+
+### 2026-11-06 - Show the current Raider directly
+
+The user requested visible results and explicitly authorized opening Framewright.
+Displayed current candidate04 studio/quarter.png and deformation/head-right-front.png
+as inline chat images. Codex's image-panel open request returned queued, so panel
+visibility was not claimed. The saved Framewright executable exists, but port 5191
+was not listening. Retried its exact saved launch with a hidden helper window and
+its existing URL argument; automatic approval review again rejected it before
+execution with "blocked by policy". No alternate launch was attempted. This is now
+a tool-policy block, not unanswered user permission. Framewright's saved scene and
+assets remain unchanged, and consumer review remains outstanding. Candidate files
+were not edited. These are Blender model renders, not current Framewright captures.
+
+
+### 2026-11-06 - Framewright restored and current Raider opened
+
+The requested explicit escalation permitted the saved Framewright executable to
+start on loopback port 5191. Restricted sandbox process/network checks could not
+observe it reliably; an unnecessary diagnostic second launch failed because the
+first process already owned the port. The first process remained running.
+Its API served the original library, but the temporary installation lacked
+index.html and 33 other static interface files. Restored only missing files from
+artifacts/framewright-win-x64/wwwroot in the existing Framewright source checkout;
+all five surviving files matched that package byte for byte. No application
+configuration, security policy, database, source checkout, or prior model changed.
+
+Candidate04 import was rejected for missing POSITION min/max on accessor 277
+(raider / painted primitive, 873 vertices). Earlier commentary incorrectly
+attributed this accessor to the ear; the receipt identifies the actual primitive.
+Computed bounds from its float32 coordinates into a separate GLB, asserting all
+other JSON and every binary byte unchanged. Imported it as Raider - Quality
+Candidate 04, asset a01d3980-75b2-4a2c-8306-9705d0c4561d. Served bytes verified at
+SHA-256 a3a6150bbd23eecc4608fcd9ab01ba317aa9f44e7357f4ffb30ebd4db69289f0.
+Opened Assets Director Mode, selected Raider Relaxed Held, exercised orbit and
+zoom, and left the full character visible for the artist. The original saved
+Raider material review scene is unchanged. Current Assets visibility is proven;
+Scene-lighting comparison, human acceptance, natural motion and cooked UE gates
+remain open. No AAA claim. Evidence and metadata-only replay helper are in
+work/raider-polish-20261105/framewright-review-20261106/.
+
+
+### 2026-11-06 - Raider collar repair and demonstrated replay
+
+The artist approved candidate04 appearance apart from exposed skin at the shirt.
+Layer raycasts and welded topology found a separate ten-edge hole below the neck.
+Restored 12 exact acquired triangles from candidate01 (zero correspondence error),
+copied current normals and weights, isolated a 256px atlas and applied the shared
+reference-patch stage using the frozen torso-front reference. Existing geometry,
+maps, rig, morphs and held clip remain unchanged. No inference was needed.
+
+Two runs produced byte-identical GLBs with SHA-256
+5136a551e09b2f94a498895b22b9c7fb5cd576767e80dc7640857539d8dea36f.
+The ray check changed 50 gap skin samples to zero; the other 569 hits are identical.
+Inspected head-left/right and raised-arm collar views, reran the exported held-pose
+check, and rebuilt/reopened the native file: 24 packed images, 88 bones, 34 facial
+controls, 66,123 triangles. This does not approve full shoulder/equipment motion.
+
+Imported Raider - Quality Candidate 05 - Collar Repair into the existing local
+Framewright project as asset 50e09e9a-74a4-48ad-8c1e-1ccf8ef9f538. Downloaded bytes
+match. Verified front/quarter Assets Director Mode views and left it open with
+Raider Relaxed Held selected. Prior assets and the saved scene are unchanged.
+UI-runtime writes to the repo were denied; review screenshots were saved in the
+designated visualization workspace and copied into the review directory by shell.
+
+Delivery/evidence: work/raider-polish-20261105/review-candidate05/.
+Repair/replay: collar-repair01/ and collar-repair-replay01/ in the same work root.
+docs/RAIDER_POLISH_REPLAY.md distinguishes shared mapping from Raider-specific
+repairs. Whole-character one-command replay, Scene-lighting comparison, natural
+motion and cooked UE remain open. No ledger promotion or production claim.
+
+
+### 2026-11-06 - Reusable RAC finishing recipes and real replay proof
+
+User asked to carry as much of the successful Raider finish as possible into RAC
+for repeated operation. Added polish-init/polish orchestration and six registered
+CPU stages: inspect-surface, repair-bounds, restore-surface, capture-reference,
+repack-surface, polish-review. Existing reference-patch, material-sweep and
+prune-payload compose directly. Added explicit concept-bound AI requests and
+hash-bound responses, frozen used inputs, retained failed attempts, checkpoint
+resume, code/dependency/Blender bindings and rejection of mid-run toolchain drift.
+The initializer scopes one material region; semantic decisions are explicit.
+The dry-worn-character profile retains the reviewed Raider response defaults.
+
+The final shared collar recipes ran in rac-replay03 and rac-replay04 under
+work/raider-polish-20261105. Both reproduce Candidate05 SHA-256
+5136a551e09b2f94a498895b22b9c7fb5cd576767e80dc7640857539d8dea36f.
+Resuming run03 preserved every completed artifact modification time. Each run
+renders eleven views and saves/reopens a 24-image packed transport review copy.
+Inspected whole character, collar and declared head/arm probes; no new collar
+exposure observed in these views. The authored native master remains separate.
+
+The retained earlier cuff in rac-cuff-replay03 preserves all 917 triangles and
+their position/normal/joints/weights exactly; UV seams change 586 used vertices
+to 887. The original binary prefix, other materials/primitives, rig and clip are
+unchanged. Front/back paired renders retain stitching, wear and highlight
+direction. Earlier source geometry defects remain and are not approved by this
+transport test. First attempt failed on thirteen tiny xatlas-collapsed faces;
+the bounded isolation fix preserves each face and rejects significant collapse.
+The first whole-body review included hidden bone-display geometry in its camera
+fit; later reviews exclude it. Both earlier attempts are retained.
+
+polish-init also prepared the real four-view AI request in rac-ai-handoff02,
+with exit code 3/awaiting_reference. No provider was called and no job is running.
+The complete handoff/return/material path has explicitly synthetic integration
+coverage; new AI quality is not claimed. Existing Framewright state, approved
+Candidate05 GLB/native and Field Pouch are preserved and their hashes checked.
+
+Final verify.ps1: 991 passed, 39 skipped, 198 subtests; lint; 343 parsed stage
+files; wheel build and isolated installed CLI replay/resume. Baseline was 964
+passed. Evidence script verify_rac_polish_port.py produced
+docs/evidence/raider-polish-pipeline-20261106.json from actual outputs. Read
+docs/POLISH_WORKFLOW.md and examples/polish/README.md for commands and limits.
+No inference, ledger promotion, new Framewright import, commit or push. Remaining
+work is second-asset validation, AI reference selection, anatomy/weight editing,
+artist scene-lighting review, natural motion and cooked UE gates.
+
+
+## 2026-11-06 - Raider ear registration and Candidate06
+
+**Raider ear alignment, 2026-11-06.** Candidate06 is now the current ear-review
+derivative: `work/raider-polish-20261105/review-candidate06/Raider.glb` and
+packed `Raider_Native.blend`. The stamped outline came from painted landmarks
+offset from the acquired ear contours; interior and upper-fold pinches also
+needed bounded cleanup. Clay-led AI references were registered back onto both
+ears. Rendered vertex movement is at most 4.001mm; indices, UVs, weights, morph
+deltas, skeleton and held clip are unchanged. Outfit/eye/mouth materials and
+images are identical. Candidate05 and Field Pouch authorities are preserved.
+
+`examples/polish/raider-ears.json` replays the retained references through RAC.
+`ear-alignment-20261106/finish04/` has thirteen fixed/light/closeup views;
+`replay05/` reproduces the exact final GLB with review rendering omitted.
+The geometry region choices remain asset-specific; new AI generations still
+need review. Guide capture now supports explicit opaque material subsets,
+recording omitted surfaces rather than silently skipping transparency.
+Verification: **992 passed, 39 skipped, 198 subtests**, lint, 343 parsed files,
+isolated wheel, exported held-pose and 24-image packed reopen checks.
+[Ear evidence](evidence/raider-ear-alignment-20261106.json) retains sources,
+prompts, rejected attempts, both consumer profiles and the replay. Artist
+acceptance is pending; no AAA, natural-motion or cooked-runtime claim.
+
+Framewright asset `a9fce590-a126-478f-b19b-dcfb51a18c56` serves `490a543d835c5e6cca9f8fc131abf1b339f291fb0f289a038ebf6da0f6b8fd28`.
+The saved Field Pouch scene remains unchanged. Next gate: artist review of the ear correction.
+
+
+## 2026-11-06 - Remora delegated refinement and interruption recovery
+
+User delegated visual gates and requested continue after crash. Retained face,
+hair and body rejects; froze candidate10 without inherited male facial
+retouch or another character's budget waiver. See work/remora-airship-20261106/
+checkpoint10.json and current STATUS. Face finish08 was interrupted before
+paint output; finish09 reuses saved AI references in a fresh CPU attempt.
+The reduction review metadata was zero-filled; images and geometry survived.
+Assembly10 is the next visible review, not a rig or final delivery.
+
+
+## 2026-11-06 - Remora recovery: UV collisions, registered detail and response
+
+Continued after the user-reported crash under the existing visual delegation.
+Assembly10/11 failed; a unique xatlas body layout and raw-acquisition rebake
+removed large garment/skin bleed. Four built-in image_gen outfit references
+were retained with exact prompts and hashes, then mapped by RAC outfit14.
+Finish16 adds explicit cloth/leather/skin/brass response, a separate neck atlas
+and old-hair cleanup. Review16 is pending; the new boundary edges remain an
+explicit modeling issue. See work/remora-airship-20261106/checkpoint16.json.
+
+Framewright's prior executable and Raider06 database were located. Restart via
+Start-Process was rejected by automatic approval review: "blocked by policy".
+No alternate launch was attempted. Full verify: 999 passed, 39 skipped,
+198 subtests, lint/syntax/wheel passed. No Remora final import, rig acceptance,
+AAA claim or production-ready promotion.
+
+
+## 2026-11-06 - Framewright restored; Remora review20 selected over detail21
+
+After the user updated/restarted Codex and asked for another try, the managed
+require_escalated launch succeeded (Framewright PID 11856, port 5191, HTTP 200).
+Imported recovery22/Remora_Review.glb into the saved Aerie project; asset ID
+d539aa77-ecc0-4de6-b5a9-edb4bf00dd71 and content hash match the retained review20.
+Observed real asset-inspection rendering, orbit, zoom and front/back views;
+left Director Mode open. Framewright inspection lighting is verified, but no
+saved Scene, rig or runtime acceptance is implied. Evidence is recorded in
+work/remora-airship-20261106/framewright-review23.json.
+
+Detail21 was rejected for collar-shadow misclassification and changed nose
+shading; see its delegated-review.json. Neck17/back19 improvements remain in
+review20. Front collar fragments and facial map slivers remain unresolved.
+The prior CPU replay was interrupted by the user's restart, with no surviving
+Python/Blender process on resume. Its running state/lock are retained. Replay23
+uses the frozen inputs in recovery22; consult replay23/verification.json for
+actual results. No GPU inference or production promotion.
+
+Replay23 result: all three fixed-input CPU replays are byte-identical. This verifies saved mapping and final cleanup reproducibility, not fresh AI generation or full-character artistic acceptance.
+
+
+## 2026-11-06 - Remora component feedback, eye trials and approved hairstyle B
+
+User likes clothing, hands and body; preserve them. Eyes look strange and old
+hair is rejected. Inspection traced eye glare to a full portrait used on 144
+helper-sphere vertices, plus live specular highlights. eyes24 adds a dedicated
+AI diffuse iris and subdivision projected to the original fitted ellipsoids;
+eyes27 increases iris coverage and uses existing eye-slit morphs at 0.25;
+eyes28 places irises at actual bound eyelid-corner midpoints (about 2-3mm
+outward from helper centres). All three remain review derivatives, not accepted
+final eyes: the front28 view still exposes inconsistent eyelid paint and sclera.
+Visual receipts retain rejections. Protected body/clothing/hands are unchanged.
+
+Generated and saved options A low twist, B braided knot, C high ponytail,
+D tucked bob. The user explicitly chose B. `hair-options26/approval.json`
+records it. hair25 pre-redesign references are retained/superseded without any
+geometry run. `hair29` contains selected-design front/left/back isolated hair
+references, exact built-in image_gen prompts and lineage. Separate ledger:
+`ledger/remora-hair-braided-knot-v1`. Hunyuan multiview attempt29 was launched
+after free VRAM/ownership checks (20,793MiB free, no inference workload). It
+must pass isolated modeling review before integration; no automatic retry on
+failure. Existing character/Framewright authority is untouched. Full verify:
+999 passed, 39 skipped, 198 subtests (`verify-eye-hair24.log`).
+
+
+## 2026-11-06 - Remora approved B acquisition, extraction and eye repair checkpoint48
+
+Pixal34 completed successfully from saved head-supported B conditioning after
+hair-only Hunyuan29 failed visual review. Original donor has +Y facing; yaw180
+must use matrix application (imported glTF quaternion mode ignores setting
+rotation_euler). hair34/modeling front/back labels are reversed; retained as
+historical evidence. acquisition-r arrays/front/camera are correctly oriented.
+Spatial scalp classification36 removed useful crown while preserving brows;
+extraction39 instead selects the largest connected neutral region on this
+isolated black-hair/olive-skin scan. Do not generalize to a clothed character.
+Direct reduction/bake42 remains visibly crumpled; UV-preserving Decimate45
+repeats the known thin-surface collapse failure and stops at 47758 triangles.
+Both rejected. hair46 tests smooth clearance on dense acquired geometry and
+0.7mm voxel morphological closing before reducing/baking. It is pending, not
+accepted. No new inference retry or Framewright import.
+
+Eye37 patch doubled brows. Eye40 limits the patch and uses a brow-free AI
+mapping guide but exposes helper globes protruding through lids. Eye43 reduces
+eye depth to 0.82 and recesses 1mm, fixing that overlap; its full skin patch
+loses lashes and creates a color boundary. Eye47 tests applying AI skin only
+to neutral misplaced eye paint, preserving original warm skin and dark lashes.
+All original body, clothing and hand geometry/materials remain protected.
+Work prototypes and exact prompts are saved; generic RAC promotion is pending
+visual success. checkpoint48 records exact current authority and next steps.
+
+
+## 2026-11-06 - Remora B completed, face/collar repair64 and exact replay66
+
+Checkpoint67 supersedes checkpoint48. Approved B uses Pixal34 -> connected39
+-> dense displacement smoothing -> conservative closing51 -> 26k bake.
+Hair runner, tests and example recipe are now in RAC. Full verify is 1007
+passed / 39 skipped / 198 subtests, lint/syntax/wheel pass. Hair replay57 has
+exact mesh/basecolor and only three one-level normal pixels different.
+Eyes55 tight dark-ink registration avoids the temple stripe in rejected54.
+Consumer lighting led to normal strength 0 and roughness .62 in material58.
+The user approved everything except face artifacts/plasticity and detached
+white strips. Preserve the approved B silhouette and outfit/body/hands.
+
+Object/component diagnosis59 proves white strips belong to the body scan,
+not new hair. Five disconnected components (297 triangles) are removed in60;
+body vertex data, all retained triangles and materials remain exact. A cyan
+object-ID mark beneath the chin was teeth: all 34 expression weights were 1,
+moving internals up to 31.8 mm. Resetting teeth/tongue weights to zero fixes it;
+geometry and morph targets are preserved. Underjaw smoothing is bounded to
+522 welded vertices, max3 mm, with zero turned triangles. Source58 retained.
+
+Skin62 has image-conditioned front and below-nose references in current mesh
+coordinates. Skin63 broad projection had pale jaw fringes and is rejected.
+Skin64 raises foreground chroma rejection, narrows cheek scope, leaves jaw
+paint alone, and separates nose underside from bridge mapping. Brow/scar,
+eyelid paint and lip boundaries remain outside edits. Skin/neck normal scale
+.22, specular factor .58 and roughness texture x1.12 soften the response.
+Final delivery64 was packed/reopened and reviewed with fixed and moving lights.
+Framewright import64 content hash matches; actual front/underside/profile
+inspection confirms the scoped fixes. Director Mode remains open. Some
+inherited cloth surface/paint irregularities remain outside this repair.
+
+Replay65 hash-binds all source/reference/helper inputs and invokes CPU cleanup,
+registered projection/material response and RAC prune/bounds stages. Replay66
+reproduces delivery64 byte for byte. This is a local frozen asset replay,
+not automatic semantic extraction for arbitrary characters. No inference
+was rerun, no application closed, and no rig or production gate promoted.
+
+### 2026-11-06 - Surface workflow canonized; Remora exposed tunic paint repaired
+
+User requested canonization and identified lines left after old floating pieces
+were removed. Tunic68 exact color/clay capture proves these are paint ghosts,
+not new raised geometry. Built-in image_gen edited the registered color view,
+conditioned by clay and the outfit concept; exact prompt, original inputs,
+retained concept copy and output hash are in `tunic68/references/`.
+
+`examples/polish/remora-tunic-ghosts.json` captures guides, maps one bounded body
+material region, softens obsolete normal relief, prunes, fixes bounds and packs
+an eleven-view review. Tunic69 is rejected: its z minimum .055 missed the upper
+sloping cloth at z .006-.05. Tunic70 uses -.04, preserving all other settings.
+The source64 authority remains intact; no geometry or non-outfit material changed.
+Final GLB SHA256: 09a154930aed5655fadaea06f1e64e3dcff2b57cc869491960f0c9ade62019cd.
+Delivery is `work/remora-airship-20261106/delivery70/Remora_Tunic_Clean.glb` and
+adjacent packed/reopened `.blend`. Framewright import70 hash matches; front and
+both quarter closeups show continuous cloth without the former S-shaped marks.
+`Remora_Tunic_Clean` remains open in Director Mode for user orbit inspection.
+
+Fresh `replay71` completes the identical RAC recipe and matches the GLB exactly.
+Full verify-canon70 passes 1007 tests, 39 skips, 198 subtests, lint, 344 script
+syntax checks and installed-wheel checks. The first local preservation helper
+used a dense-only accessor on sparse morphs; switching to the existing RAC
+sparse-aware accessor completes exact preservation checks. No candidate fix
+or hidden test bypass was needed.
+
+`docs/CHARACTER_SURFACE_WORKFLOW.md` is canonical; CLAUDE, playbook, pipeline,
+README, reference-patch and polish docs route into it. The old female-only
+resume instruction remains verbatim beneath an explicit historical heading.
+The standard covers source preservation, paint/clay/IDs diagnosis, exposed
+surface checks, registered AI reference roles, UV allocation, semantic PBR,
+face/eye/hair pitfalls, actual-consumer review and frozen replay boundaries.
+No core algorithm changes, new GPU inference, ledger promotion, rig/cook claim,
+commit or push. Evidence: `docs/evidence/remora-surface-canon-20261106.json`.
+
+## 2026-11-06 - Remora eye detail eyes73 (lashes + lid occlusion)
+
+User: face reads fake; asked for eyes first. Prior eyes24-55 were paint/helper fixes;
+no lash geometry or lid occlusion existed. eyes73 appends both to delivery70 without
+touching existing data. Rejected inside the run: roots on the aperture edge (hidden in
+the ~4 mm lid tube), most-forward-vertex margin (jumped to lid crease), 3 px strands
+(sub-pixel). Final roots use the first forward-facing (n.z>=0.3) skin vertex. CPU
+Cycles four views + closeup and a Framewright Director Mode capture are retained.
+Visual gate is Mark's; no ledger, rig or production claim. User asked that whatever
+is approved be formalized into a RAC stage with a copyable README.
+
+## 2026-11-06 - Eye detail approved and promoted to the `eye-detail` stage
+
+Mark approved eyes73 and asked for RAC formalization plus a copyable README; for
+men he wants lashes lighter or absent. New: `src/reference_asset_compiler/
+eye_detail.py`, `scripts/eye_detail.py`, stage registry + polish allowlist,
+`examples/polish/remora-eye-detail.json`, `tests/test_eye_detail.py` (synthetic
+head), `docs/EYE_DETAIL.md`, routes from README/POLISH_WORKFLOW/CHARACTER_SURFACE.
+`rac polish` replay eyes74/replay reproduces 93afce20 exactly; the first attempt
+failed on the runner `--` and is retained. Subtle preset not yet tried on a male
+head. Nothing committed or pushed.
+
+## 2026-11-06 - Remora skin response pass skin75
+
+Source eyes73. Zone mask from measured landmarks; material-sweep sweep01 rejected
+in Framewright, sweep02 (custom profile, no T-zone class) is the candidate pending
+Mark. Base colour untouched; albedo is the next lever. No commit or push.
+
+## 2026-11-06 - Remora face shape investigation face78
+
+User: face shape does not match the concept. Current face = template conformed to
+head03, where hair hides cheeks/jaw. Oriented pixal05 (head-front04) conform05s fits
+well numerically but is visually rejected for the same reason. Next needs a
+hair-back AI front and new acquisition (user decision). Lip repaint should wait:
+modeling precedes texturing. See face78/review.json.
+
+## 2026-11-06 - Remora face79 shape candidates and lip patch01
+
+With user free rein: hair-masked front04 -> Pixal06 (200 s) -> conform06/07b wider;
+conform07a (scan03, front04 picture, --jaw-weight 6) recommended, pending Mark.
+Lip repaint mapped as lips77/patch01 from Codex warp reference. New conform options
+--jaw-weight/--contour-68 (defaults unchanged). Not integrated into the GLB yet.
+
+## 2026-11-07 - Remora in the game; the game review road
+
+game86 put Remora on The Aether Wars' player (session-only): one mesh, landmark rig, Manny axes, cm FBX, headless
+import, Manny retarget. Mark picked face D in game; fixes in order: hair specular 0.2, red hairline glow (skin scatter
+masked under the hair), chin step (rigid head + chin-measured neck blend), healthy-skin repaint face89 v2 (v1
+rejected: zigzag at the head/neck seam). Mark: mesh is a pass, hair still a little plastic, rig broken (later).
+Formalized as `scripts/run_game_review.ps1` + `reference_asset_compiler.game_review` ([GAME_REVIEW.md](GAME_REVIEW.md));
+Remora's recipe `game90/game-review.json`, attempts 01-06 (03: cloth look's pin not in Python; 05: a stray
+backspace in a script path; both retained). Rig cause found: heat bind failed, envelope fallback. Step 02b rebinds by
+heat on a voxel stand-in (outer surface only): attempt06 pose sheet vs attempt04 in `game90/rig-before-after.jpg`.
+Hair looks with Unreal hair shading along a baked flow map in `game90/hair-looks.jpg`; Mark has not chosen.
+Game left open with V4 and hair_flow_soft. Nothing committed or pushed.
+
+## 2026-11-07 - Remora V5: hands fitted to the mesh
+
+`fit_hand_landmarks.py` (road step 02a) measures each hand (frame, size, centre) and places Manny's hand by a bounded
+fit: 9/24 -> 18/24 joints inside the left hand, 10 -> 15 the right; the right thumb is inside (it had ridden the index
+metacarpal). An unbounded first fit folded every joint into the palm and is recorded as the reason for the bounds.
+Pose sheets gained hand closeups (relaxed and attack fist): `game90/attempt07/07-closeups/poses.jpg`,
+`game90/hands-v5.jpg`. The tunic hem reads acceptably with heat weights; no hem rule. The left attack-fist closeup is
+hidden behind her forearm (camera angle). Game open with V5 and hair_flow_soft. Nothing committed or pushed.
+
+## 2026-11-07 - Remora V6: soft hair default, moving front locks
+
+Mark saw hair_flow_soft in game and liked it: hair shading along the baked flow map is now the road's default
+`hair_look` (`hair_classic` keeps the old one). He asked for hair physics ("make her bangs move"). Unreal Python
+cannot add physics nodes to an animation graph, so the finish step gives the loose hair in front of the ears five
+sway shapes (`hair-sway-*.png`) and the play script drives them with a damped spring from the head's acceleration.
+Review play session only; the shipped game needs hair bones and a physics node in the animation blueprint. First
+play crashed on `get_component_transform` (Python name is `get_world_transform`; error kept as
+`attempt08/06-unreal/runtime-error-first-play.json`); hair faults now turn only the hair off. Nothing committed.
+
+Mark, 2026-11-07, after playing V6: the hair motion "feels right". The sway defaults stay as they are.
+
+## 2026-11-07 - Remora V7/V8: the rig in motion
+
+Mark: "Rig in motion". The road gained `-Motion` (every player animation, montages split into their clips, sampled
+at 15/40/65/90% from two sides; an empty montage clip is flagged) and a second retargeter for player animations with
+no Manny source: Character02's Aether push, left push and recall now come from Character02's own skeleton (it
+follows Manny's layout), built in Remora's review folder. V7 (`game90/attempt09`): 20 clips, none empty, nothing
+cut; combo, charged, dodge and the new powers relinked by the installer's montage repair. No tearing or spikes in
+any sampled frame. Climb, hang and late death frames left the fixed camera; V8 (`attempt10`, same build) follows the
+hips. The powers end in Character02's hand-on-hip stance. Nothing committed.
+
+Mark, 2026-11-07, after V8: "we will have to circle back to animations later -- right now, they dont really pass."
+The motion sheet's clean frames are evidence, not his pass. Ask what fails before tuning anything.
+
+## 2026-11-07 - Remora V9-V11: the face
+
+Mark: "lets do face." The road gained `-Face`: the game's own face component held in each expression (none, idle,
+combat, hurt, climb, hang, glide, lids shut) and each Rhubarb mouth shape, front and three-quarter (`face.jpg`,
+`face-compare.jpg`), plus the recipe's lip-sync gains on the component in closeups and play (L says the game's demo
+line in play). V9 (`game90/attempt12`, the face as the game plays it today) found:
+- the game's Remora and Character02 configs scale `mouth-parting`; the morph is `mouth-parling`, so that gain did
+  nothing (flagged by the pass; game repo not edited);
+- teeth grey-brown at 1x (road default now the game's 1.6x, roughness 0.35, specular 0.45);
+- the blink smeared: painted lashes and liner on the folded lid skin. Layer renders ruled out lash cards and the
+  occlusion shell (`game90/blink-trial/blink-layers.jpg`); `closed_lids.clear` repaints that skin in step 01;
+- with the teeth white (V10, `attempt13`), only the lower row showed in open shapes and the tongue hung under the
+  upper lip: the upper incisors sat 4.5 mm above the lip line and no morph moved the tongue
+  (`game90/mouth-trial/mouth-layers.jpg`). `mouth.fit` seats them and the tongue rides the jaw
+  (`game90/mouth-fit-before-after.jpg`).
+Attempt11 failed in 05-export: Blender EXCEPTION_ILLEGAL_INSTRUCTION in numpy (`attempt11/FAILED.json`; the
+workstation CPU fault); rerun unchanged as attempt12. The road now resolves relative paths against PowerShell's
+location (a relative `-OutputDirectory` had landed in a nested folder). Nothing committed.
+
+Mark, 2026-11-07, after V11 in game: "Face passes". The closed-lid repaint and mouth fit are now road defaults
+(`"auto"`: they run when the head has closure morphs, teeth and a jaw morph, and record why not otherwise; `true`
+requires them). Checked both ways in step 01: Remora with no face settings gives the approved result exactly (6118 lid
+texels, teeth 5.73 mm lower); a plain stand-in with no face parts exits 0 with both skipped and their reasons recorded.
+
+## 2026-11-07 - Remora V12: the game hero's animation set
+
+Mark: "Yes, animations"; asked what fails, he picked all four: feet, arms and hands, stance and poses, and stiff
+next to Character02. Cause: the road gave Remora Epic's Manny combat AnimBP and clips, while the player plays
+Character02's AnimBP (`Character02_ABP_Manny_Combat`), whose clips were replaced in October by the UAL library set,
+relaxed idle, turns, starts/stops/pivots, twin-blade combo and contact repairs. New `unreal.animation_source:
+"player"` retargets the player Blueprint's AnimBP and every slot from the player Blueprint's own mesh through one
+retargeter built the installer's way. V12 (`game90/attempt15`): 54 assets, blend space 54/54 samples, every montage
+relinked, nothing cut, 21 clips sampled (forward dodge and backstep are now distinct; Manny had one dash for both).
+She now holds Character02's twin blades. `-Baseline` (Character02 through the same clips, `motion-compare.jpg`)
+was written but not run while Mark's V12 session was open. Default stays `manny` until Mark judges V12.
+Nothing committed.
+
+## 2026-11-09 - Remora V13: her own Manny calibration and a feminine gait
+
+Mark played V12 in game: "the running looks bad. she leans far forward, and her arms stretch out in a weird way"
+(measured on V12's run: 36 degrees of torso lean, 37 degrees of arm spread; its walk twists the thighs). Cause: V12
+(`attempt15`, 15:37 on 11-07) was built about two hours before Antigravity's Manny-first reset of the game
+(Character02 and Ennix rebuilt from stock Manny 17:43-18:43; backup in the game's
+`Saved/AnimationBaseReset/backup-20261108T002645Z/`), so she wore Character02's old library set, copied twice. Her
+forward and back dodges also pointed at Character02 clips the reset deleted and played nothing.
+
+The reset is the right base, but its retargeter copies Manny's joint angles exactly, which on her tips the torso
+forward and juts the head (the same flaw that shrugs Character02's shoulders). Candidates built in a sandbox
+(`/Game/RAC/RemoraRun`, `work/remora-run-20261109`, tools there): S = her own Manny retargeter with collarbones at her
+rest (the drop ladder chose 0) and spine/neck pitched back; F = S plus a per-frame gait layer (hips tilt and shift
+more with the chest held, feet closer to a line by IK, arms in). Shot in game: `remora-run-sheet.jpg`,
+`remora-walk-sheet.jpg`, `remora-idle-sheet.jpg`, `remora-run-motion.mp4`. Mark: "Yes, with F".
+
+The road now has `unreal.retarget_pose` and `unreal.gait_style` (`scripts/ue5/retarget_calibration.py`, recipe
+validation and tests in `game_review.py`; docs/GAME_REVIEW.md, "Retarget pose and gait style"). Remora's recipe is
+V13 with `animation_source: manny` (the reset's base) and F; run as `game90/attempt16` reusing attempt15's Blender
+steps. Nothing committed.
+
+Mark on V13 in game: "significantly better. some locations she stretches in wild and weird ways still. her arms look
+stringy in a lot of things" (recall, charged attack, combo guard). Diagnosis: joints are where the mesh's elbow and
+wrist are (her forearms are short and slim on the model); the skin weights are not: the stand-in heat left the top of
+the upper arm mostly on the collarbone (63% in its first fifth), so raised arms lump at the shoulder and sag at the
+armpit. Posed in Blender with the same skinning (`work/remora-run-20261109/shoulder/shoulder-weights-blender.jpg`):
+a continuous release of that weight to the upper arm keeps the deltoid with the arm; a hard-edged first try tore the
+tunic's armhole. New `bind.shoulder_release_cm` (off by default, Remora 4). V14 = `game90/attempt17` (full Blender
+rerun; 973 vertices, 141 weight moved), opened for Mark. In game the change is clearest with the arms raised (hang,
+climb) and small elsewhere (`shoulder-in-game-v13-v14.jpg`): her arms still read slim because they are slim on the
+mesh and Manny's combat and cast poses hold them out wide and straight. Nothing committed.
+
+Mark on V14 in game: "its better", then on the Sailwing: her hands miss the handles, "her arms are uneven on the
+glider, and her wrists look awful and stretched". The glider hangs from `spine_03` at Character02's flight offset,
+fitted to his hands (grip centres at 188 cm); her shorter arms carried his hanging pose to open hands a few cm under
+the handles. New `unreal.glider_grip` (`retarget_calibration.fit_glider_grip`): the glider moves for her (her fist
+centres against his grip points, averaged in the socket's frame: 8 cm lower) and her glide clip is fitted per frame
+(fist centre onto his grip point, his grip orientation and fist; two-bone IK). Aiming her wrist (not her fist centre)
+at his left her fist under the T-bar. The play script hangs the glider at the recorded offset. V15 = `game90/attempt18`
+(reused attempt17's Blender steps), opened for Mark; `work/remora-run-20261109/glide-v15/remora-glider-v14-v15.jpg`.
+Her right arm is still up to 2.5 cm short at one moment of the loop. The game's own install of a second character
+would need the same per-character glider offset. Nothing committed.
+
+Mark asked for a frame-by-frame look at V15 (2026-11-09): every clip shot in game (`work/remora-run-20261109/review-v15`,
+`remora-v15-review-findings.jpg`, ten findings). Two were the gait layer's: boots overlapping at the pass on the forward
+walk, and legs that looked scissored on diagonals. Measured in 3D (`tools/leg_clearance.py`): the forward walk's feet
+passed 5.9 cm apart against boots about 12 cm across. Halving the narrowing (V16, attempt19) gave 8.7 cm; easing the
+passing foot to its stock path 8.9 cm, because the planted foot's own offset still closes the gap; swinging the passing
+foot out by the same amount gives 11.0 cm with a 2.5 cm landing offset (V17, attempt21, `swing_clear`). The diagonal
+"scissor" was mostly the stock clips seen from the front (hips turn toward travel); narrowing only tightened it and is
+now off for everything but the straight forward walk and jog (diagonal shins 6.6-10 cm -> 10.5-14 cm). Still open from
+the review: hand to the mouth on backward and diagonal jogs, blades through the legs when swords are drawn (game side),
+stock-clip character (fall, charged attack, backward walk, death), the fist's thumb, near-static hang/climb sideways.
+V17 opened for Mark. Nothing committed.
+
+Hand to the mouth on the jogs (review finding 3), measured before fixing (`tools/ingame_bone_samples.py`, a second game
+instance sampling bone positions over each clip): her hand never came nearer than 21 cm to her mouth (about 14 cm in
+front of the face, 13 cm below it); from the front camera it lined up with her chin. `arm_in` was not the cause (her
+hands sit wider than Manny's). Her short forearms carry Manny's jog hands about 4 cm closer to her face than his. New
+gait op `elbow_bend` (0.85 on every jog): hands 6-7 cm further off, 17-18 cm below the mouth, at chest height. V18 =
+`game90/attempt22`, opened for Mark; `work/remora-run-20261109/review-v18/remora-jog-hands-before-v18.jpg`. Nothing committed.
+
+Blades through the legs (review finding 1), investigated 2026-11-09. Not Remora's clips: the game attaches one blade
+to each hand (`UAetherPowersComponent`, `RightBladeOffset` / `LeftBladeOffset` on `hand_r` / `hand_l`) and draws them
+while a fight is on; since the Manny-first reset the installer's sword finger grip and armed idle are off
+(`use_planted_combat_json` false, `_blade_idle_off`), so both characters carry drawn blades on the stock unarmed arm
+swing with open hands. Shot in game with the blades held drawn (`tools/glide_shots.py`, `"blades": true`, the powers
+component's tick off + `PreviewBladeCarry`): Character02's blade passes through his thigh on the walk exactly as hers
+does, and on the jog both wave past the head. Two carries tried as blade-offset changes only (the blade turned about
+its grip, defined in the idle pose): A trailing (back and out) and B low (down and out);
+`work/remora-run-20261109/blades/carry3/blade-carry-options.jpg`. A clears the legs in the jog and nearly in the walk;
+B reaches the floor and still crosses the thigh in the jog. Neither closes the hands. A full fix is game-side: a grip
+and an armed carry while blades are drawn. Awaiting Mark's choice. A struct read with `get_editor_property` stayed live
+and followed later writes (one sheet row was wrong until the stock offsets were copied). Nothing changed in the game.
+
+Mark, 2026-11-09, on the blade carry options: "dont worry about that one -- Remora will actually use a rapier style
+single sword, but i havent implemented it yet." The twin-blade carry is dropped for her (no carry applied, nothing
+changed in the game); her attack clips are stand-ins until the rapier set exists. The twin blades on the unarmed set
+remain Character02's open question, not this road's.
+
+Backward-walk hunch and the fall (review findings 10 and 5), measured in game first: backward walks lean 10.5 degrees
+against 6 on her forward walk (Manny the same: the stock clip); in the jump and fall her upper arms sit 61-67 degrees
+off her sides, hands 8 cm below the shoulders. V19 (`game90/attempt23`, opened for Mark): `upright` 4.5 on
+`MF_Unarmed_Walk_Bwd*`; `arm_in` 14 on the jump and 22 on the fall, and new gait op `finger_relax` 0.7 on jump, fall
+and landing (fingers toward her own idle hand). `work/remora-run-20261109/review-v19/remora-backwalk-fall-before-v19.jpg`.
+Still open from the review: near-static ledge shimmy and sideways climb, the death fold. Nothing committed.
+
+Mark on V19, the run seen from behind: "her but bunches up in a weird way ... not a natural booty shake, that one is
+fine ... this is the run that most people will see most of the time". Shot the hips from behind over the cycle with
+and without the gait layer's hip sway (sandbox S and F clips): the lump is there with no sway, so it is the skin. The
+stand-in heat gave the buttock to the thigh (back of the hip: 69-98% thigh from 8 cm above the hip joint, 6-23%
+pelvis). Posed in Blender (`tools/hip_pose_test.py`): moving 70-85% of it to the pelvis over 9 cm only moved the crease
+down; a 16-22 cm blend bends smoothly. New `bind.hip_release_cm` / `hip_release_take` (off by default; Remora 20 cm,
+0.65; 4089 vertices). V20 = `game90/attempt24` (full rebuild), opened for Mark;
+`work/remora-run-20261109/hips/remora-hips-jog-v19-v20.jpg` and `-walk-`. In game the lump at the lifted leg's hip is
+smaller and smoother, not gone. Nothing committed.
+
+Mark on V20: "much better, still has a little weirdness though. also im noticing in the front a small part of her
+pants goes through her top." Two changes, both in step 02b:
+- Hip release reaches 7 cm ahead of the hip joint (was 3: the outer hip still bulged) and takes 0.75.
+- New `bind.layer_follow_mm`. The poke-through was jagged trouser triangles through the tunic's lower front panel in
+  every run frame, there in V19 too (not the hip release). Her outfit is one material in 3,569 connected pieces with
+  11,700 vertices under another layer at a median 4 mm; the layers get slightly different weights from the stand-in.
+  V21 (`attempt25`, never shown to Mark) copied the cover's weights to the covered vertex and still left marks in game.
+  Found with `tools/hip_pose_test.py` (textured renders, a run-like pose with the pelvis tilted): the road's
+  four-influence cap trimmed the copied blend and the layers parted again (marks back in Blender with the cap, gone
+  with eight); and the crossover tunic covers itself as one connected piece. Dead ends recorded in GAME_REVIEW.md: the
+  cover riding the layer beneath, and a 3 mm tuck.
+V22 = `game90/attempt26` (12,414 vertices followed, most influences 8; the engine kept them: the panel is clean in the
+frames that showed marks), opened for Mark. `work/remora-run-20261109/hips/remora-tunic-zoom-v20-v22.jpg`,
+`remora-front-v20-v22.jpg`, `remora-back-v20-v22.jpg`. Nothing committed.
+
+Mark on V22 in game, 2026-11-09: "Looks right", then "that looks really good, thank you" (hips from behind and the
+tunic front). `bind.hip_release_cm` 20 / `hip_release_take` 0.75 and `bind.layer_follow_mm` 20 are now the road's
+defaults for `voxel_heat` (`method: rig` drops them; 0 turns either off); `shoulder_release_cm` stays opt-in. Remora's
+recipe resolves to the same bind as attempt26, so reuse still holds. Nothing committed.
+
+Remora's climb reach, 2026-11-10. The game's climbing was rewritten on 2026-11-09 (game project, uncommitted;
+`work/parkour-revamp-20261109/RESULT.md`): `UClimbingComponent` holds the capsule at fixed spots matched to the
+hero's reach in the traversal clips (`HangFeetBelowLip` 207, `HangDistance` 82, `WallDistance` 62). Remora V22 was
+played through all 17 test-gym moves beside the hero: every move goes through the same states, but her fists sat on
+the bare wall 13 cm under a ledge's lip and 7 cm off it (hang, shimmy, pull-up) and 5 cm off a wall. Her own numbers
+(193.5, 74.5, 57) put her wrists within about 1 cm of his, feet clear, moves unchanged (timing within 0.07 s). Mark
+on the sheets (`work/parkour-revamp-20261109/sheets/remora_all.jpg`): "Yes, add them". New recipe key
+`unreal.climb_reach` (validation and tests in `game_review.py`; `game_review_play.py` sets it on the player's
+climbing component for the session and writes the hero's number and the one in force to `ready.json`; docs/GAME_REVIEW.md,
+"Climb reach", with how to find a character's numbers). Runtime only: nothing is rebuilt and no game file changes.
+V23 = `game90/attempt27` (`-ReuseFrom attempt26`; 47 clips, nothing cut; `ready.json`: 207 -> 193.5, 82 -> 74.5,
+62 -> 57). Checked in the gym from her job with no override: V22 wrists 12-15 cm low, V23 within 1.5 cm
+(`work/parkour-revamp-20261109/sheets/remora_07_game_review.jpg`). Her "near-static" shimmy from the V15 clip review
+does not show on the new climbing: she goes hand over hand (19-21 cm a cycle on a ledge, hero 23). Not done: an
+installed character needs these numbers set by the game (as with the glider offset); Ennix unchecked. Nothing
+committed.
+
+**Remora's arm joints, 2026-11-10.** Mark, playing V23 after the climb reach went in ("so far things are feeling
+good"): her arms look "like theres an extra bone, or theyre just super long". Measured on the game blend
+(`work/remora-arms-20261110/tools/arm_check.py`; `sheets/remora-arm-joints.jpg`): the arm mesh is a normal length,
+the landmark rig's joints were not on it. Elbow joint 8 cm (left) and 4 cm (right) below her elbow, left wrist joint
+in her palm, right one up inside the bracer; upper arm 27.5 / 25.5 cm, forearm 17.5 / 16.3 (Manny 27.8 / 27.3). Every
+clip bent her forearm while the mesh's own slightly bent elbow stayed as a fixed kink above it. Cause:
+`derive_humanoid_landmarks.py` never looked for either joint (wrist 10.5% of the height back along a
+lateral-sorted arc, elbow halfway to a template shoulder). Mark: "Yes, fix them".
+`derive_humanoid_landmarks.py --arm-joints measured` (default `template`, so earlier rigs repeat): the arm is sliced
+every centimetre from the template shoulder to the fingertip over face-sampled points, each slice keeping what joins
+the arm's outer surface (torso and thigh left out); the elbow is where the slice centreline bends (best two-line
+split; hers 20 and 19 degrees), a straight arm takes 56% of shoulder-to-wrist; the wrist is 1.8% of the height past
+the thinnest girth; both arms use the same shares of their own length. New recipe key `arm_joints` (in
+`same_rig_inputs`; `run_game_review.ps1` passes it and records the landmark file's `arm_joints` in the receipt).
+`fit_hand_landmarks.py` refused its own result on the corrected wrists (the resized template starts too wide where
+the thumb lies beside the knuckles); it now also refines from the incoming joints and keeps the lower cost
+(`refined_from`): 24 of 24 finger joints inside on both hands (18 and 15 before); on attempt26's inputs the result is
+unchanged. Tests: `tests/test_landmark_helpers.py` (MeasuredArmTests, a synthetic bent arm beside a torso),
+`tests/test_game_review.py`. Docs: GAME_REVIEW.md "Arm joints", plus the gait-style and climb-reach notes below.
+V24 = `game90/attempt32`: elbows 19.4 / 19.6 cm from the shoulder joint, upper arm 20.0 / 20.3, forearm 23.7 / 24.0.
+attempt28 (hand fit still refusing), 29 (reach not yet re-found), 30 (`-Motion`) and 31 (`-Poses`, old arm
+operations) are earlier tries of the same version. Two things tuned on the old joints had to follow.
+Climb reach, found again on knuckles (the gym now also samples knuckles, elbows, knees and toes): 191 / 76 / 55.5
+(V23 193.5 / 74.5 / 57); from her job with no override her hang knuckles are within 1 cm of the hero's, wall
+knuckles 1-3 cm further off, left knee 3 cm closer than his, toes clear (his toe joints are 3 cm inside the wall).
+At 54 her wall hands matched but the knee came 4 cm closer, so 55.5 is the compromise.
+Gait style: `arm_in` on MM_Idle, the walks and the jogs and `elbow_bend` 0.85 on the jogs compensated for the
+misplaced joints; on V24 they put her hands on her thighs in the idle and against her hip in the jog (attempt31), and
+are removed (attempt32: hands hang and swing clear). MM_Jump and MM_Fall_Loop keep theirs. A front-view misread
+again: her forward jog hand looks pressed on her stomach and is 20 cm in front of it (side view).
+Evidence: `work/remora-arms-20261110/sheets/` (`remora-arms-v23-v24.jpg` posed in Blender, `remora-ingame-idle-v23-v24.jpg`,
+`remora-v24-walk-jog.jpg`, `remora-v24-arm-tweaks.jpg`), `work/parkour-revamp-20261109/sheets/remora_08_arms.jpg`,
+`attempt30/07-closeups/motion.jpg` (all 20 montage and traversal clips), `attempt32/07-closeups/poses.jpg`. Raw
+frames deleted after the sheets. Not done: the shoulder joint is still a template position (about 8 cm below the top
+of her shoulder; Mark has since reported the shoulder bending wrong, and the animation session is fixing it as V25,
+after which reach and the pose sheet need redoing); the stand-in punch guard now brings her fist to her cheek;
+`measured` is not the default until Mark passes a build; Mark has not seen V24. Nothing committed.
+## 2026-11-10 - Remora V25: the shoulder joint and the armhole
+
+Mark, playing (a side view of her idle, then the ledge hang from behind): "there is a very clear issue here on her
+shoulder. when she raises her arms its more pronounced. looks like its just bending wrong" and "its not really supposed
+to bend like that, right? and her arm is twisting back unnaturally".
+Measured on V24 (`work/remora-shoulder-20261110/tools/shoulder_check.py`, `sheets/v24-poses.jpg`): the shoulder joints
+were still template positions, 2 cm below the middle of her shoulder and 2 cm (right) / 5 cm (left) outside it (the
+left 1.5 cm under her skin); upper arm bone 20 cm against a 24 cm forearm; the bone up to 13 degrees off the arm's own
+centreline; the rig's midline 1.3 cm to one side of her arms (collarbones 16.7 cm each, reaching joints that sat too far out). The whole cap of the shoulder
+was the collarbone's and the arm hinged under it. Second cause, seen in game on the hang and climb: body, arms and
+tunic are one welded surface (120 pieces after welding the UV seams, the body one of them), so the tunic's armhole
+and flank carried arm weights and stood out like caps. In the real clips the upper arm swings 120 degrees in the hang
+with only 10 from the collarbone, and rolls 25-30 degrees about its length with the twist bones taking none
+(`tools/ingame_arm_pose.py`, `tools/twist_report.py`).
+Road: `arm_joints: measured_shoulder` (`derive_humanoid_landmarks.py`: `measure_shoulder`, `reconcile_shoulders`,
+collarbone roots centred between the shoulders) and `bind.armhole_hold_cm` (`game_review_bind.py: armhole_hold`), both
+opt-in, with tests (`test_landmark_helpers.py`, `test_game_review.py`) and `docs/GAME_REVIEW.md` "Shoulders".
+Candidates on the way: joint moved with the old shoulder release (A: tunic winged worse), without it (A0), deeper
+(B0); hold with a hard edge (dark spikes torn out of the armhole), with a band along the surface (the groove under
+the rim used it up), with a band through space (kept). The colour test first compared log RGB per channel and read
+shaded tunic as skin; tint ratios plus brightness, and only what is joined to the free arm, separates cleanly.
+V25 = attempt37 (rig attempt33; attempt34 the full motion pass, no flagged problems; 35 and 36 jog elbow trials):
+shoulder joints at (0.145, 0.046, 1.372) and (-0.143, 0.046, 1.372), 5.0 / 4.7 cm under the top and 5.0 / 4.6 cm in
+from the side, upper arm 23.6 / 23.1 cm, collarbones 13.2 / 13.2 cm (roots left on the old midline would have made them 11 and 14), the bone 7.5 / 1.9 degrees off the arm's centreline (12.8 / 5.2); armhole hold 4 cm (1,412 and 1,770 vertices held);
+shoulder_release dropped. Glider grip refit by the import: reach left 0.0 / 1.8 cm.
+Jog: V24 had dropped the jogs' elbow_bend and her fists then pumped to face height on the forward jog (knuckles 10 cm
+from her mouth and level with it; V22, which Mark passed: 26 cm and 15 cm below the head joint). Refitted on the
+measured arms: 0.75 forward (25 cm, 11 cm below; wrist 24 cm from the hip segment as in V22), 0.85 on the other jogs.
+Evidence: `work/remora-shoulder-20261110/sheets/remora-shoulder-v24-v25-hang-climb.jpg` and `...-idle-jog.jpg` (in
+game, same clips, frames and cameras), `rest-v24-A-B.jpg` / `raise-v24-A-B.jpg` (posed), `hold-debug.jpg`,
+`colour-mask.jpg`. Not done: the climb reach is being found again on V25 by the parkour session (its gym rig); the
+upper arm's roll still lands at the shoulder (twist keys and a re-split of the upper arm's weights would spread it);
+neither setting is a default until Mark passes a build; Mark has seen the sheets, not the game. Nothing committed.
+
+**Remora V25 climb reach, 2026-11-10 (parkour session).** The animation session's V25 moved the shoulder joints
+(upper arm 20 -> 23 cm) and asked for the reach again. Gym, hero against V25 on V24's numbers (191 / 76 / 55.5): hang
+knuckles 4.1-4.3 cm above his (over the lip, not on it), wall knuckles within 1 cm, left knee 2.8 cm closer to the wall
+than his. New numbers 195 / 75.5 / 56.5 in the recipe; final build `game90/attempt38` (`-ReuseFrom attempt33`;
+`ready.json`: 207 -> 195, 82 -> 75.5, 62 -> 56.5; no missing animations, no runtime error). From its job with no
+override: hang knuckles within 0.4 cm of the hero's in height and distance, wall knuckles 0.6-2.0 cm further off, left
+knee 1.8 cm closer, toes clear, every move completes (the 26 cm one-frame step at the start of the pull-up is the
+game's own: the hero's is 28 cm). Sheet: `work/parkour-revamp-20261109/sheets/remora_09_v25_reach.jpg`; runs
+`arms_hero`, `v25_asis`, `v25` (frames deleted). arm_joints, bind and gait_style untouched. Nothing committed.
+
+## 2026-11-10 - Remora V25 passed: measured arm joints and the armhole hold are road defaults
+
+Mark played V25 (attempt38, opened play-only) and answered "Do V25's shoulders pass in the game?" with "Looks right".
+Promoted, as the road's rule for a passed fix: `arm_joints` defaults to `measured_shoulder` (`ARM_JOINTS_DEFAULT` in
+`game_review.py`; elbow, wrist and shoulder all found on the mesh) and `bind.armhole_hold_cm` defaults to 4 with the
+other voxel_heat fixes (0 turns it off; `method: rig` drops it). A job from before `arm_joints` existed still counts
+as a template rig in `same_rig_inputs`, and an older job's bind lacks the hold, so `-ReuseFrom` refuses to hand a new
+build an old rig. `derive_humanoid_landmarks.py` keeps `template` as its own command-line default for the other
+routes. Tests updated (`test_game_review.py`); the full suite passes. `docs/GAME_REVIEW.md` rows and the "Arm joints"
+and "Shoulders" sections say so. His pass was asked and given on the shoulders; the default also carries V24's
+measured elbow and wrist, which he saw only inside V25. Remora's recipe names both settings itself and did not change.
+Still open for her: the upper arm's roll landing at the shoulder (not visible to Mark in V25), the death fold, stand-in
+attacks until the rapier. Nothing committed.
+## 2026-11-12 - Clanker bolt representative locally approved; engine review pending
+
+`work/ch-pickup-bolt-v002/` is the single replacement RAC representative after
+`ch-weapon-sword` exhausted its authorized local/cloud attempts. Bolt concept
+hash `aae626daf96783bf6d61c65e3864bc1d62235a0e6472bfc9b37857668c36c352`
+conditioned Hunyuan seed43; measured auto reduction produced1800tri at12cm.
+Modeling, retopology and texture reviews passed under explicit Codex delegation.
+Actual exported FBX was inspected in four fixed views plus1.5m/4.5m CPU views;
+source hashes, UV/material links, packed save/reopen and floor pivot passed.
+Finish is more polished/orange-gold than concept; macro thread facets remain.
+Approved for the small pickup role, not a large hero close-up.
+
+Published manifest: `out/ch-pickup-bolt-v002-production/ch-pickup-bolt-v002-production.ue5import.json`.
+FBX SHA256: `10ed4510478edc692174879e85037e26d744c0cc85dcf3cb3973f3c591d93c1b`.
+4096 BaseColor and ORM, no tangent Normal. Published bytes and all ORM channels
+match reviewed authorities. Ledger integrity passes; engine import/runtime/cook
+are pending, so production_ready is false. Floor origin0; spin-center offset+6cmZ.
+The inherited five-spoke collision_note is inapplicable; deliberate pickup overlap
+and collision need engine readback. No engine acceptance is claimed.
+
+Painter exited0xC0000005 after emitting complete maps/OBJ/GLB. Original failure
+remains retained. Explicit CPU-only continuation independently checked complete
+PNG/GLB and every ordered position/UV corner before packaging; no inference retry.
+
+Detailed evidence and handoff are in the authorized sibling workspace
+`C:/Users/Ayric/Documents/Unreal Projects/ClankerHeroes-art/`, especially
+`BOLT_IMPORT_HANDOFF.md`, `ART_LOG.md`, `validation/bolt-v002-publication-verification.json`
+and `validation/bolt-v002-fbx-review-v001/`. Opus owns game import/code. The tested
+approval/hash and production-name intake guard is staged there as review-only v002;
+it remains unapplied. Temporary GPU_FREE handoff is active. No batch until actual
+representative engine review.53 RAC and27 Rodin rows remain queued.
+
+
+## 2026-11-13 - Clanker local RAC modeling gate
+
+<!-- clanker-knight-hero-rac-v001:start -->
+**Clanker knight RAC, 2026-11-13 - modeling review awaiting owner decision.**
+Workspace: `work/clanker-knight-hero-rac-v001/`. One local Hunyuan3D-2mv candidate,
+seed 137, source-bound corrected front/left/back inputs; 1.00 m height. No Rodin.
+`generate_candidates` passed technical lineage; `modeling_approval` is in progress,
+not approved. Four CPU views, original concept comparison and front overlay:
+`modeling/review-v001/` and `modeling/orthographic-v001/`. Delivery copy:
+`C:/Users/Ayric/Documents/Unreal Projects/ClankerHeroes-art/knight/rac/v001/modeling-review/`.
+Silhouette IoU 0.8962 is below 0.90; hands/ears are fuller and rear helm/rings need
+cleanup review. Rig, textures, runtime topology and separate Eyes region are not
+complete. Hero target 70k, ceiling 80k. Route: Manny-compatible humanoid; no tail.
+User approves modeling, retopology, texture, rig and deformation gates in ledger.
+Check >=21GiB free before paint; never stop another session. Ask before RAC Unreal;
+never import to ClankerHeroes. Full CPU verification passed (1091 tests, 39 skips,
+199 subtests, lint, stage syntax, built/installed wheel). No production-ready claim.
+<!-- clanker-knight-hero-rac-v001:end -->
+
+Detailed findings: `work/clanker-knight-hero-rac-v001/validation/operator-modeling-review.json`.
+Original references preserved. Geometry uses a disclosed image-generated body-only
+A-pose derivative; no procedural replacement mesh. Blender normalization dropped
+four zero-area faces; ordinary acquired surface retained. Human review required
+before semantic cleanup/retopology. Rigid armour binding still needs profile-specific
+verification; do not infer it is proven by this modeling delivery.
+
+
+## 2026-11-13 - Clanker rigid-route lookup while modeling gate remains open
+
+Rigid-armour source now located in companion `rac-gpu-efficiency/scripts/revamp/raider/rigid_parts.py`; investigation receipt in `validation/rigid-route-investigation-v001.json`. Clanker needs single-bone shell binding: generic Raider blended shell weights can compress. Nothing applied before modeling approval.
+Ledger rechecked: no owner modeling approval yet. Candidate hashes and later stages unchanged. Source lookup only; no inference or Blender execution in this continuation.
+
+
+## 2026-11-13 - Clanker knight retopology review
+
+Modeling approved by Ayric in chat and reconciled in the RAC ledger; semantic cleanup passed. Retopology is awaiting Ayric: work/clanker-knight-hero-rac-v001/retopology/regional-v016, 13 separate regions, 59554 triangles, 29777 quads. Closed, reopened and GLB-verified; CPU four-view comparison, wireframes and region colours delivered to ClankerHeroes-art/knight/rac/v001/retopology-review. No UV/paint/rig or Unreal changes. Stop for retopology review. Later rig must use user-supplied production-bound Claude landmarks; ask user when payload is ready. All rejected attempts retained and summarized in review-notes.json. Full RAC verification passed on resume; final ledger audit intact, production_ready false.
+
+
+## 2026-11-13 - Clanker texture review and seeded wear
+
+Ayric approved retopology and authorized UV/bake/paint, then requested different wear per respawn. Final review textures/review-v004 preserves all 13 approved parts and 59554 triangles. Head/Body 2K atlases, CPU true dense normal bake, clean coat and four independent seeded wear sets (16 head/body combinations). Five Pending Framewright entries. Delivery ClankerHeroes-art/knight/rac/v001/texture-review. Technical checks passed; texture_approval remains in_progress for Ayric. No rigging or Unreal changes. Future rig requires external production-bound Claude landmarks; ask after texture approval. Painter crashed at shutdown after outputs; independent reopen checks passed and both facts retained. Local GPU paint only; Rodin spend zero.
+
+
+## 2026-11-13 - Clanker robot surface revision, still at texture review
+
+Ayric rejected both finish and wear while approving the model: the detail looked painted on like a figurine. New textures/review-v009 removes boot/helmet outline paint and false gold fastener spots, separates enamel/brass/slate/rubber/glass response, and uses seeded edge-connected chips with shallow relief and corresponding metal/roughness/coat maps. Intermediate v005 was too glossy/regular; v006 restored satin and visible wear; v007 reconciles fitting borders/lenses; v008 repairs unassigned semantic edge samples and optical albedo variation; v009 replaces the near-duplicate D seed (67043) with 314159. Pairwise wear-mask overlap is below 10 percent. No geometry/UV changes. Five new Pending revision-2 Framewright models; actual Wear A loaded and orbited on verified SwiftShader CPU, with response hash checked. Artifact checks, per-class gates and PNG replay passed. Delivery ClankerHeroes-art/knight/rac/v001/texture-review-v002. Ledger texture_approval in_progress; every other stage unchanged. No rigging or Unreal edits. Rodin/GPU spend zero. Stop for Ayric; future rig requires external production-bound Claude landmarks.
+
+
+## 2026-11-13 - Clanker Route A rig review, CPU
+
+Explicit user authorization allowed rigging while textures remain in review. Used exact production-bound Claude v009 landmarks (payload 4c1560b8...c7ff9), never automatic placement. RAC previously rejected multi-mesh input, so added opt-in `rigid_part_binding` with source hash and exact part owners; retained legacy single-mesh binding and tested both. 13 parts/topology/UVs unchanged; 86 bones; one weight per vertex; native deform flags preserved. Full verify 1091 passed/40 skipped/199 subtests, plus 3 real-Blender tests.
+
+Delivery `C:/Users/Ayric/Documents/Unreal Projects/ClankerHeroes-art/knight/rac/v001/rig-review-v003`. `SK_Clanker.fbx` exported through existing centimetre exporter; actual binary unit/root checks passed. Native rig and relative 2K textures reload. Five-pose gate passes and all 8 pose probes preserve rigid shape within 0.01 mm. Human review remains open: extreme poses expose knee/waist/helm-neck gaps. Boots bind calves, no ankle flex; thumb_01 deform-enabled but unweighted, mittens rigid hand-bound. No Unreal writes/import. Rig/deformation ledger in_progress, texture state unchanged; audit passes but production_ready false. Packaging v001/v002 retained with rejection notes; v003 validated.
+
+
+## 2026-11-13 - Sentry modeling review
+
+**Sentry / Gate Sentry, 2026-11-13 - MODELING REVIEW, awaiting Ayric.**
+Workspace `work/clanker-sentry-regular-rac-v001/`; historical name retained, active user-upgraded tier **elite**, target 35k/ceiling 40k. Selected `modeling/parts-v012/`: 36,826 triangles, 14 closed rigid objects, exact planned owners, 110 cm to antenna tips. One image-conditioned Hunyuan3D-2mv seed197 job, 0 credits. User authorized GPU for acquisition; remainder CPU.
+Body supports connected, spherical joint arcs/socket seating measured, Foot/KneeRing separate, helm clearance 2-3 cm. Front silhouette IoU 0.9200. Eyes/Lights/EnamelVariant populated. FBX centimetres/local scales 1; world-geometry round-trip verified.
+Delivery `C:\Users\Ayric\Documents\Unreal Projects\ClankerHeroes-art\sentry\rac\v001\modeling-review-v001`; start `REVIEW.html`. FBX SHA256 `4d4eca43ac6d75fd96e144fbc708816506d36fa66e4373e2f4293c3d332f4580`. Human modeling gate open; colours provisional, no UV/bake/paint/rig/Unreal stage. Further hard-surface cleanup and material masks remain subject to review. Claude landmarks must bind to the later frozen production payload. Failed and superseded attempts retained; see review-notes.json.
+
+
+<!-- rodin-sentry-look-v001 -->
+## 2026-11-13: Sentry switched to Rodin; look review delivered
+
+User explicitly requested Rodin after rejecting previous surface repairs. One maximum-tier job, 3 credits (230→227), produced a40k-triangle fused mesh and6144colour/2048PBR. Kept original acquisition, made4096colour review copies, corrected near-zero brass metallic and colour-map pebbling, preserved mesh/UVs. Hostile andGate v3 are Pending, visually replayed inFramewright and byte-verified. Full paths, hashes, receipts and outstanding14-part/rig work: ClankerHeroes-art/sentry/rodin/v001/README.md. Do not bind the existingRouteB rig to this newmesh. No newrig orUnreal import.
+
+
+<!-- rodin-sentry-rig-v002 -->
+**2026-11-13: Rodin split and rig review delivered, Pending.** User approved the replacement modeling. Fourteen rigid objects, friendly Gate glass eyes, new measured Route B landmarks bound to production `3a9c08840e4f9aa80867d41e6894df5b0708a166eb47be148395dbd6776302b0`. Both looks are Framewright v4 with 11 embedded clips, skeleton overlay and five-pose sheets. 110 cm to antenna tips, elite 58,048 triangles, 4K/2K maps. FBX reimport and rigid-weight checks pass. Armour collisions at extreme poses and head nod limit remain explicit review items. Framewright generic 20k budget flags the elite payload; no missing/unexpected bones. See [rac/rodin-v002/README.md](rac/rodin-v002/README.md). Unreal follows acceptance; no import yet. All local build/render work CPU; zero additional credits.
+
+
+Delivery: C:\Users\Ayric\Documents\Unreal Projects\ClankerHeroes-art\sentry\rac\rodin-v002\README.md
+
+
+<!-- frastown-west-berth-b01-20261123 -->
+## 2026-11-23 · Frastown West Berth modular batch
+
+Delivered 17 source meshes and native Unreal packages for the rail, market plates, galleries, two bridges, cliff steel and inspection access. Blender retains metre-based origins and the Unreal packages carry named snap sockets. The corrected 200 cm rail and 200 × 200 cm plate imported at scale 1.0. All 17 signed pivot-relative bounds were checked. The Framewright assembly is Pending, with the material revisions, engine scale failure and grating evidence attached as review notes. VR movement and human artistic review are open. See [the measured record](evidence/frastown-west-berth-b01-20261123.json).
+
+
+<!-- frastown-close-range-dry-20261123 -->
+## 2026-11-23 · Frastown dry close-range first articles
+
+The first batch used a custom atlas. The subsequent RAC paint acquisitions passed the mesh and UV gate but copied fixed orange/blue lighting into both looks. Reject the raw paint if a light or rain highlight persists in isolated base color. The deck then measured about 7 mm/texel from automatic projection. The close-range candidates use dedicated contact-surface UVs, dry authored surface color and relief, and the RAC material-response sweep. Review matched 32–46 cm views for millimetre wear and soft transitions at contact zones. Scene rain stays independent. Both Framewright revisions are Pending. See [the dry close-range evidence](evidence/frastown-close-range-dry-20261123.json).

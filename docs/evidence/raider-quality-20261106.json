@@ -1,0 +1,659 @@
+{
+  "schema": "rac.raider-quality-checkpoint.v1",
+  "recorded_at": "2026-11-06T08:42:08.891869-07:00",
+  "status": "Narrow collar repair verified; artist confirmation pending",
+  "accepted_authority": {
+    "path": "work/raider-pouch-20261103/delivery/Raider_Field_Pouch.glb",
+    "sha256": "b3a88ad98fcf2b279c0612ca3b18a32d4204ab00e425b4aa3fed9845c6b9cbee",
+    "bytes": 29528356
+  },
+  "candidate": {
+    "path": "work/raider-polish-20261105/review-candidate05/Raider.glb",
+    "sha256": "5136a551e09b2f94a498895b22b9c7fb5cd576767e80dc7640857539d8dea36f",
+    "bytes": 63633448
+  },
+  "packed_native": {
+    "path": "work/raider-polish-20261105/review-candidate05/Raider_Native.blend",
+    "sha256": "53ab90405d15d444b6f8b0334ef89638cac49f8538dcf833453acf06ff893fe8",
+    "bytes": 51036893
+  },
+  "production_ready": false,
+  "aaa_accepted": false,
+  "ledger_promoted": false,
+  "checks": {
+    "repository_verify": {
+      "path": "work/raider-polish-20261105/verify-complete.log",
+      "sha256": "ed71e391ae50537efc7ea9288b1f01c045d3191c033f0081118a4f5183fc5d4f",
+      "bytes": 3277
+    },
+    "tests_passed": 964,
+    "tests_skipped": 39,
+    "subtests_passed": 198,
+    "lint_syntax_wheel_and_installed_wheel": "pass",
+    "rig": "pass",
+    "skeleton": "ue5_manny_browser",
+    "triangles": 66111,
+    "bones": 88,
+    "facial_controls": 34,
+    "max_influences": 4,
+    "unweighted_vertices": 0,
+    "packed_images_after_reopen": 21,
+    "exported_held_pose": "pass",
+    "native_pose_match_max_m": 3.6273311820878007e-07,
+    "body_static_deformation": "Four poses, eight views inspected on review-candidate02; body, eye, rig and clip data are unchanged by final face-only cleanup",
+    "face_static_deformation": "Head left/right, blink and mouth-open repeated on final GLB; static tests are not authored natural motion"
+  },
+  "improvements": [
+    "Registered concept-conditioned outfit, skin, sleeve and cuff repair",
+    "Cuff UV repack and four-side reference coverage",
+    "Material-specific roughness, metalness, dielectric specular and normal response",
+    "Sleeve boundary fit, duplicate neck cleanup, internal collar lining",
+    "Head/collar and torso/armor weight repairs",
+    "Clean closed-eyelid and neck maps; mouth interiors follow mouth-open control",
+    "Crop-line continuation below collar; acquired jaw cleanup and opposite-ear patch with welded root, independent UV atlas and registered repaint",
+    "Packed native retains original skeleton rest frames and matches GLB pose"
+  ],
+  "outstanding": [
+    "Artist material review in the loaded Framewright Assets viewer; Scene-lighting comparison remains open",
+    "Close-up repaired ear root and collar shaping under consumer lighting",
+    "Hair remains an acquired textured volume, not a strand groom; skin has neutral transport PBR without consumer-specific subsurface tuning",
+    "Natural animation and equipment/garment behavior in the actual consumer",
+    "Cooked UE runtime evidence and remaining ordered ledger gates"
+  ],
+  "image_generation": {
+    "mode": "built-in image_gen",
+    "saved_references_directory": "work/raider-polish-20261105/references",
+    "prompts": [
+      {
+        "path": "work/raider-polish-20261105/references/cuff-back.prompt.txt",
+        "sha256": "e55c775e29238b3d8a41d79cefe7884c132b67155708694db48077aff7ec4115",
+        "bytes": 643
+      },
+      {
+        "path": "work/raider-polish-20261105/references/cuff-front.prompt.txt",
+        "sha256": "e55c775e29238b3d8a41d79cefe7884c132b67155708694db48077aff7ec4115",
+        "bytes": 643
+      },
+      {
+        "path": "work/raider-polish-20261105/references/cuff-inner.prompt.txt",
+        "sha256": "6ad9a097f8817b40acdc9b8b50123775ad9523d182f3cf281203a9de099325c4",
+        "bytes": 810
+      },
+      {
+        "path": "work/raider-polish-20261105/references/cuff-outer.prompt.txt",
+        "sha256": "6ad9a097f8817b40acdc9b8b50123775ad9523d182f3cf281203a9de099325c4",
+        "bytes": 810
+      },
+      {
+        "path": "work/raider-polish-20261105/references/ear-right.prompt.txt",
+        "sha256": "da1205d687e2592b430f23adc8ca07d89a5abae8710dc15672c34b8abdbc24c4",
+        "bytes": 1368
+      },
+      {
+        "path": "work/raider-polish-20261105/references/head-blink.prompt.txt",
+        "sha256": "20893b4d9b861cf1483e864cdf771892dfd7955880bae3744cf6acf5ccee164f",
+        "bytes": 820
+      },
+      {
+        "path": "work/raider-polish-20261105/references/neck-back.prompt.txt",
+        "sha256": "e4e463d2b6729a6a9cafaf7f6503507bbfbbe317f6cb84f1902d1270c31f443c",
+        "bytes": 967
+      },
+      {
+        "path": "work/raider-polish-20261105/references/neck-front.prompt.txt",
+        "sha256": "ea06789c4fbfc37e3285c400651c20646dca4c34923fefea146e2d99a4fa0307",
+        "bytes": 573
+      },
+      {
+        "path": "work/raider-polish-20261105/references/neck-side.prompt.txt",
+        "sha256": "3c187cc8c6b4df8a89f37e7c5c5bbf2d404109e9339bf2ae4a5e7df096cb48d6",
+        "bytes": 967
+      },
+      {
+        "path": "work/raider-polish-20261105/references/sleeve-back.prompt.txt",
+        "sha256": "ee693398b3a2f2b5e6ee8da98c2d3f54622bebb6518cf2063b74d005154b8e6f",
+        "bytes": 617
+      },
+      {
+        "path": "work/raider-polish-20261105/references/sleeve-front.prompt.txt",
+        "sha256": "ee693398b3a2f2b5e6ee8da98c2d3f54622bebb6518cf2063b74d005154b8e6f",
+        "bytes": 617
+      }
+    ]
+  },
+  "render_evidence": [
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/studio/back.png",
+      "sha256": "9614cfa4cfb96e4f61306e6be66d79526cac8714754d15703cf82d6d95d0476a",
+      "bytes": 916535
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/studio/face-back.png",
+      "sha256": "e5f29cab9795a58fb78e42c6eea6322ed822d3b49fe4f575567a05d55b0b78b5",
+      "bytes": 1119675
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/studio/face.png",
+      "sha256": "46d6ed35885e6827100b6077950c06819131919d7f2c2a6d5e9be5008fbfc3a4",
+      "bytes": 1117441
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/studio/front.png",
+      "sha256": "7c418f6fde70e94a787fb76ae90e9a33f97883952a9130c93f92a9fb6ebe131c",
+      "bytes": 933429
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/studio/legs.png",
+      "sha256": "6eab97afce467d006fa93f2235d87ab203b470bf9570a594397749c86cfb72dc",
+      "bytes": 1133522
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/studio/quarter.png",
+      "sha256": "a5ab635d41cb0d13f634fdbd0ca0a4c490687585ff450c54e55862efcc29a329",
+      "bytes": 924099
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/studio/side.png",
+      "sha256": "909e61d7bfc2cec459d486af0e58e1d0bd388ce7a3385b019de09c99883adf20",
+      "bytes": 848733
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/studio/torso-back.png",
+      "sha256": "2a7d1ca93e0b174dddb9079e28fe3b013a59175260c756a22d6d5ead3e0388c4",
+      "bytes": 1275641
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/studio/torso.png",
+      "sha256": "1255933e7c4b385a9ef4bb997042463178c7db195b99fd70d382cc4c5fd173ca",
+      "bytes": 1268701
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/moving-light/back.png",
+      "sha256": "7048dad2314ab5eae1ed0d7e140fd849c059d2c34974f78aeb1c34aaae1d9ae8",
+      "bytes": 1001382
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/moving-light/front.png",
+      "sha256": "7d8bc376418b6bd1fcee66541832698057c04458d625907643c862655fe0a84d",
+      "bytes": 1042707
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/moving-light/light-center.png",
+      "sha256": "16cbbbd83f41ed09e6917a7de33a44db5131d7d2c18f43aa38bf0ec885396466",
+      "bytes": 1044945
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/moving-light/light-left.png",
+      "sha256": "efcd1500503aa9002bd61d833874bf4b2b0181940dcb2040cb02e755e62f4bfe",
+      "bytes": 1019146
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/moving-light/light-right.png",
+      "sha256": "8263b5498f4a0b605559f75f86687552014814aff6b082356170bc19dae16d59",
+      "bytes": 1039035
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/moving-light/quarter.png",
+      "sha256": "5191f4464040702540815b5de54535abbef2f947d8f27c4374f4bc60e36c05d9",
+      "bytes": 1041950
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/deformation/blink-front.png",
+      "sha256": "55c285bdd80e4725e1d13c57f7c715377c6f0694419af586b809e9a4c8a37aa6",
+      "bytes": 1114184
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/deformation/blink-quarter.png",
+      "sha256": "1766d569cd7497f671318766f6d8cb840fd321a00d596d785ab111d6d4aa6519",
+      "bytes": 1102865
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/deformation/head-left-front.png",
+      "sha256": "3838e3f1e6780a58de3750322942c2e789cf0330dc9d842f16fa93f5c1263489",
+      "bytes": 1126748
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/deformation/head-left-quarter.png",
+      "sha256": "c5543f0a220e23730d5ae5d4c252bda554f738f4bb2df68a70ae13b75eacec19",
+      "bytes": 1118656
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/deformation/head-right-front.png",
+      "sha256": "0edcd575ef1aede3560faeafd5eff3d6c7e6cf2e4acf04ee92365fe5542563bf",
+      "bytes": 1121270
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/deformation/head-right-quarter.png",
+      "sha256": "3abc4b5b2dcc9f7202f59f9955053b69054bd843c2a18fb7e9981ab4d74793e3",
+      "bytes": 1102491
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/deformation/mouth-open-front.png",
+      "sha256": "8013a5eb987e019fd986d70a744f9dfec1c49a4d5e4bdf7510932dbf91344e12",
+      "bytes": 1118983
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/deformation/mouth-open-quarter.png",
+      "sha256": "e2bf9df997d20a1ee7ecd604bf1a7215af8e0946e984db118e3ec7e8585a30bf",
+      "bytes": 1109012
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/native-render/face.png",
+      "sha256": "485d18d14ce15464c2350ab53c9846b2f3b17d3080b3233340ef7ab7ce55dd2c",
+      "bytes": 1117380
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/native-render/quarter.png",
+      "sha256": "61c9a3098e720351184d6781cd6033269dcf373dccdaa14bd82317072c9b93b0",
+      "bytes": 924248
+    }
+  ],
+  "references": [
+    {
+      "path": "work/raider-polish-20261105/references/arm-back.png",
+      "sha256": "865ec72c39e62f40c63719f5595a750309171b9f48ab38b6f3be77dbb3b41289",
+      "bytes": 1904090
+    },
+    {
+      "path": "work/raider-polish-20261105/references/arm-front.png",
+      "sha256": "831fe9a81b137a7d6edfdd0f271a29d69b2ffc1e31500a41df09895fd43db36e",
+      "bytes": 1746302
+    },
+    {
+      "path": "work/raider-polish-20261105/references/cuff-back.png",
+      "sha256": "9f4061900b448f5bdd1fec06d9818a26ef0426d58c49471b0dfb2ef4bcda0094",
+      "bytes": 1984968
+    },
+    {
+      "path": "work/raider-polish-20261105/references/cuff-front.png",
+      "sha256": "7a34b42a4838c8f952b1d2fa7c0bd3c14bda6c316e6e491cc8f833a10b698c3b",
+      "bytes": 1937346
+    },
+    {
+      "path": "work/raider-polish-20261105/references/cuff-inner.png",
+      "sha256": "7ae76824dc9e38d05ba170dd030475f99d6ba938d87e9c65ba22b7927bbcd429",
+      "bytes": 2005655
+    },
+    {
+      "path": "work/raider-polish-20261105/references/cuff-outer.png",
+      "sha256": "2c87706d8a2f84471021707f88095d9be1dcf56f039e6ebb0cc1762a881c8acc",
+      "bytes": 2020282
+    },
+    {
+      "path": "work/raider-polish-20261105/references/ear-right.png",
+      "sha256": "71498d0137bad42125e32cacacc50f53b7a96aa5130b18ed0312b55a80165f8a",
+      "bytes": 2087873
+    },
+    {
+      "path": "work/raider-polish-20261105/references/head-back.png",
+      "sha256": "51e0d94e157c8553d473f74ed2ccbc39e5e21aa2e5e40a013872b0cad8baf4ea",
+      "bytes": 1954186
+    },
+    {
+      "path": "work/raider-polish-20261105/references/head-blink.png",
+      "sha256": "fcd424e2a5d094e5ef5c851508856cfafd91231322a1f338e2c948931132fee8",
+      "bytes": 1586972
+    },
+    {
+      "path": "work/raider-polish-20261105/references/head-front.png",
+      "sha256": "a15a2734b85d3d5eaa88f3107e36be04a9e2f3d69923c05a9eb7b6c383480137",
+      "bytes": 1926116
+    },
+    {
+      "path": "work/raider-polish-20261105/references/head-left.png",
+      "sha256": "b8374cbb73bbcdaac24c8b36d81d79ee747e64e8b7d29a54399b637f4cc043ee",
+      "bytes": 2128279
+    },
+    {
+      "path": "work/raider-polish-20261105/references/head-side.png",
+      "sha256": "f4244fd7bb7ba6607e8e7d5f1eb8117d2444f218bf1cf929e2ec3b26af4677ce",
+      "bytes": 1981932
+    },
+    {
+      "path": "work/raider-polish-20261105/references/head-top.png",
+      "sha256": "bfff41bcc04cb5f9759f76ca282623553c520d2b6911e576d42026b6a39bd9ce",
+      "bytes": 2111013
+    },
+    {
+      "path": "work/raider-polish-20261105/references/legs-above.png",
+      "sha256": "ef91682e7e46a390ebf33a0c86f19b328f136a730b41082b8fd439dfe1d8a587",
+      "bytes": 1789149
+    },
+    {
+      "path": "work/raider-polish-20261105/references/legs-back.png",
+      "sha256": "301c7834fdc13cc777975eb642e7c24b5c9fb05df18c0f7efc49c63825f2cc7f",
+      "bytes": 1817891
+    },
+    {
+      "path": "work/raider-polish-20261105/references/legs-front.png",
+      "sha256": "9dcf983a7e4ca9bf6119ac18be71869d23065aa41fd5af9cf1fe5d83a3776946",
+      "bytes": 1778846
+    },
+    {
+      "path": "work/raider-polish-20261105/references/legs-left.png",
+      "sha256": "facdf0ee005bffa03b644362ef5a3bbeca3da65b618124275fa1b98a0512d73e",
+      "bytes": 1516733
+    },
+    {
+      "path": "work/raider-polish-20261105/references/legs-right.png",
+      "sha256": "0f08fdd509a41b9791b0254b0ceda30abec0b46aabc5be0c97a02433711885fe",
+      "bytes": 1560068
+    },
+    {
+      "path": "work/raider-polish-20261105/references/neck-back.png",
+      "sha256": "04f8d19161e898ab570d26f0180f02ba9122d15413a5d65fd908cb549278ecea",
+      "bytes": 1687398
+    },
+    {
+      "path": "work/raider-polish-20261105/references/neck-front.png",
+      "sha256": "c2fd4bc97e812ea7b65c01b76ab5b78e741f4c066f1caa1ac7a4eb66fd86ce2e",
+      "bytes": 1823487
+    },
+    {
+      "path": "work/raider-polish-20261105/references/neck-side.png",
+      "sha256": "83ca656092688647a9479dab1283cb322f28182f5528601280c22efebdd6dd1a",
+      "bytes": 1701064
+    },
+    {
+      "path": "work/raider-polish-20261105/references/sleeve-back.png",
+      "sha256": "85d5a61ccf8907d14f59ca03e9e46f093a301f21c993fb35161039538ba92fc9",
+      "bytes": 1990902
+    },
+    {
+      "path": "work/raider-polish-20261105/references/sleeve-front.png",
+      "sha256": "8984d1d19c59700625094711c4da0717bad1ef6f6d09094e8e80940966404814",
+      "bytes": 1995404
+    },
+    {
+      "path": "work/raider-polish-20261105/references/torso-back.png",
+      "sha256": "b035a83f21fc5e38495f7ed200b8050c7b7bca001d16114c0d0641c90517b9be",
+      "bytes": 2422818
+    },
+    {
+      "path": "work/raider-polish-20261105/references/torso-front.png",
+      "sha256": "232703b25d9cc4158f5edfb97c39989086f10185c404f9b9c66d41d913eeaf61",
+      "bytes": 2191033
+    },
+    {
+      "path": "work/raider-polish-20261105/references/torso-left.png",
+      "sha256": "afd915409856cddce988e68fd460357441774c742e878e111f864555aadc536c",
+      "bytes": 1808244
+    },
+    {
+      "path": "work/raider-polish-20261105/references/torso-right.png",
+      "sha256": "e48782de0af0165ccccba2de42cac2aa05ca1f6c2b42d06bb28fb76112f7269d",
+      "bytes": 1758313
+    }
+  ],
+  "receipts": [
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/payload.json",
+      "sha256": "00fe412f74d2065c9e614adc926c4f75a66219b0dfafd5396b4bc163ddde8f57",
+      "bytes": 689
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/native-receipt02.json",
+      "sha256": "390777742cb267e24859debd7d1bdab1b9e455f285478210af079eb9f7a52fef",
+      "bytes": 707
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/reopen.json",
+      "sha256": "bb05eaa19c74081cc07b7e0d5f607a0882b202fc22e49ba798dc687f3c7ccf47",
+      "bytes": 446
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/rig-gate.json",
+      "sha256": "d7cc84ff0984d12384e3f7037d65dab9fbfa160fc96c53383e30220085455598",
+      "bytes": 3136
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/pose-check.json",
+      "sha256": "2412dbf2c3ea1cf687281f8b6417ca45700a549ef878648dafc8f4cf991a7096",
+      "bytes": 92347
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/face-scope-proof.json",
+      "sha256": "dc282e4072d69133ac92f5e6a17b6a2fba036a4b5da7469247157d25ee149b1c",
+      "bytes": 446
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate04/native-render-comparison.json",
+      "sha256": "364aa74a6b5116d94acc7c6ec42f65e9730a6d79bb60b167ff2a86901cb92b57",
+      "bytes": 614
+    },
+    {
+      "path": "work/raider-polish-20261105/cuff-uv01/receipt.json",
+      "sha256": "23ca7f04e61de5cdd82f7c8ff72fd37b922e3eb8cf78b2614443bca5fed1570f",
+      "bytes": 441
+    },
+    {
+      "path": "work/raider-polish-20261105/tailoring03/receipt.json",
+      "sha256": "da1b70fa5db6c0f4d2da9b50ab5f50b8374b23eb945c32e1d80e922b5ad8cfd3",
+      "bytes": 800
+    },
+    {
+      "path": "work/raider-polish-20261105/torso-rig01/receipt.json",
+      "sha256": "0e76cea791239e725ddf52215fe4d5b412a834efe9eb40d5791ab628bd6b6bb6",
+      "bytes": 629
+    },
+    {
+      "path": "work/raider-polish-20261105/neck-coverage03/receipt.json",
+      "sha256": "3401765991bf09b479aa5da3a22ac0576acd6e255594b1c76440149e86b08958",
+      "bytes": 682
+    },
+    {
+      "path": "work/raider-polish-20261105/face-surface03/receipt.json",
+      "sha256": "f0aeff3a07940e99b731bdf8b40612a1f3e718ca1940807efebb53f60dfdc4b7",
+      "bytes": 542
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-patch03/receipt.json",
+      "sha256": "508d573abd6e07d6bee939d40dee473da289e0264b8041de6c7d2c1a832d9602",
+      "bytes": 693
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-uv01/receipt.json",
+      "sha256": "8aa1ab40ab79baaac54e6fa92c29e739b37744a14f5124364b1e2fd69f504653",
+      "bytes": 415
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-paint01/receipt.json",
+      "sha256": "d04cba6baa42294153fbf9b2d7cf41b2ea2c1fe482b797e663de737e78d84003",
+      "bytes": 793
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-finish02/receipt.json",
+      "sha256": "a70481468b29f16f5a0f4fcc7327cd3052716778cb5751dd8dc25a5315280d9c",
+      "bytes": 526
+    }
+  ],
+  "pipeline": [
+    {
+      "path": "scripts/project_reference_patch.py",
+      "sha256": "a82b66f4ad21da13d68552fb1d41b80d093524b8746ac02a4d560f321a0ac2e1",
+      "bytes": 15947
+    },
+    {
+      "path": "scripts/prune_glb_payload.py",
+      "sha256": "bb73f72ac937c21fbc144c4cd778630da0357019a5dfbfa3e2459b5ba45dcf4c",
+      "bytes": 6786
+    },
+    {
+      "path": "src/reference_asset_compiler/stages.py",
+      "sha256": "19ed3a174ef7cdcd29281343bfc2b3029ddccef6f551330b5031f61b6cc61795",
+      "bytes": 57393
+    },
+    {
+      "path": "docs/REFERENCE_PATCH.md",
+      "sha256": "3965d91677a6ae12c2a439e54be8360612a05ebd5708b5fb260546573111fce5",
+      "bytes": 6981
+    }
+  ],
+  "retained_rejections": [
+    "neck03/head01 excessive collar deletion; neck05 rear strap damage",
+    "stance01 anatomical aim inferred from glTF display tails; failed pose check",
+    "groom01 excessive triangle cost with little visual gain",
+    "review-candidate/Raider.blend importer helper Icosphere failed skin gate; use Raider_Native only",
+    "neck-coverage01 CPU remap row-limit failure; no candidate written",
+    "neck-coverage02 clamped donor row caused visible skin streaks",
+    "face-surface01/02 smoothing left folds and shrank shape",
+    "face-surface03 mirror-constrained jaw improved; ear remained pinched",
+    "face-surface04/05/06 and review-candidate03 rejected for frontal ear silhouette; jaw correction retained",
+    "ear-patch01 overlapping root bridge rejected; ear-patch02 topology gate failed before output",
+    "ear-patch03 root fitted directly with a manifold correspondence; ear-uv01 isolates maps; ear-paint01 removes doubled outline",
+    "ear-finish01 missing optional tangent handling stopped CPU preparation; no GLB written; ear-finish02 completes the repair"
+  ],
+  "previous_launch_blocker": {
+    "action": "Restart exact saved Framewright instance at http://127.0.0.1:5191",
+    "approval_review_result": "blocked by policy",
+    "user_question": "answered 2026-11-06: user authorized opening Framewright; same saved executable restart again rejected with blocked by policy",
+    "alternate_launch_attempted": false,
+    "current_framewright_review_completed": false
+  },
+  "framewright_handoff": {
+    "date": "2026-11-06T08:24:09.939379-07:00",
+    "url": "http://127.0.0.1:5191/",
+    "asset_id": "a01d3980-75b2-4a2c-8306-9705d0c4561d",
+    "asset_name": "Raider - Quality Candidate 04",
+    "project_id": "2e883b13-6cc6-46e2-b9ed-f9c3aac6c5ec",
+    "served_sha256": "a3a6150bbd23eecc4608fcd9ab01ba317aa9f44e7357f4ffb30ebd4db69289f0",
+    "bounds_only_derivative": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\raider-polish-20261105\\framewright-review-20261106\\Raider - Quality Candidate 04.glb",
+    "original_candidate_unchanged": true,
+    "binary_payload_byte_identical": true,
+    "launch": "Explicit require_escalated request approved; existing service running as PID 4008",
+    "web_repair": "Restored 34 missing wwwroot files from matching local package; all 5 surviving files matched hashes; no database or original asset replaced",
+    "diagnostic_correction": "Restricted sandbox process inventory was misleading; the first process did not exit. A second diagnostic launch encountered address already in use and exited.",
+    "import_rejection": "Missing min/max on POSITION accessor 277, raider mesh / painted material, 873 vertices. Computed bounds from existing float32 coordinates; all other JSON and all binary bytes unchanged.",
+    "browser_review": "Actual Framewright Assets Director Mode rendered, relaxed held clip selected, orbit keys and wheel zoom exercised; full character visible",
+    "human_review": "Handed to artist; acceptance pending",
+    "scene_review": false,
+    "original_saved_scene_unchanged": true,
+    "production_ready": false,
+    "aaa_accepted": false,
+    "screenshot": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\raider-polish-20261105\\framewright-review-20261106\\raider-framewright-review.jpg"
+  },
+  "previous_candidate04": {
+    "candidate": {
+      "path": "work/raider-polish-20261105/review-candidate04/Raider.glb",
+      "sha256": "55f0b07481d4df458d4196b661d7362dcce38455714f4b2229274a7138df41f6",
+      "bytes": 63591184
+    },
+    "packed_native": {
+      "path": "work/raider-polish-20261105/review-candidate04/Raider_Native.blend",
+      "sha256": "912a5cb8acc2c905174babccccb81259844cb6ab740d5d0c8bf3db861f37670d",
+      "bytes": 51004126
+    }
+  },
+  "collar_repair_20261106": {
+    "recorded_at": "2026-11-06T08:42:08.891869-07:00",
+    "status": "Narrow collar repair verified; artist confirmation pending",
+    "source_appearance_feedback": "Artist approved candidate04 appearance except shirt gap",
+    "source_feedback_is_production_acceptance": false,
+    "restoration": {
+      "source": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\raider-polish-20261105\\framewright-review-20261106\\Raider - Quality Candidate 04.glb",
+      "source_sha256": "a3a6150bbd23eecc4608fcd9ab01ba317aa9f44e7357f4ffb30ebd4db69289f0",
+      "donor": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\raider-polish-20261105\\candidate01\\Raider_Refined.glb",
+      "donor_sha256": "0475e0b2e4a19ec55b082603f0c275da3906ec644f13e80c3e51178fa9e43846",
+      "output_sha256": "5136a551e09b2f94a498895b22b9c7fb5cd576767e80dc7640857539d8dea36f",
+      "restored_donor_faces": [
+        9753,
+        9929,
+        10090,
+        10091,
+        10092,
+        10262,
+        10264,
+        10428,
+        10429,
+        10551,
+        10688,
+        10689
+      ],
+      "restored_triangles": 12,
+      "vertex_match_max_error": 0.0,
+      "closed_boundary_edges": 10,
+      "patch_edges_all_manifold": true,
+      "original_binary_prefix_preserved": true,
+      "existing_geometry_materials_rig_morphs_animation_unchanged": true,
+      "intentional_neck_opening_preserved": true,
+      "production_ready": false,
+      "visual_acceptance": "pending"
+    },
+    "ray_test": {
+      "grid": [
+        100,
+        100
+      ],
+      "gap_before": 50,
+      "gap_after": 0,
+      "other_lower_neck_hits": 569,
+      "other_hits_identical": true
+    },
+    "replay_byte_identical": true,
+    "served_byte_identical": true,
+    "exported_pose_passed": true,
+    "reopened_native": {
+      "native_sha256": "53ab90405d15d444b6f8b0334ef89638cac49f8538dcf833453acf06ff893fe8",
+      "meshes": [
+        "eyes",
+        "face",
+        "raider"
+      ],
+      "triangles": 66123,
+      "bone_count": 88,
+      "facial_controls": 34,
+      "packed_images": 24,
+      "all_packed_after_reopen": true,
+      "held_tracks": [
+        "Raider_Relaxed_Held"
+      ],
+      "review": "technical checks passed; consumer appearance review remains open",
+      "production_ready": false
+    },
+    "static_collar_review": [
+      "head-left",
+      "head-right",
+      "arms-raised"
+    ],
+    "static_review_scope": "Coverage of repaired collar only; no whole-character motion acceptance",
+    "framewright_import": {
+      "id": "50e09e9a-74a4-48ad-8c1e-1ccf8ef9f538",
+      "projectId": "2e883b13-6cc6-46e2-b9ed-f9c3aac6c5ec",
+      "kind": "Model",
+      "originalFileName": "Raider - Quality Candidate 05 - Collar Repair.glb",
+      "mimeType": "model/gltf-binary",
+      "bytes": 63633448,
+      "width": null,
+      "height": null,
+      "durationSeconds": null,
+      "contentHash": "5136a551e09b2f94a498895b22b9c7fb5cd576767e80dc7640857539d8dea36f",
+      "contentUrl": "/api/assets/50e09e9a-74a4-48ad-8c1e-1ccf8ef9f538/content",
+      "createdAt": "2026-11-06T08:37:11.3601643-07:00",
+      "displayName": "Raider - Quality Candidate 05 - Collar Repair",
+      "collectionId": null,
+      "tags": [],
+      "notes": "",
+      "source": "Imported",
+      "isArchived": false,
+      "updatedAt": "2026-11-06T08:37:11.3601643-07:00",
+      "revisionFamilyId": null,
+      "revisionNumber": null,
+      "isCurrentRevision": false,
+      "parentAssetId": null,
+      "revisionPrompt": "",
+      "revisionEngine": "",
+      "preparationAcceptedAt": null,
+      "preparationAcceptedBy": "",
+      "preparationAcceptanceNote": "",
+      "preparationTopologyChanged": false
+    },
+    "framewright_visual_review": "Front and quarter Assets Director Mode; held clip selected; orbit/zoom exercised",
+    "screenshots": [
+      "framewright-collar-front.jpg",
+      "framewright-collar-quarter.jpg"
+    ],
+    "scene_lighting_review": false,
+    "production_ready": false,
+    "aaa_accepted": false
+  }
+}

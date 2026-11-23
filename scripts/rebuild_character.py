@@ -47,6 +47,23 @@ def face_proportions_options(character):
     return ["--mouth-corner-lift", *lift] if lift else []
 
 
+def frozen_head_mode(recipe, inputs):
+    """An already fitted, reviewed head may bypass the first character's facial retouch."""
+    mode = recipe.get("head_finish", {}).get("mode", "legacy")
+    if mode not in ("legacy", "frozen"):
+        raise ValueError("head_finish.mode must be legacy or frozen")
+    if mode == "legacy":
+        return False
+    if recipe.get("face_paint"):
+        raise ValueError("A frozen head cannot also request face_paint retouching")
+    receipt = json.loads((inputs / "head.json").read_text(encoding="utf-8"))
+    landmarks = json.loads((inputs / "front-landmarks.json").read_text(encoding="utf-8"))
+    actual = sha(inputs / "head-front.png")
+    if receipt.get("picture", {}).get("image_sha256") != actual or landmarks.get("image_sha256") != actual:
+        raise ValueError("Frozen head must be bound to its exact facial guidance image and landmarks")
+    return True
+
+
 def body_reduction_options(recipe, character):
     """prepare_body_acquisition.py's counts (recipe) and where the hands begin.
 
@@ -171,6 +188,8 @@ def main():
                         "render with EEVEE (the UE5 rig's ortho and pose views, the deform test) switch to Cycles on "
                         "the CPU through RAC_RENDER_DEVICE")
     p.add_argument("--manny-dir", help="Manny reference dumps (scripts/ue5/dump_manny_reference.py); enables the UE5 rig stage")
+    p.add_argument("--stop-after", choices=("assembly",),
+                   help="retain the assembled texture candidate for visual review before any rigging")
     a = p.parse_args()
     # Every stage runs as a subprocess and inherits this; EEVEE needs a GPU even in the background.
     os.environ["RAC_RENDER_DEVICE"] = a.device
@@ -196,6 +215,10 @@ def main():
         source = inputs / name
         if not source.is_file() or sha(source) != info["sha256"]:
             p.error(f"Missing or changed frozen input: {name}")
+    try:
+        preserve_head = frozen_head_mode(recipe, inputs)
+    except ValueError as error:
+        p.error(str(error))
     out.mkdir(parents=True)
     local = out / "inputs"
     for name in recipe["inputs"]:
@@ -252,11 +275,21 @@ def main():
             args += ["--" + key.replace("_", "-"), *(value if isinstance(value, list) else [value])]
         return args
 
-    run("transport_face_proportions.py", [local / "head.npz", local / "head.json", local / "original-landmarks.json", out / "head.npz",
-        *face_proportions_options(character)])
-    run("reproject_face_paint.py", ["--template", local / "template.npz", "--head", local / "head.npz",
-        "--receipt", local / "head.json", "--texture", local / "head-basecolor.png",
-        "--original-landmarks", local / "original-landmarks.json", "--out", out / "paint", "--restore-brows"])
+    if preserve_head:
+        (out / "paint").mkdir()
+        shutil.copy2(local / "head.npz", out / "head.npz")
+        shutil.copy2(local / "head-basecolor.png", out / "paint/head_basecolor.png")
+        receipt["head_finish"] = {"mode": "frozen", "geometry_changed": False, "paint_changed": False,
+                                  "head_sha256": sha(out / "head.npz"),
+                                  "paint_sha256": sha(out / "paint/head_basecolor.png"),
+                                  "reason": "Use the separately reviewed acquisition-conformed head without legacy retouching"}
+        save()
+    else:
+        run("transport_face_proportions.py", [local / "head.npz", local / "head.json", local / "original-landmarks.json", out / "head.npz",
+            *face_proportions_options(character)])
+        run("reproject_face_paint.py", ["--template", local / "template.npz", "--head", local / "head.npz",
+            "--receipt", local / "head.json", "--texture", local / "head-basecolor.png",
+            "--original-landmarks", local / "original-landmarks.json", "--out", out / "paint", "--restore-brows"])
     head_paint = out / "paint/head_basecolor.png"
     if "face_paint" in recipe:
         # Measured colour pass: blush, stubble, hairline root shadow, ear and neck tone.
@@ -304,6 +337,16 @@ def main():
         "--head-placement", local / "placement.json",
         "--clear-neck-overlap", *neck["ellipse_m"], neck["above_z_m"], neck["rim_above_z_m"], neck["rim_abs_x_m"],
         "--device", a.device, *(["--mesh-hair"] if hair_mode == "mesh" else [])], True)
+    if a.stop_after == "assembly":
+        receipt["stopped_after"] = "assembly"
+        receipt["next_gate"] = "texture_approval"
+        receipt["outputs"] = {str(f.relative_to(out)): sha(f) for f in out.rglob("*")
+                              if f.is_file() and "inputs" not in f.relative_to(out).parts
+                              and f.name != "build-receipt.json"}
+        receipt["limits"] = ["Assembled texture candidate only; no rig or production acceptance"]
+        save()
+        print(f"The fitting pauses at its review mirror, sir: {assembly}", flush=True)
+        return
     proxy = out / f"rig-input/{prefix}_proxy.fbx"
     run("blender/export_skinning_proxy.py", [assembly, proxy, "--name", prefix], True)
     derived_landmarks = "rig-landmarks.json" not in recipe["inputs"]

@@ -1,0 +1,165 @@
+{
+  "schema": "reference-asset-compiler.polish-recipe.v1",
+  "source": {
+    "path": "../../work/remora-airship-20261106/delivery64/Remora_Face_And_Collar_Refined.glb",
+    "sha256": "0d73e3863b411a7b0cf45d1b2e54ffeab4ebfcc82ee587ea0091df6457cda124"
+  },
+  "acquisition_provenance": "Approved Remora outfit concept conditioned acquired Pixal body03, unique UV13 and outfit14. Geometry60 removed reviewed old hair remnants; this retained AI edit uses exact source64 color/clay guides plus the outfit concept to repair exposed cloth paint only. Face64, eyes55 and braided-knot hair58 remain protected.",
+  "steps": [
+    {
+      "id": "guides",
+      "stage": "capture-reference",
+      "config": {
+        "schema": "reference-asset-compiler.reference-guides-recipe.v1",
+        "mesh": "Remora_Acquired_Body_Reduced05.001",
+        "materials": [
+          "Remora_Outfit_Native11.001"
+        ],
+        "resolution": 1024,
+        "views": [
+          {
+            "name": "front",
+            "center": [
+              -0.025,
+              0.49,
+              0.085
+            ],
+            "axis": [
+              0,
+              0,
+              1
+            ],
+            "width": 0.38
+          }
+        ]
+      }
+    },
+    {
+      "id": "paint",
+      "stage": "reference-patch",
+      "config": {
+        "schema": "reference-asset-compiler.reference-patch-recipe.v1",
+        "patches": [
+          {
+            "material": "Remora_Outfit_Native11.001",
+            "size": 4096,
+            "bounds": [
+              [
+                -0.113,
+                0.445,
+                -0.04
+              ],
+              [
+                -0.018,
+                0.602,
+                0.175
+              ]
+            ],
+            "feather_m": 0.008,
+            "retain_normal": 0.2,
+            "views": [
+              {
+                "center": [
+                  -0.025,
+                  0.49,
+                  0.085
+                ],
+                "axis": [
+                  0,
+                  0,
+                  1
+                ],
+                "width": 0.38,
+                "image": {
+                  "path": "../../work/remora-airship-20261106/tunic68/references/front-clean.png",
+                  "sha256": "652d9e34b304d51e75f5a7a27ab6ce5f232659976d70033c19a720b0d5d93de9"
+                },
+                "guide": {
+                  "step": "guides",
+                  "file": "views/front.npz"
+                },
+                "relief_m": 1.5e-05
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "prune",
+      "stage": "prune-payload"
+    },
+    {
+      "id": "bounds",
+      "stage": "repair-bounds"
+    },
+    {
+      "id": "review",
+      "stage": "polish-review",
+      "config": {
+        "schema": "reference-asset-compiler.polish-review-recipe.v1",
+        "resolution": 768,
+        "samples": 12,
+        "moving_light": true,
+        "closeups": [
+          {
+            "name": "tunic-front",
+            "center": [
+              -0.025,
+              1.3594,
+              0.085
+            ],
+            "axis": [
+              0,
+              0,
+              1
+            ],
+            "width": 0.43
+          },
+          {
+            "name": "tunic-left",
+            "center": [
+              -0.025,
+              1.3594,
+              0.085
+            ],
+            "axis": [
+              -0.7,
+              0,
+              1
+            ],
+            "width": 0.43
+          },
+          {
+            "name": "tunic-right",
+            "center": [
+              -0.025,
+              1.3594,
+              0.085
+            ],
+            "axis": [
+              0.7,
+              0,
+              1
+            ],
+            "width": 0.43
+          },
+          {
+            "name": "face-protected",
+            "center": [
+              0,
+              1.575,
+              0.1
+            ],
+            "axis": [
+              0,
+              0,
+              1
+            ],
+            "width": 0.23
+          }
+        ]
+      }
+    }
+  ]
+}

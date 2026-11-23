@@ -69,6 +69,11 @@ shots do not grant production-ledger approval.
 
 ## What you get
 
+For finishing acquired characters, use the
+[canonical surface workflow](docs/CHARACTER_SURFACE_WORKFLOW.md): registered
+concept-conditioned paint repair, semantic PBR materials, consumer-lighting
+review and retained replay recipes from Raider and Remora.
+
 | Stage | What runs | What you look at |
 |---|---|---|
 | Geometry | Direct Hunyuan3D single-view or multiview from the reference (historical ComfyUI graph preserved) | Clay front / three-quarter / side / back |

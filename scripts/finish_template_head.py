@@ -68,6 +68,11 @@ def main(argv=None):
     p.add_argument("--resolution", type=int, default=1024)
     p.add_argument("--samples", type=int, default=48)
     p.add_argument("--skip-render", action="store_true")
+    p.add_argument("--preserve-asymmetry", action="store_true",
+                   help="preserve the source's distinct brows and scars during head painting")
+    p.add_argument("--collar", type=float, nargs=3, metavar=("THROAT_Z", "SIDE_RISE", "BACK_RISE"),
+                   help="neck ending in this template's metres; forwarded to close_head_neck.py. "
+                        "Measure it for a new template instead of inheriting the first male head's height.")
     p.add_argument("--groom", action="store_true", help="grow strand hair inside the shell (needs Blender)")
     a = p.parse_args(argv)
     out = Path(a.out).resolve()
@@ -82,11 +87,13 @@ def main(argv=None):
         shell = out / "hair-smooth.npz"
         run([py, HERE / "smooth_hair_shell.py", a.hair_shell, shell, "--iterations", "30"])
 
-    run([py, HERE / "close_head_neck.py", a.template, a.conform, a.conform_receipt, head, head_json])
+    run([py, HERE / "close_head_neck.py", a.template, a.conform, a.conform_receipt, head, head_json]
+        + (["--collar", *a.collar] if a.collar is not None else []))
     run([py, HERE / "trim_hair_shell.py", a.template, head, shell, hair_hug])
     run([py, HERE / "paint_head_from_views.py", a.template, head, head_json, hair_hug,
          a.front, a.side, a.back, out / "paint", "--side-landmarks", a.side_landmarks,
-         "--template-landmarks", a.template_landmarks, "--template-camera", a.template_camera])
+         "--template-landmarks", a.template_landmarks, "--template-camera", a.template_camera]
+        + (["--preserve-asymmetry"] if a.preserve_asymmetry else []))
     run([py, HERE / "trim_hair_by_paint.py", a.template, head, hair_hug,
          out / "paint" / "head_basecolor.png", out / "paint" / "hair_basecolor.png", hair_final])
 
@@ -117,6 +124,8 @@ def main(argv=None):
                     (head, hair_final, out / "paint" / "head_basecolor.png",
                      out / "paint" / "hair_basecolor.png") + ((strands,) if a.groom else ())},
         "groom": a.groom,
+        "collar_override": a.collar,
+        "preserve_asymmetry": a.preserve_asymmetry,
         "render": None if a.skip_render else {"device": a.device, "resolution": a.resolution,
                                                "samples": a.samples},
     }
