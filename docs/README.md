@@ -28,6 +28,12 @@ escalations are retained verbatim so nobody repeats them. Start with
 - [ANIMATION_WORKFLOW.md](ANIMATION_WORKFLOW.md) — open-source motion recipes, bounded edits, calibrated retargeting, round-trip exports, measurements and human review.
 - [ANIMATION_REUSE.md](ANIMATION_REUSE.md) — portable profiles, complete Blender runs, clean-checkout verification and the independent Unreal contact plugin.
 - [REGIONAL_CHARACTER_TEXTURES.md](REGIONAL_CHARACTER_TEXTURES.md) — rig-preserving regional UVs, independent head/clothing paint and seam-normal repair.
+- [CHARACTER_SURFACE_WORKFLOW.md](CHARACTER_SURFACE_WORKFLOW.md) - canonical character finishing standard: diagnosis, registered AI paint, semantic PBR, exposed-surface checks, consumer review and replay.
+- [POLISH_WORKFLOW.md](POLISH_WORKFLOW.md) - retained finishing recipes, AI handoffs, UV/map transport and packed review.
+- [EYE_DETAIL.md](EYE_DETAIL.md) - lid-margin lashes (pronounced/subtle/none presets) and eye occlusion that follow face morphs; append-only.
+- [RAIDER_POLISH_REPLAY.md](RAIDER_POLISH_REPLAY.md) - exact Raider replay and the boundary between shared stages and artistic decisions.
+- [GAME_REVIEW.md](GAME_REVIEW.md) — the paved road from a polished character GLB to a playable, closeup-checked review in the game: one recipe, one command, Remora's fixes as defaults.
+- [REFERENCE_PATCH.md](REFERENCE_PATCH.md) — registered concept-conditioned surface repairs, UV coverage, payload cleanup and the Raider quality checkpoint.
 - [CHARACTER_SHOWCASE.md](CHARACTER_SHOWCASE.md) — how the README captures and GIF are reproduced with provenance.
 - [ADAPTERS.md](ADAPTERS.md) — adapter registry policy: capabilities, not quality rankings.
 - [SKELETON-COMPATIBILITY.md](SKELETON-COMPATIBILITY.md) — measured compatibility of compiled skeletons with Epic's Manny.
