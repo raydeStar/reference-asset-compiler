@@ -27,8 +27,8 @@ import manny_poser as mp
 from manny_poser import UP, Pose, euler, lerp, smooth, unit
 
 FPS = 30
-CLIMB_STRIDE = 52.0      # cm a planted hold travels per half cycle (130 cm/s over the 0.8 s cycle)
-SIDE_STRIDE = 40.0       # sideways: 100 cm/s over the 0.8 s cycle
+CLIMB_STRIDE = 40.0      # cm a planted hold travels per half cycle (100 cm/s over the 0.8 s cycle)
+SIDE_STRIDE = 36.0       # sideways: 90 cm/s over the 0.8 s cycle
 HANG_STRIDE = 25.0       # ledge shimmy: 50 cm/s over the 1 s cycle
 SIDES = {"l": 1.0, "r": -1.0}
 
@@ -44,22 +44,22 @@ class Clips:
         hands/feet: side -> (x, z, off_wall_cm, grip 0..1). lean = spine (pitch, roll, yaw)."""
         m, W = self.m, self.W
         p = Pose(m)
-        p.pelvis_pos = np.array([pelvis[0], W - 25.0 + pelvis[1], 86.0 + pelvis[2]])
-        p.rel["pelvis"] = euler(pitch=4.0, roll=-lean[1] * 0.3, yaw=-lean[2] * 0.4)
-        p.spine(pitch=9.0 + lean[0] + breathe, roll=lean[1], yaw=lean[2])
-        p.head(pitch=-16.0 - look[0], yaw=look[1])
+        p.pelvis_pos = np.array([pelvis[0], W - 42.0 + pelvis[1], 92.0 + pelvis[2]])
+        p.rel["pelvis"] = euler(pitch=2.0, roll=-lean[1] * 0.3, yaw=-lean[2] * 0.4)
+        p.spine(pitch=4.0 + lean[0] + breathe, roll=lean[1], yaw=lean[2])
+        p.head(pitch=-12.0 - look[0], yaw=look[1])
         for s, (x, z, off, grip) in hands.items():
-            p.shrug(s, up_deg=float(np.clip((z - 150.0) * 0.35, 0.0, 16.0)), fwd_deg=6.0)
+            p.shrug(s, up_deg=float(np.clip((z - 160.0) * 0.2, 0.0, 6.0)), fwd_deg=6.0)
         for s, (x, z, off, grip) in hands.items():
             o = SIDES[s]
-            fingers = unit((0.18 * o, -0.05 * off / 10.0, 1.0))
-            palm = unit((0.0, 1.0, -0.25 * off / 10.0))
-            p.arm(s, (x, W - 5.0 - off, z), pole=(o * 0.9, -0.5, -1.0), fingers=fingers, palm=palm)
-            p.grip(s, 18.0 + 42.0 * grip, thumb=10.0 + 25.0 * grip)
+            fingers = unit((-0.05 * o, 0.28, 0.96))
+            palm = unit((-0.10 * o, 0.95, -0.28))
+            p.arm(s, (x, W - 4.0 - off * 0.6, z), pole=(o * 0.35, -0.5, -1.0), fingers=fingers, palm=palm)
+            p.grip(s, 45.0 + 22.0 * grip, thumb=38.0 + 10.0 * grip)
         for s, (x, z, off, _grip) in feet.items():
             o = SIDES[s]
-            p.leg(s, (x, W - 17.0 - off, z), pole=(o * 0.7, 0.55, 0.1), toe=unit((0.12 * o, 1.0, -0.35)),
-                  sole=unit((0.0, 0.35, 1.0)))
+            p.leg(s, (x, W - 14.0 - off * 0.6, z), pole=(o * 0.22, 0.9, 0.15), toe=unit((0.08 * o, 1.0, -0.3)),
+                  sole=unit((0.0, 0.3, 1.0)))
         return p
 
     def hanging(self, hands, feet, pelvis=(0.0, 0.0, 0.0), lean=(0.0, 0.0, 0.0), look=(0.0, 0.0)):
@@ -67,29 +67,29 @@ class Clips:
         feet: side -> (x, z, off_wall_cm)."""
         m, LY, LZ = self.m, self.LY, self.LZ
         p = Pose(m)
-        p.pelvis_pos = np.array([pelvis[0], LY - 27.0 + pelvis[1], LZ - 98.0 + pelvis[2]])
-        p.rel["pelvis"] = euler(pitch=-3.0, roll=-lean[1] * 0.4)
-        p.spine(pitch=6.0 + lean[0], roll=lean[1], yaw=lean[2])
-        p.head(pitch=-22.0 - look[0], yaw=look[1])
+        p.pelvis_pos = np.array([pelvis[0], LY - 32.0 + pelvis[1], LZ - 96.0 + pelvis[2]])
+        p.rel["pelvis"] = euler(pitch=-2.0, roll=-lean[1] * 0.4)
+        p.spine(pitch=5.0 + lean[0], roll=lean[1], yaw=lean[2])
+        p.head(pitch=-18.0 - look[0], yaw=look[1])
         for s in hands:
-            p.shrug(s, up_deg=14.0, fwd_deg=8.0)
+            p.shrug(s, up_deg=8.0, fwd_deg=6.0)
         for s, (x, lift, grip) in hands.items():
             o = SIDES[s]
-            p.arm(s, (x, LY - 6.0, LZ + 3.0 + lift), pole=(o * 0.8, -0.6, -0.4),
-                  fingers=unit((0.1 * o, 1.0, -0.15 - 0.03 * lift)), palm=(0.0, 0.0, -1.0))
-            p.grip(s, 30.0 + 45.0 * grip, thumb=20.0)
+            p.arm(s, (x, LY - 10.0, LZ - 6.0 + lift), pole=(o * 0.45, -0.6, -0.7),
+                  fingers=unit((-0.05 * o, 0.28, 0.96)), palm=unit((-0.10 * o, 0.95, -0.28)))
+            p.grip(s, 48.0 + 22.0 * grip, thumb=42.0 + 8.0 * grip)
         for s, (x, z, off) in feet.items():
             o = SIDES[s]
-            p.leg(s, (x, LY - 17.0 - off, z), pole=(o * 0.4, 1.0, 0.1), toe=unit((0.1 * o, 1.0, -0.6)),
-                  sole=unit((0.0, 0.6, 1.0)))
+            p.leg(s, (x, LY - 14.0 - off, z), pole=(o * 0.22, 1.0, 0.15), toe=unit((0.08 * o, 1.0, -0.45)),
+                  sole=unit((0.0, 0.45, 1.0)))
         return p
 
     # ------------------------------------------------------------------ climbing
     def climb_idle(self, ph):
         w = 2 * math.pi * ph
         return self.on_wall(
-            hands={"l": (21.0 + 0.8 * math.sin(w), 192.0, 0.0, 1.0), "r": (-23.0, 168.0 + 0.8 * math.cos(w), 0.0, 1.0)},
-            feet={"l": (15.0, 44.0, 0.0, 1.0), "r": (-16.0, 22.0, 0.0, 1.0)},
+            hands={"l": (21.0 + 0.6 * math.sin(w), 170.0, 0.0, 1.0), "r": (-21.0, 154.0 + 0.6 * math.cos(w), 0.0, 1.0)},
+            feet={"l": (15.0, 34.0, 0.0, 1.0), "r": (-15.0, 14.0, 0.0, 1.0)},
             pelvis=(1.5 * math.sin(w), 0.0, 0.8 * math.sin(2 * w)), lean=(0.0, -2.0, -3.0),
             look=(4.0 * math.sin(w), 6.0), breathe=1.5 * math.sin(2 * w))
 
@@ -103,18 +103,18 @@ class Clips:
         return lerp(hi, lo, u), 0.0, 1.0
 
     def climb_up(self, ph):
-        lo_h, hi_h = 148.0, 148.0 + CLIMB_STRIDE
-        lo_f, hi_f = 4.0, 4.0 + CLIMB_STRIDE
-        hl, ol, gl = self._cycle_limb(ph % 1.0, lo_h, hi_h, 11.0)
-        hr, orr, gr = self._cycle_limb((ph + 0.5) % 1.0, lo_h, hi_h, 11.0)
-        fr, ofr, _ = self._cycle_limb(ph % 1.0, lo_f, hi_f, 12.0)          # diagonal: right foot with left hand
-        fl, ofl, _ = self._cycle_limb((ph + 0.5) % 1.0, lo_f, hi_f, 12.0)
+        lo_h, hi_h = 144.0, 144.0 + CLIMB_STRIDE
+        lo_f, hi_f = 6.0, 6.0 + CLIMB_STRIDE
+        hl, ol, gl = self._cycle_limb(ph % 1.0, lo_h, hi_h, 8.0)
+        hr, orr, gr = self._cycle_limb((ph + 0.5) % 1.0, lo_h, hi_h, 8.0)
+        fr, ofr, _ = self._cycle_limb(ph % 1.0, lo_f, hi_f, 8.0)          # diagonal: right foot with left hand
+        fl, ofl, _ = self._cycle_limb((ph + 0.5) % 1.0, lo_f, hi_f, 8.0)
         w = 2 * math.pi * ph
         return self.on_wall(
             hands={"l": (21.0, float(hl), ol, gl), "r": (-21.0, float(hr), orr, gr)},
             feet={"l": (15.0, float(fl), ofl, 1.0), "r": (-15.0, float(fr), ofr, 1.0)},
-            pelvis=(2.5 * math.cos(w), 0.0, 2.0 * math.cos(2 * w)), lean=(0.0, 3.5 * math.sin(w), -4.0 * math.sin(w)),
-            look=(4.0, 9.0 * math.sin(w)))
+            pelvis=(2.0 * math.cos(w), 0.0, 1.5 * math.cos(2 * w)), lean=(0.0, 3.0 * math.sin(w), -3.5 * math.sin(w)),
+            look=(4.0, 8.0 * math.sin(w)))
 
     def climb_side(self, ph, to_left):
         """Sideways: the leading hand and foot reach out, the trailing ones close in. to_left: move to +X."""
@@ -122,24 +122,24 @@ class Clips:
         lead, trail = ("l", "r") if to_left else ("r", "l")
         # Planted holds drift opposite to travel (-d), SIDE_STRIDE per half cycle.
         lh = self._cycle_limb(ph % 1.0, 8.0, 8.0 + SIDE_STRIDE, 9.0)              # lead hand: out
-        th = self._cycle_limb((ph + 0.5) % 1.0, -32.0, -32.0 + SIDE_STRIDE, 9.0)  # trail hand: in to the body
+        th = self._cycle_limb((ph + 0.5) % 1.0, -28.0, -28.0 + SIDE_STRIDE, 9.0)  # trail hand: in to the body
         lf = self._cycle_limb((ph + 0.25) % 1.0, 4.0, 4.0 + SIDE_STRIDE, 10.0)
-        tf = self._cycle_limb((ph + 0.75) % 1.0, -28.0, -28.0 + SIDE_STRIDE, 10.0)
+        tf = self._cycle_limb((ph + 0.75) % 1.0, -24.0, -24.0 + SIDE_STRIDE, 10.0)
         w = 2 * math.pi * ph
-        hands = {lead: (d * float(lh[0]), 186.0 + 5.0 * math.sin(math.pi * lh[1] / 9.0), lh[1], lh[2]),
-                 trail: (d * float(th[0]), 178.0, th[1], th[2])}
-        feet = {lead: (d * float(lf[0]), 34.0 + 6.0 * math.sin(math.pi * lf[1] / 10.0), lf[1], 1.0),
-                trail: (d * float(tf[0]), 26.0, tf[1], 1.0)}
-        return self.on_wall(hands=hands, feet=feet, pelvis=(d * 3.0 * math.sin(w), 0.0, 1.5 * math.cos(2 * w)),
-                            lean=(0.0, d * 4.0, 0.0), look=(2.0, d * 18.0))
+        hands = {lead: (d * float(lh[0]), 174.0 + 5.0 * math.sin(math.pi * lh[1] / 9.0), lh[1], lh[2]),
+                 trail: (d * float(th[0]), 166.0, th[1], th[2])}
+        feet = {lead: (d * float(lf[0]), 26.0 + 6.0 * math.sin(math.pi * lf[1] / 10.0), lf[1], 1.0),
+                trail: (d * float(tf[0]), 18.0, tf[1], 1.0)}
+        return self.on_wall(hands=hands, feet=feet, pelvis=(d * 2.5 * math.sin(w), 0.0, 1.2 * math.cos(2 * w)),
+                            lean=(0.0, d * 3.5, 0.0), look=(2.0, d * 16.0))
 
     def climb_leap(self, t):
         """0.55 s: gather, spring up with both arms reaching, catch."""
-        idle = dict(hands={"l": (21.0, 192.0, 0.0, 1.0), "r": (-23.0, 168.0, 0.0, 1.0)},
-                    feet={"l": (15.0, 44.0, 0.0, 1.0), "r": (-16.0, 22.0, 0.0, 1.0)}, pelvis=(0.0, 0.0, 0.0))
-        gather = dict(hands={"l": (20.0, 176.0, 0.0, 1.0), "r": (-20.0, 166.0, 0.0, 1.0)},
-                      feet={"l": (15.0, 56.0, 0.0, 1.0), "r": (-15.0, 52.0, 0.0, 1.0)}, pelvis=(0.0, 4.0, -8.0))
-        spring = dict(hands={"l": (24.0, 214.0, 14.0, 0.0), "r": (-24.0, 214.0, 14.0, 0.0)},
+        idle = dict(hands={"l": (19.0, 178.0, 0.0, 1.0), "r": (-20.0, 158.0, 0.0, 1.0)},
+                    feet={"l": (14.0, 34.0, 0.0, 1.0), "r": (-14.0, 14.0, 0.0, 1.0)}, pelvis=(0.0, 0.0, 0.0))
+        gather = dict(hands={"l": (18.0, 164.0, 0.0, 1.0), "r": (-18.0, 156.0, 0.0, 1.0)},
+                      feet={"l": (14.0, 42.0, 0.0, 1.0), "r": (-14.0, 38.0, 0.0, 1.0)}, pelvis=(0.0, 3.0, -6.0))
+        spring = dict(hands={"l": (21.0, 198.0, 12.0, 0.0), "r": (-21.0, 198.0, 12.0, 0.0)},
                       feet={"l": (12.0, 8.0, 6.0, 1.0), "r": (-12.0, 2.0, 10.0, 1.0)}, pelvis=(0.0, -4.0, 6.0))
         keys = [(0.0, idle), (0.1, gather), (0.28, spring), (0.55, idle)]
         for (t0, a), (t1, b) in zip(keys, keys[1:]):
