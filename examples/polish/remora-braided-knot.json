@@ -1,0 +1,84 @@
+{
+  "schema": "reference-asset-compiler.acquired-hair-recipe.v1",
+  "component_scope": "Approved B braided knot only. Body, clothing, hands, face and rig are never replaced by this replay.",
+  "extraction_review": "Codex under user-delegated visual gates: isolated connected component39 retains crown and removes disconnected brows; final fitted shell51 inspected in front, side, back and quarter views. Final consumer acceptance remains separate.",
+  "inputs": {
+    "scan": {
+      "path": "../../work/remora-hair-b-pixal34/candidates/remora-hair-b-pixal34-pixal3d-1024-seed42.glb",
+      "sha256": "22e74283cdbf3fa5097a808ee6e82008ae3d11631a27d2197ff6b597f94acff4"
+    },
+    "acquisition_receipt": {
+      "path": "../../work/remora-hair-b-pixal34/candidates/remora-hair-b-pixal34-pixal3d-1024-seed42.json",
+      "sha256": "8bf8b0bf8fb0a1bb08e5d8a4397fb3c21a91fd7edeb611855c3a4c8eb0c66d6a"
+    },
+    "conditioning_image": {
+      "path": "../../work/remora-airship-20261106/hair34/head-supported.png",
+      "sha256": "3e6c310f619e890048b52c9b08e3731c1750ad29807cfa5054fee326a1f8cc24"
+    },
+    "selection_receipt": {
+      "path": "../../work/remora-airship-20261106/hair-options26/approval.json",
+      "sha256": "3cddc12cda80538fdd4039be07024bd2641a24dbb8b671221ae669402c16b88e"
+    },
+    "extraction_receipt": {
+      "path": "../../work/remora-airship-20261106/hair39/extraction.json",
+      "sha256": "74cda6cda5d1633748bcf19e3b458c5f19a9377f3c43fd707fe5f8830f95d250"
+    },
+    "extracted_hair": {
+      "path": "../../work/remora-airship-20261106/hair39/hair-full.npz",
+      "sha256": "8c23906651314eeb87ad48a74b35055a5d84b613f91d7dd9b925b617cf01b1af"
+    },
+    "basecolor": {
+      "path": "../../work/remora-airship-20261106/hair39/hair-full-basecolor.png",
+      "sha256": "1bedc498d7abd37da6760dce89b85cfe9c6eafa7e30dcf96e0fd6b038cf29f4b"
+    },
+    "scan_conform": {
+      "path": "../../work/remora-airship-20261106/hair34/conform.npz",
+      "sha256": "68269a59725386f44fbbf3a1c0a6e71ca83acfe43b83eb85728558dbddeff892"
+    },
+    "scan_receipt": {
+      "path": "../../work/remora-airship-20261106/hair34/conform.json",
+      "sha256": "d4ca583ad94568e620d7c18a6a8f3ffdd331dc7bf229044a21a7c2d0e005d240"
+    },
+    "head": {
+      "path": "../../work/remora-airship-20261106/head/head-ear-repaired03.npz",
+      "sha256": "4bf3b22049b6d2be86469f77d02e29e64d4ee9227672d246feaf27a7506b534f"
+    },
+    "binding": {
+      "path": "../../work/remora-airship-20261106/head/female-face-binding.json",
+      "sha256": "8c4dcaab357644e8ab78d3a086550cda93d050e1db175733ab6a7cc9a1bb0d41"
+    },
+    "scan_landmarks": {
+      "path": "../../work/remora-airship-20261106/hair34/dw-acquisition.json",
+      "sha256": "473cb08369fc0aa03c388f41e725d0ab14c7b7b0e47184f0955d5ab5fc5823c7"
+    },
+    "scan_camera": {
+      "path": "../../work/remora-airship-20261106/hair34/acquisition-r-camera.json",
+      "sha256": "11e98adab6ba179bf07d9075d9458406fadb32277c41cce4cc1a8d2133187dd2"
+    }
+  },
+  "settings": {
+    "clearance_m": 0.0015,
+    "clearance_smoothing_iterations": 24,
+    "radius_m": 0.004,
+    "erosion_m": 0.003,
+    "voxel_m": 0.0008,
+    "shell_smoothing_iterations": 3,
+    "triangles": 26000,
+    "texture_size": 2048,
+    "cage_m": 0.006
+  },
+  "assembly_material_review": {
+    "base_color_factor": [
+      0.25,
+      0.25,
+      0.25,
+      1
+    ],
+    "roughness": 0.62,
+    "metallic": 0,
+    "specular": 0.2,
+    "normal_strength": 0,
+    "scope": "Hair material only; apply during component assembly. Normal map remains available, but preview omits its noisy perturbation.",
+    "evidence": "work/remora-airship-20261106/remora58/material-receipt.json"
+  }
+}

@@ -57,6 +57,21 @@ py -3.12 scripts/rebuild_character.py `
   profile's and the outfit-paint profile's hashes, the tool versions, every
   command, its log and return code, and every output's hash.
 
+For a new character, pass `--stop-after assembly` to retain the assembled
+texture candidate before proxy export or rigging. The receipt remains
+`completed: false`, names `texture_approval` as the next gate, and records its
+outputs. After delegated or human visual review, use a fresh output directory
+for the full build; the assembly checkpoint is not a resume mechanism.
+
+A separately conformed and painted head can set `"head_finish": {"mode":
+"frozen"}` in its recipe. This copies its geometry and base color unchanged,
+skipping the legacy Ennix facial proportion transport and paint retouch. The
+head receipt and front landmarks must bind the exact `head-front.png` hash;
+`face_paint` is incompatible with this mode. This matters for other template
+proportions and asymmetric features such as a single eyebrow scar. Frozen
+means retained inputs, not automatic likeness approval. The default remains
+`legacy` for existing recipes.
+
 Verified with Python 3.12.7 (NumPy 2.1.3, SciPy 1.15.1, Pillow 10.4.0) and
 Blender 5.2.2 LTS. Run with that Python: another NumPy/SciPy moved six pixels
 of the outfit albedo by one level (ENNIX_REBUILD.md, "Repeatability

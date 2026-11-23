@@ -52,6 +52,13 @@ py -3.12 scripts/build_mesh_hair.py --template $Ref/template/hm08-male.npz --sca
 front render; with them the hair is placed by the face (below), without them
 it follows the skin.
 
+The wrapper also exposes `--below-eyes` (default 0.10 m) and `--skin-near`
+(default 0.04 m). Long framing locks can require a larger first value; inspect
+the cut for collar fragments that become eligible at the same time. A larger
+skin rejection distance helps dark-haired characters whose fitted skin and
+scan disagree, but can discard warm highlights on other hair colors. These
+are recorded acquisition-specific choices, not universal cleanup presets.
+
 It runs, in order:
 
 - `classify_scan_hair.py`: scan triangles outside the conformed skin, over the
@@ -201,3 +208,31 @@ Over the tier, the gate fails unless the recipe records the owner's
 acceptance, `budget_waiver` (CHARACTER_REBUILD.md): Mark accepted
 character-02's total on 2026-10-09 ("cut the hair to what is reasonable and
 accept that"), up to 100,000 triangles.
+
+
+## Reviewed extracted hair: replayable shell cleanup (2026-11-06)
+
+Remora's approved braided knot uses an isolated head-supported AI scan. Its
+largest connected neutral-color component retains the crown and removes
+disconnected eyebrows. This is an asset-specific reviewed extraction, not a
+general dark-color mask for clothed characters. The reviewed extraction and
+AI-conditioned geometry receipt are frozen inputs to a CPU replay:
+
+```powershell
+python scripts/replay_acquired_hair.py examples/polish/remora-braided-knot.json --plan
+python scripts/replay_acquired_hair.py examples/polish/remora-braided-knot.json --out work/remora-braid-replay --blender $B
+```
+
+The runner checks every input hash and the AI geometry/image receipt, then
+face-registers the extracted hair, smooths dense clearance displacement,
+closes the acquired thin surface before reduction, and rebakes its original
+color and normal. It records commands, settings, failures and actual triangle
+count. No inference, automatic retry, character replacement, or visual
+promotion occurs. Smoothed displacement is not a collision certificate: review
+the fitted hair against the head and collar. A new style still needs reviewed
+AI acquisition, extraction, registration and suitable cleanup settings.
+
+The example refers to retained local work artifacts; it is a replay recipe,
+not a redistributable model bundle. Output replaces only hair and its
+coverage-bound scalp cap after the component passes visual review. Preserve
+the body's materials, geometry and morph data when assembling the new version.
