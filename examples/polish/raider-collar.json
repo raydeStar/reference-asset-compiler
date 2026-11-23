@@ -1,0 +1,79 @@
+{
+  "schema": "reference-asset-compiler.polish-recipe.v1",
+  "acquisition_provenance": "Raider concept-conditioned acquired geometry and registered AI-painted torso reference. Restore only the reviewed collar hole; retain all other surfaces.",
+  "source": {
+    "path": "../../work/raider-polish-20261105/framewright-review-20261106/Raider - Quality Candidate 04.glb",
+    "sha256": "a3a6150bbd23eecc4608fcd9ab01ba317aa9f44e7357f4ffb30ebd4db69289f0"
+  },
+  "steps": [
+    {"id": "inspect-before", "stage": "inspect-surface"},
+    {
+      "id": "restore", "stage": "restore-surface",
+      "config": {
+        "schema": "reference-asset-compiler.restore-surface-recipe.v1",
+        "mesh": "raider", "material": "Raider continuous outfit",
+        "donor": {
+          "path": "../../work/raider-polish-20261105/candidate01/Raider_Refined.glb",
+          "sha256": "0475e0b2e4a19ec55b082603f0c275da3906ec644f13e80c3e51178fa9e43846"
+        },
+        "donor_faces": [9753, 9929, 10090, 10091, 10092, 10262, 10264, 10428, 10429, 10551, 10688, 10689],
+        "bounds": [[-0.084, 1.47, 0.05], [-0.046, 1.512, 0.074]],
+        "expected_boundary_edges": 10,
+        "patch_material": "Raider restored collar cloth",
+        "uv_axes": [0, 1], "flip_v": true,
+        "response": {"roughness": 0.88, "metallic": 0, "specular": 0.42}
+      }
+    },
+    {
+      "id": "guides", "stage": "capture-reference",
+      "config": {
+        "schema": "reference-asset-compiler.reference-guides-recipe.v1",
+        "mesh": "raider", "resolution": 512,
+        "views": [{"name": "collar-front", "center": [0, 1.49, 0.05], "axis": [0, 0, 1], "width": 0.24}]
+      }
+    },
+    {
+      "id": "paint", "stage": "reference-patch",
+      "config": {
+        "schema": "reference-asset-compiler.reference-patch-recipe.v1",
+        "patches": [{
+          "material": "Raider restored collar cloth", "size": 256, "retain_normal": 0,
+          "response": {"roughness": 0.86, "metallic": 0, "specular": 0.42},
+          "views": [{
+            "image": {
+              "path": "../../work/raider-polish-20261105/references/torso-front.png",
+              "sha256": "232703b25d9cc4158f5edfb97c39989086f10185c404f9b9c66d41d913eeaf61"
+            },
+            "guide": {
+              "path": "../../work/raider-polish-20261105/guides/torso-front.npz",
+              "sha256": "1ae6cf25afa71a878765332c69fedaad33942103888b062899a05a19d8a522e9"
+            },
+            "center": [0, 1.245, 0], "axis": [0, 0, 1], "width": 0.79, "relief_m": 0.000035
+          }]
+        }]
+      }
+    },
+    {"id": "prune", "stage": "prune-payload"},
+    {"id": "bounds", "stage": "repair-bounds"},
+    {"id": "inspect-after", "stage": "inspect-surface"},
+    {
+      "id": "review", "stage": "polish-review",
+      "config": {
+        "schema": "reference-asset-compiler.polish-review-recipe.v1",
+        "clip": "Raider_Relaxed_Held", "resolution": 640, "samples": 16, "moving_light": true,
+        "closeups": [{"name": "collar", "center": [0, 1.54, 0.04], "axis": [-0.10, 0.16, 1], "width": 0.34}],
+        "poses": [
+          {"name": "head-left", "views": ["collar"], "rotations": [
+            {"bone": "head", "axis": [0, 1, 0], "degrees": 50},
+            {"bone": "neck_02", "axis": [0, 1, 0], "degrees": 8}]},
+          {"name": "head-right", "views": ["collar"], "rotations": [
+            {"bone": "head", "axis": [0, 1, 0], "degrees": -50},
+            {"bone": "neck_02", "axis": [0, 1, 0], "degrees": -8}]},
+          {"name": "arms-raised", "views": ["collar"], "rotations": [
+            {"bone": "upperarm_r", "axis": [0, 0, -1], "degrees": 65},
+            {"bone": "upperarm_l", "axis": [0, 0, -1], "degrees": -65}]}
+        ]
+      }
+    }
+  ]
+}

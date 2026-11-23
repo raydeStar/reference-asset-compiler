@@ -1,0 +1,67 @@
+{
+  "schema": "rac.surface-assignments.v1",
+  "source_sha256": "bf45fb64b02ed4365c5343d89c61f76636e92e7124b37dbbae64a4eb98ca4274",
+  "profile_sha256": "0b25e4ce13f6a7a706d223e5f7c7585d5f49df1e0b714513cd2dc9941d1cc2fb",
+  "materials": {
+    "Human.high-poly": {
+      "class": "eye"
+    },
+    "FACE_skin": {
+      "size": 1536,
+      "mask": "class-1.png",
+      "mask_sha256": "048ba94c0724e5bf724e7579a7bdfae9524ebdd1c65a38ded7164eab6774da25",
+      "labels": {
+        "1": "canvas",
+        "7": "skin",
+        "8": "skin_tzone",
+        "9": "lips",
+        "10": "hair"
+      }
+    },
+    "FACE_mouth_cavity": {
+      "keep": true
+    },
+    "painted": {
+      "size": 2048,
+      "mask": "class-3.png",
+      "mask_sha256": "69bbba27ee14bf8daaf5c2b99379158588d8723f93036b3ed4ee5be86fc3f640",
+      "labels": {
+        "1": "canvas",
+        "2": "trouser_cloth",
+        "3": "worn_leather",
+        "5": "worn_steel",
+        "6": "tarnished_metal",
+        "7": "skin"
+      }
+    },
+    "Material.001": {
+      "size": 1536,
+      "mask": "class-4.png",
+      "mask_sha256": "514aed5d3db15f602270e15354a559b3f1e77d2d0ace70fc5c0f1382c49afaf7",
+      "labels": {
+        "4": "glove_leather",
+        "7": "skin"
+      }
+    },
+    "Raider | restored acquired surface": {
+      "size": 1536,
+      "mask": "class-5.png",
+      "mask_sha256": "a75e4bad31970baa629b399a7eb7b482e0a85a78ab38e9ba9f80b7b3330d31da",
+      "labels": {
+        "1": "canvas",
+        "2": "trouser_cloth",
+        "3": "worn_leather",
+        "5": "worn_steel",
+        "6": "tarnished_metal"
+      }
+    },
+    "Human.teeth_base": {
+      "class": "enamel"
+    },
+    "Human.tongue01": {
+      "class": "wet_tissue"
+    }
+  },
+  "response_target": "framewright-scene",
+  "target_sha256": "e03d29aa03d400bb63da31babbd7342441cc841e2f302ba1249395b20b063d9f"
+}

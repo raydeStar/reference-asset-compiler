@@ -11,6 +11,7 @@ from .cohort import audit_cohort
 from .cleanup import record_cleanup_receipt, validate_cleanup_input
 from .animation_export import select_animations
 from . import animation_workflow
+from . import polish_workflow
 from .budgets import decide as decide_budget
 from .contracts import ARTICULATION_MODES, ASSET_KINDS
 from .geometry_request import validate_geometry_request
@@ -39,6 +40,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="rac", description="Reference-image to 3D gate ledger")
     subcommands = parser.add_subparsers(dest="command", required=True)
     animation_workflow.add_cli(subcommands)
+    polish_workflow.add_cli(subcommands)
 
     animation_export = subcommands.add_parser(
         "export-animations", help="Export selected named GLB clips without changing model data"
@@ -275,6 +277,13 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "polish-init":
+            print_payload(polish_workflow.initialize(args))
+            return 0
+        if args.command == "polish":
+            payload = polish_workflow.dispatch(args)
+            print_payload(payload)
+            return 3 if payload['status'] == 'awaiting_reference' else 0
         if args.command == "animation":
             payload = animation_workflow.dispatch(args)
             print_payload(payload)

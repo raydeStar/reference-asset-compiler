@@ -1,0 +1,286 @@
+{
+  "date_local": "2026-11-03",
+  "work": "work/raider-pouch-20261103",
+  "review": "artist review pending; concept-derived mapping only",
+  "authority": {
+    "source_files": {
+      "front_concept": {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\rac-gpu-efficiency\\work\\raider-revamp\\sources\\raider-reference-v1.png",
+        "sha256": "1b12b9d9060be70b79c42ec102bff228392b4d057c79002a87414a428a362854"
+      },
+      "fitted_glb": {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\raider-continuous-20261103\\delivery\\Raider_Continuous_Outfit.glb",
+        "sha256": "efc459caa6f4e4d0c2980bd9ec60499dbd751198a61aeed5ad59b57fae53c1ca"
+      },
+      "orthographic_mesh_guide": "61764f6d0aa58ecfa07be119ce59215c9c39876189f31f20bec1074d17d209c6",
+      "derived_side_reference": "4612273a153b217fb1acd95db2eced566152a07f48b2ec7aa1fcf0f2d4bcdec1",
+      "derived_gusset_reference": "3c3256f525b113b6b5b86b295b1b140fcb09869b8caa61d36497856da41814c7"
+    },
+    "primary_view": "original Raider front; side reference is inferred",
+    "expected_primary_parts": {
+      "count": 1,
+      "labels": [
+        "right outer thigh pouch"
+      ]
+    },
+    "structural_parts": [
+      "existing pouch; no geometry change"
+    ],
+    "decorative_parts": [
+      "folded flap",
+      "stitched edge",
+      "closure tab",
+      "bronze stud"
+    ],
+    "texture_regions": [
+      "pouch and feathered gussets"
+    ],
+    "validation_thresholds": {
+      "front_mask_iou_min": 1,
+      "bbox_center_tolerance_px": 0,
+      "part_count_exact": true
+    },
+    "method": "Built-in imagegen conditioned on original concept and orthographic outfit. The side is new art; the fitted mesh stays the authority for geometry.",
+    "projection": "independent side Y/Z, end X/Z, underside X/Y from neutral leather; source shadow below lower sewing removed",
+    "projection_triangles": 1518,
+    "version_info": {
+      "numpy": "2.1.3",
+      "scipy": "1.15.1",
+      "opencv-python": "4.11.0.86",
+      "Pillow": "10.4.0"
+    }
+  },
+  "scene": {
+    "saved": 5,
+    "name": "Raider material review",
+    "id": "43134a9a-2c10-46dd-a8a7-b1a1021d3a0e",
+    "asset_id": "62e71300-7ce6-407d-a491-f498d7417cdb",
+    "content_url": "/api/assets/62e71300-7ce6-407d-a491-f498d7417cdb/content",
+    "served_sha256": "b3a88ad98fcf2b279c0612ca3b18a32d4204ab00e425b4aa3fed9845c6b9cbee",
+    "previous_asset_id": "47ed8c62-c5bb-41bf-9223-8a491230d52c",
+    "preserved_lights": true,
+    "camera": {
+      "yaw": -1.39,
+      "pitch": -0.46,
+      "distance": 0.57,
+      "target": [
+        -0.214,
+        0.867,
+        0.006
+      ],
+      "fieldOfView": 38
+    }
+  },
+  "mapping": {
+    "prior_linear_texel_density_gain": 2.6997819910666294,
+    "repacked_triangles": 1518,
+    "active_coverage_texels": 364332,
+    "prior_median": [
+      106.0,
+      77.0,
+      52.0
+    ],
+    "generated_median": [
+      102.0,
+      68.81968688964844,
+      44.75390625
+    ],
+    "rgb_gain": [
+      1.0336343050003052,
+      1.101410150527954,
+      1.1377537250518799
+    ],
+    "roughness_range": [
+      0.6236056470870972,
+      0.7027503848075867,
+      0.718999981880188
+    ],
+    "normal_tilt_degrees": [
+      1.2207796272332574,
+      4.180087859743262,
+      13.82194402789774
+    ]
+  },
+  "invariants": {
+    "vertices_normals_joint_weights_and_winding_per_triangle_identical": true,
+    "total_triangles": 65949,
+    "original_binary_prefix_bytes": 26907836,
+    "original_face_morph_count": 34,
+    "all_original_materials_identical": true,
+    "original_meshes_other_than_body_identical": true,
+    "glb_sha256": "b3a88ad98fcf2b279c0612ca3b18a32d4204ab00e425b4aa3fed9845c6b9cbee",
+    "previous_sha256": "efc459caa6f4e4d0c2980bd9ec60499dbd751198a61aeed5ad59b57fae53c1ca",
+    "visual_approval": "pending"
+  },
+  "checks": {
+    "native": {
+      "faces_remapped": 1518,
+      "native_mesh_and_weights_retained": true,
+      "packed_images": {
+        "Raider pouch colour": [
+          "sRGB",
+          true
+        ],
+        "Raider pouch response": [
+          "Non-Color",
+          true
+        ],
+        "Raider pouch normal": [
+          "Non-Color",
+          true
+        ]
+      },
+      "face_shapes": 34,
+      "bones": 88
+    },
+    "hero_rig_ok": true,
+    "wheel_and_suite_passed": true,
+    "finish_replayed_identically": true,
+    "posed_comparison": "pose-before/stride.png and pose-final/stride.png in work root"
+  },
+  "iterations": [
+    {
+      "dir": "trial1",
+      "sha256": "91b0a734edac5cc215e10308c3fc70d7917ff9a9836a1f4700b74f2a5c75d10e",
+      "finding": "Broad face clearly resolved; stretched grain on the narrow return."
+    },
+    {
+      "dir": "trial2",
+      "sha256": "bab142dfb2ef67611c038c0867523677f0b9fbb99d8ba906c7a54b733b202287",
+      "finding": "End reference corrected the gusset; its outside edge doubled the sewn flange."
+    },
+    {
+      "dir": "trial3",
+      "sha256": "d34b7e82c506d871b94f8914c90a5cfb489d2628ef0163dda5291a8d2c8da7d1",
+      "finding": "Removed the doubled flange. Painted shading below the lower seam remained too strong."
+    },
+    {
+      "dir": "delivery-maps",
+      "sha256": "b3a88ad98fcf2b279c0612ca3b18a32d4204ab00e425b4aa3fed9845c6b9cbee",
+      "finding": "Chosen for artist review: suppress reference silhouette shading while keeping stitching."
+    }
+  ],
+  "framewright": {
+    "Assets": {
+      "lighting": [
+        [
+          "AmbientLight",
+          0.75
+        ],
+        [
+          "DirectionalLight",
+          1.9
+        ],
+        [
+          "DirectionalLight",
+          1.1
+        ]
+      ],
+      "reflection_environment": true,
+      "runtime_material": {
+        "name": "Raider pouch leather",
+        "type": "MeshPhysicalMaterial",
+        "normal": true,
+        "roughness": true,
+        "metal": true,
+        "specular": true,
+        "specularIntensity": 1
+      },
+      "mean_absolute_rgb8_vs_before": {
+        "panel": 5.39263,
+        "edge": 6.74489,
+        "behind": 5.85563,
+        "thighOuter": 3.22792,
+        "close": 8.4463,
+        "strideView": 2.01001,
+        "buckle": 0.0,
+        "hem": 0.02151,
+        "front": 0.0642,
+        "quarter": 0.10918,
+        "side": 0.09097,
+        "back": 0.02374
+      },
+      "max_mean_rgb8_vs_preview": 0.0,
+      "frames": {
+        "panel": "1ba0452be090214d6ba41860452740af03e5d34acacc7ce95e0a492e5bd3d5ad",
+        "edge": "1943d120dd029511d17c358e1f42bad98280774b6fe2d27fbc7e460013e6398b",
+        "behind": "d15c7deca6b3b6c1f25d5927e2eb15a3ba7e6f7f6a2712cb53bc6a0433d1a6d4",
+        "thighOuter": "d6d65a583bdac14572ce8ce51b308824ac86f0bbd92ebb1d762aac648503290e",
+        "close": "4704b1108f0ef2a6b3c7ac66c248586c8657f6a5f99f781e44deeb7f8e660092",
+        "strideView": "c6d582c0168cab50657b4facd9c7fdce7c7c7538f77f6cde825478cc828bcebc",
+        "buckle": "2c42ceecf2e23f02cea4227fa9a43a60a162279144b774fff80b282942b51bd5",
+        "hem": "75f34dcebf0c68307164b4f4f0e0afdb110657bbd77b63282b5d0b7a2516fa00",
+        "front": "c1e92e6f2da52f0a226d3aec5db217fa28a085740a10cb628f3caba4c4191d02",
+        "quarter": "3189e4b43ae6cd0b05d8f0b496dffb578a724f73d08c67ed4d1660c33f72018e",
+        "side": "8b24ed472f812201514ed74d2bf3373ec8cfc573659181f04cadc94b1bb39481",
+        "back": "71f7256290bb0f749ce3bae43f251536deb312709b303b322dbae92a9eb82836"
+      }
+    },
+    "Scene": {
+      "lighting": [
+        [
+          "AmbientLight",
+          1.4
+        ],
+        [
+          "DirectionalLight",
+          2.2
+        ]
+      ],
+      "reflection_environment": false,
+      "runtime_material": {
+        "name": "Raider pouch leather",
+        "type": "MeshPhysicalMaterial",
+        "normal": true,
+        "roughness": true,
+        "metal": true,
+        "specular": true,
+        "specularIntensity": 1
+      },
+      "mean_absolute_rgb8_vs_before": {
+        "panel": 4.17741,
+        "edge": 5.33044,
+        "behind": 3.90867,
+        "thighOuter": 2.60502,
+        "close": 6.84133,
+        "strideView": 1.64005,
+        "buckle": 0.0,
+        "hem": 0.01776,
+        "front": 0.05075,
+        "quarter": 0.09102,
+        "side": 0.07348,
+        "back": 0.01934
+      },
+      "max_mean_rgb8_vs_preview": 0.0,
+      "frames": {
+        "panel": "7bd64cfdaa27d69e4a72d876086fb9bdff91503a4176b3d2f0f5b7ae1d139d40",
+        "edge": "fb1e9cd5cfafc04640955a6e73b1bcdb01b11b8296f9719dc1d2ddaddda692cd",
+        "behind": "bca444bbbcc2bae3b22653933721b067b3b39cb22e1394399cae3702bec83f19",
+        "thighOuter": "a356e1259a248507b42222780955dd9dcb7eb3e72f376c4a7b7dbd8bc723bb09",
+        "close": "54cb239bfcde42f43f213eccd2fe7d96b1d312a39ab3f44f7c4820c93d1693aa",
+        "strideView": "27069f3c9b75cbc2d2a9578169924db7a0d32ee6ad31c890b43162a2f1c393ec",
+        "buckle": "06c39173463795919b6482e094f3589b2798b9765089d0085daf9110b2c1802e",
+        "hem": "c3643afa11de542f53039223215ede91af020f83ce5b715210680ab651709d75",
+        "front": "b07ddfd23f1988446ac1bfc09e17076af2e408435081c3401bb6ee6f8c97011d",
+        "quarter": "fa49f4468c5dc1c5bd0657303c78b4de66bb0e89b6c03957a035abd90b829066",
+        "side": "7f5672d77fec709778c509862354b9e81af70cc913e2069b8d717cac3eb05fdd",
+        "back": "9b888f0268e8582feb8d16e70dd5b6f3bb0c0feda36421091a5326b0fdaa83c6"
+      }
+    }
+  },
+  "delivery_sha256": {
+    "export-check.json": "e9a6b238ce99028caa7ad929e336fac76869f2ce5e7cf3f5f5070149bf46ccf7",
+    "For_Opus.md": "c51ce882b637c67a0ffc8ac97be5a60cb0334fe6358e0cea566cd689cf4302b2",
+    "Framewright_Pouch_Comparison.jpg": "081f033b7008f46c2a718790153ad530ac561065ea379f24368988d719be5757",
+    "Generation_Prompt.txt": "df4425f2e1ddd7132ed97286bc09c6f8d2932c61ee773e8d9842194b25a6dd07",
+    "native-check.json": "07a64e925e51595bc3fa3fc35a1fae669318a8a7afa98924d1b139a3ec6dd6d7",
+    "Pouch_Replay.zip": "acaa7f5a2e066e8cf28c4ca416b6657b1e13c2dfc7d568eccd50e9a9da02f59d",
+    "Raider_Field_Pouch.blend": "021b05f109cbc6a7e20e075a3540f00b9575d5add1e01a7bba9a5f0a7b7aea96",
+    "Raider_Field_Pouch.glb": "b3a88ad98fcf2b279c0612ca3b18a32d4204ab00e425b4aa3fed9845c6b9cbee",
+    "Raider_Pouch_Gusset_Reference.png": "3c3256f525b113b6b5b86b295b1b140fcb09869b8caa61d36497856da41814c7",
+    "Raider_Pouch_Side_Reference.png": "4612273a153b217fb1acd95db2eced566152a07f48b2ec7aa1fcf0f2d4bcdec1",
+    "Reference_Manifest.json": "7828e5068fc08d3f2e4eb9587dff1710a43940c6a84fda54da0dc56a1eee873a",
+    "Review.html": "d5f2b60f3d0d4fbe986f57d7fea9a03c1a17f779cea31d382208c619fb367c08",
+    "rig-check.json": "95242831c3de39fe504b16eb2954777e0def466f6c6690e3f2e521664a72c3b5"
+  }
+}

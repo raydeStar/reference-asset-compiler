@@ -1,0 +1,92 @@
+{
+  "scene_id": "43134a9a-2c10-46dd-a8a7-b1a1021d3a0e",
+  "scene_version": 3,
+  "framewright_url": "http://127.0.0.1:5191/",
+  "library_name": "Raider - Weathered Steel",
+  "project_id": "2e883b13-6cc6-46e2-b9ed-f9c3aac6c5ec",
+  "final_asset_id": "b56a685b-7309-480f-843a-dd2c94bec744",
+  "served_sha256": "0e33121064a15e88dee4305e4ffac2e080a5dad1b45352d1406028195b655b09",
+  "studio_sha256": "f6b27e3f74b53ad3353af0c671033ba973e6b36ee4f6fd9517d66111925a2441",
+  "source_sha256": "bf45fb64b02ed4365c5343d89c61f76636e92e7124b37dbbae64a4eb98ca4274",
+  "packed_blend_sha256": "6e4e21592146451b8b421b33e2eb181723dc59cc9db02c1263331bf41a02ebfb",
+  "profile": "framewright-scene",
+  "target_sha256": "e03d29aa03d400bb63da31babbd7342441cc841e2f302ba1249395b20b063d9f",
+  "runtime": {
+    "Scene": {
+      "reflection_environment": false,
+      "ambient_and_key": [
+        [
+          "AmbientLight",
+          1.4
+        ],
+        [
+          "DirectionalLight",
+          2.2
+        ]
+      ],
+      "camera_count": 10,
+      "fully_bound_mixed_materials": 4
+    },
+    "Assets": {
+      "reflection_environment": true,
+      "ambient_and_key": [
+        [
+          "AmbientLight",
+          0.75
+        ],
+        [
+          "DirectionalLight",
+          1.9
+        ],
+        [
+          "DirectionalLight",
+          1.1
+        ]
+      ],
+      "camera_count": 10,
+      "fully_bound_mixed_materials": 4
+    }
+  },
+  "environment": {
+    "keyIntensity": 2.2,
+    "keyYaw": 0.8,
+    "keyPitch": 0.9,
+    "ambientIntensity": 1.4,
+    "keyColor": "#ffffff",
+    "ambientColor": "#ffffff",
+    "backgroundColor": "#171b19",
+    "exposure": 1,
+    "cinematic": false,
+    "showGrid": true,
+    "pointLights": null
+  },
+  "comparison": "Studio and final were served by Framewright. Seam-only comparison used the frozen local GLB in the same app viewer. Private trial matched the final served pixels for all 20 captures.",
+  "original_bin_prefix_verified_bytes": 12605672,
+  "original_geometry_rig_albedo_ao_preserved": true,
+  "same_tangent_normal_images_as_studio": true,
+  "shoulder_display_luma_0_to_255": {
+    "sweep": {
+      "shadow_patch_median": 6.2,
+      "highlight_patch_p95": 243.5
+    },
+    "final": {
+      "shadow_patch_median": 27.4,
+      "highlight_patch_p95": 160.0
+    }
+  },
+  "roi_xyxy": {
+    "shadow": [
+      183,
+      298,
+      354,
+      412
+    ],
+    "highlight": [
+      372,
+      200,
+      464,
+      287
+    ]
+  },
+  "human_visual_review": "pending"
+}

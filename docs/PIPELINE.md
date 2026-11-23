@@ -55,6 +55,20 @@ stage. Replacement must preserve the validity of downstream passed stages.
 State updates are locked, and retained receipt publication cannot overwrite a
 concurrent recorder's evidence.
 
+## Surface finishing candidates
+
+Use [CHARACTER_SURFACE_WORKFLOW.md](CHARACTER_SURFACE_WORKFLOW.md) as the
+canonical character-finishing procedure. It adds no ledger stages and does not
+replace the approval contracts above.
+
+`rac polish-init` and `rac polish` run the registered finishing operations
+described in [POLISH_WORKFLOW.md](POLISH_WORKFLOW.md). Their recipe steps are
+operations within a retained candidate, not new ledger stages. They require
+an already acquired source, preserve input/output hashes, stop at explicit
+AI-reference handoffs and produce review evidence. `ready_for_review` does
+not approve texture, deformation, engine or cook gates; `production_ready`
+stays false and the ledger is unchanged.
+
 ## 1. Intake
 
 The approved image or turnaround is the artistic contract. `rac new` copies it
@@ -104,6 +118,9 @@ the approved read is a rejection.
 Texture only an approved topology. Existing-mesh texturing systems must restore
 the exact geometry and face order after inference. Review base color separately
 from material response, then review the complete PBR result.
+For painted GLBs, the optional [material sweep](MATERIAL_SWEEP.md) applies
+reviewed surface IDs to roughness, metalness, specular strength and normals.
+Inspect the export under a moving light before accepting the finish.
 
 Hard failures include duplicated or stamped features, displaced eyes/nose,
 atlas seam lines, baked shadow holes, projection outlines, random bright

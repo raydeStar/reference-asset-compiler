@@ -1,0 +1,67 @@
+{
+  "schema": "reference-asset-compiler.character-surface-checkpoint.v1",
+  "date": "2026-11-06",
+  "source": {
+    "path": "work\\remora-airship-20261106\\delivery64\\Remora_Face_And_Collar_Refined.glb",
+    "sha256": "0d73e3863b411a7b0cf45d1b2e54ffeab4ebfcc82ee587ea0091df6457cda124"
+  },
+  "candidate": {
+    "path": "work\\remora-airship-20261106\\delivery70\\Remora_Tunic_Clean.glb",
+    "sha256": "09a154930aed5655fadaea06f1e64e3dcff2b57cc869491960f0c9ade62019cd"
+  },
+  "native": {
+    "path": "work\\remora-airship-20261106\\delivery70\\Remora_Tunic_Clean.blend",
+    "sha256": "9944b4bd2f90da8c3be67fd45956e5ebfd221a9d9859b7f5d6a6c1b5b78a0b4e"
+  },
+  "canonical_guide": {
+    "path": "docs\\CHARACTER_SURFACE_WORKFLOW.md",
+    "sha256": "29133000d7ecf3506f5439ce5d547a8b74c98825519f209b0d61ae47fba5d704"
+  },
+  "recipe": {
+    "path": "examples\\polish\\remora-tunic-ghosts.json",
+    "sha256": "53ea9f631e83577cd9d73c3f189540add0c2bd2792a8dcd11099f50fbd420a39"
+  },
+  "generation": {
+    "path": "work\\remora-airship-20261106\\tunic68\\references\\generation.json",
+    "sha256": "b7f984e7b35fe391f791fa9da04e50e874742e813894b13e7ef8948889ff2a38"
+  },
+  "retained_generation_inputs": {
+    "path": "work\\remora-airship-20261106\\tunic68\\references\\retained-inputs.json",
+    "sha256": "39bfe7f9d78a32625198b32f866d40fbe2e1a8a54ba0ad2d10cc1b76d3582d68"
+  },
+  "diagnosis": {
+    "path": "work\\remora-airship-20261106\\tunic68\\receipt.json",
+    "sha256": "a2bdfbd351cf4b2dfe52cb0f1234d1d7d4f8e0102655d37d33db187f1efabb83"
+  },
+  "post_diagnosis": {
+    "path": "work\\remora-airship-20261106\\tunic70\\diagnosis\\receipt.json",
+    "sha256": "f95dc81fa74f923e9f485804d1174a8120f89a943876e9cad8a8b07bd3c1ec1f"
+  },
+  "rejected_attempt": {
+    "path": "work\\remora-airship-20261106\\tunic69\\visual-rejection.json",
+    "sha256": "39c8937a04f6f0c04e86b1dfe6b91addccd79e1cbdea0d5be34a503021c5c30c"
+  },
+  "preservation": {
+    "path": "work\\remora-airship-20261106\\delivery70\\verification.json",
+    "sha256": "87787f25ef622fd134fba757b3bd887462fd6b14ad22dd3c94bddfacfd88051c"
+  },
+  "packed_review": {
+    "path": "work\\remora-airship-20261106\\tunic70\\steps\\review\\receipt.json",
+    "sha256": "3d57b85c5bb49a41ce19f17423f850df8d6c36efad657cc62807bd64e6b8d21e"
+  },
+  "consumer_review": {
+    "path": "work\\remora-airship-20261106\\framewright-review70.json",
+    "sha256": "dd91fce9c053f396e0af09a8edac2a79d2dee15cf4fd3905121eb191d55c70f7"
+  },
+  "replay_comparison": {
+    "path": "work\\remora-airship-20261106\\replay71\\comparison.json",
+    "sha256": "194e55d4624ea3cac1fdd181c1fc25e0ddc017dabb716aef314f027e6b2d6aa0"
+  },
+  "repository_verify": {
+    "path": "work\\remora-airship-20261106\\verify-canon70.log",
+    "sha256": "df5833a177d9d623a2871c895dbb213a3b14c1efeeb4b7de2360011a86f06a1e"
+  },
+  "verification_summary": "1007 passed, 39 skipped, 198 subtests; lint, 344 stage files and installed-wheel checks passed",
+  "production_ready": false,
+  "ledger_promoted": false
+}

@@ -1,0 +1,262 @@
+{
+  "date": "2026-11-03",
+  "review": "artist pending; no game build or production promotion",
+  "work": "work/raider-continuous-20261103",
+  "current_asset": {
+    "id": "47ed8c62-c5bb-41bf-9223-8a491230d52c",
+    "served_sha256": "efc459caa6f4e4d0c2980bd9ec60499dbd751198a61aeed5ad59b57fae53c1ca",
+    "name": "Raider - Continuous Outfit",
+    "bytes": 26982012
+  },
+  "scene": {
+    "id": "43134a9a-2c10-46dd-a8a7-b1a1021d3a0e",
+    "name": "Raider material review",
+    "version": 4,
+    "previous_version": 3,
+    "camera_and_lights_preserved": true
+  },
+  "geometry": {
+    "selected_faces": 594567,
+    "selected_components": 22,
+    "discarded_island_faces": 9955,
+    "output_faces": 34700,
+    "registered_geometry_identical": true
+  },
+  "preservation": {
+    "original_glb_binary_prefix_bytes": 19831412,
+    "nodes_and_skins_identical": true,
+    "all_five_nonbody_mesh_definitions_identical": true,
+    "original_face_shapes": 34
+  },
+  "herorig": {
+    "bones": 88,
+    "tris": 65949,
+    "warnings": [
+      "facing: no material with 'eye' in its name, so mesh facing could not be verified independently of the skeleton"
+    ],
+    "ok": true
+  },
+  "poses": [
+    "arm_raised",
+    "elbow_bend",
+    "torso_twist",
+    "forward_reach",
+    "stride"
+  ],
+  "before": {
+    "schema": "rac.fitted-surface-check.v1",
+    "glb_sha256": "0e33121064a15e88dee4305e4ffac2e080a5dad1b45352d1406028195b655b09",
+    "config_sha256": "dc3d503198194951e28ac4a0858d435bec511fa91606a23aa4a692be1001c334",
+    "mesh": "raider",
+    "regions": {
+      "buckle": {
+        "faces": 768,
+        "components_entering_box": 2,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "needs_inspection": true
+      },
+      "thigh_strap": {
+        "faces": 954,
+        "components_entering_box": 3,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "needs_inspection": true
+      },
+      "jacket_front_hem": {
+        "faces": 1487,
+        "components_entering_box": 4,
+        "boundary_edges": 192,
+        "nonmanifold_edges": 0,
+        "needs_inspection": true
+      }
+    },
+    "needs_inspection": true
+  },
+  "after": {
+    "schema": "rac.fitted-surface-check.v1",
+    "glb_sha256": "efc459caa6f4e4d0c2980bd9ec60499dbd751198a61aeed5ad59b57fae53c1ca",
+    "config_sha256": "dc3d503198194951e28ac4a0858d435bec511fa91606a23aa4a692be1001c334",
+    "mesh": "raider",
+    "regions": {
+      "buckle": {
+        "faces": 243,
+        "components_entering_box": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "needs_inspection": false
+      },
+      "thigh_strap": {
+        "faces": 483,
+        "components_entering_box": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "needs_inspection": false
+      },
+      "jacket_front_hem": {
+        "faces": 864,
+        "components_entering_box": 1,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0,
+        "needs_inspection": false
+      }
+    },
+    "needs_inspection": false
+  },
+  "depth": {
+    "front-pouch": 0.00016348264748470269,
+    "rear-pouch": 0.0,
+    "shoulder": 0.0,
+    "side-waist": 9.875242766384674e-05,
+    "buckle": 0.007003052612677321,
+    "strap": 0.003401746229731262,
+    "hem": 0.00019645882959652268
+  },
+  "versioned_attempts": [
+    {
+      "pass": "original",
+      "sha256": "0e33121064a15e88dee4305e4ffac2e080a5dad1b45352d1406028195b655b09",
+      "reason": "rejected by artist: raised and crossing seams"
+    },
+    {
+      "pass": "trial1",
+      "sha256": "bf066ce11facc71e383bf11a8f5ab7abf7c0c4ec2be575a57b6bf9d80f5d25ec",
+      "reason": "rejected: wrong PBR boundary crossed buckle and trouser cloth"
+    },
+    {
+      "pass": "trial2",
+      "sha256": "adc56b63b6d4d14224db4da5b35f50c258b0339ecf332b1d5836efb1497e446d",
+      "reason": "rejected: prior paint donor degraded good detail away from repair"
+    },
+    {
+      "pass": "trial3",
+      "sha256": "efc459caa6f4e4d0c2980bd9ec60499dbd751198a61aeed5ad59b57fae53c1ca",
+      "reason": "selected for artist review after restoring previous finish away from the three repairs; narrower jacket stitching intentional"
+    }
+  ],
+  "material_replay_bit_identical": true,
+  "sources": {
+    "rac-gpu-efficiency/work/raider-revamp/sources/raider-reference-v1.png": "1b12b9d9060be70b79c42ec102bff228392b4d057c79002a87414a428a362854",
+    "rac-gpu-efficiency/work/raider-revamp/sources/raider-v0-painted.glb": "11657c0fa14a43247a90494895fe3a4fbdba63e4676d0440f9e55dc682560d18",
+    "rac-gpu-efficiency/work/raider-revamp/build/v7/parts/dense-recut.glb": "5ff0cd4e62653c964a6179dc34debcc193ae6d3ef240e50f4421b35ceff88ba4",
+    "rac-gpu-efficiency/work/raider-revamp/build/v7/parts/part-names.json": "8fbabdc99e107fda533fe525bfb2be9eb662edc48d2aa6af577edef4daa5f3ef",
+    "rac-gpu-efficiency/work/raider-revamp/build/v7/parts/face-labels.npy": "b3237c2b22853bebe44c3c9bb836a38a4eed555f986ff1dd427cf4cb974d6c7f",
+    "rac-gpu-efficiency/work/raider-revamp/build/v7/raider-assembled.glb": "60e06e4296f33107aa7de7ec241749235595e2ef129af0db91bdec53501e4cd3",
+    "rac-gpu-efficiency/work/raider-revamp/build/v7/raider_hero_production-raw.glb.json": "f9452a907a45e3f0e755c4f6ca1f8e5446390cb19ffb863820716164aaa32d15",
+    "reference-asset-compiler/work/raider-framewright-20261103/delivery/Raider_Framewright.glb": "0e33121064a15e88dee4305e4ffac2e080a5dad1b45352d1406028195b655b09",
+    "reference-asset-compiler/work/raider-seams-20261103/probe.npz": "f98c49d5c578dd3bafa1571b910c0f8eb0c686c972972b5c025054784d9e2175",
+    "reference-asset-compiler/work/raider-seams-20261103/authority.npz": "f1b4cbc60c37f6057b89b55099d1e03e26efdc3cc6f4e6f0981fd84da3cd7833",
+    "reference-asset-compiler/work/raider-seams-20261103/inspect_seam.py": "2617051bc3147c8ce7608db492fc88de6f1668fc56fe8c4f8410fecae45f7b72",
+    "reference-asset-compiler/scripts/fit_segmented_surface.py": "acd799b0c973a6428a17a0c07345d29b9489bd4d9bdf09ab01934118396cfe44",
+    "reference-asset-compiler/scripts/check_fitted_surface.py": "3f4efb69e6b402431918bd082a380575ed280917c164ac731206bf241d7359a3"
+  },
+  "captures": {
+    "Scene": {
+      "lighting": [
+        [
+          "AmbientLight",
+          1.4
+        ],
+        [
+          "DirectionalLight",
+          2.2
+        ]
+      ],
+      "reflection_environment": false,
+      "outfit_runtime_material": {
+        "name": "Raider continuous outfit",
+        "type": "MeshPhysicalMaterial",
+        "normal": true,
+        "roughness": true,
+        "metal": true,
+        "specular": true,
+        "specularIntensity": 1
+      },
+      "view_sha256": {
+        "buckle": "06c39173463795919b6482e094f3589b2798b9765089d0085daf9110b2c1802e",
+        "hem": "a1d0a20f90bd515e9742b5e91bd0fed9ee260864a54c9cb6b7a51f7b75ab7ba1",
+        "strap": "c0f20b5f25bf12bd8e7135402320affd6d48b69dc458964f7241c5625a46e2e6",
+        "thighOuter": "a47a1ae3c72f926c38ae53ca5a9be4d5990e2eeb6d4ca829162068a3672284bf",
+        "front": "504fe2e33d8a18d7ac949e56ec535c2e1b946334a4e516712d5f98c2ace16d37",
+        "quarter": "846ca628bd91bc36e12a6735f67ac77e6d790c35292420e5324a928b88963231",
+        "side": "01e8c4d89752680965b968ae2c2fe017d83a06df0e0911c6305eca367e767340",
+        "back": "84b4b62d225a20aad9930e993093620acc07c2f67730f5a0d0d8d01af630f6d0",
+        "shoulder": "7d1e206ebf967b809eb2f1f280904ccc2e5765f3b6bae2d351b50e77f9e0055c",
+        "pouch": "0deea7dd71dabc68ab0e9bb4cccefd8b6bc92a2474632615b42ed00ee8217816",
+        "upper": "b2414b88c97128293e7570d4945b4d643abe1458d1139f5cd8ceb03eceb3d22a",
+        "cuff": "eaa5e5203d1cee6c1a8c1865f169e6adad5f2aebf3fe9b914cbb7b09e7431058",
+        "neck": "434775e2821755cd85607f318ed775ae6c80d2bc8a5b92d35437358c229a1fa9",
+        "knees": "34d852cf6c3f5f911b90a6d80737d4d60ac328e0e66ee9f7024b1c4d59704cf7"
+      }
+    },
+    "Assets": {
+      "lighting": [
+        [
+          "AmbientLight",
+          0.75
+        ],
+        [
+          "DirectionalLight",
+          1.9
+        ],
+        [
+          "DirectionalLight",
+          1.1
+        ]
+      ],
+      "reflection_environment": true,
+      "outfit_runtime_material": {
+        "name": "Raider continuous outfit",
+        "type": "MeshPhysicalMaterial",
+        "normal": true,
+        "roughness": true,
+        "metal": true,
+        "specular": true,
+        "specularIntensity": 1
+      },
+      "view_sha256": {
+        "buckle": "2c42ceecf2e23f02cea4227fa9a43a60a162279144b774fff80b282942b51bd5",
+        "hem": "098e43ce622b98462532846ca13f65d4db5a7933afc2111fda977821c3ba8ee2",
+        "strap": "63c708bcd3008475a878118847e8926c24bc71d9a3485065bb0fb3503be0db39",
+        "thighOuter": "b6187da057a785646bdcaceea06defddcf4e8809db5d392401ec082a5694d426",
+        "front": "036facdd09b8a8bbe0a50da0b5ffea73b1048ba319fcee1542c273ffb96ed6fd",
+        "quarter": "6821f3d72848f7b6c694e574436d2574235b59a2b4cc1854c855fc29a20ebd5c",
+        "side": "c3366be28c46af5d8532c76810fbb77fb838491a4186200a7fd95342ba328113",
+        "back": "85f5f68fdf81de7fc40aee2e81101b74a1da8f5a55470d68fa42c538ac07cc48",
+        "shoulder": "bb9cc30f3414cde7e88db1c6a06ee89049b221f3310efb1b561729ae9e5fcf70",
+        "pouch": "bf910312fd757d06db3dc158c031f874869fc2c2a46198471d08399647ed67d2",
+        "upper": "919545ddf6bf468ff53c74db3311cea6090888ad4f5cd9a552c54d26e933f685",
+        "cuff": "8bf5f68fb05da23c595afc220b851ecad0c53d7df7b2fd22eae190eeb3e9c81b",
+        "neck": "11ea7256ac2830ce937adc91b8519b5ab071ae3f490518d7ead67e5a1be96c85",
+        "knees": "f49b7d0840e4027cd137b91b63eb72f613d8b70df711045725c15406ecf31155"
+      }
+    }
+  },
+  "limitations": [
+    "Front reference does not show the true outside of the thigh pouch. Its side paint remains soft.",
+    "Rest connectivity is not a paint or gameplay check.",
+    "Fitted equipment cannot be independently detached."
+  ],
+  "delivery": {
+    "continuity.json": "08b12d6ed75843ed6d6265e52acad4141de2af1d04fd9c7d459e97a523b2f5e5",
+    "Fitted_Outfit_Replay.zip": "79ff684d26dbbdd461420d7a7f699d7f7d628d73c93d8a9b84e5399e8dc36301",
+    "For_Opus.md": "e4cf242e7c3db1b8fcdbded93fe4f721ba11756b4f3378d72b72805a86901968",
+    "Framewright_Seams.jpg": "7ff577d8074f59a312729b4a3781b34c69b47d62236ad18316800b6a20e9c0e1",
+    "gate-rig.json": "aab5a2b119c24cccf4215dbe9a1b5739ae92e864dbfdfed06b194e2abedcde7c",
+    "material-receipt.json": "4c11f0b6799c8c9275d7caa595247c7162620ba293ac2063b0944ca92818e73d",
+    "native-check.json": "452149e66dc93be4b81c5d3b08ecd3df99998cdffb8810fff055d2c7e5edff63",
+    "pose-check.json": "7a848f4df56ec01c92094dba21ce30c3065a025f15f6df856435823275502b8b",
+    "Posed_Comparison.jpg": "14a58a6f58310f59ac743ff5030b45209b9484c66615cdec2f6be1d01d100d27",
+    "Raider_Continuous_Outfit.blend": "f8fc298cf51fe4e41c187ca29a2b4f15e3b974596e7d74ce7a010ae650972a8a",
+    "Raider_Continuous_Outfit.glb": "efc459caa6f4e4d0c2980bd9ec60499dbd751198a61aeed5ad59b57fae53c1ca",
+    "Review.html": "23768da759076aa353165f2c11e2ccb568e03d871448dd99dac40a92241b778a"
+  },
+  "repository_verification": {
+    "suite": "scripts/verify.ps1",
+    "ok": true,
+    "pytest_passed": 953,
+    "pytest_skipped": 39,
+    "subtests_passed": 198,
+    "log_sha256": "58baae9ad7dfcdd40e2de8ca8011953f64ec200339aebe48a45e09f7c4e2a6fb"
+  }
+}

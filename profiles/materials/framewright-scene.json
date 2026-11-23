@@ -1,0 +1,11 @@
+{
+  "schema": "rac.surface-target.v1",
+  "base_sha256": "0b25e4ce13f6a7a706d223e5f7c7585d5f49df1e0b714513cd2dc9941d1cc2fb",
+  "description": "Dry, weathered surfaces under the Framewright Scene ambient and directional rig. Lower effective metal coverage represents the mix of exposed steel and oxidation at this atlas scale.",
+  "overrides": {
+    "worn_steel": {"roughness": [0.40, 0.58], "metallic": 0.67},
+    "tarnished_metal": {"roughness": [0.49, 0.68], "metallic": 0.48},
+    "glove_leather": {"roughness": [0.49, 0.66], "specular": 0.74},
+    "skin_tzone": {"roughness": [0.42, 0.54], "specular": 0.69}
+  }
+}

@@ -217,6 +217,30 @@ and texture gates, and the assembled character waits for the four-view review.
 
 ## Stage 4 — existing-mesh PBR texture
 
+Follow the [canonical character surface workflow](CHARACTER_SURFACE_WORKFLOW.md)
+for diagnosis, registered repair, material identity and consumer replay. After
+removing or replacing geometry, inspect the newly exposed paint and normals
+for surviving outlines/shadows before calling that region finished.
+
+For scoped finishing of an already acquired character or prop, start with
+[`rac polish-init` / `rac polish`](POLISH_WORKFLOW.md). This route captures
+registered references, pauses explicitly for AI editing, then resumes mapping,
+material response and packed review. It can also restore reviewed donor faces
+or repack one primitive while transporting its maps and rig data. The Raider
+examples replay frozen inputs without new inference. Whole-mesh acquisition
+and fresh PBR generation still use the routes below.
+
+If a material edge stands proud, first compare the pre-cut acquisition with the
+export at a grazing angle. Where a strap, buckle or hem already has the right
+shape on the acquisition, keep the selected labels on one surface. Reproject
+the labels for material response; do not extrude them a second time. Use the
+[fitted surface recipe and inspection boxes](RAIDER_SEAM_REPAIR.md#fitted-outfit-for-framewright).
+Real detachable pieces still need their own complete geometry and backing.
+
+If the paint and topology are already approved and only the surfaces react
+incorrectly to light, use the CPU [material sweep](MATERIAL_SWEEP.md). It
+accepts part masks on a shared atlas; it does not require repainting or a new cut.
+
 For large natural scenery, a reference-conditioned repeating surface material
 is also an explicit mapping route after AI geometry and topology approval.
 Do not stretch a small unique atlas over a twelve-metre formation or shrink
@@ -329,6 +353,11 @@ colour, a packed occlusion/roughness/metal map and a tangent-space normal map, w
 map needs its own texture asset in the engine import (on the Raider it first shared the roughness/metal asset's
 name and turned the whole body into metal). Review it with back-face culling, in Blender studio light and in the
 engine.
+
+This pass and the CPU [material sweep](MATERIAL_SWEEP.md) overlap, so pick one per revision. The material pass works on
+the rigged blend, reads edges and creases from the geometry and may modulate the paint. The sweep works on an already
+packaged GLB whose paint is approved: it changes only how each surface answers light and leaves base colour, geometry
+and UVs byte for byte. Running the sweep over maps this pass wrote lays a second relief on the first.
 
 ### Texture acceptance
 
