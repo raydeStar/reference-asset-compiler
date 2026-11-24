@@ -3,6 +3,16 @@
 Release notes live under `docs/releases/`; GitHub releases carry the same text
 and any attached wheel.
 
+## v0.3.0 — 2026-11-24
+
+Large models as sharp as small ones. `paint-sections` paints a large model again
+in sections at small-prop scale: a 2.2 m skiff went from about 3 mm to about
+0.7 mm of surface per painted pixel. It keeps the first paint's colour by default.
+`bake-detail --relief-tilt` sets relief from paint to a measured steepness.
+New hard-surface finishing stages, an automatic part map, and fixes for the
+painter's doubled specular and for seam-cut meshes in the voxel reductions.
+Notes: [docs/releases/v0.3.0.md](docs/releases/v0.3.0.md).
+
 ## v0.2.1 — 2026-10-31
 
 Faster AI stages: geometry generation is about 3× faster (three views 63 → 21 s,

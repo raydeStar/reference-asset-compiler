@@ -3294,3 +3294,10 @@ Pixal3D (TencentARC) beat Hunyuan3D-2 on hard-surface crispness for the Frastown
 - **Pixal's own exporter simplifies cleanly.** `o_voxel.postprocess.to_glb` rebuilds a surface from Pixal's volume and simplifies to a vertex target (1,000,000 by default). The same seed-45 run exported at 100,000 vertices gave 98k triangles with no wrinkles, zero open edges, and bolts, straps and rail edges intact. Export the dense and low meshes from one run and level both with one transform. The dense mesh is then the normal-bake source, and the bake lines up.
 
 A single-view generator also guesses what the picture hides. Seed 42 left a hole in the floor at the bow, which the owner found in the viewer. Seeds 43 to 46 cost about 2.5 minutes each, and seed 45 had a whole planked floor. Generate a few seeds and pick by fixed views before reducing.
+
+<!-- section-timeout-20261124 -->
+## 2026-11-24 · A stage's time limit has to fit its longest honest run
+
+`rac run-stage` gave every stage one hour. The finer section cut paints up to 48 sections at two and a half to three and a half minutes each, so the documented command could not finish on the skiff: the pass was stopped at section 20 of 32. Framewright already passed four hours, which is why only the command line was caught. `paint-sections` now has its own four-hour default, and the stage listing reports each stage's limit. A pass that is stopped anyway resumes with `--reuse-sections`, which takes a finished section only when the painter's own record shows the same mesh, crop and settings.
+
+The stop did not end the painter. `subprocess.run` kills the process it started, not that process's children, so section 20's painter ran on and finished with nobody waiting for it. A second run started then would have shared the GPU with it. Stages and the painters inside `paint-sections` now run through `processes.run_bounded`, which stops the whole tree on a timeout: `taskkill /T` on Windows, the process group elsewhere.

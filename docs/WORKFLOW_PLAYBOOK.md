@@ -436,6 +436,12 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   surface a painted pixel on a 2 to 3 m prop. To reach a small prop's 0.6 to
   1 mm, cut finer and overlap less: `--section 0.45 --overlap 0.2 --context
   0.05 --max-sections 48` put a 2.2 m skiff at about 0.7 mm in 45 sections.
+- The stage gets four hours from `run-stage` unless `--timeout` says otherwise;
+  every other stage gets one. A pass that was stopped anyway resumes with
+  `--reuse-sections <the stopped attempt directory>`: a section the painter
+  already finished from the same mesh, the same crop and the same settings is
+  taken as it is, and only the rest are painted. A stage that runs out of time
+  stops everything it started, so nothing is left painting on the GPU.
 
 Finish a section-painted model with the detail bake, relief calibrated to a
 steepness rather than a strength: `rac run-stage bake-detail ... --resolution

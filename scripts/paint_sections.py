@@ -58,6 +58,7 @@ import itertools
 import json
 import math
 import os
+import shutil
 import subprocess
 import sys
 import time
@@ -67,6 +68,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(1, str(Path(__file__).resolve().parents[1] / "src"))
 from compress_textures import read_glb, write_glb  # noqa: E402
 from paint_head_detail import (  # noqa: E402
     grow,
@@ -81,6 +83,7 @@ from paint_head_detail import (  # noqa: E402
     texture_image,
     write_obj,
 )
+from reference_asset_compiler.processes import run_bounded  # noqa: E402
 
 TAG = "[SECTIONS]"
 POWERSHELL = "powershell.exe"
@@ -137,6 +140,9 @@ def parse_arguments(argv):
                              "it the painter's environment removes the background.")
     parser.add_argument("--launcher", type=Path,
                         default=Path(__file__).resolve().parent / "run_hy3d21_texture.ps1")
+    parser.add_argument("--reuse-sections", type=Path,
+                        help="An earlier attempt directory of this pass. A section it already painted "
+                             "from the same mesh and the same crop is taken from it, not painted again.")
     return parser.parse_args(argv)
 
 
@@ -555,7 +561,7 @@ def load_cutout(args, attempt):
     cutout_png = attempt / "reference-cutout.png"
     cutout_json = attempt / "reference-cutout.json"
     cropper = Path(__file__).resolve().parent / "crop_reference_region.py"
-    done = subprocess.run([str(venv), str(cropper), str(args.reference), str(cutout_png), str(cutout_json),
+    done = run_bounded([str(venv), str(cropper), str(args.reference), str(cutout_png), str(cutout_json),
                            "--cutout-only"], capture_output=True, text=True, errors="replace",
                           stdin=subprocess.DEVNULL, timeout=600)
     if done.returncode != 0 or not cutout_png.is_file():
@@ -578,19 +584,56 @@ def paint_section(args, mesh_obj, crop_png, paint_dir):
     ]
     if args.min_free_vram > 0:
         command += ["-MinimumFreeVramMiB", str(args.min_free_vram)]
-    painted = subprocess.run(command, capture_output=True, text=True, errors="replace",
+    painted = run_bounded(command, capture_output=True, text=True, errors="replace",
                              stdin=subprocess.DEVNULL, timeout=3000,
                              env={key: value for key, value in os.environ.items()
                                   if key.upper() != "PSMODULEPATH"})
+    glb, gate = read_paint(paint_dir, " ".join(tail(painted.stderr, 6)) or " ".join(tail(painted.stdout, 6)))
+    return glb, gate, painted.returncode
+
+
+def read_paint(paint_dir, why_missing=""):
+    """A painted section and the painter's own gate, refused if it moved anything."""
     glb = paint_dir / "section.glb"
     validation = paint_dir / "section.validation.json"
     if not glb.is_file() or not validation.is_file():
-        raise RuntimeError("the painter produced nothing: {0}".format(
-            " ".join(tail(painted.stderr, 6)) or " ".join(tail(painted.stdout, 6))))
+        raise RuntimeError("the painter produced nothing: {0}".format(why_missing))
     gate = json.loads(validation.read_text(encoding="utf-8-sig"))
     if not gate.get("faces_equal") or gate.get("geometry_delta", 1) > 1e-6 or gate.get("uv_delta", 1) > 1e-6:
         raise RuntimeError("the painter moved the section: {0}".format(json.dumps(gate, sort_keys=True)))
-    return glb, gate, painted.returncode
+    return glb, gate
+
+
+def reusable_paint(previous, folder, args):
+    """The paint an earlier attempt made of exactly this section, or None.
+
+    A long pass can be stopped part way: the skiff's 32 sections outlasted a
+    one-hour stage limit at section 20, and the twenty were good. This finds a
+    finished section by what the painter itself recorded it was given: the hash
+    of the mesh and of the crop, and the views, resolution and atlas. A section
+    planned differently, cut from a different crop or painted at other settings
+    has other hashes or other numbers and is painted again. The painter's exit
+    code is not consulted; its known teardown fault comes after it has written
+    everything, which is why the gate, not the exit code, decides here too.
+    """
+    if previous is None:
+        return None
+    paint = Path(previous) / folder.name / "paint"
+    try:
+        record = json.loads((paint / "section.execution.json").read_text(encoding="utf-8-sig"))
+    except (OSError, ValueError):
+        return None
+    same_inputs = (str(record.get("input_mesh_sha256", "")).lower() == sha256(folder / "section.obj")
+                   and str(record.get("reference_sha256", "")).lower() == sha256(folder / "reference.png"))
+    same_settings = (record.get("views"), record.get("resolution"), record.get("atlas")) == (
+        args.views, args.resolution, args.atlas)
+    if not (same_inputs and same_settings):
+        return None
+    try:
+        read_paint(paint)
+    except (RuntimeError, OSError, ValueError):
+        return None
+    return paint
 
 
 def main(argv=None) -> int:
@@ -780,9 +823,17 @@ def main(argv=None) -> int:
         print("{0} painting section {1} of {2}: {3} faces, {4:.2f} m across".format(
             TAG, record["number"] + 1, len(sections), record["faces_painted"], max(record["span_m"])),
             flush=True)
+        earlier = reusable_paint(args.reuse_sections, folder, args)
         try:
-            glb, gate, exit_code = paint_section(args, folder / "section.obj", folder / "reference.png",
-                                                 folder / "paint")
+            if earlier is not None:
+                shutil.copytree(earlier, folder / "paint")
+                glb, gate = read_paint(folder / "paint")
+                exit_code = None
+                record["reused_from"] = str(earlier)
+                print("{0} section {1} reused from {2}".format(TAG, record["number"] + 1, earlier), flush=True)
+            else:
+                glb, gate, exit_code = paint_section(args, folder / "section.obj", folder / "reference.png",
+                                                     folder / "paint")
         except (RuntimeError, subprocess.TimeoutExpired) as problem:
             return failed("section {0} could not be painted, and no half-painted model is delivered: "
                           "{1}".format(record["number"], problem))
@@ -820,6 +871,7 @@ def main(argv=None) -> int:
     document, rebuilt = swap_images(document, binary, replacements)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(write_glb(document, rebuilt))
+    report["reused_sections"] = sum(1 for record in sections if "reused_from" in record)
     report["composite"] = {
         "atlas_size": size,
         "texels_per_metre": round(density, 1),

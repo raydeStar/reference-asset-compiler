@@ -36,6 +36,7 @@ from paint_sections import (  # noqa: E402
     main,
     match_orientation,
     mesh_silhouette,
+    reusable_paint,
     orientations,
     plan_sections,
     project,
@@ -416,3 +417,122 @@ class PreparationTests(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class ReuseTests(unittest.TestCase):
+    """A stopped pass picks up where it stopped, and never takes the wrong section."""
+
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
+        self.args = type("Args", (), {"views": 12, "resolution": 768, "atlas": 4096})()
+        self.folder = self.root / "new" / "section-03"
+        self.folder.mkdir(parents=True)
+        (self.folder / "section.obj").write_text("v 0 0 0", encoding="utf-8")
+        (self.folder / "reference.png").write_bytes(solid_png(16, (90, 60, 30)))
+        self.earlier = self.root / "earlier"
+        self.paint = self.earlier / "section-03" / "paint"
+        self.paint.mkdir(parents=True)
+        (self.paint / "section.glb").write_bytes(b"glTF")
+        self.gate({"faces_equal": True, "geometry_delta": 0.0, "uv_delta": 0.0})
+        # As the launcher writes it: PowerShell's upper-case hashes, and a
+        # failed status from the painter's known teardown fault.
+        self.record(views=12)
+
+    def gate(self, gate):
+        (self.paint / "section.validation.json").write_text(json.dumps(gate), encoding="utf-8")
+
+    def record(self, views, mesh=None, crop=None):
+        import hashlib  # noqa: PLC0415
+        digest = lambda path: hashlib.sha256(path.read_bytes()).hexdigest().upper()  # noqa: E731
+        (self.paint / "section.execution.json").write_text(json.dumps({
+            "status": "failed", "exit_code": -1073741819,
+            "input_mesh_sha256": mesh or digest(self.folder / "section.obj"),
+            "reference_sha256": crop or digest(self.folder / "reference.png"),
+            "views": views, "resolution": 768, "atlas": 4096}), encoding="utf-8")
+
+    def test_the_same_section_painted_before_is_reused(self):
+        self.assertEqual(reusable_paint(self.earlier, self.folder, self.args), self.paint)
+
+    def test_without_an_earlier_attempt_nothing_is_reused(self):
+        self.assertIsNone(reusable_paint(None, self.folder, self.args))
+        self.assertIsNone(reusable_paint(self.root / "nowhere", self.folder, self.args))
+
+    def test_a_different_crop_is_painted_again(self):
+        self.record(views=12, crop="0" * 64)
+        self.assertIsNone(reusable_paint(self.earlier, self.folder, self.args))
+
+    def test_a_different_mesh_is_painted_again(self):
+        self.record(views=12, mesh="0" * 64)
+        self.assertIsNone(reusable_paint(self.earlier, self.folder, self.args))
+
+    def test_other_painter_settings_are_painted_again(self):
+        self.record(views=8)
+        self.assertIsNone(reusable_paint(self.earlier, self.folder, self.args))
+
+    def test_a_section_the_painter_moved_is_painted_again(self):
+        self.gate({"faces_equal": True, "geometry_delta": 0.01, "uv_delta": 0.0})
+        self.assertIsNone(reusable_paint(self.earlier, self.folder, self.args))
+
+
+class StageTimeoutTests(unittest.TestCase):
+    def setUp(self):
+        self.root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
+        self.legacy = paint_stack(self.root / "studio")
+        self.reference = self.root / "reference.png"
+        self.reference.write_bytes(solid_png(16, (200, 200, 200)))
+        self.source = self.root / "painted.glb"
+        self.source.write_bytes(b"glTF")
+
+    def waited(self, stage, **options):
+        from reference_asset_compiler import stages  # noqa: PLC0415
+        seen = {}
+
+        class Stop(Exception):
+            pass
+
+        def record(command, **keywords):
+            seen.update(keywords)
+            raise Stop()
+
+        original = stages.run_command
+        stages.run_command = record
+        try:
+            with self.assertRaises(Stop):
+                stages.run_stage(stage, self.source, self.root / "out.glb", self.root / "out.json",
+                                 repo_root=ROOT, legacy_root=self.legacy, blender=sys.executable,
+                                 options=options)
+        finally:
+            stages.run_command = original
+        return seen["timeout"]
+
+    def test_painting_in_sections_gets_four_hours_unless_told_otherwise(self):
+        # The skiff's 32 sections were stopped at the twentieth by the hour
+        # every stage used to get.
+        self.assertEqual(self.waited("paint-sections", reference=self.reference), 14400)
+
+    def test_other_stages_keep_their_hour(self):
+        self.assertEqual(self.waited("compress-textures"), 3600)
+
+    def test_the_listing_says_how_long_each_stage_is_given(self):
+        from reference_asset_compiler.stages import describe_stages  # noqa: PLC0415
+        listing = {entry["stage"]: entry for entry in describe_stages(ROOT, None, self.legacy)["stages"]}
+        self.assertEqual(listing["paint-sections"]["timeout_seconds"], 14400)
+        self.assertEqual(listing["compress-textures"]["timeout_seconds"], 3600)
+
+    def test_the_command_line_leaves_the_timeout_to_the_stage(self):
+        from reference_asset_compiler import cli  # noqa: PLC0415
+        args = cli.build_parser().parse_args(["run-stage", "paint-sections"])
+        self.assertIsNone(args.timeout)
+
+    def test_an_earlier_attempt_reaches_the_section_pass_and_a_missing_one_is_refused(self):
+        earlier = self.root / "sections-attempt001"
+        earlier.mkdir()
+        prepared = prepare_paint_sections({"reference": self.reference, "reuse_sections": earlier},
+                                          self.legacy)
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("--reuse-sections") + 1], str(earlier.resolve()))
+        with self.assertRaises(StageError):
+            prepare_paint_sections({"reference": self.reference, "reuse_sections": self.root / "none"},
+                                   self.legacy)

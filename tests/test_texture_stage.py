@@ -212,14 +212,14 @@ class PaintVerdictTests(unittest.TestCase):
                     encoding="utf-8")
             return type("Finished", (), {"returncode": returncode, "stdout": "", "stderr": "boom"})()
 
-        original = stages.subprocess.run
-        stages.subprocess.run = pretend
+        original = stages.run_command
+        stages.run_command = pretend
         try:
             return run_stage("texture", self.source, self.root / "out.glb", self.root / "out.json",
                              repo_root=self.repo, legacy_root=self.legacy,
                              options={"reference": str(self.reference)})
         finally:
-            stages.subprocess.run = original
+            stages.run_command = original
 
     def test_a_painter_that_faults_after_finishing_is_still_a_result(self):
         payload = self.paint(returncode=-1073741819, write=True)
@@ -269,14 +269,14 @@ class PaintVerdictTests(unittest.TestCase):
                 encoding="utf-8")
             return type("Finished", (), {"returncode": 1, "stdout": "", "stderr": "rejected"})()
 
-        original = stages.subprocess.run
-        stages.subprocess.run = pretend
+        original = stages.run_command
+        stages.run_command = pretend
         try:
             payload = run_stage("reduce-mesh", source, self.root / "runtime.glb",
                                 self.root / "runtime.json", repo_root=self.repo,
                                 blender="C:/blender.exe")
         finally:
-            stages.subprocess.run = original
+            stages.run_command = original
 
         self.assertFalse(payload["ok"])
         # And nothing was handed back as though it had passed.

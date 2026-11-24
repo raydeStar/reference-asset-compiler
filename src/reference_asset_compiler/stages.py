@@ -33,6 +33,7 @@ from .glass_colours import GlassColourError, named_colours, resolve_colour
 from .material_recipes import MaterialRecipeError, named_recipes, named_tones, parse_assignment
 from .human_scale import HumanScaleError, named_sizes, resolve_height
 from .rebake import MESH_SUFFIXES, RebakeError, check_binding, read_reduction
+from .processes import run_bounded
 from .resources import checkout_root
 
 BLENDER_ENVIRONMENT = "RAC_BLENDER"
@@ -42,6 +43,11 @@ POWERSHELL = "powershell.exe"
 """Windows PowerShell 5.1, which the launchers are written against."""
 
 DEFAULT_TIMEOUT_SECONDS = 3600
+
+# How a stage's command is run: like subprocess.run, except that a timeout stops
+# everything the stage started, not only the process it launched. A name of its
+# own so a test can stand in for the launch.
+run_command = run_bounded
 """An hour. A stage that has not finished by then is a stage to investigate."""
 
 STAGES: dict[str, dict[str, Any]] = {
@@ -358,7 +364,12 @@ STAGES: dict[str, dict[str, Any]] = {
         "script": "scripts/paint_sections.py",
         "arguments": ("source", "output", "report"),
         "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "context",
-                    "keep_colour", "keep_tone", "min_length", "max_sections", "min_free_vram"),
+                    "keep_colour", "keep_tone", "min_length", "max_sections", "min_free_vram",
+                    "reuse_sections"),
+        # A section is one painter run of about 2.5 minutes, and the finer cut
+        # paints up to 48: the hour every other stage gets killed the skiff's
+        # pass at section 20 of 32. Four hours, as Framewright already passes.
+        "timeout": 14400,
         "prepare": "paint-sections",
         "needs": ("paint-stack",),
         # The painter sees a whole model in 768 pixels whatever its size, so a
@@ -430,6 +441,8 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # the file before the stage runs, and a staged mesh is a .blend
             # where everything else is a .glb.
             "output_suffix": stage.get("output_suffix", ".glb"),
+            # How long run-stage waits before abandoning it, unless told otherwise.
+            "timeout_seconds": int(stage.get("timeout", DEFAULT_TIMEOUT_SECONDS)),
         }
         if "estimate" in stage:
             # How long one unit of the stage's work takes, where that varies by
@@ -489,7 +502,7 @@ def run_stage(
     report: Path,
     repo_root: Path | None = None,
     blender: str | None = None,
-    timeout: int = DEFAULT_TIMEOUT_SECONDS,
+    timeout: int | None = None,
     textures: Path | None = None,
     legacy_root: Path | None = None,
     options: dict[str, Any] | None = None,
@@ -500,6 +513,8 @@ def run_stage(
         raise StageError("Unknown stage {0}. Known stages: {1}".format(
             stage_name, ", ".join(sorted(STAGES))))
 
+    if timeout is None:
+        timeout = int(stage.get("timeout", DEFAULT_TIMEOUT_SECONDS))
     root = repo_root or checkout_root()
     if root is None:
         raise StageError(
@@ -604,7 +619,7 @@ def run_stage(
                        if key.upper() != "PSMODULEPATH"}
     started = time.monotonic()
     try:
-        finished = subprocess.run(
+        finished = run_command(
             command, capture_output=True, text=True, errors="replace", timeout=timeout,
             env=environment,
             # Nothing here may ever wait to be typed at. A stage is run by a
@@ -614,7 +629,8 @@ def run_stage(
             # and spending no CPU, which looks exactly like slow work.
             stdin=subprocess.DEVNULL)
     except subprocess.TimeoutExpired:
-        raise StageError("Stage {0} did not finish within {1} seconds.".format(stage_name, timeout))
+        raise StageError("Stage {0} did not finish within {1} seconds, and everything it started "
+                         "was stopped.".format(stage_name, timeout))
     seconds = round(time.monotonic() - started, 3)
 
     payload: dict[str, Any] = {
@@ -1255,6 +1271,11 @@ def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, A
                        ("--min-free-vram", "min_free_vram")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
+    if options.get("reuse_sections") is not None:
+        earlier = Path(options["reuse_sections"]).resolve()
+        if not earlier.is_dir():
+            raise StageError("There is no earlier section attempt at {0}.".format(earlier))
+        arguments += ["--reuse-sections", str(earlier)]
     return {"arguments": arguments, "payload": {"reference": str(reference)}}
 
 
