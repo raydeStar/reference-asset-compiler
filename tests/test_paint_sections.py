@@ -382,6 +382,21 @@ class PreparationTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("--max-sections") + 1], "8")
         self.assertNotIn("--overlap", arguments)
 
+    def test_the_playbooks_finer_settings_reach_the_section_pass(self):
+        # The playbook's finer cut names --context; run-stage once refused it.
+        from reference_asset_compiler import cli  # noqa: PLC0415
+        args = cli.build_parser().parse_args([
+            "run-stage", "paint-sections", "--source", "painted.glb", "--output", "s.glb",
+            "--report", "s.json", "--reference", str(self.reference), "--section", "0.45",
+            "--overlap", "0.2", "--context", "0.05", "--max-sections", "48"])
+        self.assertEqual(args.context, 0.05)
+        prepared = prepare_paint_sections({"reference": self.reference, "section": 0.45,
+                                           "overlap": 0.2, "context": 0.05, "max_sections": 48},
+                                          self.legacy)
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("--context") + 1], "0.05")
+        self.assertEqual(arguments[arguments.index("--overlap") + 1], "0.2")
+
     def test_the_listing_says_how_long_a_section_takes(self):
         from reference_asset_compiler.stages import describe_stages  # noqa: PLC0415
         listing = describe_stages(ROOT, None, self.legacy)

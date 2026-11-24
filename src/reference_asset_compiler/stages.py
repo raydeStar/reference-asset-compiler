@@ -357,8 +357,8 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "python",
         "script": "scripts/paint_sections.py",
         "arguments": ("source", "output", "report"),
-        "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "keep_colour",
-                    "keep_tone", "min_length", "max_sections", "min_free_vram"),
+        "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "context",
+                    "keep_colour", "keep_tone", "min_length", "max_sections", "min_free_vram"),
         "prepare": "paint-sections",
         "needs": ("paint-stack",),
         # The painter sees a whole model in 768 pixels whatever its size, so a
@@ -1248,7 +1248,8 @@ def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, A
             "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
     arguments = ["--reference", str(reference), "--legacy-root", str(legacy)]
     for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
-                       ("--section", "section"), ("--overlap", "overlap"), ("--keep-colour", "keep_colour"),
+                       ("--section", "section"), ("--overlap", "overlap"), ("--context", "context"),
+                       ("--keep-colour", "keep_colour"),
                        ("--keep-tone", "keep_tone"),
                        ("--min-length", "min_length"), ("--max-sections", "max_sections"),
                        ("--min-free-vram", "min_free_vram")):
