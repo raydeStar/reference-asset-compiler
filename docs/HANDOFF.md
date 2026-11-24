@@ -9319,3 +9319,13 @@ From here a piece is made by Framewright's route: a reference picture in the pro
 The automatic part map (#13) and the hard-surface stages (#12) landed the same day, and these records with them. `main` now carries everything written on this workstation to date.
 
 Not done: no picture or model was generated in making this entry, and the route above has not yet been run on a Frastown piece.
+
+
+<!-- paint-sections-20261124 -->
+## 2026-11-24 · paint-sections, and the first proof on a Frastown mast
+
+The owner found large Frastown pieces smeared up close while small ones were immaculate, and a hard seam on the DK-04.2 mast. Measured: the painter sees a whole model in twelve 768-pixel views, so surface per painted pixel grows with size (0.6 mm on a 45 cm claw, 3 mm on a 2.2 m skiff, 2 cm on a 15 m hull). The mast's seam is the hero route's head pass, which repaints the top 22% of every hero for a face.
+
+`paint-sections` (`scripts/paint_sections.py`) cuts a painted model into sections, paints each alone with the reference cropped to where its faces fall in the picture, and lays them over the first paint on the same UVs. Every face is painted at section scale, neighbours are tone-matched where they overlap, and models under 1.2 m pass through unchanged. See the playbook, "Large models: paint again in sections".
+
+Proof on the mast as Framewright generated it: six sections in 11.6 minutes on the 4090, about 1.3 mm a painted pixel instead of 3.2. Rendered before and after on the CPU, the seam is gone, no join shows, and the base now matches the picture. The arm and pulley came out a little softer than the head pass left them. Evidence: [paint-sections-mast-20261124.json](evidence/paint-sections-mast-20261124.json). The owner's visual review, the detail bake after it, and import into Framewright are open. Framewright support is a separate pull request.

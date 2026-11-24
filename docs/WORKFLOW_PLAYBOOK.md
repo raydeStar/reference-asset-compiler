@@ -375,6 +375,55 @@ Hunyuan3D-Paint was the strongest full-body PBR base, not an accepted face
 solution. It improved clothing and material response while degrading facial
 identity. Review unlit albedo and lit PBR separately.
 
+### Large models: paint again in sections (same UVs)
+
+The painter sees a whole model through twelve 768-pixel views whatever its
+size. Measured on the Frastown pieces (2026-11-24): a 45 cm dock claw gets
+about 0.6 mm of surface a painted pixel and reads as immaculate; a 2.2 m
+skiff gets about 3 mm and reads as smeared and grainy up close; a 15 m hull
+gets about 2 cm. The 4096 sheet and the upscaler only stretch what the
+painter saw, so a bigger atlas does not help.
+
+`paint-sections` (`scripts/paint_sections.py`) cuts the painted model's
+bounding box into a grid of sections no wider than `--section` (0.6 m, grown
+to fit `--max-sections`, 12 by default), paints each section alone with the
+reference cropped to where its faces fall in the picture, and lays the
+sections over the first paint on the same UVs. Run it straight after the
+whole-model paint, before surfaces are changed: it refuses a model with more
+than one material.
+
+```powershell
+rac run-stage paint-sections --source painted.glb --output sections.glb --report sections.json `
+  --reference approved.png --views 12 --resolution 768 --atlas 4096
+# look first, paint nothing: the sections, their crops and the receipt
+python scripts\paint_sections.py -- painted.glb sections.glb plan.json --reference approved.png `
+  --cutout approved-cutout.png --plan-only
+```
+
+- Every face is painted at section scale; none keeps the first paint beside a
+  section's. That boundary is a seam: the hero route's head pass leaves one on
+  every prop it is run on (a 2.2 m mast, 2026-11-24: the top 22% crisp and the
+  picture's dark iron, the pole below flat light putty). On a prop, paint in
+  sections instead of the head pass; the head pass is for figures.
+- Neighbours overlap by `--overlap` of a section, their weights sum to one on
+  every face, and each section's colour is scaled so neighbours agree where
+  both painted. The sections keep their own colour overall: on the mast the
+  whole-model paint was the wrong one. `--keep-tone 0.04` takes coarse tone
+  from the first paint instead, for a model whose first paint is right.
+- The atlas padding is refilled from the nearest painted texel, so mip levels
+  do not outline the islands in the first paint's colour.
+- Which way the model faces in its picture is found by matching its outline
+  against the figure's in every axis-aligned frame; the generator's frame
+  (+X right, +Y up) is kept unless another fits clearly better. The receipt
+  records the scores.
+- A model shorter than `--min-length` (1.2 m) on every side is passed through
+  byte for byte, with `painted: false` in its receipt.
+- One painter run a section, each needing 21 GiB free; a section that fails
+  fails the stage, and no half-painted model is delivered.
+- Above about 4 m one 4096 sheet cannot hold the detail however well it is
+  painted (a 15 m hull is about 4 mm a texel). Split such a piece into
+  modules at acquisition instead.
+
 ### Challenger: TRELLIS.2
 
 ```bash

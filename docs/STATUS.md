@@ -2503,3 +2503,9 @@ West Berth production now tracks all 86 numbered parts, including the three opti
 ### Frastown · production route from 24 November
 
 Pieces are made through Framewright: a reference picture in the project library that the owner has approved, model generation queued from it, review in Framewright. The acquisitions recorded above came from pictures that were never put in Framewright. Each picture goes in front of the owner before its mesh is used. Operating instructions are in `AGENTS.md` in the Frastown workspace folder. See HANDOFF, 2026-11-23, "why the pipeline was skipped".
+
+
+<!-- paint-sections-20261124 -->
+### paint-sections · proven on one model, owner review open
+
+New stage for large models (over 1.2 m). Proven on the Frastown DK-04.2 mast: six sections, the head-pass seam gone, about 1.3 mm a painted pixel instead of 3.2. Hero props generated through Framewright carry the head-pass seam until they are painted in sections. Framewright support is in its own pull request. See HANDOFF 2026-11-24.

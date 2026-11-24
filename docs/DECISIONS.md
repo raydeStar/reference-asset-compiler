@@ -3266,3 +3266,13 @@ The Frastown thread began in an empty workspace folder. The rulebook here is rea
 ## 2026-11-23 · A gate the owner cannot see is a stall
 
 Meshes held at `modeling_approval` were reported in chat while the owner looked at Framewright, which showed nothing new. Each side waited for the other. A candidate that needs a human decision goes where the human reviews, beside its reference picture, and the report names it. The same holds for the picture: the approved image is the contract, so a picture the owner has not seen cannot start an acquisition.
+
+
+<!-- paint-sections-20261124 -->
+## 2026-11-24 · The painter's detail falls with a model's size
+
+The painter sees a whole model through twelve 768-pixel views whatever its size. Measured on the Frastown pieces: a 45 cm dock claw got about 0.6 mm of surface a painted pixel and read as immaculate; a 2.2 m skiff about 3 mm and read as smeared and grainy up close; a 15 m hull about 2 cm. The 4096 sheet and the upscaler only stretch what the painter saw, so a bigger atlas is not the fix. Paint a large model again in sections (`paint-sections`), and split a piece over about 4 m into modules at acquisition: one 4096 sheet over a 15 m hull is about 4 mm a texel however well it is painted.
+
+## 2026-11-24 · The head pass leaves a seam on a prop, and the first paint is not the tone to keep
+
+The hero route repaints the top 22% of every model at close range, for faces. On a 2.2 m mast (DK-04.2) the owner found a hard line: above it crisp, and the picture's dark iron; below it flat light putty, the whole-model paint. Two lessons. A face left with the first paint beside a closer paint is a seam, so a section pass paints every face. And the whole-model paint is the less trustworthy colour on a large or thin model, so sections keep their own colour and are matched to each other where they overlap, not to the first paint. Run the head pass on figures only.

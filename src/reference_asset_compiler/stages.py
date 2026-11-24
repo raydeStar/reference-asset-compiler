@@ -353,6 +353,24 @@ STAGES: dict[str, dict[str, Any]] = {
                    "Needs a GPU with 21 GiB free.",
         "produces": "reference-asset-compiler.head-detail-paint.v1",
     },
+    "paint-sections": {
+        "runner": "python",
+        "script": "scripts/paint_sections.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "keep_tone",
+                    "min_length", "max_sections", "min_free_vram"),
+        "prepare": "paint-sections",
+        "needs": ("paint-stack",),
+        # The painter sees a whole model in 768 pixels whatever its size, so a
+        # 45 cm fitting gets 0.6 mm of surface a painted pixel and a 2.2 m skiff
+        # 3 mm. This cuts a large model into sections of about half a metre,
+        # paints each alone with the reference cropped to match, and lays them
+        # back over the first paint on the same UVs, the first paint's tone kept.
+        # A model under the minimum length is passed through unchanged.
+        "summary": "Paint a large model again in sections of about half a metre and lay them over "
+                   "its first paint. One painter run a section; needs a GPU with 21 GiB free.",
+        "produces": "reference-asset-compiler.section-detail-paint.v1",
+    },
 }
 
 
@@ -540,6 +558,8 @@ def run_stage(
             Path(source), Path(output), options or {}, resolve_legacy_root(legacy_root))
     elif prepare == "paint-head":
         context = prepare_paint_head(options or {}, resolve_legacy_root(legacy_root))
+    elif prepare == "paint-sections":
+        context = prepare_paint_sections(options or {}, resolve_legacy_root(legacy_root))
     extra = [str(item) for item in context.get("arguments", ())]
 
     if stage["runner"] == "blender":
@@ -1195,6 +1215,34 @@ def prepare_paint_head(options: dict[str, Any], legacy: Path) -> dict[str, Any]:
     for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
                        ("--head-from", "head_from"), ("--head-end", "head_end"), ("--feather", "feather"),
                        ("--roughness-floor", "roughness_floor"), ("--metallic", "metallic")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {"arguments": arguments, "payload": {"reference": str(reference)}}
+
+
+def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, Any]:
+    """What the section pass insists on: the same picture, and the same stack.
+
+    As with the head pass, the reference is the whole picture the model was
+    painted from. The stage works out where each section sits in it from the
+    model's own outline; a caller does not crop it.
+    """
+    reference = options.get("reference")
+    if not reference:
+        raise StageError(
+            "Painting in sections needs the reference the model was painted from: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The paint reference does not exist: {0}".format(reference))
+    missing = paint_missing(legacy)
+    if missing:
+        raise StageError(
+            "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
+    arguments = ["--reference", str(reference), "--legacy-root", str(legacy)]
+    for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
+                       ("--section", "section"), ("--overlap", "overlap"), ("--keep-tone", "keep_tone"),
+                       ("--min-length", "min_length"), ("--max-sections", "max_sections"),
+                       ("--min-free-vram", "min_free_vram")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
     return {"arguments": arguments, "payload": {"reference": str(reference)}}

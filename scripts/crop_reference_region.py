@@ -35,6 +35,9 @@ def main(argv=None) -> int:
     parser.add_argument("--head-from", type=float, default=0.78)
     parser.add_argument("--margin", type=float, default=0.06)
     parser.add_argument("--head-end", choices=("top", "left", "right"), default="top")
+    parser.add_argument("--cutout-only", action="store_true",
+                        help="Write the whole figure with its background removed, uncropped. The "
+                             "section pass crops each section itself from this.")
     args = parser.parse_args(argv)
 
     image = Image.open(args.reference)
@@ -47,6 +50,26 @@ def main(argv=None) -> int:
         cutout = remove(image.convert("RGB"), session=new_session("u2net"))
         removed = True
     alpha = np.asarray(cutout.getchannel("A"))
+    if args.cutout_only:
+        rows = np.where(alpha.max(axis=1) > 16)[0]
+        columns = np.where(alpha.max(axis=0) > 16)[0]
+        if rows.size == 0:
+            print("[CROP] FAILED: no figure was found in the reference")
+            return 1
+        cutout.convert("RGBA").save(args.crop, format="PNG")
+        report = {
+            "schema": "reference-asset-compiler.reference-cutout.v1",
+            "reference": str(args.reference),
+            "reference_sha256": hashlib.sha256(args.reference.read_bytes()).hexdigest(),
+            "reference_size": list(image.size),
+            "background_removed_here": removed,
+            "figure_box": [int(columns[0]), int(rows[0]), int(columns[-1]) + 1, int(rows[-1]) + 1],
+            "cutout": str(args.crop),
+            "cutout_sha256": hashlib.sha256(args.crop.read_bytes()).hexdigest(),
+        }
+        args.report.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        print("[CROP] cut the figure out of {0} at {1}".format(image.size, report["figure_box"]))
+        return 0
     box = head_crop_box(alpha, args.head_from, args.margin, args.head_end)
     if box is None:
         print("[CROP] FAILED: no figure was found in the reference")
