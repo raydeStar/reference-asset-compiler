@@ -1,0 +1,139 @@
+{
+ "schema": "reference-asset-compiler.evidence.v1",
+ "date": "2026-11-03",
+ "what": "scripts/auto_part_map.py with profiles/segmentation/humanoid-gear.json on CH-03 Raider and its Guard, Scout and Bulwark looks",
+ "models": {
+  "grounding_dino": {
+   "id": "IDEA-Research/grounding-dino-base",
+   "licence": "Apache-2.0",
+   "model.safetensors_sha256": "5548f844c928c4b6f411fa8cbcc2bfa8dbbba437cb1d513975519f93c2a9ed21"
+  },
+  "sam": {
+   "file": "sam_vit_b_01ec64.pth",
+   "licence": "Apache-2.0"
+  }
+ },
+ "raider_2d": {
+  "reference": "work/raider-revamp/sources/raider-reference-v1.png",
+  "compared_with": "work/raider-revamp/evidence/seg-proto/parts-v2.npy (clicked by hand)",
+  "pixel_agreement": 0.889,
+  "iou": {
+   "beard": 0.924,
+   "belt": 0.7,
+   "boot": 0.783,
+   "boot_strap": 0.554,
+   "buckle": 0.962,
+   "face": 0.936,
+   "glove": 0.964,
+   "hair": 0.952,
+   "jacket": 0.785,
+   "kneepad": 0.925,
+   "plate": 0.598,
+   "pouch": 0.971,
+   "skin": 0.893,
+   "sleeve_roll": 0.63,
+   "strap": 0.34,
+   "thigh_pouch": 0.918,
+   "trousers": 0.902
+  },
+  "history": {
+   "one query per part": 0.548,
+   "joint query": 0.782,
+   "plus own prompts, nesting": 0.818,
+   "plus bare skin by colour": 0.837,
+   "plus height zones and score rule": 0.887,
+   "local score rule, single parts, thin parts, mirror (final)": 0.889
+  },
+  "rejected": {
+   "SAM automatic segments labelled by CLIP": 0.792,
+   "overlay colour clean-up toward the cloth around it": "0.788-0.837 (lower)"
+  }
+ },
+ "raider_3d": {
+  "run": "build_raider.ps1 -Run labels-auto2 -From labels -To labels",
+  "seconds": 214,
+  "silhouette_iou": 0.866,
+  "faces": 663532,
+  "face_label_agreement_with_hand_map_projection_parts_v1": 0.864
+ },
+ "looks_unseen": {
+  "guard": {
+   "reference": "work/artiss-tomb-2026-10-16/assets/CH-03/guard-reference-v1.png (main checkout)",
+   "pixels": {
+    "beard": 2887,
+    "belt": 150,
+    "boot": 30640,
+    "boot_strap": 14536,
+    "buckle": 3837,
+    "face": 15809,
+    "glove": 32898,
+    "hair": 5264,
+    "jacket": 90802,
+    "kneepad": 27586,
+    "plate": 63615,
+    "pouch": 23780,
+    "skin": 14794,
+    "sleeve_roll": 7,
+    "strap": 11795,
+    "thigh_pouch": 6468,
+    "trousers": 122130
+   },
+   "mirrored": [
+    "mirror of candidate 66 (area x0.98, colour dE 4.1)",
+    "mirror of candidate 70 (area x0.95, colour dE 3.7)"
+   ]
+  },
+  "scout": {
+   "reference": "work/artiss-tomb-2026-10-16/assets/CH-03/scout-reference-v1.png (main checkout)",
+   "pixels": {
+    "beard": 2937,
+    "belt": 70,
+    "boot": 30221,
+    "boot_strap": 15058,
+    "buckle": 3018,
+    "face": 17952,
+    "glove": 35181,
+    "hair": 5251,
+    "jacket": 116652,
+    "kneepad": 26280,
+    "plate": 31659,
+    "pouch": 23274,
+    "skin": 10320,
+    "sleeve_roll": 66,
+    "strap": 16540,
+    "thigh_pouch": 6601,
+    "trousers": 119747
+   },
+   "mirrored": []
+  },
+  "bulwark": {
+   "reference": "work/artiss-tomb-2026-10-16/assets/CH-03/bulwark-reference-v1.png (main checkout)",
+   "pixels": {
+    "beard": 3049,
+    "belt": 267,
+    "boot": 36390,
+    "boot_strap": 18719,
+    "buckle": 4736,
+    "face": 16576,
+    "glove": 24720,
+    "hair": 5301,
+    "jacket": 100848,
+    "kneepad": 36647,
+    "plate": 101397,
+    "pouch": 28747,
+    "sleeve_roll": 34637,
+    "strap": 12129,
+    "thigh_pouch": 11130,
+    "trousers": 133510
+   },
+   "mirrored": [
+    "mirror of candidate 72 (area x1.08, colour dE 1.9)"
+   ]
+  }
+ },
+ "sheets": [
+  "docs/evidence/auto-part-map-raider-20261103.jpg",
+  "docs/evidence/auto-part-map-looks-20261103.jpg",
+  "docs/evidence/auto-part-map-mesh-20261103.jpg"
+ ]
+}

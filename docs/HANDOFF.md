@@ -8261,6 +8261,24 @@ v7 is in the game's Raider review slot (the s5 FBX stays in `build/v5/ue`) and i
 Open: the painter's smears on the shoulder plate's outer face; the Unreal scripts still live in the git-ignored
 `build/v5/ue` folder.
 
+## 2026-11-03 — Automatic part map for the next character
+
+Mark asked for the v7 route to be reproducible on the next test character, and chose automatic part labelling
+with a model download. The Raider's 2D part map had been clicked by hand; `scripts/auto_part_map.py` now makes it
+from the reference with Grounding DINO (`IDEA-Research/grounding-dino-base`, Apache-2.0, downloaded to
+`C:\Comfy\rac-models\grounding-dino-base`, hashes in its `SHA256SUMS`) and the workstation's SAM ViT-B, driven by
+`profiles/segmentation/humanoid-gear.json`. It reaches 0.889 pixel agreement with the hand map (0.548 for the first
+one-query-per-part version) and labels the CH-03 Guard, Scout and Bulwark looks it was never tuned on. The rules and
+the rejected variants are in `DECISIONS.md` (2026-11-03); the usage, models and known gaps are in
+`WORKFLOW_PLAYBOOK.md`, "Automatic part map". `build_raider.ps1` gained a `labels` stage (the labeller, then
+`project_parts.py` onto the dense acquisition) and `-To`, so `-From labels -To labels` stops at the part-map gate;
+`-From parts` then reads the run's own labels. `project_parts.py` takes the chin from `landmarks.json` when there is
+no beard. On the Raider the stage takes 214 s (run `labels-auto2`); the projected face labels match the
+hand map's projection (`parts-v1`) on 86.4% of the dense mesh's 663,532 faces. Evidence:
+`docs/evidence/auto-part-map-20261103.json` and the three `auto-part-map-*-20261103.jpg` sheets. CLIP ViT-L/14 was also downloaded (`C:\Comfy\rac-models\clip-vit-large-patch14`) for a segment-labelling
+trial that was rejected; nothing uses it. Still tied to the Raider: `refine_labels.py` (skipped by `-From labels`)
+and the rest of `AGENT_TASKS.md` item 9.
+
 ## 2026-11-03 — Raider: render the cut before repainting it
 
 Mark supplied close-ups of the pauldron and rear pouch. The Framewright
@@ -9256,6 +9274,6 @@ What batch 01 measured as, per part: 43% to 100% of the surface stretched more t
 
 Where it stands. All 17 parts and the test assembly are in Framewright as the newest revision of each model, Pending. Seventeen FBX files were exported and read back in Blender 5.3: each mesh in place, two UV channels, collision hulls identical to batch 01. An Unreal import script was written and has not been run. Nothing has been seen in a headset. The kit, its builder and its checks are at `C:\Users\Ayric\Documents\Codex\2026-11-23\https-drive-google-com-file-d\outputs\Frastown-Surface-Pass`; the builder stays there because it authors geometry by script. See [the measured record](evidence/frastown-surface-pass-b02-20261123.json).
 
-The same day, five weeks of uncommitted work on the workstation's stale `main` were sorted and landed as #11. A local branch `backup/worktree-2026-11-23` holds the working tree exactly as it was, including what was left out of `main` on purpose.
+The same day, five weeks of uncommitted work on the workstation's stale `main` were sorted and landed as #11. A local branch `backup/worktree-2026-11-23` holds the working tree exactly as it was, including what was left out of `main` on purpose. The automatic part map of 3 November (its entry is above, in date order) had sat uncommitted in a second checkout, `rac-gpu-efficiency`, since it was written; it landed the same day as its own change.
 
 Verification: `scripts/verify.py` passed on this change, and `tests/test_bake_surface_maps.py` passed with `RAC_BLENDER` set (CI skips it). Not run: Unreal, a headset, or any inference.

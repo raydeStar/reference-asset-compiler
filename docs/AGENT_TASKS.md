@@ -182,9 +182,12 @@ crash, never kill GPU processes) apply to every task below.
   character-agnostic: `finish_materials.py` with `profiles/materials/character-finish.json`, `recut_labels.py`,
   `build_parts.py --clean-edges --budget-scale`, `part_uv.py`, `rigid_parts.py`, `plate_check.py`, `manny_axes.py`,
   `save_textures.py`. What still ties the build to CH-03 Raider (`scripts/revamp/raider/`):
-  1. Part segmentation: `sam_parts.py` lists hand-picked automatic mask ids and click prompts on the Raider's
-     reference image. Needs an automatic labeller into the part vocabulary (open-source grounded segmentation;
-     the weights are a download, so ask first) or a short click-labelling step the reviewer does per character.
+  1. Part segmentation: done 2026-11-03 with `scripts/auto_part_map.py` and
+     `profiles/segmentation/humanoid-gear.json` (Grounding DINO + SAM, both Apache-2.0), wired in as
+     `build_raider.ps1 -From labels`. It scores 0.889 pixel agreement with the Raider's hand map and labels the
+     Guard, Scout and Bulwark looks without changes. Open: the vocabulary has no bracer part, and a cloth wrap on a
+     forearm reads as skin (see `docs/WORKFLOW_PLAYBOOK.md`, "Automatic part map"). Adding a part also means adding
+     it to the downstream scripts' palettes and part sets (item 4).
   2. Measured landmarks: `refine_labels.py` hard-codes collar, belt and knee heights in the Raider's normalised
      space. Derive them from `derive_humanoid_landmarks.py` instead.
   3. Reference colours: `tone_metal.py` and `tone_skin.py` carry colours measured on the Raider's reference.

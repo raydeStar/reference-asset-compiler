@@ -168,8 +168,12 @@ for fi in range(nF):
 print("PRIOR_RELABELLED", changed)
 
 # above the chin nothing is cloth: hidden head faces are hair when they face back or up, else skin
-fr = ids == names.index("beard")
-chin_row = np.nonzero(fr.any(1))[0].max()
+if "beard" in names:
+    chin_row = np.nonzero((ids == names.index("beard")).any(1))[0].max()
+else:
+    # no beard: the chin row scripts/auto_part_map.py wrote beside the map (the bottom of the face box)
+    import os
+    chin_row = json.load(open(os.path.join(os.path.dirname(ids_path), "landmarks.json")))["chin_row"]
 chin_z = (oy_ - chin_row) / s_
 jk = names.index("jacket")
 head_fixed = 0
