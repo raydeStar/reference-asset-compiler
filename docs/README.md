@@ -30,6 +30,7 @@ escalations are retained verbatim so nobody repeats them. Start with
 - [REGIONAL_CHARACTER_TEXTURES.md](REGIONAL_CHARACTER_TEXTURES.md) — rig-preserving regional UVs, independent head/clothing paint and seam-normal repair.
 - [CHARACTER_SURFACE_WORKFLOW.md](CHARACTER_SURFACE_WORKFLOW.md) - canonical character finishing standard: diagnosis, registered AI paint, semantic PBR, exposed-surface checks, consumer review and replay.
 - [POLISH_WORKFLOW.md](POLISH_WORKFLOW.md) - retained finishing recipes, AI handoffs, UV/map transport and packed review.
+- [HARD_SURFACE_FINISH.md](HARD_SURFACE_FINISH.md) - static hard-surface parts: maps baked off the geometry, then layered paint, rust and wear.
 - [EYE_DETAIL.md](EYE_DETAIL.md) - lid-margin lashes (pronounced/subtle/none presets) and eye occlusion that follow face morphs; append-only.
 - [RAIDER_POLISH_REPLAY.md](RAIDER_POLISH_REPLAY.md) - exact Raider replay and the boundary between shared stages and artistic decisions.
 - [GAME_REVIEW.md](GAME_REVIEW.md) — the paved road from a polished character GLB to a playable, closeup-checked review in the game: one recipe, one command, Remora's fixes as defaults.

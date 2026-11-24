@@ -3193,3 +3193,19 @@ The West Berth control rail imported as 2 cm from a metre-coordinate FBX althoug
 ## 2026-11-23 · Frastown dry close-range first articles
 
 The first batch used a custom atlas. The subsequent RAC paint acquisitions passed the mesh and UV gate but copied fixed orange/blue lighting into both looks. Reject the raw paint if a light or rain highlight persists in isolated base color. The deck then measured about 7 mm/texel from automatic projection. The close-range candidates use dedicated contact-surface UVs, dry authored surface color and relief, and the RAC material-response sweep. Review matched 32–46 cm views for millimetre wear and soft transitions at contact zones. Scene rain stays independent. Both Framewright revisions are Pending. See [the dry close-range evidence](evidence/frastown-close-range-dry-20261123.json).
+
+
+<!-- frastown-surface-pass-b02-20261123 -->
+## 2026-11-23 · A kit built by script is not an acquisition
+
+Frastown West Berth batch 01 was built entirely by Blender scripts from the scene's metre coordinates: boxes, tubes and prisms, no image generation and no image-conditioned geometry. The owner reviewed the resurfaced kit and said the normal pipeline had been skipped. The rule at the top of this file applies to environment kits as it does to characters. Surface pass B02 improved what the kit looks like; it did not change where its geometry came from. Treat the kit as a blockout that proves dimensions, snapping and surfacing, and acquire the pieces a viewer stands next to through the image route before calling them final.
+
+## 2026-11-23 · UVs for a hard-surface kit: metres, and nothing shared between neighbours
+
+Batch 01 scaled every face to fill one atlas tile whatever its shape. A 2 m × 5 cm flange and a 3 mm rivet each got 1024 px, so most of the surface was stretched and read as streaks. Lay each face or tube out in metres at one scale and pack per part.
+
+Sharing one island between identical members to save texture space fails the same review from the other side: both ladder stringers and every third rung carried the same rust in the same places, and the owner saw it at once. Share texture space only between fasteners, in several scattered variants. Give buried faces almost nothing and cut long members into several islands instead.
+
+## 2026-11-23 · Procedural wear: band-limit the noise, give rust height, keep marks short
+
+Three things made generated wear read as generated. Noise finer than a texel aliases into grain on any face painted at low density; sample a coarser copy there. Rust painted as colour alone is a stain; it needs height, in scabs no smaller than three texels, so the normal map can carry it. Scratches and polish drawn along a member's whole length are uniform; a real mark is a few centimetres long, lies at its own angle and gathers where the part gets knocked. Also: review JPEG with subsampled chroma turns rust on dark iron into visible squares, so keep full chroma.

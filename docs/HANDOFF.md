@@ -9245,3 +9245,17 @@ Delivered 17 source meshes and native Unreal packages for the rail, market plate
 ## 2026-11-23 · Frastown dry close-range first articles
 
 The first batch used a custom atlas. The subsequent RAC paint acquisitions passed the mesh and UV gate but copied fixed orange/blue lighting into both looks. Reject the raw paint if a light or rain highlight persists in isolated base color. The deck then measured about 7 mm/texel from automatic projection. The close-range candidates use dedicated contact-surface UVs, dry authored surface color and relief, and the RAC material-response sweep. Review matched 32–46 cm views for millimetre wear and soft transitions at contact zones. Scene rain stays independent. Both Framewright revisions are Pending. See [the dry close-range evidence](evidence/frastown-close-range-dry-20261123.json).
+
+
+<!-- frastown-surface-pass-b02-20261123 -->
+## 2026-11-23 · Hard-surface finishing stages; Frastown surface pass B02; the backlog landed
+
+Two stages were added: `bake-surface-maps` (Blender) and `hard-surface-finish` (CPU), with `src/reference_asset_compiler/hard_surface.py`, the profile `profiles/materials/hard-surface-ironworks.json` and [HARD_SURFACE_FINISH.md](HARD_SURFACE_FINISH.md). They were written first as standalone scripts for the Frastown West Berth kit and then ported here. Run on `WK06_Ladder`, the ported stages reproduce the published BaseColor, Normal and ORM in every texel.
+
+What batch 01 measured as, per part: 43% to 100% of the surface stretched more than 2:1 (every face had been scaled to fill a 1024 px atlas tile), normal maps tilting under 3°, no occlusion, metalness near 0.65 throughout. Surface pass B02 relays UVs in metres (0% stretched), bakes maps off the mesh and paints layers from them. Construction, pivots, sockets and collision are batch 01's; 1,845 rivets and bolts are modelled. The owner's review on the same day changed three things, all now in the stage: no texture space shared between members (two rungs had worn identical marks), scratches short and clustered instead of running a member's length, and rust given relief with noise band-limited to the texel (it had read grainy).
+
+Where it stands. All 17 parts and the test assembly are in Framewright as the newest revision of each model, Pending. Seventeen FBX files were exported and read back in Blender 5.3: each mesh in place, two UV channels, collision hulls identical to batch 01. An Unreal import script was written and has not been run. Nothing has been seen in a headset. The kit, its builder and its checks are at `C:\Users\Ayric\Documents\Codex\2026-11-23\https-drive-google-com-file-d\outputs\Frastown-Surface-Pass`; the builder stays there because it authors geometry by script. See [the measured record](evidence/frastown-surface-pass-b02-20261123.json).
+
+The same day, five weeks of uncommitted work on the workstation's stale `main` were sorted and landed as #11. A local branch `backup/worktree-2026-11-23` holds the working tree exactly as it was, including what was left out of `main` on purpose.
+
+Verification: `scripts/verify.py` passed on this change, and `tests/test_bake_surface_maps.py` passed with `RAC_BLENDER` set (CI skips it). Not run: Unreal, a headset, or any inference.

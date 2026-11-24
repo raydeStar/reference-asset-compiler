@@ -69,6 +69,12 @@ AI-reference handoffs and produce review evidence. `ready_for_review` does
 not approve texture, deformation, engine or cook gates; `production_ready`
 stays false and the ledger is unchanged.
 
+Static hard-surface parts have their own pair of stages, `bake-surface-maps`
+and `hard-surface-finish` ([HARD_SURFACE_FINISH.md](HARD_SURFACE_FINISH.md)).
+They replace the surface of geometry that is already approved, from maps baked
+off that geometry. Like the operations above they add no ledger stage, approve
+nothing, and do not stand in for acquisition.
+
 ## 1. Intake
 
 The approved image or turnaround is the artistic contract. `rac new` copies it

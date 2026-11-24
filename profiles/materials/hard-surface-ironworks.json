@@ -1,0 +1,62 @@
+{
+  "schema": "rac.hard-surface-profile.v1",
+  "note": "Painted and bare ironwork with bronze fittings, dry. Colours are sRGB 0-255. First used on the Frastown West Berth kit, whose art direction names plate steel, old teal and oxide.",
+  "palette": {
+    "iron_bright": [184, 184, 181],
+    "burnished": [98, 92, 88],
+    "russet": [126, 92, 68],
+    "patina_cool": [62, 67, 76],
+    "patina_warm": [92, 70, 54],
+    "primer": [132, 60, 42],
+    "rust_dark": [62, 33, 23],
+    "rust_mid": [108, 56, 32],
+    "rust_bright": [150, 86, 44],
+    "bronze": [184, 128, 84],
+    "bronze_tarnish": [104, 72, 46],
+    "verdigris": [92, 150, 132],
+    "grime": [34, 31, 29],
+    "dust": [150, 138, 120],
+    "scale": [190, 186, 176],
+    "teal": [76, 116, 108],
+    "teal_faded": [112, 140, 130],
+    "slate": [66, 77, 88],
+    "slate_faded": [96, 106, 114]
+  },
+  "classes": {
+    "tread_plate": {
+      "kind": "tread_plate",
+      "pattern": "lozenge",
+      "use": "A plate that is walked and driven on. Raised-lozenge tread; wheel lines and a foundry die come from the recipe."
+    },
+    "plain_plate": {
+      "kind": "plain_plate",
+      "use": "Smooth rolled plate that is walked on: bridge treads, hatch leaves, thresholds."
+    },
+    "palm_rail": {
+      "kind": "palm_rail",
+      "use": "A rail or rung a hand rests on. Browned iron, burnished along the crown where it is held."
+    },
+    "worn_iron": {
+      "kind": "worn_iron",
+      "use": "Unpainted iron fittings: strakes, flanges, grate bars, collars, rivet heads."
+    },
+    "bronze": {
+      "kind": "bronze",
+      "use": "Bronze fittings. Tarnish on the faces, verdigris in the creases, bright on the edges."
+    },
+    "old_teal_paint": {
+      "kind": "coated",
+      "coat": "teal",
+      "faded": "teal_faded",
+      "level": 1.12,
+      "use": "Paint over red-oxide primer over iron, on plates and webs."
+    },
+    "plate_steel_paint": {
+      "kind": "coated",
+      "coat": "slate",
+      "faded": "slate_faded",
+      "level": 1.02,
+      "use": "The same paint system in slate, a little more worn, on structural sections."
+    }
+  }
+}

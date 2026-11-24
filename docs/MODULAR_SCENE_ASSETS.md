@@ -13,6 +13,10 @@ not replace image-conditioned acquisition with an eyeballed primitive room.
 Framewright owns library records, scene instances, review and project exports;
 the compiler owns the assets and their verification.
 
+Once a hard-surface piece's geometry is approved, [HARD_SURFACE_FINISH.md](HARD_SURFACE_FINISH.md)
+surfaces it from its own geometry. That guide also says what a kit's UVs must do:
+metres, not tiles, and no texture space shared between members that stand side by side.
+
 ## Separate stocked furniture from its contents
 
 Acquire empty shelving and a separate empty counter. Acquire each bottle,

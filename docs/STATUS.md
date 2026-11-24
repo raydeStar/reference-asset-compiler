@@ -2472,3 +2472,8 @@ representative engine review.53 RAC and27 Rodin rows remain queued.
 ### Frastown West Berth batch 01 · review candidate (2026-11-23)
 
 17 editable modular pieces plus an Unreal 5.8.4 verified import. The 100× import-scale defect is corrected in the kit exporter. Framewright review remains Pending and headset checks are open. See [the measured record](evidence/frastown-west-berth-b01-20261123.json).
+
+<!-- frastown-surface-pass-b02-20261123 -->
+### Frastown West Berth surface pass B02 · review candidate (2026-11-23)
+
+The same 17 pieces resurfaced with the new `bake-surface-maps` and `hard-surface-finish` stages ([guide](HARD_SURFACE_FINISH.md)): UVs in metres with nothing stretched, maps baked off the mesh, layered paint, rust and wear, modelled rivets. Each part and the test assembly are the newest Framewright revision, Pending. FBX files are exported and checked in Blender; the Unreal import script has not been run and nothing has been seen in a headset. The geometry is still batch 01's scripted blockout, which the owner does not accept as the route for final assets. See [the measured record](evidence/frastown-surface-pass-b02-20261123.json).
