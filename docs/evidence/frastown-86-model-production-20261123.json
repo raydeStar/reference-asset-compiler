@@ -1,0 +1,253 @@
+{
+  "scope": "86 current Models entries from RAC production work",
+  "summary": {
+    "pieces": 86,
+    "required": 83,
+    "optional": 3,
+    "active_framewright_models": 18,
+    "mapped_framewright_models": 18,
+    "unmatched_framewright_model_ids": [],
+    "framewright_review": {
+      "Pending": 17,
+      "Approved": 1
+    },
+    "rac_production_ready": 0,
+    "reconciled_rac_workspaces": 21,
+    "with_rac_acquisition_receipt": 21,
+    "with_bound_normal": 17
+  },
+  "new_modeling_candidates": {
+    "AC-04.2": {
+      "source_reference_sha256": "9e379c2fa9052ea5d6cc8625d132438d121c093fba083b33d286c4c90c79f634",
+      "modeling_review": {
+        "schema": "reference-asset-compiler.modeling-derivative-lineage.v1",
+        "ok": true,
+        "source_ai_candidate_sha256": "f04dae02bcda1c3b0b857b683c481bd57f2a3381cc8256d30e9e7686102f67c8",
+        "modeling_candidate_sha256": "6388c2291798d952ca5273cfa0c6ee2ebfd5e2107d9111040695eaca0cd50dd9",
+        "operations": [
+          "collapse_qem",
+          "normalize_scale_origin"
+        ],
+        "derivation_artifacts": [
+          {
+            "role": "metric fit",
+            "sha256": "cb3db4a5065db767ea16bc269d8f91ea811f48bcfdb435f6c874f2204c625547"
+          }
+        ]
+      },
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "fixed_view_hashes": {
+        "matcap-front.png": "c6452fd7dd4f2c11e1eaf91051a3baf6f07e4f75e25159f32a6c1fb1b9317499",
+        "matcap-three-quarter.png": "f5284d93a561c4c2ba4efb7ed22c81f4f17ed498f0cdb9ea1f71444334ef5fc9",
+        "matcap-side.png": "07b962f8031f2ba97c99d88a59ec3f78427784c646060a5480b8ef6962aaccfa",
+        "matcap-back.png": "11b8b9a78e3c62073c83b24aa1e6e04f19b5636a2ae76735b3b450d636abe7ef",
+        "underside.png": "a70319bd391c8829534da0b6b2557070303b80ba0a947a7f3a0958ecbe401833",
+        "top.png": "ccc414acddb165e11b2a6e4d45ba11130808e24449013a6fa92f07b46d213ecd"
+      },
+      "fit": {
+        "bowl_source_sha256": "7cc91486cd93c393341f33a1e5b17058782c95854cdf6d93ecbf86a7c9012460",
+        "paired_bowl_rim_height_m": 0.08100000768899918,
+        "contact_probe_radius_m": 0.103,
+        "contact_probes": 32,
+        "seat_deviation_min_max_m": [
+          -0.0033671781420707703,
+          0.008596532046794891
+        ],
+        "internal_cavity_center_above_rim_m": 0.04912605881690979,
+        "assembly_note": "Set cover origin to bowl rim datum. Clearance range is measured, unseen cloth simulation and animated hand contact remain untested."
+      },
+      "pending_gate": "modeling_approval"
+    },
+    "CT-09.3": {
+      "source_reference_sha256": "59383adc40aaf268d56513c911d231fe038f36fd6e61c86376099dec6ff76417",
+      "modeling_review": {
+        "schema": "reference-asset-compiler.modeling-derivative-lineage.v1",
+        "ok": true,
+        "source_ai_candidate_sha256": "ffb8907838b460f2bd4e7531c636245856041edc0fae8a1169fb560a7e9a7913",
+        "modeling_candidate_sha256": "d7cff35e3ac93a70356d62dce6e20bf9afc64524951b83b5adf1d7ca9f392968",
+        "operations": [
+          "collapse_qem",
+          "normalize_scale_origin"
+        ],
+        "derivation_artifacts": [
+          {
+            "role": "metric fit",
+            "sha256": "11c502fdca0bf8b3ab583de21c92581bdb5d5c1c0836743ac785fa827cfe91da"
+          }
+        ]
+      },
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "fixed_view_hashes": {
+        "matcap-front.png": "bc5016111001ba6d0986ad11efa0c385171e4f50f158746b22127501d3a9c725",
+        "matcap-three-quarter.png": "289c3e80f836393d1fd0fdcd435935f9a97bae5702237a84aef685e1fc966c91",
+        "matcap-side.png": "d8393fa63698edf2705b0c98d4659e0ec04078b12f5532c161ce3118683b5030",
+        "matcap-back.png": "2fec2ca25ef6c7cd1d352886b790db73b97d2a997fa2c190fba3df2057ef967c",
+        "underside.png": "f456627b8e1fab2abfe23705d217c316840506b61b26290a9cd06982d8393225",
+        "top.png": "b48f21e962e66806d1044b07a405bd77f892c694b1b94307aba74fb9323cef6d"
+      },
+      "fit": {
+        "grips": [
+          {
+            "end": -1,
+            "probe_grip_m": [
+              -0.309,
+              0,
+              0.07
+            ],
+            "clearance_width_height_m": [
+              0.128,
+              0.03599999999999999
+            ]
+          },
+          {
+            "end": 1,
+            "probe_grip_m": [
+              0.309,
+              0,
+              0.07
+            ],
+            "clearance_width_height_m": [
+              0.128,
+              0.03599999999999999
+            ]
+          }
+        ],
+        "footprint_m": [
+          0.65,
+          0.4
+        ]
+      },
+      "pending_gate": "modeling_approval"
+    },
+    "DK-04.4": {
+      "source_reference_sha256": "f5bb60becc0a2bc11cb7f2ec40b25f78b802cc13b4f7f06cc0a28d6c499d86da",
+      "modeling_review": {
+        "schema": "reference-asset-compiler.modeling-derivative-lineage.v1",
+        "ok": true,
+        "source_ai_candidate_sha256": "7954f810c18ef4cf5b5b79028f642855187a1b028bcf3620258a68c535c1caf4",
+        "modeling_candidate_sha256": "69b5cc29cb213d62e57522167980be1961efdcc792a04fa0899b2caad359b75e",
+        "operations": [
+          "collapse_qem",
+          "normalize_scale_origin"
+        ],
+        "derivation_artifacts": [
+          {
+            "role": "metric fit",
+            "sha256": "fe25c45c2720473625f8f39fbf94276716c7f79175260c44ddf85e889b50302b"
+          }
+        ]
+      },
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "fixed_view_hashes": {
+        "matcap-front.png": "2d036fc896dc9a6e675b320fee2c8d1f5134c5d15af6a61449d50dfe80c3b6a9",
+        "matcap-three-quarter.png": "ea8223ae626c475574a0f8b18fd7b541b144bbcd38aa6411a8f15549ddb19601",
+        "matcap-side.png": "535606d03d2f4d54f52dfc5ef3c78615e9e386cdf4ca7dc3bf587a5bae5c4bc7",
+        "matcap-back.png": "5c4bde0c3305b1824114466bd2f1f235c9dfd42b06704e5e16d591172958f504",
+        "underside.png": "d3d65edb228d9054476454c6343ec7ac2cb58e3966bc7ce51f63fa029db07ccf",
+        "top.png": "0ddf7948dc228879b0f6c62d1022f65fd923a5146e3c380723a143e4121a787d"
+      },
+      "fit": {
+        "seat_height_m": 0.45,
+        "shelf_height_m": 0.15845510363578796,
+        "storage_approach": [
+          {
+            "x_m": -0.115,
+            "height_above_shelf_m": 0.03,
+            "clear": true
+          },
+          {
+            "x_m": -0.115,
+            "height_above_shelf_m": 0.07,
+            "clear": true
+          },
+          {
+            "x_m": -0.115,
+            "height_above_shelf_m": 0.12,
+            "clear": true
+          },
+          {
+            "x_m": -0.115,
+            "height_above_shelf_m": 0.15000000000000002,
+            "clear": true
+          },
+          {
+            "x_m": 0,
+            "height_above_shelf_m": 0.03,
+            "clear": true
+          },
+          {
+            "x_m": 0,
+            "height_above_shelf_m": 0.07,
+            "clear": true
+          },
+          {
+            "x_m": 0,
+            "height_above_shelf_m": 0.12,
+            "clear": true
+          },
+          {
+            "x_m": 0,
+            "height_above_shelf_m": 0.15000000000000002,
+            "clear": true
+          },
+          {
+            "x_m": 0.115,
+            "height_above_shelf_m": 0.03,
+            "clear": true
+          },
+          {
+            "x_m": 0.115,
+            "height_above_shelf_m": 0.07,
+            "clear": true
+          },
+          {
+            "x_m": 0.115,
+            "height_above_shelf_m": 0.12,
+            "clear": true
+          },
+          {
+            "x_m": 0.115,
+            "height_above_shelf_m": 0.15000000000000002,
+            "clear": true
+          }
+        ],
+        "storage_clear": 12
+      },
+      "pending_gate": "modeling_approval"
+    }
+  },
+  "framewright_feedback": {
+    "posted": true,
+    "project_id": "8b2756f3-ab0f-41c4-9729-0d0cc3fcd048",
+    "note_id": "d434069c-3735-4cdf-a57e-c7c9d3e32f8a",
+    "models_current": 18
+  },
+  "ledgers_human_approved_this_pass": false,
+  "catalog": {
+    "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-Model-Production\\Production-Inventory.json",
+    "sha256": "78373773e289dbffea0e06052f547d7940c621fd54ba74785c0bca2a46a922dc"
+  },
+  "cohort": {
+    "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-Model-Production\\RAC-Cohort.json",
+    "sha256": "4f1fcf7266b78eef0b0d63c01946fd934927cecfcba7dadde840e3abd3b5b6f6"
+  },
+  "renders": {
+    "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-Model-Production\\RAC-Prop-Contact-Sheet.png",
+    "sha256": "f18380d37df898913ac9208112a9ce781b801e8a5e158c88aec013b3c16c880e"
+  }
+}

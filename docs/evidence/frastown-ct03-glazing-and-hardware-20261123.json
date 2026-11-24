@@ -1,0 +1,572 @@
+{
+  "scope": "CT-03.1 and CT-03.3 modeling revisions",
+  "production_ready": false,
+  "fit": {
+    "shopfront": {
+      "shell_sha256": "7e37b35fc273d68f09cc0a6b230792e155568fa80bc95f2847c8f8408871480d",
+      "bounds_m": [
+        [
+          0.0,
+          -0.550000011920929,
+          0.0
+        ],
+        [
+          4.0,
+          0.0,
+          3.0
+        ]
+      ],
+      "parts": [
+        {
+          "name": "Shop display · glass 1",
+          "span_m": [
+            1.649,
+            0.008,
+            1.518
+          ],
+          "fit_probes": [
+            {
+              "x_m": 0.3889999985694885,
+              "z_m": 0.7900000214576721,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 0.3889999985694885,
+              "z_m": 2.2920000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.0220000743865967,
+              "z_m": 0.7900000214576721,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.0220000743865967,
+              "z_m": 2.2920000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            }
+          ]
+        },
+        {
+          "name": "Shop door transom · glass 1",
+          "span_m": [
+            0.682,
+            0.008,
+            0.239
+          ],
+          "fit_probes": [
+            {
+              "x_m": 2.2649998664855957,
+              "z_m": 2.062999963760376,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.2649998664855957,
+              "z_m": 2.2860000133514404,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.930999994277954,
+              "z_m": 2.062999963760376,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.930999994277954,
+              "z_m": 2.2860000133514404,
+              "wall_clear": true,
+              "pane_hit": true
+            }
+          ]
+        }
+      ],
+      "shell_topology": {
+        "triangles": 2636,
+        "vertices": 1314,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "door_clearance": {
+        "rays": [
+          {
+            "x_m": 2.44,
+            "z_m": 0.25,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.44,
+            "z_m": 0.85,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.44,
+            "z_m": 1.45,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.44,
+            "z_m": 1.88,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.62,
+            "z_m": 0.25,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.62,
+            "z_m": 0.85,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.62,
+            "z_m": 1.45,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.62,
+            "z_m": 1.88,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.79,
+            "z_m": 0.25,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.79,
+            "z_m": 0.85,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.79,
+            "z_m": 1.45,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.79,
+            "z_m": 1.88,
+            "clear": true,
+            "hit_distance_m": null
+          }
+        ],
+        "clear": 12,
+        "count": 12
+      }
+    },
+    "upper": {
+      "shell_sha256": "8458d7c07d6f06dff265f56775f08a1fd5dbb2f1b96494faa85819037ce1e667",
+      "bounds_m": [
+        [
+          0.0,
+          -0.5400000214576721,
+          0.0
+        ],
+        [
+          4.0,
+          0.0,
+          3.0
+        ]
+      ],
+      "parts": [
+        {
+          "name": "Upper transom 1 · glass 1",
+          "span_m": [
+            0.223,
+            0.008,
+            0.206
+          ],
+          "fit_probes": [
+            {
+              "x_m": 0.8889999985694885,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 0.8889999985694885,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 1.0959999561309814,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 1.0959999561309814,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            }
+          ]
+        },
+        {
+          "name": "Upper transom 1 · glass 2",
+          "span_m": [
+            0.213,
+            0.008,
+            0.206
+          ],
+          "fit_probes": [
+            {
+              "x_m": 1.128000020980835,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 1.128000020980835,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 1.3249999284744263,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 1.3249999284744263,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            }
+          ]
+        },
+        {
+          "name": "Upper transom 1 · glass 3",
+          "span_m": [
+            0.223,
+            0.008,
+            0.206
+          ],
+          "fit_probes": [
+            {
+              "x_m": 1.3569999933242798,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 1.3569999933242798,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 1.5640000104904175,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 1.5640000104904175,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            }
+          ]
+        },
+        {
+          "name": "Upper transom 2 · glass 1",
+          "span_m": [
+            0.229,
+            0.008,
+            0.206
+          ],
+          "fit_probes": [
+            {
+              "x_m": 2.440999984741211,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.440999984741211,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.6540000438690186,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.6540000438690186,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            }
+          ]
+        },
+        {
+          "name": "Upper transom 2 · glass 2",
+          "span_m": [
+            0.219,
+            0.008,
+            0.206
+          ],
+          "fit_probes": [
+            {
+              "x_m": 2.685999870300293,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.685999870300293,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.889000177383423,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.889000177383423,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            }
+          ]
+        },
+        {
+          "name": "Upper transom 2 · glass 3",
+          "span_m": [
+            0.229,
+            0.008,
+            0.206
+          ],
+          "fit_probes": [
+            {
+              "x_m": 2.9210000038146973,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 2.9210000038146973,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 3.134000062942505,
+              "z_m": 2.2269999980926514,
+              "wall_clear": true,
+              "pane_hit": true
+            },
+            {
+              "x_m": 3.134000062942505,
+              "z_m": 2.4170000553131104,
+              "wall_clear": true,
+              "pane_hit": true
+            }
+          ]
+        }
+      ],
+      "shell_topology": {
+        "triangles": 4404,
+        "vertices": 2202,
+        "boundary_edges": 0,
+        "nonmanifold_edges": 0
+      },
+      "hardware": {
+        "parts": 22,
+        "mounts": [
+          {
+            "plate": "Left upper door · escutcheon",
+            "wall_y_m": -0.5049998760223389,
+            "seat_y_m": [
+              -0.5210000276565552,
+              -0.4860000014305115
+            ]
+          },
+          {
+            "plate": "Right upper door · escutcheon",
+            "wall_y_m": -0.5049999952316284,
+            "seat_y_m": [
+              -0.5210000276565552,
+              -0.4860000014305115
+            ]
+          }
+        ]
+      }
+    },
+    "seats": {
+      "Shop display · steel frame": {
+        "tested": 32,
+        "sealed": 32,
+        "missed": []
+      },
+      "Shop door transom · steel frame": {
+        "tested": 32,
+        "sealed": 32,
+        "missed": []
+      },
+      "Upper transom 1 · steel frame": {
+        "tested": 32,
+        "sealed": 32,
+        "missed": []
+      },
+      "Upper transom 2 · steel frame": {
+        "tested": 32,
+        "sealed": 32,
+        "missed": []
+      }
+    }
+  },
+  "reopen": {
+    "editable_source": {
+      "sha256": "75eac8ff84d53e81c3f708da50d49b442feed01866fd700fec45bfa4b428aa45",
+      "mesh_objects": 40,
+      "render_device": "GPU"
+    },
+    "exports": {
+      "CT-03.1": {
+        "sha256": "90e40d15eea6ab2935266f1e686736191ccee066c8ca3b98075c9f0d8c125d29",
+        "shell_dimensions_xyz_m": [
+          4.0,
+          0.550000011920929,
+          3.0
+        ],
+        "mesh_objects": 5,
+        "glass_panes": 2,
+        "triangles": 3780,
+        "sockets_m": {
+          "Snap_Left": [
+            0,
+            0,
+            0
+          ],
+          "Snap_Right": [
+            4,
+            0,
+            0
+          ],
+          "Stack_Above": [
+            0,
+            0,
+            3
+          ]
+        },
+        "glb_transmission_extension": true
+      },
+      "CT-03.3": {
+        "sha256": "f7646d7719c7bd67fe75be9baeb2dac74bc817e57342b20b58a775d98d3a6135",
+        "shell_dimensions_xyz_m": [
+          4.0,
+          0.5400000214576721,
+          3.0
+        ],
+        "mesh_objects": 35,
+        "glass_panes": 6,
+        "triangles": 12708,
+        "sockets_m": {
+          "Snap_Left": [
+            0,
+            0,
+            0
+          ],
+          "Snap_Right": [
+            4,
+            0,
+            0
+          ],
+          "Stack_Above": [
+            0,
+            0,
+            3
+          ]
+        },
+        "glb_transmission_extension": true
+      }
+    }
+  },
+  "requisition": {
+    "requests": 35,
+    "pieces": 86,
+    "required_pieces": 83,
+    "optional_pieces": 3,
+    "pieces_by_group": {
+      "First pass": 33,
+      "Reused steel": 17,
+      "Scene finish": 33,
+      "Optional": 3
+    },
+    "pieces_by_request": {
+      "DK-01": 1,
+      "DK-02": 3,
+      "DK-03": 4,
+      "DK-04": 4,
+      "WK-01": 3,
+      "WK-02": 3,
+      "WK-03": 2,
+      "WK-04": 5,
+      "WK-05": 3,
+      "WK-06": 3,
+      "WK-07": 2,
+      "CT-01": 2,
+      "CT-02": 1,
+      "CT-03": 4,
+      "CT-04": 3,
+      "CT-05": 2,
+      "CT-06": 3,
+      "CT-07": 3,
+      "CT-08": 2,
+      "PR-01": 3,
+      "PR-02": 3,
+      "PR-03": 3,
+      "PR-04": 3,
+      "AC-01": 1,
+      "AC-02": 1,
+      "AC-03": 1,
+      "AC-04": 2,
+      "CH-01": 3,
+      "CH-02": 1,
+      "SK-01": 2,
+      "CT-09": 3,
+      "CT-10": 2,
+      "CT-11": 3,
+      "CT-12": 1,
+      "CT-13": 1
+    },
+    "scope": "Numbered requisition parts. Some entries are assemblies. Instances, variants and revisions are not added."
+  },
+  "preview": {
+    "file": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-CT03-Glazing\\Review\\CT03_Glazing_and_Hardware.png",
+    "sha256": "b961206564ff76dc67189c85732b3c4a5aa8ea848974523c2cdf817f5714ef29"
+  },
+  "framewright": {
+    "project": "8b2756f3-ab0f-41c4-9729-0d0cc3fcd048",
+    "archived_card": "a1830b13-79a7-430a-a6f5-bb8585dcf8b4",
+    "note": "04cb6ac4-5a20-4161-8ce7-4f89fa6f3b8e",
+    "active_review_cards": 18
+  }
+}
