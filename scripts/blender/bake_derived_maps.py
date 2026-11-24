@@ -265,6 +265,10 @@ def main() -> int:
     distance = float(read_option(argv, "--distance", "0.08"))
     edge_wear = float(read_option(argv, "--edge-wear", "0"))
     relief = float(read_option(argv, "--relief-from-paint", "0"))
+    # A steepness to reach rather than a strength to apply: one texel in ten
+    # tilts this far. Naming it turns relief on.
+    relief_tilt = read_option(argv, "--relief-tilt")
+    relief_tilt = float(relief_tilt) if relief_tilt is not None else None
 
     if resolution not in (512, 1024, 2048):
         print("[BAKE] FAILED: resolution is 512, 1024 or 2048. Got {0}".format(resolution))
@@ -275,6 +279,11 @@ def main() -> int:
     if not 0.0 <= relief <= 2.0:
         print("[BAKE] FAILED: relief from paint runs from 0 to 2. Got {0}".format(relief))
         return 1
+    if relief_tilt is not None and not 0.5 <= relief_tilt <= 30.0:
+        print("[BAKE] FAILED: relief tilt runs from 0.5 to 30 degrees. Got {0}".format(relief_tilt))
+        return 1
+    if relief_tilt is not None and relief == 0:
+        relief = 1.0
     if not source.is_file():
         print("[BAKE] FAILED: source does not exist: {0}".format(source))
         return 1
@@ -371,6 +380,7 @@ def main() -> int:
 
     normal_image = None
     relief_mean = None
+    relief_stats = {}
     if relief > 0:
         albedo = base_colour_image(painted)
         if albedo is None:
@@ -380,7 +390,8 @@ def main() -> int:
         # With coverage, so the atlas's own island edges are not read as
         # cliffs: on a generated character that outlined every one of six
         # hundred islands, and the face looked drawn on triangles.
-        encoded, relief_mean = normal_from_paint(source_pixels, relief, coverage=reached)
+        encoded, relief_mean = normal_from_paint(source_pixels, relief, coverage=reached,
+                                                 target_tilt=relief_tilt, stats=relief_stats)
         if relief_mean < 1e-5:
             # Nothing local in the paint means nothing to raise. Delivering a
             # flat normal map would cost bytes and change nothing.
@@ -458,7 +469,9 @@ def main() -> int:
             "used_for": "keeping the relief derivation off the atlas's own island edges",
         },
         "relief_from_paint": None if normal_image is None else {
-            "strength": relief,
+            "strength": None if relief_tilt is not None else relief,
+            "target_tilt_degrees": relief_tilt,
+            "measured": relief_stats,
             "local_detail": round(relief_mean, 6),
             "derived_from": "the base colour's local luminance, after its own blurred self "
                             "is subtracted, so a step between two materials is not read as a cliff",

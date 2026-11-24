@@ -160,6 +160,9 @@ def build_parser() -> argparse.ArgumentParser:
                             "through glass, so this deletes what is behind it.")
     stage.add_argument("--relief-from-paint", type=float,
                        help="Raise the relief somebody painted into a normal map, 0..2")
+    stage.add_argument("--relief-tilt", type=float,
+                       help="Relief from paint, calibrated: the steepness in degrees one texel in ten "
+                            "reaches, whatever the paint's contrast (try 6)")
     stage.add_argument("--assign", action="append",
                        help="A part and the surface it should be, as colour[:tone]=surface. "
                             "Repeatable, for example --assign blue:dark=crystal")
@@ -407,6 +410,7 @@ def main(argv: list[str] | None = None) -> int:
                     "distance": args.distance,
                     "edge_wear": args.edge_wear,
                     "relief_from_paint": args.relief_from_paint,
+                    "relief_tilt": args.relief_tilt,
                     "directions": args.directions,
                     "most": args.most,
                     "largest_part": args.largest_part,
