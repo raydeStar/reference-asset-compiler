@@ -14,6 +14,21 @@ crash, never kill GPU processes) apply to every task below.
 
 ## No GPU needed
 
+### Frastown West Berth follow-ups (2026-11-23)
+- **Acquire, do not script.** The kit's geometry was built by script from scene measurements. The owner wants assets to
+  go through the normal route: reference image, image-conditioned geometry, then cleanup and surfacing. Start with the
+  pieces a viewer stands at (gunwale, deck plates). The scripted kit gives the dimensions, pivots and sockets to hold
+  the acquired pieces to. Needs a GPU for the acquisition itself. Done when a piece acquired that way passes the same
+  bounds, socket and collision checks and the owner's review.
+- **Unreal import of surface pass B02.** `Unreal/import_batch.py` in the kit folder follows batch 01's verified script
+  and has not been run. Done when it writes `ue-import.json` with every assertion passing in UE 5.8.4.
+- **Headset review.** Look for shimmer on the tread and rivet edges under head movement. The import script folds
+  normal variance into roughness for this; confirm it took effect.
+- **Arm's-length sharpness.** The rail is 0.66 mm a texel at 4K. Add a tiling detail-normal layer in the engine
+  material and judge it at 30 cm.
+- **One painter.** The kit folder still has its own copy of the painter. Point its runner at the registered stages
+  (the ladder already reproduces texel for texel) and delete the copy.
+
 ### Game review road follow-ups (2026-11-07)
 - **Delivered:** `scripts/run_game_review.ps1` ([GAME_REVIEW.md](GAME_REVIEW.md)): recipe to playable review in The
   Aether Wars with in-game face/body closeups, named looks, a pose sheet and before/after sheets. Remora's attempts:
