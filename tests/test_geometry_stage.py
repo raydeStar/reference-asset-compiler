@@ -261,14 +261,14 @@ class RegistryTests(unittest.TestCase):
                 encoding="utf-8")
             return type("Finished", (), {"returncode": 0, "stdout": "", "stderr": ""})()
 
-        original = stages.subprocess.run
-        stages.subprocess.run = pretend_to_launch
+        original = stages.run_command
+        stages.run_command = pretend_to_launch
         try:
             payload = stages.run_stage(
                 "geometry", image, self.temporary / "model.glb", self.temporary / "receipt.json",
                 repo_root=self.repo, legacy_root=legacy)
         finally:
-            stages.subprocess.run = original
+            stages.run_command = original
 
         command = seen["command"]
         self.assertEqual(command[0], stages.POWERSHELL)
@@ -305,14 +305,14 @@ class RegistryTests(unittest.TestCase):
         def pretend_to_launch(command, **keywords):
             return type("Finished", (), {"returncode": 0, "stdout": "", "stderr": ""})()
 
-        original = stages.subprocess.run
-        stages.subprocess.run = pretend_to_launch
+        original = stages.run_command
+        stages.run_command = pretend_to_launch
         try:
             payload = stages.run_stage(
                 "geometry", image, self.temporary / "model.glb", self.temporary / "receipt.json",
                 repo_root=self.repo, legacy_root=legacy)
         finally:
-            stages.subprocess.run = original
+            stages.run_command = original
 
         # An exit code of zero is a claim, not evidence. Without the candidate
         # there is nothing to deliver, and saying so beats handing back a

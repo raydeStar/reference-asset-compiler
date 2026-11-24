@@ -440,8 +440,8 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   every other stage gets one. A pass that was stopped anyway resumes with
   `--reuse-sections <the stopped attempt directory>`: a section the painter
   already finished from the same mesh, the same crop and the same settings is
-  taken as it is, and only the rest are painted. A stopped stage can leave its
-  last painter running on the GPU; check before starting again.
+  taken as it is, and only the rest are painted. A stage that runs out of time
+  stops everything it started, so nothing is left painting on the GPU.
 
 Finish a section-painted model with the detail bake, relief calibrated to a
 steepness rather than a strength: `rac run-stage bake-detail ... --resolution

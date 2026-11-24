@@ -496,15 +496,15 @@ class StageTimeoutTests(unittest.TestCase):
             seen.update(keywords)
             raise Stop()
 
-        original = stages.subprocess.run
-        stages.subprocess.run = record
+        original = stages.run_command
+        stages.run_command = record
         try:
             with self.assertRaises(Stop):
                 stages.run_stage(stage, self.source, self.root / "out.glb", self.root / "out.json",
                                  repo_root=ROOT, legacy_root=self.legacy, blender=sys.executable,
                                  options=options)
         finally:
-            stages.subprocess.run = original
+            stages.run_command = original
         return seen["timeout"]
 
     def test_painting_in_sections_gets_four_hours_unless_told_otherwise(self):

@@ -68,6 +68,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+sys.path.insert(1, str(Path(__file__).resolve().parents[1] / "src"))
 from compress_textures import read_glb, write_glb  # noqa: E402
 from paint_head_detail import (  # noqa: E402
     grow,
@@ -82,6 +83,7 @@ from paint_head_detail import (  # noqa: E402
     texture_image,
     write_obj,
 )
+from reference_asset_compiler.processes import run_bounded  # noqa: E402
 
 TAG = "[SECTIONS]"
 POWERSHELL = "powershell.exe"
@@ -559,7 +561,7 @@ def load_cutout(args, attempt):
     cutout_png = attempt / "reference-cutout.png"
     cutout_json = attempt / "reference-cutout.json"
     cropper = Path(__file__).resolve().parent / "crop_reference_region.py"
-    done = subprocess.run([str(venv), str(cropper), str(args.reference), str(cutout_png), str(cutout_json),
+    done = run_bounded([str(venv), str(cropper), str(args.reference), str(cutout_png), str(cutout_json),
                            "--cutout-only"], capture_output=True, text=True, errors="replace",
                           stdin=subprocess.DEVNULL, timeout=600)
     if done.returncode != 0 or not cutout_png.is_file():
@@ -582,7 +584,7 @@ def paint_section(args, mesh_obj, crop_png, paint_dir):
     ]
     if args.min_free_vram > 0:
         command += ["-MinimumFreeVramMiB", str(args.min_free_vram)]
-    painted = subprocess.run(command, capture_output=True, text=True, errors="replace",
+    painted = run_bounded(command, capture_output=True, text=True, errors="replace",
                              stdin=subprocess.DEVNULL, timeout=3000,
                              env={key: value for key, value in os.environ.items()
                                   if key.upper() != "PSMODULEPATH"})

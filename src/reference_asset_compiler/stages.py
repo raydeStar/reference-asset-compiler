@@ -33,6 +33,7 @@ from .glass_colours import GlassColourError, named_colours, resolve_colour
 from .material_recipes import MaterialRecipeError, named_recipes, named_tones, parse_assignment
 from .human_scale import HumanScaleError, named_sizes, resolve_height
 from .rebake import MESH_SUFFIXES, RebakeError, check_binding, read_reduction
+from .processes import run_bounded
 from .resources import checkout_root
 
 BLENDER_ENVIRONMENT = "RAC_BLENDER"
@@ -42,6 +43,11 @@ POWERSHELL = "powershell.exe"
 """Windows PowerShell 5.1, which the launchers are written against."""
 
 DEFAULT_TIMEOUT_SECONDS = 3600
+
+# How a stage's command is run: like subprocess.run, except that a timeout stops
+# everything the stage started, not only the process it launched. A name of its
+# own so a test can stand in for the launch.
+run_command = run_bounded
 """An hour. A stage that has not finished by then is a stage to investigate."""
 
 STAGES: dict[str, dict[str, Any]] = {
@@ -613,7 +619,7 @@ def run_stage(
                        if key.upper() != "PSMODULEPATH"}
     started = time.monotonic()
     try:
-        finished = subprocess.run(
+        finished = run_command(
             command, capture_output=True, text=True, errors="replace", timeout=timeout,
             env=environment,
             # Nothing here may ever wait to be typed at. A stage is run by a
@@ -623,7 +629,8 @@ def run_stage(
             # and spending no CPU, which looks exactly like slow work.
             stdin=subprocess.DEVNULL)
     except subprocess.TimeoutExpired:
-        raise StageError("Stage {0} did not finish within {1} seconds.".format(stage_name, timeout))
+        raise StageError("Stage {0} did not finish within {1} seconds, and everything it started "
+                         "was stopped.".format(stage_name, timeout))
     seconds = round(time.monotonic() - started, 3)
 
     payload: dict[str, Any] = {
