@@ -24,6 +24,7 @@ if str(SCRIPT_DIR) not in sys.path:
 from reduce_voxel_quadriflow import (
     manifoldize_dominant_volume,
     remove_tiny_components,
+    weld_coincident,
     sha256,
     topology,
 )
@@ -137,7 +138,8 @@ def main() -> int:
             args.target_triangles = int(args.triangle_budget * 0.9)
         if not 1_000 <= args.target_triangles <= args.triangle_budget:
             raise RuntimeError("Target triangles must be between 1,000 and the budget")
-    cleanup = remove_tiny_components(candidate, args.minimum_component_faces)
+    weld = weld_coincident(candidate)
+    cleanup = {**remove_tiny_components(candidate, args.minimum_component_faces), "weld": weld}
 
     voxel_size = max(candidate.dimensions) / args.voxel_resolution
     candidate.data.remesh_voxel_size = voxel_size

@@ -3282,3 +3282,15 @@ The hero route repaints the top 22% of every model at close range, for faces. On
 ## 2026-11-24 · A relief strength means nothing across paints; a steepness does
 
 Relief from paint raises the paint's local contrast into a normal map, so the same strength gives a calm surface on a smooth paint and orange peel on a busy one. On the section-painted Frastown mast, strength 1 tilted the normals 41 degrees at the 90th percentile where the finished dock claw tilts 4.5. Ask for a steepness instead (`--relief-tilt`) and measure the result against a model the owner has accepted.
+
+
+<!-- pixal-reduction-20261124 -->
+## 2026-11-24 · Reduce a Pixal3D mesh with Pixal's own simplifier, and weld before counting pieces
+
+Pixal3D (TencentARC) beat Hunyuan3D-2 on hard-surface crispness for the Frastown skiff (AC-01.1), and the owner called it a landslide. Three lessons came from getting it to a game budget.
+
+- **Weld seam copies before counting pieces.** Pixal writes its mesh cut along every texture seam: 984,000 triangles on 778,000 vertices where 482,000 would do. Read as imported, it had 515,000 open edges. The voxel reduction's tiny-piece cleanup then deleted 110,000 triangles of real hull, 11% of the surface. Welded first, the mesh had 902 open edges. `reduce_voxel_qem.py` and `reduce_voxel_quadriflow.py` now weld exactly coincident vertices before cleanup. `reduce_feature_qem.py` already did.
+- **Neither RAC reduction keeps Pixal's crispness.** The voxel rebuild melted the bow cap, straps and rivets at 36k and 81k triangles. Feature-weighted QEM met the deviation gates at 60k (p99 5 mm), but the rails went ragged and the straps wrinkled, even at 202k. A deviation number passed a surface the owner would reject at arm's length in VR.
+- **Pixal's own exporter simplifies cleanly.** `o_voxel.postprocess.to_glb` rebuilds a surface from Pixal's volume and simplifies to a vertex target (1,000,000 by default). The same seed-45 run exported at 100,000 vertices gave 98k triangles with no wrinkles, zero open edges, and bolts, straps and rail edges intact. Export the dense and low meshes from one run and level both with one transform. The dense mesh is then the normal-bake source, and the bake lines up.
+
+A single-view generator also guesses what the picture hides. Seed 42 left a hole in the floor at the bow, which the owner found in the viewer. Seeds 43 to 46 cost about 2.5 minutes each, and seed 45 had a whole planked floor. Generate a few seeds and pick by fixed views before reducing.

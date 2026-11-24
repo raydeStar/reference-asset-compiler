@@ -225,3 +225,27 @@ assert sum(len(p.vertices)-2 for o in bpy.context.scene.objects if o.type=='MESH
     assert refused.returncode != 0
     assert 'Preserve the existing candidate' in refused.stdout + refused.stderr
     assert output.read_bytes() == retained
+
+
+def test_seam_cut_mesh_is_welded_before_tiny_pieces_are_removed(tmp_path):
+    # Pixal3D writes its mesh cut along every texture seam. Counted as it came,
+    # each island was a "tiny piece" and the cleanup deleted 11% of a hull.
+    script = tmp_path / 'seams.py'
+    script.write_text(f'''
+import bpy, bmesh, sys
+sys.path.insert(0, {str(ROOT / 'scripts/blender')!r})
+from reduce_voxel_quadriflow import remove_tiny_components, weld_coincident
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.1)
+obj = bpy.context.object
+faces = len(obj.data.polygons)
+bm = bmesh.new(); bm.from_mesh(obj.data)
+bmesh.ops.split_edges(bm, edges=list(bm.edges))
+bm.to_mesh(obj.data); bm.free()
+assert len(obj.data.vertices) == len(obj.data.loops)  # every face its own piece
+weld = weld_coincident(obj)
+assert weld['merged_vertices'] > 0
+assert remove_tiny_components(obj, 24)['faces'] == 0
+assert len(obj.data.polygons) == faces
+''')
+    run(script)
