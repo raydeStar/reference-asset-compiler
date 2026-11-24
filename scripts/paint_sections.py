@@ -71,12 +71,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 sys.path.insert(1, str(Path(__file__).resolve().parents[1] / "src"))
 from compress_textures import read_glb, write_glb  # noqa: E402
 from paint_head_detail import (  # noqa: E402
-    grow,
     image_bytes,
     mesh_from_glb,
     next_attempt,
     png_bytes,
-    rasterize_weights,
     sha256,
     swap_images,
     tail,
@@ -128,7 +126,10 @@ def parse_arguments(argv):
                         help="The most sections a model is cut into; the sections grow to fit")
     parser.add_argument("--views", type=int, default=12)
     parser.add_argument("--resolution", type=int, default=768)
-    parser.add_argument("--atlas", type=int, default=4096, choices=(2048, 4096))
+    parser.add_argument("--atlas", type=int, default=4096, choices=(2048, 4096, 8192))
+    parser.add_argument("--bake-scale", type=float, default=1.0,
+                        help="Each section's views are shrunk to about this many pixels a texel before "
+                             "they are baked; 0 bakes them as upstream does")
     parser.add_argument("--crop-margin", type=float, default=0.12,
                         help="Extra around a section's place in the picture, as a fraction of it")
     parser.add_argument("--min-free-vram", type=int, default=0,
@@ -306,11 +307,13 @@ def plan_grid(positions, triangles, counts, size, overlap, context, min_faces=20
     seam the head pass leaves on a prop).
     """
     centroids = positions[triangles].mean(axis=1).astype(np.float64)
+    corners = positions.astype(np.float64)
     low, high = positions.min(axis=0).astype(np.float64), positions.max(axis=0).astype(np.float64)
     extent = high - low
     cells, skipped = [], []
     for index in itertools.product(*(range(count) for count in counts)):
         weight = np.ones(len(triangles), dtype=np.float64)
+        corner_weight = np.ones(len(corners), dtype=np.float64)
         painted = np.ones(len(triangles), dtype=bool)
         core = []
         for axis, (k, count) in enumerate(zip(index, counts)):
@@ -319,6 +322,7 @@ def plan_grid(positions, triangles, counts, size, overlap, context, min_faces=20
             band = overlap * step
             first, last = k == 0, k == count - 1
             weight *= ramp(centroids[:, axis], start, end, first, last, band)
+            corner_weight *= ramp(corners[:, axis], start, end, first, last, band)
             reach = band / 2.0 + context * step
             near = np.ones(len(triangles), dtype=bool)
             if not first:
@@ -331,7 +335,8 @@ def plan_grid(positions, triangles, counts, size, overlap, context, min_faces=20
             skipped.append({"index": list(index), "faces_weighted": int((weight > 0).sum())})
             continue
         cells.append({"index": list(index), "core_m": core, "faces": painted,
-                      "weights": weight.astype(np.float32)})
+                      "weights": weight.astype(np.float32),
+                      "vertex_weights": corner_weight.astype(np.float32)})
     if cells and skipped:
         # What the skipped cells weighed goes to the nearest painted cell.
         deficit = 1.0 - sum(cell["weights"].astype(np.float64) for cell in cells)
@@ -347,6 +352,19 @@ def plan_grid(positions, triangles, counts, size, overlap, context, min_faces=20
                 taken = orphans[nearest == number]
                 cell["weights"][taken] += deficit[taken].astype(np.float32)
                 cell["faces"][taken] = True
+        # The same for each corner, so the smooth weights also sum to one.
+        deficit = 1.0 - sum(cell["vertex_weights"].astype(np.float64) for cell in cells)
+        orphans = np.where(deficit > 1e-6)[0]
+        if orphans.size:
+            distance = np.empty((len(cells), orphans.size))
+            for number, cell in enumerate(cells):
+                core = np.array(cell["core_m"], dtype=np.float64)
+                outside = np.maximum(core[:, 0] - corners[orphans], corners[orphans] - core[:, 1])
+                distance[number] = (np.maximum(outside, 0.0) ** 2).sum(axis=1)
+            nearest = distance.argmin(axis=0)
+            for number, cell in enumerate(cells):
+                taken = orphans[nearest == number]
+                cell["vertex_weights"][taken] += deficit[taken].astype(np.float32)
     return {"counts": counts, "section_m": size, "extent_m": extent, "cells": cells, "skipped": skipped}
 
 
@@ -398,6 +416,74 @@ def texel_density(positions, uvs, triangles, size):
     order = np.argsort(density)
     cumulative = np.cumsum(world[keep][order]) / world[keep].sum()
     return float(density[order][np.searchsorted(cumulative, 0.5)])
+
+
+def face_sheet(uvs, triangles, size, grow_texels=2):
+    """Which face each texel belongs to, and where in it: a face index and barycentrics.
+
+    Drawn once and shared by every section. Texels just outside an island take
+    their nearest face, as `grow` does for a mask, so a bilinear sample at an
+    island's edge reads a weight.
+    """
+    sheet = Image.new("I", (size, size), 0)
+    draw = ImageDraw.Draw(sheet)
+    for face in range(len(triangles)):
+        points = [(float(u) * size, float(v) * size) for u, v in uvs[triangles[face]]]
+        draw.polygon(points, fill=face + 1, outline=face + 1)
+    ids = np.asarray(sheet, dtype=np.int64)
+    for _ in range(int(grow_texels)):
+        empty = ids == 0
+        if not empty.any():
+            break
+        for axis in (0, 1):
+            for shift in (1, -1):
+                ids = np.where(empty & (ids == 0), np.roll(ids, shift, axis=axis), ids)
+    rows, columns = np.nonzero(ids)
+    faces = ids[rows, columns] - 1
+    corner = uvs[triangles[faces]].astype(np.float64) * size          # (n, 3, 2)
+    point = np.stack([columns + 0.5, rows + 0.5], axis=1)
+    v0, v1 = corner[:, 1] - corner[:, 0], corner[:, 2] - corner[:, 0]
+    v2 = point - corner[:, 0]
+    d00, d01, d11 = (v0 * v0).sum(1), (v0 * v1).sum(1), (v1 * v1).sum(1)
+    d20, d21 = (v2 * v0).sum(1), (v2 * v1).sum(1)
+    denominator = d00 * d11 - d01 * d01
+    safe = np.abs(denominator) > 1e-12
+    b1 = np.where(safe, (d11 * d20 - d01 * d21) / np.where(safe, denominator, 1.0), 1.0 / 3.0)
+    b2 = np.where(safe, (d00 * d21 - d01 * d20) / np.where(safe, denominator, 1.0), 1.0 / 3.0)
+    bary = np.clip(np.stack([1.0 - b1 - b2, b1, b2], axis=1), 0.0, 1.0)
+    bary /= np.maximum(bary.sum(axis=1, keepdims=True), 1e-9)
+    return {"size": size, "rows": rows, "columns": columns, "faces": faces, "bary": bary.astype(np.float32)}
+
+
+def smooth_weights(sheet, triangles, vertex_weights, painted_faces):
+    """A section's weight across the sheet, varying smoothly across each face.
+
+    Weights read per face jump at every edge, and Pixal's simplified meshes have
+    faces several centimetres across: where two sections met, the skiff showed
+    hard-edged triangles of one section's paint beside the other's. Interpolated
+    from the corners, the two cross-fade instead. A face the section did not
+    paint weighs nothing, whatever its corners say.
+    """
+    size = sheet["size"]
+    corners = triangles[sheet["faces"]]
+    values = (vertex_weights[corners] * sheet["bary"]).sum(axis=1)
+    values *= painted_faces[sheet["faces"]]
+    weights = np.zeros((size, size), dtype=np.float32)
+    weights[sheet["rows"], sheet["columns"]] = values
+    mask = np.zeros((size, size), dtype=bool)
+    mask[sheet["rows"], sheet["columns"]] = painted_faces[sheet["faces"]]
+    return weights, mask
+
+
+def bake_size_for(span, density, scale):
+    """How many pixels a section's views are baked from: about `scale` a texel.
+
+    The painter frames a section with a tenth to spare, as `painted_mm_per_pixel`
+    assumes. 0 when `scale` is 0, which leaves the painter's own sizes.
+    """
+    if scale <= 0 or density <= 0:
+        return 0
+    return int(min(4096, max(256, round(span * 1.1 * density * scale))))
 
 
 def masked_blur(image, mask, sigma):
@@ -524,9 +610,10 @@ def composite(base, sections, sigma, gains=None, mode="colour"):
             paint = base_tone + (paint - masked_blur(paint, mask, sigma))
         laid += paint * weights[..., None]
         total += weights
-    # Grown masks can overlap at island edges; there the sections share.
-    share = np.maximum(total, 1.0)
-    covered = np.minimum(total, 1.0)[..., None]
+    # Where weights sum away from one -- grown masks overlapping at an island's
+    # edge, or a face one neighbour did not paint -- the sections share.
+    share = np.where(total > 0, total, 1.0)
+    covered = (total > 0).astype(np.float32)[..., None]
     out = base * (1.0 - covered) + laid / share[..., None]
     return repad(out, total > 0)
 
@@ -572,7 +659,7 @@ def load_cutout(args, attempt):
     return cutout.convert("RGBA"), json.loads(cutout_json.read_text(encoding="utf-8"))
 
 
-def paint_section(args, mesh_obj, crop_png, paint_dir):
+def paint_section(args, mesh_obj, crop_png, paint_dir, bake_size=0):
     """One section through the painter; returns its GLB and the painter's gate."""
     command = [
         POWERSHELL, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
@@ -584,6 +671,8 @@ def paint_section(args, mesh_obj, crop_png, paint_dir):
     ]
     if args.min_free_vram > 0:
         command += ["-MinimumFreeVramMiB", str(args.min_free_vram)]
+    if bake_size > 0:
+        command += ["-BakeSize", str(int(bake_size))]
     painted = run_bounded(command, capture_output=True, text=True, errors="replace",
                              stdin=subprocess.DEVNULL, timeout=3000,
                              env={key: value for key, value in os.environ.items()
@@ -604,7 +693,7 @@ def read_paint(paint_dir, why_missing=""):
     return glb, gate
 
 
-def reusable_paint(previous, folder, args):
+def reusable_paint(previous, folder, args, bake_size=0):
     """The paint an earlier attempt made of exactly this section, or None.
 
     A long pass can be stopped part way: the skiff's 32 sections outlasted a
@@ -625,8 +714,8 @@ def reusable_paint(previous, folder, args):
         return None
     same_inputs = (str(record.get("input_mesh_sha256", "")).lower() == sha256(folder / "section.obj")
                    and str(record.get("reference_sha256", "")).lower() == sha256(folder / "reference.png"))
-    same_settings = (record.get("views"), record.get("resolution"), record.get("atlas")) == (
-        args.views, args.resolution, args.atlas)
+    same_settings = (record.get("views"), record.get("resolution"), record.get("atlas"),
+                     int(record.get("bake_size") or 0)) == (args.views, args.resolution, args.atlas, int(bake_size))
     if not (same_inputs and same_settings):
         return None
     try:
@@ -768,6 +857,8 @@ def main(argv=None) -> int:
     points = project(positions, frame)
     model_low, model_high = points.min(axis=0), points.max(axis=0)
     whole_mm = float(extent.max()) * 1.1 / args.resolution * 1000.0
+    # The texels a metre the sheet will hold, to size each section's bake to.
+    sheet_density = texel_density(positions, uvs, triangles, args.atlas)
     sections = []
     for number, cell in enumerate(plan["cells"]):
         folder = attempt / "section-{0:02d}".format(number)
@@ -788,6 +879,7 @@ def main(argv=None) -> int:
             "vertices": vertices,
             "span_m": [round(float(s), 4) for s in span],
             "painted_mm_per_pixel": round(float(span.max()) * 1.1 / args.resolution * 1000.0, 2),
+            "bake_size": bake_size_for(float(span.max()), sheet_density, args.bake_scale),
             "crop_box": list(box),
             "crop_sha256": sha256(crop_png),
             "folder": str(folder),
@@ -803,7 +895,10 @@ def main(argv=None) -> int:
                                  len(sections), " x ".join(map(str, plan["counts"])),
                                  max(s["painted_mm_per_pixel"] for s in sections), whole_mm), "plan_only")
 
-    size = Image.open(io.BytesIO(image_bytes(document, binary, albedo_index))).size[0]
+    # The sheet the sections are laid on: the atlas asked for, even when the
+    # first paint is smaller. Its colour is only ever used blurred, so it is
+    # brought up to size rather than the sections brought down to it.
+    size = max(Image.open(io.BytesIO(image_bytes(document, binary, albedo_index))).size[0], args.atlas)
     base_albedo = as_pixels(Image.open(io.BytesIO(image_bytes(document, binary, albedo_index))),
                             size).astype(np.float32)
     base_mr = None
@@ -818,12 +913,13 @@ def main(argv=None) -> int:
     mode = "light" if args.keep_colour > 0 else "colour"
     harmonize_sections = not args.no_harmonize and args.keep_colour == 0
     albedo_layers, mr_layers = [], []
+    sheet = face_sheet(uvs, triangles, size)
     for record, cell in zip(sections, plan["cells"]):
         folder = Path(record["folder"])
         print("{0} painting section {1} of {2}: {3} faces, {4:.2f} m across".format(
             TAG, record["number"] + 1, len(sections), record["faces_painted"], max(record["span_m"])),
             flush=True)
-        earlier = reusable_paint(args.reuse_sections, folder, args)
+        earlier = reusable_paint(args.reuse_sections, folder, args, record["bake_size"])
         try:
             if earlier is not None:
                 shutil.copytree(earlier, folder / "paint")
@@ -833,7 +929,7 @@ def main(argv=None) -> int:
                 print("{0} section {1} reused from {2}".format(TAG, record["number"] + 1, earlier), flush=True)
             else:
                 glb, gate, exit_code = paint_section(args, folder / "section.obj", folder / "reference.png",
-                                                     folder / "paint")
+                                                     folder / "paint", record["bake_size"])
         except (RuntimeError, subprocess.TimeoutExpired) as problem:
             return failed("section {0} could not be painted, and no half-painted model is delivered: "
                           "{1}".format(record["number"], problem))
@@ -841,8 +937,7 @@ def main(argv=None) -> int:
         record["launcher_exit_code"] = exit_code
         section_document, section_binary = read_glb(glb.read_bytes())
         section_pbr = section_document["materials"][0].get("pbrMetallicRoughness", {})
-        weights = grow(rasterize_weights(uvs, triangles, cell["weights"], size), 2)
-        mask = grow(rasterize_weights(uvs, triangles, cell["faces"].astype(np.float32), size), 2) > 0
+        weights, mask = smooth_weights(sheet, triangles, cell["vertex_weights"], cell["faces"])
         section_albedo = texture_image(section_document, section_pbr.get("baseColorTexture"))
         albedo_layers.append((as_pixels(Image.open(io.BytesIO(
             image_bytes(section_document, section_binary, section_albedo))), size), weights, mask))

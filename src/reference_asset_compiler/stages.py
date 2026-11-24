@@ -365,7 +365,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "arguments": ("source", "output", "report"),
         "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "context",
                     "keep_colour", "keep_tone", "min_length", "max_sections", "min_free_vram",
-                    "reuse_sections"),
+                    "reuse_sections", "bake_scale"),
         # A section is one painter run of about 2.5 minutes, and the finer cut
         # paints up to 48: the hour every other stage gets killed the skiff's
         # pass at section 20 of 32. Four hours, as Framewright already passes.
@@ -1265,6 +1265,7 @@ def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, A
     arguments = ["--reference", str(reference), "--legacy-root", str(legacy)]
     for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
                        ("--section", "section"), ("--overlap", "overlap"), ("--context", "context"),
+                       ("--bake-scale", "bake_scale"),
                        ("--keep-colour", "keep_colour"),
                        ("--keep-tone", "keep_tone"),
                        ("--min-length", "min_length"), ("--max-sections", "max_sections"),

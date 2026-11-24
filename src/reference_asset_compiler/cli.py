@@ -210,9 +210,12 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Paint in sections: the most sections a model is cut into (default: 12)")
     stage.add_argument("--min-free-vram", type=int,
                        help="MiB of GPU memory the painter must find free before it starts")
-    stage.add_argument("--atlas", type=int, choices=(2048, 4096),
+    stage.add_argument("--atlas", type=int, choices=(2048, 4096, 8192),
                        help="Paint atlas size. Naming one selects the studio runner, which "
                             "writes lossless maps; unnamed, the legacy runner writes 2048 JPEG")
+    stage.add_argument("--bake-scale", type=float,
+                       help="Paint in sections: bake each section's views at about this many pixels a "
+                            "texel (default: 1; 0 bakes them as upstream does)")
     stage.add_argument("--target-triangles", type=int, help="Remesh target before the budget check")
     stage.add_argument("--voxel-resolution", type=int, help="Remesh grid resolution (default: 420)")
     stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
@@ -443,6 +446,7 @@ def main(argv: list[str] | None = None) -> int:
                     "section": args.section,
                     "overlap": args.overlap,
                     "context": args.context,
+                    "bake_scale": args.bake_scale,
                     "reuse_sections": args.reuse_sections,
                     "keep_colour": args.keep_colour,
                     "keep_tone": args.keep_tone,

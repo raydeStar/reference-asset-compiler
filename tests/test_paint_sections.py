@@ -37,6 +37,10 @@ from paint_sections import (  # noqa: E402
     match_orientation,
     mesh_silhouette,
     reusable_paint,
+    bake_size_for,
+    face_sheet,
+    plan_grid,
+    smooth_weights,
     orientations,
     plan_sections,
     project,
@@ -536,3 +540,126 @@ class StageTimeoutTests(unittest.TestCase):
         with self.assertRaises(StageError):
             prepare_paint_sections({"reference": self.reference, "reuse_sections": self.root / "none"},
                                    self.legacy)
+
+
+class TexelScaleBakeTests(unittest.TestCase):
+    """Views far finer than a texel are point-sampled into specks; each section is baked near a texel a pixel."""
+
+    def test_a_section_is_baked_at_about_a_texel_a_pixel(self):
+        # The skiff's section 14: 0.63 m across a sheet holding 572 texels a metre.
+        self.assertEqual(bake_size_for(0.6282, 571.6, 1.0), 395)
+        self.assertEqual(bake_size_for(0.6282, 2 * 571.6, 1.0), 790)
+
+    def test_zero_leaves_the_painter_its_own_sizes_and_the_size_is_kept_in_bounds(self):
+        self.assertEqual(bake_size_for(0.6, 571.6, 0.0), 0)
+        self.assertEqual(bake_size_for(0.01, 571.6, 1.0), 256)
+        self.assertEqual(bake_size_for(20.0, 571.6, 1.0), 4096)
+
+    def test_the_bake_size_reaches_the_painter(self):
+        import paint_sections  # noqa: PLC0415
+        seen = {}
+
+        class Stop(Exception):
+            pass
+
+        def record(command, **keywords):
+            seen["command"] = command
+            raise Stop()
+
+        args = type("Args", (), {"launcher": Path("launch.ps1"), "legacy_root": Path("studio"), "views": 12,
+                                 "resolution": 768, "atlas": 8192, "min_free_vram": 0})()
+        original = paint_sections.run_bounded
+        paint_sections.run_bounded = record
+        try:
+            with self.assertRaises(Stop):
+                paint_sections.paint_section(args, Path("s.obj"), Path("r.png"), Path("paint"), 790)
+        finally:
+            paint_sections.run_bounded = original
+        command = seen["command"]
+        self.assertEqual(command[command.index("-BakeSize") + 1], "790")
+        self.assertEqual(command[command.index("-Atlas") + 1], "8192")
+
+    def test_a_section_baked_another_way_is_painted_again(self):
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        folder = root / "new" / "section-00"
+        folder.mkdir(parents=True)
+        (folder / "section.obj").write_text("v 0 0 0", encoding="utf-8")
+        (folder / "reference.png").write_bytes(solid_png(16, (90, 60, 30)))
+        paint = root / "earlier" / "section-00" / "paint"
+        paint.mkdir(parents=True)
+        (paint / "section.glb").write_bytes(b"glTF")
+        (paint / "section.validation.json").write_text(json.dumps(
+            {"faces_equal": True, "geometry_delta": 0.0, "uv_delta": 0.0}), encoding="utf-8")
+        import hashlib  # noqa: PLC0415
+        (paint / "section.execution.json").write_text(json.dumps({
+            "input_mesh_sha256": hashlib.sha256((folder / "section.obj").read_bytes()).hexdigest(),
+            "reference_sha256": hashlib.sha256((folder / "reference.png").read_bytes()).hexdigest(),
+            "views": 12, "resolution": 768, "atlas": 4096}), encoding="utf-8")
+        args = type("Args", (), {"views": 12, "resolution": 768, "atlas": 4096})()
+        # Painted before the bake was sized: reusable only by a pass that does not size it.
+        self.assertEqual(reusable_paint(root / "earlier", folder, args, 0), paint)
+        self.assertIsNone(reusable_paint(root / "earlier", folder, args, 395))
+
+
+class SmoothWeightTests(unittest.TestCase):
+    """Sections cross-fade across a face instead of switching at its edges."""
+
+    def setUp(self):
+        self.positions, self.uvs, self.triangles = strip(length=2.4, columns=6)
+        self.plan = plan_grid(self.positions, self.triangles, [2, 1, 1], 1.2, 0.5, 0.1, min_faces=1)
+
+    def test_every_corners_weights_sum_to_one(self):
+        total = sum(cell["vertex_weights"].astype(np.float64) for cell in self.plan["cells"])
+        np.testing.assert_allclose(total, 1.0, atol=1e-6)
+
+    def test_a_weight_changes_within_a_face_where_two_sections_meet(self):
+        sheet = face_sheet(self.uvs, self.triangles, 256)
+        cell = self.plan["cells"][0]
+        weights, mask = smooth_weights(sheet, self.triangles, cell["vertex_weights"], cell["faces"])
+        # The face straddling the join: one weight per face would be flat across it.
+        middle = len(self.triangles) // 2
+        on_face = sheet["faces"] == middle
+        values = weights[sheet["rows"][on_face], sheet["columns"][on_face]]
+        self.assertGreater(float(values.max() - values.min()), 0.05)
+        self.assertTrue(mask[sheet["rows"][on_face], sheet["columns"][on_face]].all())
+
+    def test_the_two_sections_share_every_texel_between_them(self):
+        sheet = face_sheet(self.uvs, self.triangles, 256)
+        total = np.zeros((256, 256), dtype=np.float64)
+        for cell in self.plan["cells"]:
+            weights, _ = smooth_weights(sheet, self.triangles, cell["vertex_weights"], cell["faces"])
+            total += weights
+        laid = total[sheet["rows"], sheet["columns"]]
+        np.testing.assert_allclose(laid, 1.0, atol=1e-4)
+
+    def test_a_face_the_section_did_not_paint_weighs_nothing(self):
+        sheet = face_sheet(self.uvs, self.triangles, 256)
+        cell = dict(self.plan["cells"][0])
+        cell["faces"] = np.zeros(len(self.triangles), dtype=bool)
+        weights, mask = smooth_weights(sheet, self.triangles, cell["vertex_weights"], cell["faces"])
+        self.assertEqual(float(weights.max()), 0.0)
+        self.assertFalse(mask.any())
+
+
+class StudioPainterPinTests(unittest.TestCase):
+    def test_the_launcher_and_the_catalog_pin_the_studio_painter_as_it_is(self):
+        import hashlib  # noqa: PLC0415
+        import re  # noqa: PLC0415
+        runner = ROOT / "workflows" / "texture" / "hunyuan3d21" / "run_hy3d21_studio.py"
+        actual = hashlib.sha256(runner.read_bytes()).hexdigest().upper()
+        launcher = (ROOT / "scripts" / "run_hy3d21_texture.ps1").read_text(encoding="utf-8")
+        self.assertEqual(re.search(r"\$expectedStudioRunnerHash = '([0-9A-F]{64})'", launcher).group(1), actual)
+        catalog = json.loads((ROOT / "workflows" / "catalog.json").read_text(encoding="utf-8"))
+        entry = next(item for item in catalog["routes"] if item.get("id") == "hunyuan3d21_studio_runner") \
+            if "routes" in catalog else None
+        if entry is None:
+            entry = next(item for key in catalog for item in (catalog[key] if isinstance(catalog[key], list) else [])
+                         if isinstance(item, dict) and item.get("id") == "hunyuan3d21_studio_runner")
+        self.assertEqual(entry["sha256"].upper(), actual)
+
+    def test_the_studio_painter_offers_an_8192_sheet_and_a_bake_size(self):
+        source = (ROOT / "workflows" / "texture" / "hunyuan3d21" / "run_hy3d21_studio.py").read_text(encoding="utf-8")
+        self.assertIn("choices=(2048, 4096, 8192)", source)
+        self.assertIn('"--bake-size"', source)
+        self.assertIn("def bake_at_texel_scale", source)

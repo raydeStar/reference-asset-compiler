@@ -46,13 +46,18 @@ rather than editing them in place:
      in host memory while the VAE encodes the reference and the normal and
      position views, so 12 views x 768 fits a 10 GiB allocator (a 12 GB card).
 
+  7. With --bake-size, every view is shrunk to about a texel a pixel before it
+     is baked, so a texel's one sample is an average and not a random pore of a
+     view far finer than the sheet (see bake_at_texel_scale). --atlas 8192
+     computes and writes the sheet at 8192.
+
 The UV lock, the local model snapshots, the validation gate and its 1e-6
 tolerances match the legacy runner exactly, because those parts were right.
 
 Usage:
   <venv-hy3d21>\\python.exe run_hy3d21_studio.py <mesh.obj> <reference.png> \\
-      <output.obj> [--views 12] [--resolution 768] [--atlas 4096] [--legacy-root PATH]
-      [--release-stages]
+      <output.obj> [--views 12] [--resolution 768] [--atlas 4096|8192] [--legacy-root PATH]
+      [--release-stages] [--bake-size N]
 """
 
 from __future__ import annotations
@@ -85,7 +90,10 @@ parser.add_argument("--views", type=int, default=6, choices=range(6, 13))
 parser.add_argument("--smooth-conditioning-normals", action="store_true",
                     help="Use seam-independent vertex normals for organic character conditioning; default keeps face normals")
 parser.add_argument("--resolution", type=int, default=512, choices=(512, 768))
-parser.add_argument("--atlas", type=int, default=4096, choices=(2048, 4096),
+parser.add_argument("--bake-size", type=int, default=0,
+                    help="Shrink every view to this many pixels, with an antialiasing filter, before it "
+                         "is baked: about one pixel a texel. 0 keeps upstream's sizes.")
+parser.add_argument("--atlas", type=int, default=4096, choices=(2048, 4096, 8192),
                     help="The sheet the maps are written at. The pipeline computes 4096 "
                          "either way; 2048 is upstream's downsample.")
 parser.add_argument(
@@ -266,6 +274,32 @@ def inpaint_while_baking(painter):
     view_processor.bake_from_multiview = bake_then_start_inpaint
     view_processor.texture_inpaint = finish_inpaint
 
+def bake_at_texel_scale(painter, size):
+    """Bake each view from about one pixel a texel, not from far finer.
+
+    The bake gives each texel one bilinear sample of a view. Upstream bakes from
+    the views as upscaled four times (3072 pixels for 768), and its resize to
+    `render_size` reaches only the first two views: the loop counts the two map
+    kinds, not the twelve views. On a whole model a 3072 view is near a texel a
+    pixel and the sample is smooth. On a half-metre section the same view is
+    0.2 mm a pixel against 1.75 mm texels, each texel takes one pore at random,
+    and the skiff's wood came out as broken dashes and single-texel specks.
+    Shrinking each view first, with an antialiasing filter, makes the sample an
+    average: on the same section the speckle measure halved and the grain ran as
+    continuous lines again. At an 8192 sheet it is the painter's own detail.
+    """
+    from PIL import Image as PilImage  # noqa: PLC0415
+
+    baked = painter.view_processor.bake_from_multiview
+
+    def bake_shrunk(images, *bake_args, **bake_kwargs):
+        images = [image.resize((size, size), PilImage.LANCZOS) for image in images]
+        return baked(images, *bake_args, **bake_kwargs)
+
+    painter.view_processor.bake_from_multiview = bake_shrunk
+    print("HY3D21_BAKE_SIZE", size, flush=True)
+
+
 # --- local model snapshots -------------------------------------------------
 model_root = LEGACY / "models" / "hy3d21"
 paint_snapshot = model_root / "Hunyuan3D-2.1"
@@ -407,6 +441,9 @@ def release_between_stages(painter):
 
 
 config = Hunyuan3DPaintConfig(args.views, args.resolution)
+if args.atlas == 8192:
+    # Upstream computes at 4096 whatever is asked; a sheet of 8192 is computed at 8192.
+    config.texture_size = 8192
 config.multiview_cfg_path = str(PAINT_ROOT / "cfgs" / "hunyuan-paint-pbr.yaml")
 config.custom_pipeline = str(PAINT_ROOT / "hunyuanpaintpbr")
 config.realesrgan_ckpt_path = str(realesrgan)
@@ -420,6 +457,8 @@ try:
     painter = Hunyuan3DPaintPipeline(config)
     torch.cuda.reset_peak_memory_stats()
     inpaint_while_baking(painter)
+    if args.bake_size:
+        bake_at_texel_scale(painter, args.bake_size)
     if args.release_stages:
         release_between_stages(painter)
     if args.smooth_conditioning_normals:
@@ -465,6 +504,7 @@ report = {
     "resolution": args.resolution,
     "texture_size": int(config.texture_size),
     "atlas": args.atlas,
+    "bake_size": args.bake_size,
     "downsample_disabled": args.atlas != 2048,
     "map_format": "png",
     "maps": written,

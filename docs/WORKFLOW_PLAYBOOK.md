@@ -436,6 +436,13 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   surface a painted pixel on a 2 to 3 m prop. To reach a small prop's 0.6 to
   1 mm, cut finer and overlap less: `--section 0.45 --overlap 0.2 --context
   0.05 --max-sections 48` put a 2.2 m skiff at about 0.7 mm in 45 sections.
+- Each section's views are shrunk to about a texel a pixel before they are
+  baked (`--bake-scale 1`, the default; 0 bakes them as upstream does). A
+  section seen far finer than the sheet holds otherwise breaks its grain into
+  single-texel specks. For detail that holds up at arm's length, paint the
+  first paint and the sections on an 8192 sheet (`--atlas 8192` on both
+  stages): a 2.2 m skiff goes from 1.75 mm to about 0.9 mm a texel at the same
+  painting time. Compress for a browser afterwards; the maps are large.
 - The stage gets four hours from `run-stage` unless `--timeout` says otherwise;
   every other stage gets one. A pass that was stopped anyway resumes with
   `--reuse-sections <the stopped attempt directory>`: a section the painter
