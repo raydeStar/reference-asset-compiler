@@ -21,11 +21,17 @@ Three things keep a model painted in pieces from looking like pieces:
 - Neighbouring sections overlap, and their weights fall across the overlap so
   that every face's weights sum to one. Each section is painted with some of
   its neighbours around it, so the painter sees what continues past its edge.
-- Neighbours are matched to each other. Where two sections both painted the
-  same faces, each section's colour is scaled so they agree there. The first
-  paint is not the reference for tone: on a 2.2 m mast it came out light putty
-  where the close paint was the picture's dark iron. `--keep-tone` takes the
-  first paint's coarse tone instead, for a model whose first paint is right.
+- The design comes from the first paint. A section's painter sees too little
+  of the model to know what is iron, canvas or paint: on a 2.2 m skiff cut into
+  45 sections, the red fins, iron straps and teal paint all came back as wood.
+  So by default (`--keep-colour 0.03`) every colour coarser than a few
+  centimetres is the first paint's, and the sections add only their fine light
+  and dark: the grain, nail holes and wear, at a small prop's scale.
+- `--keep-colour 0` takes the sections' own colour instead, with neighbours
+  matched to each other where they overlap. That is for a single-material model
+  whose first paint is wrong: on a 2.2 m mast the whole-model paint came out
+  light putty where the close paint was the picture's dark iron. `--keep-tone`
+  keeps the first paint's coarse colour and the sections' fine colour too.
 
 The crop follows the section. The model's outline is matched against the
 figure's outline in the picture to learn which way the model faces in it, and
@@ -39,7 +45,7 @@ GPU time is spent on it.
 Usage:
   python scripts/paint_sections.py -- <painted.glb> <output.glb> <report.json> \\
       --reference <image> --legacy-root <studio tree> \\
-      [--section 0.6] [--overlap 0.25] [--keep-tone 0] [--min-length 1.2] \\
+      [--section 0.6] [--overlap 0.25] [--keep-colour 0.03] [--min-length 1.2] \\
       [--max-sections 12] [--views 12] [--resolution 768] [--atlas 4096] [--plan-only]
 """
 
@@ -104,10 +110,13 @@ def parse_arguments(argv):
     parser.add_argument("--context", type=float, default=0.1,
                         help="How much more of the model each section's painter sees past the "
                              "overlap, as a fraction of a section; painted but not used")
+    parser.add_argument("--keep-colour", type=float, default=0.03,
+                        help="Colour coarser than this many metres is the first paint's, and the "
+                             "sections add only their fine light and dark. 0 takes the sections' "
+                             "own colour, matched to each other.")
     parser.add_argument("--keep-tone", type=float, default=0.0,
-                        help="Tone coarser than this many metres comes from the first paint and "
-                             "finer detail from the sections. 0, the default, takes everything "
-                             "from the sections, matched to each other.")
+                        help="With --keep-colour 0: tone coarser than this many metres comes from "
+                             "the first paint and finer colour from the sections.")
     parser.add_argument("--no-harmonize", action="store_true",
                         help="Do not match neighbouring sections' colour where they overlap")
     parser.add_argument("--min-length", type=float, default=1.2,
@@ -386,14 +395,35 @@ def texel_density(positions, uvs, triangles, size):
 
 
 def masked_blur(image, mask, sigma):
-    """A blur that only averages texels the mask holds, so empty atlas does not darken it."""
-    from scipy.ndimage import gaussian_filter  # noqa: PLC0415 -- a dependency of the package
+    """A blur that only averages texels the mask holds, so empty atlas does not darken it.
 
-    weight = gaussian_filter(mask.astype(np.float32), sigma)
-    out = np.empty_like(image)
-    for channel in range(image.shape[2]):
-        out[..., channel] = gaussian_filter(image[..., channel] * mask, sigma)
-    return out / np.maximum(weight, 1e-6)[..., None]
+    Computed on a sheet shrunk by about a third of the blur's width, which still
+    holds it: the tone scale is tens of texels wide, and a full-size Gaussian on
+    a 4096 sheet for each of forty-five sections took most of an hour.
+    """
+    from scipy.ndimage import gaussian_filter, zoom  # noqa: PLC0415 -- dependencies of the package
+
+    factor = max(1, int(sigma // 3))
+    height, width = mask.shape
+    rows, columns = max(1, height // factor), max(1, width // factor)
+    held = mask[: rows * factor, : columns * factor].astype(np.float32)
+    weight = held.reshape(rows, factor, columns, factor).mean(axis=(1, 3))
+    summed = (image[: rows * factor, : columns * factor] * held[..., None]).reshape(
+        rows, factor, columns, factor, image.shape[2]).mean(axis=(1, 3))
+    small_sigma = sigma / factor
+    weight = gaussian_filter(weight, small_sigma)
+    blurred = np.stack([gaussian_filter(summed[..., c], small_sigma) for c in range(image.shape[2])], axis=2)
+    low = blurred / np.maximum(weight, 1e-6)[..., None]
+    if factor == 1 and low.shape[:2] == (height, width):
+        return low.astype(np.float32)
+    up = zoom(low, (height / rows, width / columns, 1), order=1)
+    out = np.empty((height, width, image.shape[2]), dtype=np.float32)
+    out[: up.shape[0], : up.shape[1]] = up[:height, :width]
+    if up.shape[0] < height:
+        out[up.shape[0]:] = out[up.shape[0] - 1]
+    if up.shape[1] < width:
+        out[:, up.shape[1]:] = out[:, up.shape[1] - 1: up.shape[1]]
+    return out
 
 
 def harmonize(sections, limits=(0.7, 1.4), least=64):
@@ -450,7 +480,10 @@ def repad(image, covered):
     return image[rows, columns]
 
 
-def composite(base, sections, sigma, gains=None):
+LUMINANCE = np.array([0.2126, 0.7152, 0.0722], dtype=np.float32)
+
+
+def composite(base, sections, sigma, gains=None, mode="colour"):
     """Every section laid over the model, on the first paint's islands.
 
     `base` is (H, W, C) float32; `sections` is a list of (paint, weights, mask)
@@ -458,7 +491,10 @@ def composite(base, sections, sigma, gains=None):
     weights painted into UV space, and mask (bool) where the section painted at
     all. `gains` scales each section's paint first. With `sigma` texels of blur,
     tone coarser than the blur comes from the base and only finer detail from
-    each section; with 0, the sections' paint is used as it is. Texels no
+    each section: in `mode` "colour", the section's fine colour; in "light",
+    only its fine light and dark, multiplying the base's colour, so a section
+    that painted an iron strap as wood leaves the strap iron. With 0, the
+    sections' paint is used as it is. Texels no
     section reached keep the base, and the atlas padding is refilled from the
     nearest laid texel so mip levels read what the islands hold.
     """
@@ -474,7 +510,11 @@ def composite(base, sections, sigma, gains=None):
         paint = paint.astype(np.float32)
         if gains is not None:
             paint = paint * np.asarray(gains[number], dtype=np.float32)
-        if sigma > 0:
+        if sigma > 0 and mode == "light":
+            own = masked_blur(paint, mask, sigma)
+            ratio = np.clip((paint @ LUMINANCE + 4.0) / (own @ LUMINANCE + 4.0), 0.55, 1.6)
+            paint = base_tone * ratio[..., None]
+        elif sigma > 0:
             paint = base_tone + (paint - masked_blur(paint, mask, sigma))
         laid += paint * weights[..., None]
         total += weights
@@ -574,6 +614,8 @@ def main(argv=None) -> int:
         return failed("context is a fraction of a section from 0 to 0.5. Got {0}".format(args.context))
     if not 0.0 <= args.keep_tone <= 0.5:
         return failed("keep-tone runs from 0 to 0.5 metres. Got {0}".format(args.keep_tone))
+    if not 0.0 <= args.keep_colour <= 0.5:
+        return failed("keep-colour runs from 0 to 0.5 metres. Got {0}".format(args.keep_colour))
     if not 2 <= args.max_sections <= 64:
         return failed("max-sections runs from 2 to 64. Got {0}".format(args.max_sections))
 
@@ -603,7 +645,8 @@ def main(argv=None) -> int:
         "reference_sha256": sha256(args.reference),
         "extent_m": [round(float(e), 4) for e in extent],
         "settings": {"section_m": args.section, "overlap": args.overlap, "context": args.context,
-                     "keep_tone_m": args.keep_tone, "min_length_m": args.min_length,
+                     "keep_colour_m": args.keep_colour, "keep_tone_m": args.keep_tone,
+                     "min_length_m": args.min_length,
                      "max_sections": args.max_sections, "views": args.views,
                      "resolution": args.resolution, "atlas": args.atlas},
         "geometry_unchanged": True,
@@ -725,7 +768,12 @@ def main(argv=None) -> int:
         base_mr = as_pixels(Image.open(io.BytesIO(image_bytes(document, binary, metal_rough_index))),
                             size).astype(np.float32)
     density = texel_density(positions, uvs, triangles, size)
-    sigma = args.keep_tone * density if args.keep_tone > 0 else 0.0
+    keep = args.keep_colour if args.keep_colour > 0 else args.keep_tone
+    sigma = keep * density if keep > 0 else 0.0
+    # Keeping the design: the base's colour, the sections' light and dark. Their
+    # tone is the base's, so there is nothing between them to match.
+    mode = "light" if args.keep_colour > 0 else "colour"
+    harmonize_sections = not args.no_harmonize and args.keep_colour == 0
     albedo_layers, mr_layers = [], []
     for record, cell in zip(sections, plan["cells"]):
         folder = Path(record["folder"])
@@ -753,13 +801,16 @@ def main(argv=None) -> int:
                 image_bytes(section_document, section_binary, section_mr))), size), weights, mask))
 
     albedo_gains, albedo_pairs = (None, [])
-    if not args.no_harmonize:
+    if harmonize_sections:
         albedo_gains, albedo_pairs = harmonize(albedo_layers)
-    replacements = {albedo_index: png_bytes(to_image(composite(base_albedo, albedo_layers, sigma, albedo_gains)))}
+    replacements = {albedo_index: png_bytes(to_image(
+        composite(base_albedo, albedo_layers, sigma, albedo_gains, mode)))}
     mr_gains = None
     if base_mr is not None and len(mr_layers) == len(albedo_layers):
-        if not args.no_harmonize:
+        if harmonize_sections:
             mr_gains, _ = harmonize(mr_layers)
+        # Roughness and metal keep the base's layout as well, with the sections'
+        # fine variation in them: what is iron stays iron.
         replacements[metal_rough_index] = png_bytes(to_image(composite(base_mr, mr_layers, sigma, mr_gains)))
     for number, record in enumerate(sections):
         if albedo_gains is not None:
@@ -773,8 +824,10 @@ def main(argv=None) -> int:
         "atlas_size": size,
         "texels_per_metre": round(density, 1),
         "tone_blur_texels": round(sigma, 1),
-        "tone_from": "the first paint, coarser than {0} m".format(args.keep_tone) if sigma > 0
-                     else "the sections, matched to each other" if not args.no_harmonize else "the sections",
+        "tone_from": ("the first paint's colour coarser than {0} m; the sections' light and dark finer".format(
+                          args.keep_colour) if mode == "light"
+                      else "the first paint, coarser than {0} m".format(args.keep_tone) if sigma > 0
+                      else "the sections, matched to each other" if harmonize_sections else "the sections"),
         "neighbour_pairs": albedo_pairs,
         "base_colour_replaced": True,
         "metallic_roughness_replaced": metal_rough_index in replacements,

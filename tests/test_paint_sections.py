@@ -32,6 +32,7 @@ from paint_sections import (  # noqa: E402
     crop_box,
     figure_box,
     harmonize,
+    masked_blur,
     main,
     match_orientation,
     mesh_silhouette,
@@ -253,6 +254,40 @@ class CompositeTests(unittest.TestCase):
         self.assertGreater(steepest(unmatched), steepest(out) + 2.0)
 
 
+class KeepTheDesignTests(unittest.TestCase):
+    """A section's painter sees too little to know iron from wood; the first paint's colour stays."""
+
+    def test_the_first_paints_colour_survives_and_the_sections_light_and_dark_come_through(self):
+        size = 64
+        base = np.zeros((size, size, 3), np.float32)
+        base[...] = (190.0, 40.0, 35.0)                      # a red fin, as the first paint has it
+        checker = ((np.indices((size, size)).sum(axis=0) % 2) * 2 - 1).astype(np.float32) * 25
+        section = np.zeros_like(base)
+        section[...] = (130.0, 95.0, 60.0)                   # the section painted it as wood,
+        section += checker[..., None]                        # with grain in it
+        section[..., 2] += checker * 1.5                     # and the grain has its own colour
+        weights = np.ones((size, size), np.float32)
+        inner = composite(base, [(section, weights, weights > 0)], sigma=3.0, mode="light")[8:56, 8:56]
+        hue_ratio = inner[..., 0].mean() / max(inner[..., 1].mean(), 1e-3)
+        self.assertGreater(hue_ratio, 3.5)                    # still red, not wood
+        self.assertGreater(float((inner @ np.array([0.2126, 0.7152, 0.0722])).std()), 4.0)  # the detail is there
+        chroma = inner / np.maximum(inner.sum(axis=2, keepdims=True), 1e-3)
+        self.assertLess(float(chroma[..., 2].std()), 0.01)    # none of the section's colour came with it
+        # The colour mode, by contrast, lets the grain's own colour through.
+        other = composite(base, [(section, weights, weights > 0)], sigma=3.0, mode="colour")[8:56, 8:56]
+        other_chroma = other / np.maximum(other.sum(axis=2, keepdims=True), 1e-3)
+        self.assertGreater(float(other_chroma[..., 2].std()), 0.05)
+
+    def test_the_fast_blur_agrees_with_a_full_one(self):
+        from scipy.ndimage import gaussian_filter  # noqa: PLC0415
+        rng = np.random.default_rng(1)
+        image = gaussian_filter(rng.random((256, 256, 3)).astype(np.float32), (4, 4, 0)) * 255
+        mask = np.ones((256, 256), bool)
+        fast = masked_blur(image, mask, 24.0)
+        full = np.stack([gaussian_filter(image[..., c], 24.0) for c in range(3)], axis=2)
+        self.assertLess(float(np.abs(fast - full)[32:-32, 32:-32].mean()), 0.5)
+
+
 class DensityTests(unittest.TestCase):
     def test_a_metre_square_on_half_a_1024_sheet_is_512_texels_a_metre(self):
         positions = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]], dtype=np.float32)
@@ -305,6 +340,7 @@ class RunTests(unittest.TestCase):
         self.assertEqual(len(receipt["plan"]["sections"]), 4)
         self.assertEqual(receipt["orientation"]["chosen"], "+X right, +Y up")
         self.assertEqual(receipt["reason"], "plan_only")
+        self.assertEqual(receipt["settings"]["keep_colour_m"], 0.03)
         whole = receipt["plan"]["whole_model_mm_per_pixel"]
         for section in receipt["plan"]["sections"]:
             self.assertLess(section["painted_mm_per_pixel"], whole)

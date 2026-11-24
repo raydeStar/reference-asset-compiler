@@ -405,11 +405,18 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   every prop it is run on (a 2.2 m mast, 2026-11-24: the top 22% crisp and the
   picture's dark iron, the pole below flat light putty). On a prop, paint in
   sections instead of the head pass; the head pass is for figures.
-- Neighbours overlap by `--overlap` of a section, their weights sum to one on
-  every face, and each section's colour is scaled so neighbours agree where
-  both painted. The sections keep their own colour overall: on the mast the
-  whole-model paint was the wrong one. `--keep-tone 0.04` takes coarse tone
-  from the first paint instead, for a model whose first paint is right.
+- The design comes from the first paint (`--keep-colour 0.03`, the default):
+  every colour coarser than 3 cm is the whole-model paint's, and the sections
+  add only their fine light and dark. A section's painter sees too little to
+  tell iron from wood: on the AC-01.1 skiff in 45 sections, the red fins, iron
+  straps and teal paint all came back as wood, and keeping the design brought
+  them back with the sections' grain, nail holes and wear on them. The owner
+  called the result impressive (2026-11-24).
+- `--keep-colour 0` takes the sections' own colour, scaled so neighbours agree
+  where both painted. That is for a single-material model whose whole-model
+  paint is wrong: on the DK-04.2 mast it was light putty where the close paint
+  was the picture's dark iron. Neighbours overlap by `--overlap` of a section
+  and their weights sum to one on every face either way.
 - The atlas padding is refilled from the nearest painted texel, so mip levels
   do not outline the islands in the first paint's colour.
 - Which way the model faces in its picture is found by matching its outline

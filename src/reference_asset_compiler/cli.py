@@ -191,6 +191,10 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--overlap", type=float,
                        help="Paint in sections: overlap between neighbours, as a fraction of a section "
                             "(default: 0.25)")
+    stage.add_argument("--keep-colour", type=float,
+                       help="Paint in sections: colour coarser than this many metres stays the first "
+                            "paint's, the sections add their fine light and dark (default: 0.03; 0 "
+                            "takes the sections' own colour)")
     stage.add_argument("--keep-tone", type=float,
                        help="Paint in sections: tone coarser than this many metres stays the first "
                             "paint's (default: 0, the sections' own colour, matched to each other)")
@@ -431,6 +435,7 @@ def main(argv: list[str] | None = None) -> int:
                     "metallic": args.metallic,
                     "section": args.section,
                     "overlap": args.overlap,
+                    "keep_colour": args.keep_colour,
                     "keep_tone": args.keep_tone,
                     "min_length": args.min_length,
                     "max_sections": args.max_sections,
