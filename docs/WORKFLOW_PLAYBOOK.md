@@ -417,9 +417,27 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   (+X right, +Y up) is kept unless another fits clearly better. The receipt
   records the scores.
 - A model shorter than `--min-length` (1.2 m) on every side is passed through
-  byte for byte, with `painted: false` in its receipt.
-- One painter run a section, each needing 21 GiB free; a section that fails
-  fails the stage, and no half-painted model is delivered.
+  byte for byte, with `painted: false` and `reason: shorter_than_min_length`
+  in its receipt; every receipt carries `whole_model_mm_per_pixel`.
+- One painter run a section, about 2.5 minutes each on the 4090 (the stage
+  listing carries this as `estimate`), each needing 21 GiB free; a section that
+  fails fails the stage, and no half-painted model is delivered.
+- `--max-sections` counts sections that are painted; a cell of the grid the
+  model does not reach costs nothing. Crops fit the model's extremes to the
+  figure's on each axis, and are never smaller than a fifth of the figure.
+- How fine: the defaults (0.6 m sections, a cap of 12) roughly halve the
+  surface a painted pixel on a 2 to 3 m prop. To reach a small prop's 0.6 to
+  1 mm, cut finer and overlap less: `--section 0.45 --overlap 0.2 --context
+  0.05 --max-sections 48` put a 2.2 m skiff at about 0.7 mm in 45 sections.
+
+Finish a section-painted model with the detail bake, relief calibrated to a
+steepness rather than a strength: `rac run-stage bake-detail ... --resolution
+2048 --relief-tilt 6`. The same `--relief-from-paint 1` that suits a calm paint
+tilted the section-painted mast's normals 41 degrees at the 90th percentile
+(orange peel); `--relief-tilt 6` gave 1.3 / 6 / 23 degrees at the median, 90th
+and 99th percentiles, against 1.1 / 4.5 / 19 on the finished dock claw. Edge
+wear needs a curvature map as large as the base colour, so leave it off on a
+4096 paint.
 - Above about 4 m one 4096 sheet cannot hold the detail however well it is
   painted (a 15 m hull is about 4 mm a texel). Split such a piece into
   modules at acquisition instead.

@@ -3276,3 +3276,9 @@ The painter sees a whole model through twelve 768-pixel views whatever its size.
 ## 2026-11-24 · The head pass leaves a seam on a prop, and the first paint is not the tone to keep
 
 The hero route repaints the top 22% of every model at close range, for faces. On a 2.2 m mast (DK-04.2) the owner found a hard line: above it crisp, and the picture's dark iron; below it flat light putty, the whole-model paint. Two lessons. A face left with the first paint beside a closer paint is a seam, so a section pass paints every face. And the whole-model paint is the less trustworthy colour on a large or thin model, so sections keep their own colour and are matched to each other where they overlap, not to the first paint. Run the head pass on figures only.
+
+
+<!-- relief-tilt-20261124 -->
+## 2026-11-24 · A relief strength means nothing across paints; a steepness does
+
+Relief from paint raises the paint's local contrast into a normal map, so the same strength gives a calm surface on a smooth paint and orange peel on a busy one. On the section-painted Frastown mast, strength 1 tilted the normals 41 degrees at the 90th percentile where the finished dock claw tilts 4.5. Ask for a steepness instead (`--relief-tilt`) and measure the result against a model the owner has accepted.

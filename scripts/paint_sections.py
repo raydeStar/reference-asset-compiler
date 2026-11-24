@@ -612,8 +612,15 @@ def main(argv=None) -> int:
         "production_grade": False,
     }
 
-    def finish(painted: bool, note: str) -> int:
+    # What the whole-model paint gave each pixel, about: the longest side, with
+    # the painter's framing margin, over one view. In every receipt, painted or
+    # not, so a consumer can say what passing a model through means.
+    report["whole_model_mm_per_pixel"] = round(float(extent.max()) * 1.1 / args.resolution * 1000.0, 2)
+
+    def finish(painted: bool, note: str, reason: str | None = None) -> int:
         report["painted"] = painted
+        # A word a program can act on; the note says it in a sentence.
+        report["reason"] = reason
         report["note"] = note
         report["seconds"] = round(time.monotonic() - started, 1)
         if args.output.is_file():
@@ -629,7 +636,7 @@ def main(argv=None) -> int:
             args.output.write_bytes(raw)
         return finish(False, "the model is {0:.2f} m at its longest, under {1} m: the whole-model "
                              "paint already sees it at section scale, so it is passed through "
-                             "unchanged".format(float(extent.max()), args.min_length))
+                             "unchanged".format(float(extent.max()), args.min_length), "shorter_than_min_length")
 
     if not args.plan_only:
         if not args.launcher.is_file():
@@ -671,7 +678,7 @@ def main(argv=None) -> int:
         if not args.plan_only:
             args.output.parent.mkdir(parents=True, exist_ok=True)
             args.output.write_bytes(raw)
-        return finish(False, "the model fits one section, so it is passed through unchanged")
+        return finish(False, "the model fits one section, so it is passed through unchanged", "fits_one_section")
     points = project(positions, frame)
     model_low, model_high = points.min(axis=0), points.max(axis=0)
     whole_mm = float(extent.max()) * 1.1 / args.resolution * 1000.0
@@ -708,7 +715,7 @@ def main(argv=None) -> int:
         return finish(False, "planned {0} sections ({1}) at about {2:.1f} mm a painted pixel, down "
                              "from {3:.1f}; nothing painted".format(
                                  len(sections), " x ".join(map(str, plan["counts"])),
-                                 max(s["painted_mm_per_pixel"] for s in sections), whole_mm))
+                                 max(s["painted_mm_per_pixel"] for s in sections), whole_mm), "plan_only")
 
     size = Image.open(io.BytesIO(image_bytes(document, binary, albedo_index))).size[0]
     base_albedo = as_pixels(Image.open(io.BytesIO(image_bytes(document, binary, albedo_index))),

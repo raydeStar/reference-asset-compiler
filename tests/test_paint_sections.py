@@ -281,6 +281,8 @@ class RunTests(unittest.TestCase):
         self.assertEqual(output.read_bytes(), source.read_bytes())
         receipt = json.loads(report.read_text(encoding="utf-8"))
         self.assertFalse(receipt["painted"])
+        self.assertEqual(receipt["reason"], "shorter_than_min_length")
+        self.assertGreater(receipt["whole_model_mm_per_pixel"], 0)
         self.assertEqual(receipt["output_sha256"], receipt["source_sha256"])
 
     def test_a_plan_names_its_sections_and_crops_without_painting(self):
@@ -302,6 +304,7 @@ class RunTests(unittest.TestCase):
         self.assertEqual(receipt["plan"]["grid"], [4, 1, 1])
         self.assertEqual(len(receipt["plan"]["sections"]), 4)
         self.assertEqual(receipt["orientation"]["chosen"], "+X right, +Y up")
+        self.assertEqual(receipt["reason"], "plan_only")
         whole = receipt["plan"]["whole_model_mm_per_pixel"]
         for section in receipt["plan"]["sections"]:
             self.assertLess(section["painted_mm_per_pixel"], whole)
@@ -342,6 +345,13 @@ class PreparationTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("--keep-tone") + 1], "0.03")
         self.assertEqual(arguments[arguments.index("--max-sections") + 1], "8")
         self.assertNotIn("--overlap", arguments)
+
+    def test_the_listing_says_how_long_a_section_takes(self):
+        from reference_asset_compiler.stages import describe_stages  # noqa: PLC0415
+        listing = describe_stages(ROOT, None, self.legacy)
+        entry = next(stage for stage in listing["stages"] if stage["stage"] == "paint-sections")
+        self.assertEqual(entry["estimate"]["unit"], "section")
+        self.assertGreater(entry["estimate"]["minutes"], 0)
 
     def test_without_a_reference_it_refuses(self):
         with self.assertRaises(StageError):

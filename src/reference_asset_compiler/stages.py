@@ -370,6 +370,10 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Paint a large model again in sections of about half a metre and lay them over "
                    "its first paint. One painter run a section; needs a GPU with 21 GiB free.",
         "produces": "reference-asset-compiler.section-detail-paint.v1",
+        # Measured on an RTX 4090 on 2026-11-24: six mast sections in 11.6
+        # minutes, forty-five skiff sections at about two and a half each. A
+        # consumer quotes a cost and sets a timeout from this, not from a guess.
+        "estimate": {"unit": "section", "minutes": 2.5, "free_vram_mib": 21504},
     },
 }
 
@@ -427,6 +431,10 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # where everything else is a .glb.
             "output_suffix": stage.get("output_suffix", ".glb"),
         }
+        if "estimate" in stage:
+            # How long one unit of the stage's work takes, where that varies by
+            # model: a consumer multiplies it out rather than hard-coding it.
+            described["estimate"] = dict(stage["estimate"])
         if "assign" in stage.get("options", ()) and root is not None:
             # The surfaces a caller may ask for, offered from the one table the
             # stage itself applies, so nobody is ever choosing from a stale list.
