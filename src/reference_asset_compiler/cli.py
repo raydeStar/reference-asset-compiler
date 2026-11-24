@@ -189,8 +189,8 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Paint in sections: overlap between neighbours, as a fraction of a section "
                             "(default: 0.25)")
     stage.add_argument("--keep-tone", type=float,
-                       help="Paint in sections: detail coarser than this many metres stays the first "
-                            "paint's (default: 0.04; 0 takes everything from the sections)")
+                       help="Paint in sections: tone coarser than this many metres stays the first "
+                            "paint's (default: 0, the sections' own colour, matched to each other)")
     stage.add_argument("--min-length", type=float,
                        help="Paint in sections: a model shorter than this is passed through (default: 1.2)")
     stage.add_argument("--max-sections", type=int,

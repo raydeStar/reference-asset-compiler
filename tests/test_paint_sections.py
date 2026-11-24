@@ -31,6 +31,7 @@ from paint_sections import (  # noqa: E402
     composite,
     crop_box,
     figure_box,
+    harmonize,
     main,
     match_orientation,
     mesh_silhouette,
@@ -60,8 +61,11 @@ def strip(length=2.4, width=0.3, columns=48):
             np.array(triangles, dtype=np.int64))
 
 
-def ell():
-    """An L in the picture plane: a long arm along +X and a short one up +Y. No symmetry."""
+def ell(step=0.1):
+    """An L in the picture plane: a long arm along +X and a short one up +Y. No symmetry.
+
+    Tiled in squares `step` across, so a section holds a realistic number of faces.
+    """
     positions, triangles = [], []
 
     def quad(x0, y0, x1, y1):
@@ -69,8 +73,13 @@ def ell():
         positions.extend([[x0, y0, 0.0], [x1, y0, 0.0], [x1, y1, 0.0], [x0, y1, 0.0]])
         triangles.extend([[start, start + 1, start + 2], [start, start + 2, start + 3]])
 
-    quad(0.0, 0.0, 2.0, 0.4)
-    quad(0.0, 0.4, 0.4, 1.2)
+    def tiles(x0, y0, x1, y1):
+        for x in np.arange(x0, x1 - 1e-9, step):
+            for y in np.arange(y0, y1 - 1e-9, step):
+                quad(x, y, x + step, y + step)
+
+    tiles(0.0, 0.0, 2.0, 0.4)
+    tiles(0.0, 0.4, 0.4, 1.2)
     return np.array(positions, dtype=np.float32), np.array(triangles, dtype=np.int64)
 
 
@@ -119,6 +128,18 @@ class CuttingTests(unittest.TestCase):
         # the top right of the L's box holds no face at all
         self.assertTrue(plan["skipped"])
         self.assertLess(len(plan["cells"]), int(np.prod(plan["counts"])))
+
+    def test_faces_of_a_cell_too_small_to_paint_go_to_their_nearest_neighbour(self):
+        positions, triangles = ell()
+        # with a high floor the cells the L only clips are folded into their neighbours
+        plan = plan_sections(positions, triangles, 0.5, 0.25, 0.1, 12, min_faces=12)
+        self.assertTrue(plan["skipped"])
+        total = sum(cell["weights"] for cell in plan["cells"])
+        np.testing.assert_allclose(total, 1.0, atol=1e-6)
+        painted = np.zeros(len(triangles), dtype=bool)
+        for cell in plan["cells"]:
+            painted |= cell["faces"]
+        self.assertTrue(painted.all())
 
 
 class OrientationTests(unittest.TestCase):
@@ -171,7 +192,7 @@ class CompositeTests(unittest.TestCase):
         self.section = self.base + 40.0 + checker[..., None]
         self.weights = np.zeros((size, size), dtype=np.float32)
         self.weights[:, :32] = 1.0
-        self.mask = self.weights.copy()
+        self.mask = self.weights > 0
 
     def test_the_first_paints_tone_survives_and_the_sections_detail_comes_through(self):
         out = composite(self.base, [(self.section, self.weights, self.mask)], sigma=3.0)
@@ -183,15 +204,39 @@ class CompositeTests(unittest.TestCase):
         out = composite(self.base, [(self.section, self.weights, self.mask)], sigma=0.0)
         np.testing.assert_allclose(out[:, :32], self.section[:, :32], atol=1e-3)
 
-    def test_outside_every_section_the_first_paint_is_untouched(self):
-        out = composite(self.base, [(self.section, self.weights, self.mask)], sigma=3.0)
-        np.testing.assert_array_equal(out[:, 32:], self.base[:, 32:])
+    def test_the_padding_outside_every_island_is_refilled_from_the_nearest_painted_texel(self):
+        # what a mip level reads at an island's edge must be the section's colour, not the first paint's
+        out = composite(self.base, [(self.section, self.weights, self.mask)], sigma=0.0)
+        np.testing.assert_allclose(out[:, 32:], np.repeat(self.section[:, 31:32], 32, axis=1), atol=1e-3)
 
     def test_where_two_sections_both_reach_they_share(self):
         other = self.base - 30.0
         both = np.ones_like(self.weights)
-        out = composite(self.base, [(self.section, both, both), (other, both, both)], sigma=0.0)
+        out = composite(self.base, [(self.section, both, both > 0), (other, both, both > 0)], sigma=0.0)
         np.testing.assert_allclose(out, (self.section + other) / 2.0, atol=1e-3)
+
+    def test_neighbours_painted_a_shade_apart_are_matched_where_they_overlap(self):
+        size = 64
+        left = np.zeros((size, size), dtype=np.float32)
+        left[:, :36] = 1.0
+        right = np.zeros((size, size), dtype=np.float32)
+        right[:, 28:] = 1.0
+        # weights fall across the shared columns and sum to one
+        ramp = np.clip((np.arange(size) - 28) / 8.0, 0, 1).astype(np.float32)
+        weights_left, weights_right = left * (1 - ramp), right * ramp
+        warm = np.clip(self.base * 1.25, 0, 255)
+        sections = [(self.base, weights_left, left > 0), (warm, weights_right, right > 0)]
+        gains, pairs = harmonize(sections)
+        self.assertEqual(len(pairs), 1)
+        self.assertAlmostEqual(float(np.prod(gains[:, 0])), 1.0, places=3)   # the sections' own colour overall
+        self.assertAlmostEqual(float(gains[1, 0] / gains[0, 0]), 0.8, places=2)
+        out = composite(self.base, sections, sigma=0.0, gains=gains)
+        unmatched = composite(self.base, sections, sigma=0.0)
+
+        def steepest(image):
+            return float(np.abs(np.diff(image[:, 24:40, 0], axis=1)).mean(axis=0).max())
+
+        self.assertGreater(steepest(unmatched), steepest(out) + 2.0)
 
 
 class DensityTests(unittest.TestCase):

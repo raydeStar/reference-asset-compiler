@@ -12,15 +12,20 @@ picture, and laid back over the first paint on the same UVs. It is the head pass
 (paint_head_detail.py) run across the whole model, and it reuses that pass's mesh
 reading, OBJ transport and compositing.
 
-Two things keep a model painted in pieces from looking like one:
+Three things keep a model painted in pieces from looking like pieces:
 
-- Tone comes from the first paint. What is coarser than a few centimetres is taken
-  from the whole-model paint, and only what is finer comes from a section. A
-  section painted a shade warmer than its neighbour therefore does not show as a
-  patch, while its plank lines, rivets and scuffs do.
+- Every face is painted at section scale. None is left with the first paint
+  beside a section's, because that boundary is a seam: the hero route's head
+  pass leaves exactly one on a prop, crisp and the reference's colour above
+  it, flat and the wrong colour below.
 - Neighbouring sections overlap, and their weights fall across the overlap so
-  that every face's weights sum to one. Each section is painted with some of its
-  neighbours around it, so the painter sees what continues past its edge.
+  that every face's weights sum to one. Each section is painted with some of
+  its neighbours around it, so the painter sees what continues past its edge.
+- Neighbours are matched to each other. Where two sections both painted the
+  same faces, each section's colour is scaled so they agree there. The first
+  paint is not the reference for tone: on a 2.2 m mast it came out light putty
+  where the close paint was the picture's dark iron. `--keep-tone` takes the
+  first paint's coarse tone instead, for a model whose first paint is right.
 
 The crop follows the section. The model's outline is matched against the
 figure's outline in the picture to learn which way the model faces in it, and
@@ -34,7 +39,7 @@ GPU time is spent on it.
 Usage:
   python scripts/paint_sections.py -- <painted.glb> <output.glb> <report.json> \\
       --reference <image> --legacy-root <studio tree> \\
-      [--section 0.6] [--overlap 0.25] [--keep-tone 0.04] [--min-length 1.2] \\
+      [--section 0.6] [--overlap 0.25] [--keep-tone 0] [--min-length 1.2] \\
       [--max-sections 12] [--views 12] [--resolution 768] [--atlas 4096] [--plan-only]
 """
 
@@ -99,9 +104,12 @@ def parse_arguments(argv):
     parser.add_argument("--context", type=float, default=0.1,
                         help="How much more of the model each section's painter sees past the "
                              "overlap, as a fraction of a section; painted but not used")
-    parser.add_argument("--keep-tone", type=float, default=0.04,
-                        help="Detail coarser than this many metres comes from the first paint, "
-                             "finer from the sections. 0 takes everything from the sections.")
+    parser.add_argument("--keep-tone", type=float, default=0.0,
+                        help="Tone coarser than this many metres comes from the first paint and "
+                             "finer detail from the sections. 0, the default, takes everything "
+                             "from the sections, matched to each other.")
+    parser.add_argument("--no-harmonize", action="store_true",
+                        help="Do not match neighbouring sections' colour where they overlap")
     parser.add_argument("--min-length", type=float, default=1.2,
                         help="A model shorter than this on every side is passed through unchanged")
     parser.add_argument("--max-sections", type=int, default=12,
@@ -259,7 +267,10 @@ def plan_sections(positions, triangles, section, overlap, context, max_sections,
     all cells sum to exactly one. A cell paints the faces it weighs, plus
     `context` of a section more on each side so its edge is not its painter's.
     A cell weighing fewer than `min_faces` faces -- a corner of the box the
-    model barely reaches -- is not painted; its faces keep the first paint.
+    model barely reaches -- is not painted on its own: its faces go to the
+    nearest cell that is, so every face is still painted at section scale and
+    none is left with the first paint beside a section's (that boundary is the
+    seam the head pass leaves on a prop).
     """
     centroids = positions[triangles].mean(axis=1).astype(np.float64)
     low, high = positions.min(axis=0).astype(np.float64), positions.max(axis=0).astype(np.float64)
@@ -289,6 +300,21 @@ def plan_sections(positions, triangles, section, overlap, context, max_sections,
             continue
         cells.append({"index": list(index), "core_m": core, "faces": painted,
                       "weights": weight.astype(np.float32)})
+    if cells and skipped:
+        # What the skipped cells weighed goes to the nearest painted cell.
+        deficit = 1.0 - sum(cell["weights"].astype(np.float64) for cell in cells)
+        orphans = np.where(deficit > 1e-6)[0]
+        if orphans.size:
+            distance = np.empty((len(cells), orphans.size))
+            for number, cell in enumerate(cells):
+                core = np.array(cell["core_m"], dtype=np.float64)
+                outside = np.maximum(core[:, 0] - centroids[orphans], centroids[orphans] - core[:, 1])
+                distance[number] = (np.maximum(outside, 0.0) ** 2).sum(axis=1)
+            nearest = distance.argmin(axis=0)
+            for number, cell in enumerate(cells):
+                taken = orphans[nearest == number]
+                cell["weights"][taken] += deficit[taken].astype(np.float32)
+                cell["faces"][taken] = True
     return {"counts": counts, "section_m": size, "extent_m": extent, "cells": cells, "skipped": skipped}
 
 
@@ -352,23 +378,84 @@ def masked_blur(image, mask, sigma):
     return out / np.maximum(weight, 1e-6)[..., None]
 
 
-def composite(base, sections, sigma):
-    """The first paint with every section laid over it.
+def harmonize(sections, limits=(0.7, 1.4), least=64):
+    """Per-section, per-channel gains that make neighbours agree where both painted.
+
+    For every pair of sections that painted the same texels, the means of the
+    two paints there should match once each is scaled by its gain. Solved in
+    log space by least squares over every such pair, weighted by how much they
+    share, with the gains' geometric mean held at one so the model keeps the
+    sections' own overall colour. Returns (gains (n, 3), pairs used).
+    """
+    count = len(sections)
+    rows, targets, weights, pairs = [], [], [], []
+    for i in range(count):
+        for j in range(i + 1, count):
+            shared = sections[i][2] & sections[j][2]
+            texels = int(shared.sum())
+            if texels < least:
+                continue
+            mean_i = sections[i][0][shared].astype(np.float64).mean(axis=0) + 1.0
+            mean_j = sections[j][0][shared].astype(np.float64).mean(axis=0) + 1.0
+            row = np.zeros(count)
+            row[i], row[j] = 1.0, -1.0
+            rows.append(row)
+            targets.append(np.log(mean_j) - np.log(mean_i))
+            weights.append(np.sqrt(texels))
+            pairs.append({"sections": [i, j], "shared_texels": texels,
+                          "difference": [round(float(v), 2) for v in (mean_j - mean_i)]})
+    if not rows:
+        return np.ones((count, 3)), pairs
+    weights = np.array(weights)
+    anchor = np.ones(count) * weights.max() * 10.0
+    matrix = np.vstack([np.array(rows) * weights[:, None], anchor])
+    gains = np.ones((count, 3))
+    for channel in range(3):
+        target = np.concatenate([np.array(targets)[:, channel] * weights, [0.0]])
+        solution = np.linalg.lstsq(matrix, target, rcond=None)[0]
+        gains[:, channel] = np.clip(np.exp(solution), *limits)
+    return gains, pairs
+
+
+def repad(image, covered):
+    """Fill the atlas outside every island from its nearest painted texel.
+
+    The padding round an island is what a mip level or a bilinear sample at its
+    edge reads. Left as the first paint's, a section painted a different colour
+    would show its islands' outlines from a distance.
+    """
+    from scipy.ndimage import distance_transform_edt  # noqa: PLC0415
+
+    if covered.all() or not covered.any():
+        return image
+    _, (rows, columns) = distance_transform_edt(~covered, return_indices=True)
+    return image[rows, columns]
+
+
+def composite(base, sections, sigma, gains=None):
+    """Every section laid over the model, on the first paint's islands.
 
     `base` is (H, W, C) float32; `sections` is a list of (paint, weights, mask)
-    with paint at the base's size, weights the section's face weights painted
-    into UV space, and mask where the section painted at all. With `sigma`
-    texels of blur, tone coarser than the blur comes from the base and only
-    finer detail from each section; with 0, the sections' paint is used as is.
+    with paint at the base's size (uint8 or float), weights the section's face
+    weights painted into UV space, and mask (bool) where the section painted at
+    all. `gains` scales each section's paint first. With `sigma` texels of blur,
+    tone coarser than the blur comes from the base and only finer detail from
+    each section; with 0, the sections' paint is used as it is. Texels no
+    section reached keep the base, and the atlas padding is refilled from the
+    nearest laid texel so mip levels read what the islands hold.
     """
     total = np.zeros(base.shape[:2], dtype=np.float32)
     laid = np.zeros_like(base)
-    everywhere = np.zeros(base.shape[:2], dtype=np.float32)
-    for _, _, mask in sections:
-        everywhere = np.maximum(everywhere, mask)
-    base_tone = masked_blur(base, everywhere, sigma) if sigma > 0 else None
-    for paint, weights, mask in sections:
+    base_tone = None
+    if sigma > 0:
+        everywhere = np.zeros(base.shape[:2], dtype=bool)
+        for _, _, mask in sections:
+            everywhere |= mask
+        base_tone = masked_blur(base, everywhere, sigma)
+    for number, (paint, weights, mask) in enumerate(sections):
         paint = paint.astype(np.float32)
+        if gains is not None:
+            paint = paint * np.asarray(gains[number], dtype=np.float32)
         if sigma > 0:
             paint = base_tone + (paint - masked_blur(paint, mask, sigma))
         laid += paint * weights[..., None]
@@ -376,7 +463,8 @@ def composite(base, sections, sigma):
     # Grown masks can overlap at island edges; there the sections share.
     share = np.maximum(total, 1.0)
     covered = np.minimum(total, 1.0)[..., None]
-    return base * (1.0 - covered) + laid / share[..., None] * np.where(total[..., None] > 0, 1.0, 0.0)
+    out = base * (1.0 - covered) + laid / share[..., None]
+    return repad(out, total > 0)
 
 
 def as_pixels(image: Image.Image, size):
@@ -630,8 +718,7 @@ def main(argv=None) -> int:
         section_document, section_binary = read_glb(glb.read_bytes())
         section_pbr = section_document["materials"][0].get("pbrMetallicRoughness", {})
         weights = grow(rasterize_weights(uvs, triangles, cell["weights"], size), 2)
-        mask = grow(rasterize_weights(uvs, triangles, cell["faces"].astype(np.float32), size), 2)
-        weights = np.minimum(weights, mask)
+        mask = grow(rasterize_weights(uvs, triangles, cell["faces"].astype(np.float32), size), 2) > 0
         section_albedo = texture_image(section_document, section_pbr.get("baseColorTexture"))
         albedo_layers.append((as_pixels(Image.open(io.BytesIO(
             image_bytes(section_document, section_binary, section_albedo))), size), weights, mask))
@@ -640,9 +727,20 @@ def main(argv=None) -> int:
             mr_layers.append((as_pixels(Image.open(io.BytesIO(
                 image_bytes(section_document, section_binary, section_mr))), size), weights, mask))
 
-    replacements = {albedo_index: png_bytes(to_image(composite(base_albedo, albedo_layers, sigma)))}
+    albedo_gains, albedo_pairs = (None, [])
+    if not args.no_harmonize:
+        albedo_gains, albedo_pairs = harmonize(albedo_layers)
+    replacements = {albedo_index: png_bytes(to_image(composite(base_albedo, albedo_layers, sigma, albedo_gains)))}
+    mr_gains = None
     if base_mr is not None and len(mr_layers) == len(albedo_layers):
-        replacements[metal_rough_index] = png_bytes(to_image(composite(base_mr, mr_layers, sigma)))
+        if not args.no_harmonize:
+            mr_gains, _ = harmonize(mr_layers)
+        replacements[metal_rough_index] = png_bytes(to_image(composite(base_mr, mr_layers, sigma, mr_gains)))
+    for number, record in enumerate(sections):
+        if albedo_gains is not None:
+            record["colour_gain"] = [round(float(g), 4) for g in albedo_gains[number]]
+        if mr_gains is not None:
+            record["metal_rough_gain"] = [round(float(g), 4) for g in mr_gains[number]]
     document, rebuilt = swap_images(document, binary, replacements)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(write_glb(document, rebuilt))
@@ -650,9 +748,12 @@ def main(argv=None) -> int:
         "atlas_size": size,
         "texels_per_metre": round(density, 1),
         "tone_blur_texels": round(sigma, 1),
+        "tone_from": "the first paint, coarser than {0} m".format(args.keep_tone) if sigma > 0
+                     else "the sections, matched to each other" if not args.no_harmonize else "the sections",
+        "neighbour_pairs": albedo_pairs,
         "base_colour_replaced": True,
         "metallic_roughness_replaced": metal_rough_index in replacements,
-        "outside_every_section": "byte for byte from the first paint",
+        "padding": "refilled from the nearest painted texel",
     }
     return finish(True, "laid {0} sections over the first paint: about {1:.1f} mm a painted pixel, "
                         "down from {2:.1f}".format(len(sections),
