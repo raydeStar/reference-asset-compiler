@@ -183,6 +183,20 @@ def build_parser() -> argparse.ArgumentParser:
                        help="The least rough the head paint may leave a texel (default: 0.55)")
     stage.add_argument("--metallic", type=float,
                        help="What the head's metallic channel is set to (default: 0; negative keeps the paint's)")
+    stage.add_argument("--section", type=float,
+                       help="Paint in sections: how far across a section may be, in metres (default: 0.6)")
+    stage.add_argument("--overlap", type=float,
+                       help="Paint in sections: overlap between neighbours, as a fraction of a section "
+                            "(default: 0.25)")
+    stage.add_argument("--keep-tone", type=float,
+                       help="Paint in sections: detail coarser than this many metres stays the first "
+                            "paint's (default: 0.04; 0 takes everything from the sections)")
+    stage.add_argument("--min-length", type=float,
+                       help="Paint in sections: a model shorter than this is passed through (default: 1.2)")
+    stage.add_argument("--max-sections", type=int,
+                       help="Paint in sections: the most sections a model is cut into (default: 12)")
+    stage.add_argument("--min-free-vram", type=int,
+                       help="MiB of GPU memory the painter must find free before it starts")
     stage.add_argument("--atlas", type=int, choices=(2048, 4096),
                        help="Paint atlas size. Naming one selects the studio runner, which "
                             "writes lossless maps; unnamed, the legacy runner writes 2048 JPEG")
@@ -411,6 +425,12 @@ def main(argv: list[str] | None = None) -> int:
                     "feather": args.feather,
                     "roughness_floor": args.roughness_floor,
                     "metallic": args.metallic,
+                    "section": args.section,
+                    "overlap": args.overlap,
+                    "keep_tone": args.keep_tone,
+                    "min_length": args.min_length,
+                    "max_sections": args.max_sections,
+                    "min_free_vram": args.min_free_vram,
                     "target_triangles": args.target_triangles,
                     "voxel_resolution": args.voxel_resolution,
                     "smooth_iterations": args.smooth_iterations,
