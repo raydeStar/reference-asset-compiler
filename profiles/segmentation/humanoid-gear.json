@@ -1,0 +1,30 @@
+{
+  "schema": "reference-asset-compiler.part-vocabulary.v1",
+  "note": "The parts a geared humanoid's reference is split into for the layered build (scripts/auto_part_map.py, then scripts/revamp/raider/project_parts.py onward). phrase: the part's words in the joint query (every part in one prompt, so they compete for each box; no two phrases share a word, so a box's label maps back to its part). prompts: the part's own fuller queries, run as well. layer: where two masks overlap the higher layer wins (buckles on belts, straps on plates), except that a non-base part nested in a bigger mask at most one layer above it wins inside it. max_box: the largest box the part may take, as a fraction of the figure's bounding box. zone: where the box centre may sit, 0 at the crown and 1 at the soles of a standing figure (A or T pose; arms have no zone). single: the character has one (a waist belt, a face), so only its best box is kept. mirror: a paired part; one found on a side alone is looked for in its mirrored box and kept when the mask there matches in size and colour (within mirror_delta_e). as: written under another part's name. base: the cloth and skin everything else is worn over; unclaimed character pixels take the nearest one. body: what is left when the equipment is taken off (project_parts.py's prior for faces hidden from the front). max_width: a thin part keeps only the parts of its mask no wider than this fraction of the figure's height. rel_score: a box scoring under this share of an overlapping box of the same part is dropped. bare_skin: cloth pixels within max_delta_e (CIE Lab) of the face's median colour that touch the face or detected skin become face or skin.",
+  "parts": {
+    "buckle": {"phrase": "buckle", "prompts": ["a metal belt buckle"], "layer": 10, "max_box": 0.006, "zone": [0.3, 0.55], "single": true},
+    "boot_strap": {"phrase": "gaiter", "prompts": ["a strap buckled around the top of a boot"], "layer": 9, "max_box": 0.012, "zone": [0.7, 1.0], "mirror": true},
+    "kneepad": {"phrase": "knee pad", "prompts": ["a knee guard"], "layer": 9, "max_box": 0.03, "zone": [0.55, 0.85], "mirror": true},
+    "thigh_pouch": {"phrase": "holster", "prompts": ["a holster pouch hanging on the thigh"], "layer": 8, "max_box": 0.03, "zone": [0.42, 0.75]},
+    "pouch": {"phrase": "pouch", "prompts": ["a small pouch on the belt"], "layer": 8, "max_box": 0.025, "zone": [0.25, 0.5]},
+    "strap": {"phrase": "harness strap", "prompts": ["a leather strap"], "layer": 8, "max_box": 0.15, "max_width": 0.035},
+    "belt": {"phrase": "belt", "prompts": ["a belt around the waist"], "layer": 7, "max_box": 0.08, "zone": [0.3, 0.55], "max_width": 0.045, "single": true},
+    "plate": {"phrase": "armor plate", "prompts": ["a metal armor plate", "a shoulder pad", "a metal plate"], "layer": 7, "max_box": 0.08, "mirror": true},
+    "glove": {"phrase": "glove", "prompts": ["a glove"], "layer": 5, "max_box": 0.05, "mirror": true},
+    "beard": {"phrase": "beard", "prompts": ["a beard"], "layer": 5, "max_box": 0.03, "zone": [0.0, 0.2], "single": true},
+    "hair": {"phrase": "hair", "prompts": ["hair on the head"], "layer": 4, "max_box": 0.04, "zone": [0.0, 0.2], "single": true},
+    "face": {"phrase": "face", "prompts": ["a face"], "layer": 4, "max_box": 0.04, "zone": [0.0, 0.18], "single": true},
+    "skin": {"phrase": "forearm", "prompts": ["a bare forearm", "bare skin"], "layer": 3, "max_box": 0.02},
+    "sleeve_roll": {"phrase": "sleeve cuff", "prompts": ["a rolled up sleeve cuff", "a rolled up sleeve"], "layer": 3, "max_box": 0.03},
+    "boot": {"phrase": "boot", "prompts": ["a boot"], "layer": 2, "max_box": 0.08, "zone": [0.7, 1.0], "mirror": true},
+    "shirt": {"phrase": "shirt", "prompts": ["a shirt"], "layer": 0, "max_box": 0.4, "as": "jacket", "single": true},
+    "jacket": {"phrase": "jacket", "prompts": ["a jacket"], "layer": 1, "max_box": 0.6, "single": true},
+    "trousers": {"phrase": "trousers", "prompts": ["trousers"], "layer": 1, "max_box": 0.6, "single": true}
+  },
+  "base": ["jacket", "trousers", "boot", "skin", "face"],
+  "body": ["hair", "face", "beard", "skin", "glove", "jacket", "trousers", "boot"],
+  "box_threshold": 0.2,
+  "rel_score": 0.6,
+  "mirror_delta_e": 12,
+  "bare_skin": {"over": ["jacket", "shirt", "trousers"], "max_delta_e": 18, "min_px": 300}
+}

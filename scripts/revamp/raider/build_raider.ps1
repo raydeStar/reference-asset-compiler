@@ -21,9 +21,19 @@
     work\raider-head\textures\paint-attempt002-rough60\raider-head*   calibrated head paint
   Blender needs MPFB 2 with MakeHuman's CC0 system assets for the skin and face stages. ffmpeg muxes the video.
 
-  Stages, in order: parts, paint, hands, production, materials, landmarks, fingers, rig, skin, face, shoulders,
+  Stages, in order: labels, parts, paint, hands, production, materials, landmarks, fingers, rig, skin, face, shoulders,
   mouth, look, manny, finish, check, renders, speech. -From starts at a stage when the earlier ones are already in the run
-  folder; the default, hands, starts from the accepted -Parts and -Assembled inputs above.
+  folder; the default, hands, starts from the accepted -Parts and -Assembled inputs above. -To stops after a stage,
+  so a gate can be looked at before the next one runs.
+
+  -From labels starts from the reference picture alone, as a new character does: scripts\auto_part_map.py splits
+  <Work>\<Reference> into its parts (Grounding DINO boxes, Segment Anything masks, the vocabulary in
+  profiles\segmentation\humanoid-gear.json) under labels\, with review.jpg to check by eye, and project_parts.py
+  carries the map onto <Work>\<Dense> as face labels, with four-view part renders. parts then reads labels\ instead
+  of <Work>\<Labels>. refine_labels.py, the Raider's hand-measured clean-up, is not run. The part map is a gate:
+  run -From labels -To labels first and look at labels\review.jpg and labels\parts-*.png. The labeller needs a
+  Python with torch, transformers and segment_anything (-TorchPython, RAC_TORCH_PYTHON, else ComfyUI's
+  python_embeded under RAC_COMFYUI or C:\Comfy).
 
   -From parts rebuilds the body from the dense acquisition as well, inside the run folder: the part labels re-cut
   along smooth lines (recut_labels.py), clean shells reduced once to the production density (build_parts.py
@@ -68,8 +78,11 @@ param(
     [int] $HeadBudget = 18000,
     [int] $HandBudget = 6000,
     [string] $MannyRef = $env:RAC_MANNY_REFPOSE,
-    [ValidateSet('parts', 'paint', 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face',
-                 'shoulders', 'mouth', 'look', 'manny', 'finish', 'check', 'renders', 'speech')][string] $From = 'hands',
+    [ValidateSet('labels', 'parts', 'paint', 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin',
+                 'face', 'shoulders', 'mouth', 'look', 'manny', 'finish', 'check', 'renders', 'speech')][string] $From = 'hands',
+    [ValidateSet('labels', 'parts', 'paint', 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin',
+                 'face', 'shoulders', 'mouth', 'look', 'manny', 'finish', 'check', 'renders', 'speech')][string] $To = 'speech',
+    [string] $TorchPython = $env:RAC_TORCH_PYTHON,
     [string] $Blender = $env:RAC_BLENDER,
     [string] $FFmpeg
 )
@@ -85,10 +98,12 @@ $python = & (Join-Path $repo 'scripts\resolve_python.ps1')
 if (-not $Blender) { $Blender = (& $python (Join-Path $repo 'scripts\rac_env.py') --blender) | Select-Object -Last 1 }
 if (-not $Blender -or -not (Test-Path -LiteralPath $Blender)) { throw 'Blender not found; set RAC_BLENDER or pass -Blender.' }
 
-$stages = 'parts', 'paint', 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face', 'shoulders',
-          'mouth', 'look', 'manny', 'finish', 'check', 'renders', 'speech'
+$stages = 'labels', 'parts', 'paint', 'hands', 'production', 'materials', 'landmarks', 'fingers', 'rig', 'skin', 'face',
+          'shoulders', 'mouth', 'look', 'manny', 'finish', 'check', 'renders', 'speech'
 $start = [array]::IndexOf($stages, $From)
-function Want([string] $name) { return [array]::IndexOf($stages, $name) -ge $start }
+$end = [array]::IndexOf($stages, $To)
+if ($end -lt $start) { throw "-To $To comes before -From $From" }
+function Want([string] $name) { $i = [array]::IndexOf($stages, $name); return ($i -ge $start) -and ($i -le $end) }
 function Step([string] $name, [scriptblock] $body) {
     if (-not (Want $name)) { return }
     $log = Join-Path $out "logs\$name.log"
@@ -116,7 +131,8 @@ $fingers = Join-Path $out 'landmarks-fingers.json'
 $rigDir = Join-Path $out 'rig'; $skinDir = Join-Path $out 'skin'; $faceDir = Join-Path $out 'face'
 $shoulderDir = Join-Path $out 'shoulders'; $mouthDir = Join-Path $out 'mouth'; $final = Join-Path $out 'final'
 New-Item -ItemType Directory -Force -Path $skinDir, $faceDir, $shoulderDir, $mouthDir, $final | Out-Null
-$lineage = Get-ChildItem (Join-Path $W 'hand-src') -Filter '*.lineage.json' | Select-Object -First 1
+$lineage = if (Test-Path -LiteralPath (Join-Path $W 'hand-src')) {
+    Get-ChildItem (Join-Path $W 'hand-src') -Filter '*.lineage.json' | Select-Object -First 1 }
 # the body this run starts from: the accepted inputs, or the parts and paint this run built itself
 $partsDir = Join-Path $out 'parts'; $paintDir = Join-Path $out 'paint'
 $ownBody = (Want 'paint') -or (Test-Path -LiteralPath (Join-Path $paintDir 'pbr\raider-body.obj'))
@@ -128,11 +144,27 @@ if ($ownBody) {
     $bp = Join-Path $W $BodyPaint; $parts = Join-Path $W $BodyParts
 }
 
-Step 'parts' {
-    BF @('--python', "$here\recut_labels.py", '--', (Join-Path $W $Dense), (Join-Path $W "$Labels\face-labels.npy"),
-        (Join-Path $W "$Labels\part-names.json"), $partsDir)
+# the part labels: this run's own (labels stage) when it made them, else the accepted -Labels folder
+$labelsDir = Join-Path $out 'labels'
+$labelSrc = if ((Want 'labels') -or (Test-Path -LiteralPath (Join-Path $labelsDir 'face-labels.npy'))) { $labelsDir }
+            else { Join-Path $W $Labels }
+
+Step 'labels' {
+    if (-not $TorchPython) {
+        $comfy = if ($env:RAC_COMFYUI) { $env:RAC_COMFYUI } else { 'C:\Comfy' }
+        $TorchPython = Join-Path $comfy 'python_embeded\python.exe'
+    }
+    if (-not (Test-Path -LiteralPath $TorchPython)) { throw "No Python with torch at $TorchPython; pass -TorchPython." }
+    & $TorchPython (Join-Path $repo 'scripts\auto_part_map.py') (Join-Path $W $Reference) $labelsDir
     if ($LASTEXITCODE -ne 0) { return }
-    Copy-Item (Join-Path $W "$Labels\part-names.json") $partsDir
+    BF @('--python', "$here\project_parts.py", '--', (Join-Path $W $Dense), (Join-Path $labelsDir 'part-ids.npy'),
+        (Join-Path $labelsDir 'part-names.json'), $labelsDir, (Join-Path $labelsDir 'body-ids.npy'))
+}
+Step 'parts' {
+    BF @('--python', "$here\recut_labels.py", '--', (Join-Path $W $Dense), (Join-Path $labelSrc 'face-labels.npy'),
+        (Join-Path $labelSrc 'part-names.json'), $partsDir)
+    if ($LASTEXITCODE -ne 0) { return }
+    Copy-Item (Join-Path $labelSrc 'part-names.json') $partsDir
     BF @('--python', "$here\build_parts.py", '--', (Join-Path $partsDir 'dense-recut.glb'), (Join-Path $partsDir 'face-labels.npy'),
         (Join-Path $partsDir 'part-names.json'), $partsDir, '--clean-edges', '--budget-scale', "$BudgetScale")
 }

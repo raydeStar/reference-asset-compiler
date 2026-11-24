@@ -10,7 +10,7 @@ SAM scripts run under the ComfyUI Python, which has `segment_anything`.
 
 | Order | Script | Runs in | Does |
 | --- | --- | --- | --- |
-| 1 | `sam_auto.py`, `sam_parts.py`, `sam_fix.py`, `sam_straps*.py` | ComfyUI Python | 2D part map of the reference with Segment Anything ViT-B |
+| 1 | `scripts/auto_part_map.py` (vocabulary `profiles/segmentation/humanoid-gear.json`); the Raider's own map came from `sam_auto.py`, `sam_parts.py`, `sam_fix.py`, `sam_straps*.py` (clicked by hand) | ComfyUI Python | 2D part map of the reference: Grounding DINO boxes and Segment Anything ViT-B masks, with the projection inputs and a review sheet (`build_raider.ps1 -From labels`) |
 | 2 | `project_parts.py` | `$B -b --factory-startup` | Project the 2D map onto the dense acquired mesh; first labels |
 | 3 | `refine_labels.py` | `$B -b --factory-startup` | Head and collar regrown along creases, belt round the back, pouches, knee pads, small islands |
 | 3b | `recut_labels.py` | `$B -b --factory-startup` | The labels re-cut along smooth lines that cross the dense triangles (diffused part shares, split where the leading shares are equal), so outlines no longer follow the triangle edges |
@@ -41,9 +41,14 @@ SAM scripts run under the ComfyUI Python, which has `segment_anything`.
 inputs into `work/raider-revamp/build/<run>/`, and writes nothing outside that folder. Its help lists the
 inputs. With `-From parts` it also runs steps 3b, 4 and 10 (re-cut, clean parts, pattern UVs, the body paint,
 masks, calibration, head placement) inside the run folder; the paint stage needs `RAC_LEGACY_ROOT` and a free GPU.
-Steps 1 to 3 and the face bake (14) are recorded in `docs/RAIDER_REVAMP.md`; their outputs are the inputs here.
+With `-From labels` it starts from the reference picture: steps 1 and 2 (the automatic part map and its
+projection onto the dense acquisition) into `labels\`, which `parts` then reads; step 3 (`refine_labels.py`,
+measured on the Raider) is skipped. `-To <stage>` stops after a stage, so the part map can be gated first.
+Steps 1 to 3 and the face bake (14) of the accepted Raider are recorded in `docs/RAIDER_REVAMP.md`.
 
 ```powershell
+# the part map for a new reference, stopping at its gate (look at labels\review.jpg and labels\parts-*.png)
+powershell -NoProfile -ExecutionPolicy Bypass -File scripts\revamp\raider\build_raider.ps1 -Run n1 -From labels -To labels
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\revamp\raider\build_raider.ps1 -Run v2
 # resume from a stage when the earlier ones are already in the run folder
 powershell -NoProfile -ExecutionPolicy Bypass -File scripts\revamp\raider\build_raider.ps1 -Run v2 -From skin

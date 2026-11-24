@@ -215,6 +215,64 @@ its silhouette review and before texture:
 The detail is a candidate like any acquisition: it waits for its own modeling
 and texture gates, and the assembled character waits for the four-view review.
 
+### Automatic part map (every geared humanoid)
+
+The layered build (overlay shells over continuous cloth, rigid armour, the
+material classes) starts from a 2D map of the reference: which pixel is jacket,
+plate, strap, belt, pouch, glove, face. The Raider's map was clicked by hand
+(`scripts/revamp/raider/sam_parts.py`). `scripts\auto_part_map.py` makes it
+automatically from the vocabulary in `profiles\segmentation\humanoid-gear.json`:
+
+```powershell
+& C:\Comfy\python_embeded\python.exe scripts\auto_part_map.py <reference.png> <out-dir>
+```
+
+It writes `parts.npy` and the projection inputs (`part-ids.npy`,
+`body-ids.npy`, `part-names.json`, `landmarks.json`), plus `review.jpg` and
+`detections.json`, which lists every candidate box and why it was kept or dropped.
+In the Raider build, `build_raider.ps1 -From labels -To labels` runs it and
+then `project_parts.py` onto the dense acquisition, and `-From parts` picks the
+run's labels up from there.
+
+Models (open source; download once, outside the repository):
+
+| Model | Licence | Where | Weights SHA-256 |
+| --- | --- | --- | --- |
+| Grounding DINO base (`IDEA-Research/grounding-dino-base`, run by `transformers`) | Apache-2.0 | `C:\Comfy\rac-models\grounding-dino-base` or `RAC_GROUNDING_DINO` | `5548f844…ed21` (full sums in the folder's `SHA256SUMS`) |
+| Segment Anything ViT-B (`sam_vit_b_01ec64.pth`) | Apache-2.0 | ComfyUI's `models\sams` or `RAC_SAM_CHECKPOINT` | already on the workstation |
+
+How it decides (each rule was measured against the Raider's hand map; the
+reasons are in `docs/DECISIONS.md`, 2026-11-03):
+- one joint query with every part's phrase, so parts compete for each box, plus
+  each part's own fuller prompts ("a shoulder pad" finds shoulder plates);
+- a box bigger than its part can be, or centred outside the part's height zone, is dropped;
+- weak duplicates of an overlapping box of the same part are dropped, and a
+  part the character has one of keeps only its best box;
+- SAM masks are clipped to their box, and a thin part (strap, belt) keeps only
+  the thin parts of its mask;
+- a paired part found on one side only is looked for in the mirrored box and
+  kept when the mask there is a similar size and colour;
+- higher layers win overlaps, except that a smaller part nested in a bigger
+  mask at most one layer above it wins inside it;
+- cloth pixels with the face's colour that touch the face or skin are bare skin.
+
+Measured 2026-11-03: 0.889 pixel agreement with the Raider's hand map
+(it was 0.548 with one query per part). Gloves, hair, beard, buckle, knee pads,
+pouches, face, trousers and the thigh holster are above 0.89 IoU; straps
+(0.34) and plates (0.60) are the weak parts. The CH-03 Guard, Scout and
+Bulwark looks, never used for tuning, came out with their chest plates,
+harnesses, pouches, knee pads and gloves in place
+(`docs/evidence/auto-part-map-raider-20261103.jpg`,
+`docs/evidence/auto-part-map-looks-20261103.jpg`, numbers in
+`docs/evidence/auto-part-map-20261103.json`).
+
+Known gaps: there is no bracer part, so bracers read as jacket or strap; a
+cloth wrap on a forearm reads as skin; a second shoulder plate unlike its twin
+can be missed; a strap crossing a plate goes to the plate. The map is a gate:
+look at `review.jpg` and `project_parts.py`'s four `parts-*.png` views before
+`-From parts`. To add a part, extend the vocabulary and the downstream scripts'
+palettes and part sets (`docs/AGENT_TASKS.md`, item 9).
+
 ## Stage 4 — existing-mesh PBR texture
 
 Follow the [canonical character surface workflow](CHARACTER_SURFACE_WORKFLOW.md)

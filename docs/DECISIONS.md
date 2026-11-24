@@ -2783,6 +2783,41 @@ whole pass takes under a minute after Cycles' first kernel compile. In the Unrea
 own texture asset; sharing the `_MR` name replaced the roughness/metal map and made the body fully metallic.
 `build_raider.ps1` runs it as the `finish` stage.
 
+## 2026-11-03 — The part map comes from grounded detection, not clicks
+
+The Raider's 2D part map was clicked by hand on SAM's automatic masks, so the next character could not reuse it.
+`scripts/auto_part_map.py` finds the parts of `profiles/segmentation/humanoid-gear.json` with Grounding DINO
+(boxes from text) and Segment Anything (a mask per box). Every rule below was measured against the hand map's pixel
+agreement and then checked by eye on the CH-03 Guard, Scout and Bulwark looks, which were never used for tuning.
+
+- One query per part: 0.548. "Holster" took the knee pads, "shirt" the whole torso, and a box round the whole
+  figure passed every size limit. Comparing box size with the whole picture let the jacket through or killed it;
+  each part's `max_box` is now a share of the figure's own bounding box.
+- One joint query with every phrase (parts compete for each box): 0.782. It never named the chest plate. Adding
+  each part's own prompts gets it, and "a shoulder pad" finds shoulder plates; "a bare forearm" finds the bare skin
+  between glove and sleeve, where the joint "forearm" drew round the whole arm.
+- SAM spills past a small box into its neighbours: masks are clipped to their box.
+- A harness box's mask is the whole chest with the plate in it, and straps outrank plates. Two fixes: a smaller
+  part nested in a bigger mask at most one layer above it wins inside it (the Raider's plate, 0 to 0.41), and a
+  thin part keeps only the parts of its mask no wider than `max_width` (on the Guard and Bulwark the plate's mask
+  was within 17% of the harness mask's size, so nesting alone could not tell them apart).
+- Dropping boxes under 0.6 of the part's best score removed junk belts and jackets but also every shoulder
+  plate when the chest plate scored high. Now a box is compared only with overlapping boxes of its part, and parts
+  a character has one of (belt, face, hair, beard, jacket, trousers) keep their best box.
+- Height zones (0 at the crown, 1 at the soles) keep belt pouches out of "thigh holster": pouch IoU 0.47 to 0.97.
+- Bare skin by colour: the neck and forearms came out as jacket. Cloth pixels within ΔE 18 of the face's colour
+  that touch the face or a skin detection become face or skin (face 0.70 to 0.94, skin 0.21 to 0.89). Taking the
+  colour from a detected "forearm" as well turned the Guard's grey sleeves to skin: that box was a cloth wrap.
+- The Bulwark's second pauldron was never detected. A paired part found on one side is looked for in its mirrored
+  box and kept when the mask there matches in size (0.5 to 2 times) and colour (ΔE 12). The Raider's single
+  shoulder plate has teal cloth opposite, so it gets no twin.
+- Rejected: labelling SAM's automatic segments with CLIP (0.79 at best, and the beard and face fell to 0.14 and 0);
+  CLIP on whole masks calls most large regions "belt". A colour clean-up that hands overlay pixels resembling the
+  cloth around them back to the cloth lowered agreement (0.89 to 0.79-0.84): leather, boots and cloth are too close.
+
+Result: 0.889 pixel agreement. Straps (0.34) and plates (0.60) remain the weak parts. The map is a gate; the
+`labels` stage of `build_raider.ps1` writes `review.jpg` and project_parts.py's four-view part renders for it.
+
 ## 2026-11-03 — A segmentation boundary is not necessarily a part boundary
 
 On the Raider, a SAM mask ended halfway across a single armoured plate and
