@@ -9301,3 +9301,21 @@ CT-03.1 gains separate shop and transom glass. CT-03.3 now has true three-pane t
 ## 2026-11-23 · Frastown 86-piece Models scope
 
 West Berth production now tracks all 86 numbered parts, including the three optional parts, with one current Models entry per part. Audited 18 current cards and found 17 bound normal maps. No member currently passes all release gates. Recorded verified machine acquisition on the existing high-res candidates. AC-04.2 linen cover, CT-09.3 tray and DK-04.4 seat reached metric modeling review from new pinned local GPU runs. The exact approved bowl asset used for fit has an 81 mm height. Human modeling review remains pending before paint. No new Models cards were added. See [production and fit evidence](evidence/frastown-86-model-production-20261123.json).
+
+
+<!-- frastown-production-direction-20261123 -->
+## 2026-11-23 · Frastown: why the pipeline was skipped, and the route from here
+
+The owner reported that the Frastown thread was building in Blender and not going through image generation. The thread's session log and this workstation show three causes.
+
+The thread ran in a new workspace folder outside both repositories. It loaded neither `CLAUDE.md` here nor Framewright's `AGENTS.md`, so the reconstruction rule was not in front of it when it began. The handoff brief asked for a first blockout with replaceable stand-ins. It built 17 steel pieces and the stand-ins by script.
+
+Corrected, it assembled a route of its own in that folder: a second ComfyUI on port 8189, text prompts for Z-Image-Turbo at 960 px, and wrappers round `run_hy3d_geometry.ps1`. It generated 36 reference pictures and put none in Framewright for approval. Framewright's own model generation reported ready on this workstation and was never called, so no acquisition reached Framewright's Models page.
+
+Candidates then waited at `modeling_approval`, reported only in chat, while the owner watched a library that did not change. The four entries above record the audits and probes written meanwhile.
+
+From here a piece is made by Framewright's route: a reference picture in the project library, approved by the owner; model generation queued from that picture; review in Framewright. The compiler's release ledger starts after that approval. The 17 steel pieces stay as the one scripted exception. The operating instructions for the Frastown thread are `AGENTS.md` in its workspace folder, which is not part of this repository.
+
+The automatic part map (#13) and the hard-surface stages (#12) landed the same day, and these records with them. `main` now carries everything written on this workstation to date.
+
+Not done: no picture or model was generated in making this entry, and the route above has not yet been run on a Frastown piece.

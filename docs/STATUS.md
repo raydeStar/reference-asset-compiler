@@ -2497,3 +2497,9 @@ CT-03.1 gains separate shop and transom glass. CT-03.3 now has true three-pane t
 ### Frastown · 86-piece Models production cohort
 
 West Berth production now tracks all 86 numbered parts, including the three optional parts, with one current Models entry per part. Audited 18 current cards and found 17 bound normal maps. No member currently passes all release gates. Recorded verified machine acquisition on the existing high-res candidates. AC-04.2 linen cover, CT-09.3 tray and DK-04.4 seat reached metric modeling review from new pinned local GPU runs. The exact approved bowl asset used for fit has an 81 mm height. Human modeling review remains pending before paint. No new Models cards were added. See [production and fit evidence](evidence/frastown-86-model-production-20261123.json).
+
+
+<!-- frastown-production-direction-20261123 -->
+### Frastown · production route from 24 November
+
+Pieces are made through Framewright: a reference picture in the project library that the owner has approved, model generation queued from it, review in Framewright. The acquisitions recorded above came from pictures that were never put in Framewright. Each picture goes in front of the owner before its mesh is used. Operating instructions are in `AGENTS.md` in the Frastown workspace folder. See HANDOFF, 2026-11-23, "why the pipeline was skipped".

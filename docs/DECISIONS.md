@@ -3256,3 +3256,13 @@ A Framewright model card and a large paint atlas do not establish production adm
 ## Check acquired building apertures and rear faces before paint
 
 A square-on source may show an open door or window while the reconstructed candidate fills both with solid faces. Probe the intended clear volume after reduction and metric fitting. Test the actual exported file at human eye height and inspect its rear faces. A closed-manifold check can pass on solid infill and fused door hardware. Verify that normal strength changes lighting response before assessing a painted asset. See [CT-03 measured evidence](evidence/frastown-ct03-metric-and-material-review-20261123.json).
+
+
+<!-- frastown-production-direction-20261123 -->
+## 2026-11-23 · An agent started outside the repository loads none of its rules
+
+The Frastown thread began in an empty workspace folder. The rulebook here is read only by an agent that starts in this checkout, so nothing told it that Blender begins after acquisition. It built by script. When corrected, it built a private image and geometry route beside the real one. Put the operating instructions in the folder the agent starts in, and have them point here. Do not rely on a correction typed into a long thread: this one was compacted twice in a day.
+
+## 2026-11-23 · A gate the owner cannot see is a stall
+
+Meshes held at `modeling_approval` were reported in chat while the owner looked at Framewright, which showed nothing new. Each side waited for the other. A candidate that needs a human decision goes where the human reviews, beside its reference picture, and the report names it. The same holds for the picture: the approved image is the contract, so a picture the owner has not seen cannot start an acquisition.
