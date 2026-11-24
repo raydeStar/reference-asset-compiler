@@ -405,11 +405,18 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   every prop it is run on (a 2.2 m mast, 2026-11-24: the top 22% crisp and the
   picture's dark iron, the pole below flat light putty). On a prop, paint in
   sections instead of the head pass; the head pass is for figures.
-- Neighbours overlap by `--overlap` of a section, their weights sum to one on
-  every face, and each section's colour is scaled so neighbours agree where
-  both painted. The sections keep their own colour overall: on the mast the
-  whole-model paint was the wrong one. `--keep-tone 0.04` takes coarse tone
-  from the first paint instead, for a model whose first paint is right.
+- The design comes from the first paint (`--keep-colour 0.03`, the default):
+  every colour coarser than 3 cm is the whole-model paint's, and the sections
+  add only their fine light and dark. A section's painter sees too little to
+  tell iron from wood: on the AC-01.1 skiff in 45 sections, the red fins, iron
+  straps and teal paint all came back as wood, and keeping the design brought
+  them back with the sections' grain, nail holes and wear on them. The owner
+  called the result impressive (2026-11-24).
+- `--keep-colour 0` takes the sections' own colour, scaled so neighbours agree
+  where both painted. That is for a single-material model whose whole-model
+  paint is wrong: on the DK-04.2 mast it was light putty where the close paint
+  was the picture's dark iron. Neighbours overlap by `--overlap` of a section
+  and their weights sum to one on every face either way.
 - The atlas padding is refilled from the nearest painted texel, so mip levels
   do not outline the islands in the first paint's colour.
 - Which way the model faces in its picture is found by matching its outline
@@ -417,9 +424,27 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   (+X right, +Y up) is kept unless another fits clearly better. The receipt
   records the scores.
 - A model shorter than `--min-length` (1.2 m) on every side is passed through
-  byte for byte, with `painted: false` in its receipt.
-- One painter run a section, each needing 21 GiB free; a section that fails
-  fails the stage, and no half-painted model is delivered.
+  byte for byte, with `painted: false` and `reason: shorter_than_min_length`
+  in its receipt; every receipt carries `whole_model_mm_per_pixel`.
+- One painter run a section, about 2.5 minutes each on the 4090 (the stage
+  listing carries this as `estimate`), each needing 21 GiB free; a section that
+  fails fails the stage, and no half-painted model is delivered.
+- `--max-sections` counts sections that are painted; a cell of the grid the
+  model does not reach costs nothing. Crops fit the model's extremes to the
+  figure's on each axis, and are never smaller than a fifth of the figure.
+- How fine: the defaults (0.6 m sections, a cap of 12) roughly halve the
+  surface a painted pixel on a 2 to 3 m prop. To reach a small prop's 0.6 to
+  1 mm, cut finer and overlap less: `--section 0.45 --overlap 0.2 --context
+  0.05 --max-sections 48` put a 2.2 m skiff at about 0.7 mm in 45 sections.
+
+Finish a section-painted model with the detail bake, relief calibrated to a
+steepness rather than a strength: `rac run-stage bake-detail ... --resolution
+2048 --relief-tilt 6`. The same `--relief-from-paint 1` that suits a calm paint
+tilted the section-painted mast's normals 41 degrees at the 90th percentile
+(orange peel); `--relief-tilt 6` gave 1.3 / 6 / 23 degrees at the median, 90th
+and 99th percentiles, against 1.1 / 4.5 / 19 on the finished dock claw. Edge
+wear needs a curvature map as large as the base colour, so leave it off on a
+4096 paint.
 - Above about 4 m one 4096 sheet cannot hold the detail however well it is
   painted (a 15 m hull is about 4 mm a texel). Split such a piece into
   modules at acquisition instead.

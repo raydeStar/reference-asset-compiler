@@ -176,7 +176,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "blender",
         "script": "scripts/blender/bake_derived_maps.py",
         "arguments": ("source", "output", "report"),
-        "options": ("resolution", "samples", "distance", "edge_wear", "relief_from_paint"),
+        "options": ("resolution", "samples", "distance", "edge_wear", "relief_from_paint", "relief_tilt"),
         "prepare": "bake-detail",
         "needs": ("blender",),
         "summary": "Bake the occlusion and curvature a model's own geometry already implies.",
@@ -357,8 +357,8 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "python",
         "script": "scripts/paint_sections.py",
         "arguments": ("source", "output", "report"),
-        "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "keep_tone",
-                    "min_length", "max_sections", "min_free_vram"),
+        "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "context",
+                    "keep_colour", "keep_tone", "min_length", "max_sections", "min_free_vram"),
         "prepare": "paint-sections",
         "needs": ("paint-stack",),
         # The painter sees a whole model in 768 pixels whatever its size, so a
@@ -370,6 +370,10 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Paint a large model again in sections of about half a metre and lay them over "
                    "its first paint. One painter run a section; needs a GPU with 21 GiB free.",
         "produces": "reference-asset-compiler.section-detail-paint.v1",
+        # Measured on an RTX 4090 on 2026-11-24: six mast sections in 11.6
+        # minutes, forty-five skiff sections at about two and a half each. A
+        # consumer quotes a cost and sets a timeout from this, not from a guess.
+        "estimate": {"unit": "section", "minutes": 2.5, "free_vram_mib": 21504},
     },
 }
 
@@ -427,6 +431,10 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # where everything else is a .glb.
             "output_suffix": stage.get("output_suffix", ".glb"),
         }
+        if "estimate" in stage:
+            # How long one unit of the stage's work takes, where that varies by
+            # model: a consumer multiplies it out rather than hard-coding it.
+            described["estimate"] = dict(stage["estimate"])
         if "assign" in stage.get("options", ()) and root is not None:
             # The surfaces a caller may ask for, offered from the one table the
             # stage itself applies, so nobody is ever choosing from a stale list.
@@ -755,7 +763,7 @@ def prepare_bake_detail(options: dict[str, Any]) -> dict[str, Any]:
     arguments: list[str] = []
     for flag, name in (("--resolution", "resolution"), ("--samples", "samples"),
                        ("--distance", "distance"), ("--edge-wear", "edge_wear"),
-                       ("--relief-from-paint", "relief_from_paint")):
+                       ("--relief-from-paint", "relief_from_paint"), ("--relief-tilt", "relief_tilt")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
     return {"arguments": arguments}
@@ -1240,7 +1248,9 @@ def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, A
             "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
     arguments = ["--reference", str(reference), "--legacy-root", str(legacy)]
     for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
-                       ("--section", "section"), ("--overlap", "overlap"), ("--keep-tone", "keep_tone"),
+                       ("--section", "section"), ("--overlap", "overlap"), ("--context", "context"),
+                       ("--keep-colour", "keep_colour"),
+                       ("--keep-tone", "keep_tone"),
                        ("--min-length", "min_length"), ("--max-sections", "max_sections"),
                        ("--min-free-vram", "min_free_vram")):
         if options.get(name) is not None:

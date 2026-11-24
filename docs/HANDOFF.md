@@ -9329,3 +9329,16 @@ The owner found large Frastown pieces smeared up close while small ones were imm
 `paint-sections` (`scripts/paint_sections.py`) cuts a painted model into sections, paints each alone with the reference cropped to where its faces fall in the picture, and lays them over the first paint on the same UVs. Every face is painted at section scale, neighbours are tone-matched where they overlap, and models under 1.2 m pass through unchanged. See the playbook, "Large models: paint again in sections".
 
 Proof on the mast as Framewright generated it: six sections in 11.6 minutes on the 4090, about 1.3 mm a painted pixel instead of 3.2. Rendered before and after on the CPU, the seam is gone, no join shows, and the base now matches the picture. The arm and pulley came out a little softer than the head pass left them. Evidence: [paint-sections-mast-20261124.json](evidence/paint-sections-mast-20261124.json). The owner's visual review, the detail bake after it, and import into Framewright are open. Framewright support is a separate pull request.
+
+
+<!-- paint-sections-finer-20261124 -->
+## 2026-11-24 · Finer sections, and relief calibrated to a steepness
+
+The owner asked for the materials to be pushed until they hold up beside the small props, and for a large piece (the AC-01.1 skiff) to be brought to the same standard.
+
+- `paint-sections` caps only the sections it paints, fits crops per axis (one scale for both put the mast's base below its bottom crop) and keeps every crop at least a fifth of the figure (a fin tip got an 88-pixel crop). Receipts now carry `reason` and `whole_model_mm_per_pixel`, and the stage listing an `estimate` of 2.5 minutes a section, for Framewright's cost line.
+- `bake-detail --relief-tilt <degrees>` calibrates relief from paint to a measured steepness. On the mast, 6 degrees matched the accepted dock claw; the fixed strength 1 had made orange peel.
+- The finished mast (sections, then the bake at `--relief-tilt 6`) is revision 3 of DK-04.2 in Framewright, Pending.
+- The skiff is being painted in 45 sections at about 0.7 mm a painted pixel at its real size; its result is recorded when it has been looked at.
+
+Framewright's side is raydeStar/framewright#45 (open): a prop is painted in sections instead of the head pass, and existing models gain a "Paint in sections" action.

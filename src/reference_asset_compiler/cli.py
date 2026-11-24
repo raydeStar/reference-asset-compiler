@@ -160,6 +160,9 @@ def build_parser() -> argparse.ArgumentParser:
                             "through glass, so this deletes what is behind it.")
     stage.add_argument("--relief-from-paint", type=float,
                        help="Raise the relief somebody painted into a normal map, 0..2")
+    stage.add_argument("--relief-tilt", type=float,
+                       help="Relief from paint, calibrated: the steepness in degrees one texel in ten "
+                            "reaches, whatever the paint's contrast (try 6)")
     stage.add_argument("--assign", action="append",
                        help="A part and the surface it should be, as colour[:tone]=surface. "
                             "Repeatable, for example --assign blue:dark=crystal")
@@ -188,6 +191,13 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--overlap", type=float,
                        help="Paint in sections: overlap between neighbours, as a fraction of a section "
                             "(default: 0.25)")
+    stage.add_argument("--context", type=float,
+                       help="Paint in sections: how much more of the model each section's painter "
+                            "sees past the overlap, as a fraction of a section (default: 0.1)")
+    stage.add_argument("--keep-colour", type=float,
+                       help="Paint in sections: colour coarser than this many metres stays the first "
+                            "paint's, the sections add their fine light and dark (default: 0.03; 0 "
+                            "takes the sections' own colour)")
     stage.add_argument("--keep-tone", type=float,
                        help="Paint in sections: tone coarser than this many metres stays the first "
                             "paint's (default: 0, the sections' own colour, matched to each other)")
@@ -407,6 +417,7 @@ def main(argv: list[str] | None = None) -> int:
                     "distance": args.distance,
                     "edge_wear": args.edge_wear,
                     "relief_from_paint": args.relief_from_paint,
+                    "relief_tilt": args.relief_tilt,
                     "directions": args.directions,
                     "most": args.most,
                     "largest_part": args.largest_part,
@@ -427,6 +438,8 @@ def main(argv: list[str] | None = None) -> int:
                     "metallic": args.metallic,
                     "section": args.section,
                     "overlap": args.overlap,
+                    "context": args.context,
+                    "keep_colour": args.keep_colour,
                     "keep_tone": args.keep_tone,
                     "min_length": args.min_length,
                     "max_sections": args.max_sections,

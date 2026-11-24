@@ -32,6 +32,7 @@ from paint_sections import (  # noqa: E402
     crop_box,
     figure_box,
     harmonize,
+    masked_blur,
     main,
     match_orientation,
     mesh_silhouette,
@@ -181,6 +182,20 @@ class CropTests(unittest.TestCase):
         self.assertGreater(centres[0], figure[0])
         self.assertLess(centres[-1], figure[2])
 
+    def test_a_crop_is_never_smaller_than_a_fifth_of_the_figure(self):
+        figure = (100, 100, 600, 300)                       # 500 wide
+        tip = np.array([[0.99, 0.5], [1.0, 0.51]])          # a sliver at the far end
+        left, top, right, bottom = crop_box(tip, figure, np.array([0.0, 0.0]), np.array([1.0, 1.0]), 0.1)
+        self.assertGreaterEqual(right - left, 100)
+
+    def test_each_axis_is_fitted_to_the_figure_on_its_own(self):
+        # a model twice as wide as tall, in a figure as tall as it is wide: the
+        # model's bottom still lands on the figure's bottom
+        figure = (0, 0, 400, 400)
+        bottom = np.array([[0.4, 0.0], [0.6, 0.05]])
+        _, top, _, low_edge = crop_box(bottom, figure, np.array([0.0, 0.0]), np.array([2.0, 1.0]), 0.0)
+        self.assertGreater((top + low_edge) / 2.0, 340)
+
 
 class CompositeTests(unittest.TestCase):
     def setUp(self):
@@ -239,6 +254,40 @@ class CompositeTests(unittest.TestCase):
         self.assertGreater(steepest(unmatched), steepest(out) + 2.0)
 
 
+class KeepTheDesignTests(unittest.TestCase):
+    """A section's painter sees too little to know iron from wood; the first paint's colour stays."""
+
+    def test_the_first_paints_colour_survives_and_the_sections_light_and_dark_come_through(self):
+        size = 64
+        base = np.zeros((size, size, 3), np.float32)
+        base[...] = (190.0, 40.0, 35.0)                      # a red fin, as the first paint has it
+        checker = ((np.indices((size, size)).sum(axis=0) % 2) * 2 - 1).astype(np.float32) * 25
+        section = np.zeros_like(base)
+        section[...] = (130.0, 95.0, 60.0)                   # the section painted it as wood,
+        section += checker[..., None]                        # with grain in it
+        section[..., 2] += checker * 1.5                     # and the grain has its own colour
+        weights = np.ones((size, size), np.float32)
+        inner = composite(base, [(section, weights, weights > 0)], sigma=3.0, mode="light")[8:56, 8:56]
+        hue_ratio = inner[..., 0].mean() / max(inner[..., 1].mean(), 1e-3)
+        self.assertGreater(hue_ratio, 3.5)                    # still red, not wood
+        self.assertGreater(float((inner @ np.array([0.2126, 0.7152, 0.0722])).std()), 4.0)  # the detail is there
+        chroma = inner / np.maximum(inner.sum(axis=2, keepdims=True), 1e-3)
+        self.assertLess(float(chroma[..., 2].std()), 0.01)    # none of the section's colour came with it
+        # The colour mode, by contrast, lets the grain's own colour through.
+        other = composite(base, [(section, weights, weights > 0)], sigma=3.0, mode="colour")[8:56, 8:56]
+        other_chroma = other / np.maximum(other.sum(axis=2, keepdims=True), 1e-3)
+        self.assertGreater(float(other_chroma[..., 2].std()), 0.05)
+
+    def test_the_fast_blur_agrees_with_a_full_one(self):
+        from scipy.ndimage import gaussian_filter  # noqa: PLC0415
+        rng = np.random.default_rng(1)
+        image = gaussian_filter(rng.random((256, 256, 3)).astype(np.float32), (4, 4, 0)) * 255
+        mask = np.ones((256, 256), bool)
+        fast = masked_blur(image, mask, 24.0)
+        full = np.stack([gaussian_filter(image[..., c], 24.0) for c in range(3)], axis=2)
+        self.assertLess(float(np.abs(fast - full)[32:-32, 32:-32].mean()), 0.5)
+
+
 class DensityTests(unittest.TestCase):
     def test_a_metre_square_on_half_a_1024_sheet_is_512_texels_a_metre(self):
         positions = np.array([[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0]], dtype=np.float32)
@@ -267,6 +316,8 @@ class RunTests(unittest.TestCase):
         self.assertEqual(output.read_bytes(), source.read_bytes())
         receipt = json.loads(report.read_text(encoding="utf-8"))
         self.assertFalse(receipt["painted"])
+        self.assertEqual(receipt["reason"], "shorter_than_min_length")
+        self.assertGreater(receipt["whole_model_mm_per_pixel"], 0)
         self.assertEqual(receipt["output_sha256"], receipt["source_sha256"])
 
     def test_a_plan_names_its_sections_and_crops_without_painting(self):
@@ -288,6 +339,8 @@ class RunTests(unittest.TestCase):
         self.assertEqual(receipt["plan"]["grid"], [4, 1, 1])
         self.assertEqual(len(receipt["plan"]["sections"]), 4)
         self.assertEqual(receipt["orientation"]["chosen"], "+X right, +Y up")
+        self.assertEqual(receipt["reason"], "plan_only")
+        self.assertEqual(receipt["settings"]["keep_colour_m"], 0.03)
         whole = receipt["plan"]["whole_model_mm_per_pixel"]
         for section in receipt["plan"]["sections"]:
             self.assertLess(section["painted_mm_per_pixel"], whole)
@@ -328,6 +381,28 @@ class PreparationTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("--keep-tone") + 1], "0.03")
         self.assertEqual(arguments[arguments.index("--max-sections") + 1], "8")
         self.assertNotIn("--overlap", arguments)
+
+    def test_the_playbooks_finer_settings_reach_the_section_pass(self):
+        # The playbook's finer cut names --context; run-stage once refused it.
+        from reference_asset_compiler import cli  # noqa: PLC0415
+        args = cli.build_parser().parse_args([
+            "run-stage", "paint-sections", "--source", "painted.glb", "--output", "s.glb",
+            "--report", "s.json", "--reference", str(self.reference), "--section", "0.45",
+            "--overlap", "0.2", "--context", "0.05", "--max-sections", "48"])
+        self.assertEqual(args.context, 0.05)
+        prepared = prepare_paint_sections({"reference": self.reference, "section": 0.45,
+                                           "overlap": 0.2, "context": 0.05, "max_sections": 48},
+                                          self.legacy)
+        arguments = prepared["arguments"]
+        self.assertEqual(arguments[arguments.index("--context") + 1], "0.05")
+        self.assertEqual(arguments[arguments.index("--overlap") + 1], "0.2")
+
+    def test_the_listing_says_how_long_a_section_takes(self):
+        from reference_asset_compiler.stages import describe_stages  # noqa: PLC0415
+        listing = describe_stages(ROOT, None, self.legacy)
+        entry = next(stage for stage in listing["stages"] if stage["stage"] == "paint-sections")
+        self.assertEqual(entry["estimate"]["unit"], "section")
+        self.assertGreater(entry["estimate"]["minutes"], 0)
 
     def test_without_a_reference_it_refuses(self):
         with self.assertRaises(StageError):

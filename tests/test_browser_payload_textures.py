@@ -455,5 +455,44 @@ class DeadImageTests(unittest.TestCase):
         self.assertEqual(list(self.bpy.data.images), [packed])
 
 
+class DoubledSpecularTests(unittest.TestCase):
+    """Hunyuan's GLB reflects twice what a dielectric does; the payload must not pass that on.
+
+    Its KHR_materials_specular colour factor of 2.0 arrives in Blender as a
+    Specular Tint of (2, 2, 2). The review renders reset it before judging, and
+    the browser payload did not, so every generated model reached Framewright
+    with a milky film over its wood and paint.
+    """
+
+    def setUp(self):
+        self.stage, self.bpy = load_stage()
+
+    def material(self, name, tint=(1.0, 1.0, 1.0, 1.0), level=0.5, tint_linked=False):
+        material = Material(name)
+        surface = next(n for n in material.node_tree.nodes if n.type == "BSDF_PRINCIPLED")
+        for socket_name, value, linked in (("Specular Tint", tint, tint_linked), ("Specular IOR Level", level, False)):
+            socket = surface.inputs[socket_name]
+            socket.default_value = value
+            socket.is_linked = linked
+        self.bpy.data.materials.append(material)
+        return surface
+
+    def test_the_doubled_tint_from_the_painter_is_put_back_to_one(self):
+        surface = self.material("painted", tint=(2.0, 2.0, 2.0, 1.0))
+        self.assertEqual(self.stage.reset_doubled_specular(), ["painted"])
+        self.assertEqual(tuple(surface.inputs["Specular Tint"].default_value), (1.0, 1.0, 1.0, 1.0))
+
+    def test_the_doubled_level_from_the_obj_importer_is_put_back_to_a_half(self):
+        surface = self.material("imported", level=1.0)
+        self.assertEqual(self.stage.reset_doubled_specular(), ["imported"])
+        self.assertEqual(surface.inputs["Specular IOR Level"].default_value, 0.5)
+
+    def test_a_specular_set_on_purpose_or_driven_by_a_map_is_left_alone(self):
+        chosen = self.material("chosen", tint=(1.4, 1.4, 1.4, 1.0), level=0.7)
+        mapped = self.material("mapped", tint=(2.0, 2.0, 2.0, 1.0), tint_linked=True)
+        self.assertEqual(self.stage.reset_doubled_specular(), [])
+        self.assertEqual(chosen.inputs["Specular IOR Level"].default_value, 0.7)
+        self.assertEqual(tuple(mapped.inputs["Specular Tint"].default_value), (2.0, 2.0, 2.0, 1.0))
+
 if __name__ == "__main__":
     unittest.main()
