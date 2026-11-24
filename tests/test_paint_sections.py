@@ -181,6 +181,20 @@ class CropTests(unittest.TestCase):
         self.assertGreater(centres[0], figure[0])
         self.assertLess(centres[-1], figure[2])
 
+    def test_a_crop_is_never_smaller_than_a_fifth_of_the_figure(self):
+        figure = (100, 100, 600, 300)                       # 500 wide
+        tip = np.array([[0.99, 0.5], [1.0, 0.51]])          # a sliver at the far end
+        left, top, right, bottom = crop_box(tip, figure, np.array([0.0, 0.0]), np.array([1.0, 1.0]), 0.1)
+        self.assertGreaterEqual(right - left, 100)
+
+    def test_each_axis_is_fitted_to_the_figure_on_its_own(self):
+        # a model twice as wide as tall, in a figure as tall as it is wide: the
+        # model's bottom still lands on the figure's bottom
+        figure = (0, 0, 400, 400)
+        bottom = np.array([[0.4, 0.0], [0.6, 0.05]])
+        _, top, _, low_edge = crop_box(bottom, figure, np.array([0.0, 0.0]), np.array([2.0, 1.0]), 0.0)
+        self.assertGreater((top + low_edge) / 2.0, 340)
+
 
 class CompositeTests(unittest.TestCase):
     def setUp(self):

@@ -238,7 +238,7 @@ def match_orientation(positions, triangles, alpha, margin=0.06, size=192):
 # --- cutting the model into sections ------------------------------------------
 
 def section_counts(extent, section, max_sections):
-    """How many sections along each axis, and the section size that fits the cap."""
+    """How many sections along each axis, and the section size, for a grid of at most `max_sections` cells."""
     size = float(section)
     while True:
         counts = [max(1, math.ceil(float(e) / size - 1e-3)) for e in extent]
@@ -258,10 +258,28 @@ def ramp(x, start, end, first, last, band):
 
 
 def plan_sections(positions, triangles, section, overlap, context, max_sections, min_faces=200):
+    """Cut the model into sections no wider than `section`, as few as the cap needs.
+
+    The cap counts sections that are painted: a grid cell the model does not
+    reach (the empty corners of a boat's bounding box) costs nothing. The grid
+    starts at `section` and its cells grow a tenth at a time until the painted
+    ones fit `max_sections`. See plan_grid for how a grid is cut and weighed.
+    """
+    extent = (positions.max(axis=0) - positions.min(axis=0)).astype(np.float64)
+    size = float(section)
+    while True:
+        counts = [max(1, math.ceil(float(e) / size - 1e-3)) for e in extent]
+        plan = plan_grid(positions, triangles, counts, size, overlap, context, min_faces)
+        if len(plan["cells"]) <= max_sections:
+            return plan
+        size *= 1.1
+
+
+def plan_grid(positions, triangles, counts, size, overlap, context, min_faces=200):
     """The sections of a model, each with the faces it paints and their weights.
 
-    The model's bounding box is cut into a grid of equal cells, no wider than
-    `section` where the cap allows. A face belongs to a cell by its centroid.
+    The model's bounding box is cut into `counts` equal cells along each axis.
+    A face belongs to a cell by its centroid.
     Each cell's weight is 1 in its core and falls to 0 across a band of
     `overlap` sections centred on each inner edge, so every face's weights over
     all cells sum to exactly one. A cell paints the faces it weighs, plus
@@ -275,7 +293,6 @@ def plan_sections(positions, triangles, section, overlap, context, max_sections,
     centroids = positions[triangles].mean(axis=1).astype(np.float64)
     low, high = positions.min(axis=0).astype(np.float64), positions.max(axis=0).astype(np.float64)
     extent = high - low
-    counts, size = section_counts(extent, section, max_sections)
     cells, skipped = [], []
     for index in itertools.product(*(range(count) for count in counts)):
         weight = np.ones(len(triangles), dtype=np.float64)
@@ -328,15 +345,16 @@ def crop_box(points, figure, model_low, model_high, margin):
     left, top, right, bottom = figure
     width, height = right - left, bottom - top
     span = np.maximum(model_high - model_low, 1e-9)
-    # The model fits the figure the way both were fitted for matching: the
-    # longer side spans the figure's longer side, the other centred.
-    scale = min(width / span[0], height / span[1])
-    offset_x = left + (width - span[0] * scale) / 2.0
-    offset_y = top + (height - span[1] * scale) / 2.0
-    xs = offset_x + (points[:, 0] - model_low[0]) * scale
-    ys = offset_y + (model_high[1] - points[:, 1]) * scale
+    # Each axis on its own: the model's extremes land on the figure's. A
+    # picture taken at an angle is not the model's flat outline, and fitting
+    # both axes with one scale put a mast's base plate below its bottom crop.
+    xs = left + (points[:, 0] - model_low[0]) * (width / span[0])
+    ys = top + (model_high[1] - points[:, 1]) * (height / span[1])
     centre = ((xs.min() + xs.max()) / 2.0, (ys.min() + ys.max()) / 2.0)
-    side = max(xs.max() - xs.min(), ys.max() - ys.min(), 32.0) * (1.0 + margin)
+    # Never smaller than a fifth of the figure: a section at a fin's tip
+    # otherwise gets a crop of a few dozen pixels with nothing in it, and the
+    # painter is handed an empty picture to paint from.
+    side = max(xs.max() - xs.min(), ys.max() - ys.min(), 0.2 * max(width, height), 32.0) * (1.0 + margin)
     box = [int(round(centre[0] - side / 2.0)), int(round(centre[1] - side / 2.0))]
     return box[0], box[1], box[0] + int(round(side)), box[1] + int(round(side))
 
