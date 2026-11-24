@@ -194,6 +194,9 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--context", type=float,
                        help="Paint in sections: how much more of the model each section's painter "
                             "sees past the overlap, as a fraction of a section (default: 0.1)")
+    stage.add_argument("--reuse-sections", type=Path,
+                       help="Paint in sections: an earlier attempt directory whose finished sections "
+                            "are reused where the mesh and crop are the same")
     stage.add_argument("--keep-colour", type=float,
                        help="Paint in sections: colour coarser than this many metres stays the first "
                             "paint's, the sections add their fine light and dark (default: 0.03; 0 "
@@ -242,8 +245,9 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--repo-root", type=Path,
                        help="Pipeline checkout; required outside a source installation")
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
-    stage.add_argument("--timeout", type=int, default=3600,
-                       help="Seconds before the stage is abandoned (default: 3600)")
+    stage.add_argument("--timeout", type=int,
+                       help="Seconds before the stage is abandoned (default: the stage's own; "
+                            "3600 for most, 14400 for paint-sections)")
     stage.add_argument("--list", action="store_true",
                        help="Report the runnable stages and what is missing, and run nothing")
 
@@ -439,6 +443,7 @@ def main(argv: list[str] | None = None) -> int:
                     "section": args.section,
                     "overlap": args.overlap,
                     "context": args.context,
+                    "reuse_sections": args.reuse_sections,
                     "keep_colour": args.keep_colour,
                     "keep_tone": args.keep_tone,
                     "min_length": args.min_length,
