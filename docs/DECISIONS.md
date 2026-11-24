@@ -3244,3 +3244,15 @@ Sharing one island between identical members to save texture space fails the sam
 ## 2026-11-23 · Procedural wear: band-limit the noise, give rust height, keep marks short
 
 Three things made generated wear read as generated. Noise finer than a texel aliases into grain on any face painted at low density; sample a coarser copy there. Rust painted as colour alone is a stain; it needs height, in scabs no smaller than three texels, so the normal map can carry it. Scratches and polish drawn along a member's whole length are uniform; a real mark is a few centimetres long, lies at its own angle and gathers where the part gets knocked. Also: review JPEG with subsampled chroma turns rust on dark iron into visible squares, so keep full chroma.
+
+
+<!-- frastown-west-berth-production-review-20261123 -->
+## Keep proxy geometry out of production review
+
+A Framewright model card and a large paint atlas do not establish production admission. Inspect resolved GLB image channels and their UV bindings. Archive layout meshes and superseded exports. Create revisions for an established asset. Check physical proportions and all model faces before paint. The archive and map audit is retained in [the Frastown evidence](evidence/frastown-west-berth-production-review-20261123.json).
+
+
+<!-- frastown-ct03-metric-and-material-review-20261123 -->
+## Check acquired building apertures and rear faces before paint
+
+A square-on source may show an open door or window while the reconstructed candidate fills both with solid faces. Probe the intended clear volume after reduction and metric fitting. Test the actual exported file at human eye height and inspect its rear faces. A closed-manifold check can pass on solid infill and fused door hardware. Verify that normal strength changes lighting response before assessing a painted asset. See [CT-03 measured evidence](evidence/frastown-ct03-metric-and-material-review-20261123.json).

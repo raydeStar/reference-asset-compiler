@@ -2477,3 +2477,23 @@ representative engine review.53 RAC and27 Rodin rows remain queued.
 ### Frastown West Berth surface pass B02 · review candidate (2026-11-23)
 
 The same 17 pieces resurfaced with the new `bake-surface-maps` and `hard-surface-finish` stages ([guide](HARD_SURFACE_FINISH.md)): UVs in metres with nothing stretched, maps baked off the mesh, layered paint, rust and wear, modelled rivets. Each part and the test assembly are the newest Framewright revision, Pending. FBX files are exported and checked in Blender; the Unreal import script has not been run and nothing has been seen in a headset. The geometry is still batch 01's scripted blockout, which the owner does not accept as the route for final assets. See [the measured record](evidence/frastown-surface-pass-b02-20261123.json).
+
+
+<!-- frastown-west-berth-production-review-20261123 -->
+### Frastown CT-03 · source and modeling review open
+
+Four image-conditioned facade derivatives were reduced, cleaned to 4 m by 3 m modules and reimported. The shop doorway and display opening pass 21 ray tests. The corner cavity passes 12 vertical rays. The 1.65 m eye-height test prompted exact aperture cuts and confirmed fused door hardware as a remaining issue. Keep all four at modeling review. Three separate dry PBR surface sets (4K) validated in Blender and UE 5.8. No facade bake, gate promotion or production review upload. See [CT-03 measured evidence](evidence/frastown-ct03-metric-and-material-review-20261123.json).
+
+Framewright Quick Review fell from 160 to 18 current assets. The approved bowl and 17 B02 steel revisions remain. Staging and duplicate exports were archived reversibly. The scene still resolves all 124 asset instances. CT-03 development is local. Its early shopfront and worker-house meshes require modeling review. See [cleanup and acquisition evidence](evidence/frastown-west-berth-production-review-20261123.json).
+
+
+<!-- frastown-ct03-glazing-and-hardware-20261123 -->
+### Frastown CT-03 glazing and hardware · modeling review
+
+CT-03.1 gains separate shop and transom glass. CT-03.3 now has true three-pane transoms and discrete door hardware. 128 perimeter and 32 pane-fit probes pass, and GLB replay keeps all eight 8 mm panes and the module datums intact. Close-up review still shows facets in the acquired frame and leaf relief. PBR assignment, human approval and VR runtime remain open. See [geometry and review evidence](evidence/frastown-ct03-glazing-and-hardware-20261123.json).
+
+
+<!-- frastown-86-model-production-20261123 -->
+### Frastown · 86-piece Models production cohort
+
+West Berth production now tracks all 86 numbered parts, including the three optional parts, with one current Models entry per part. Audited 18 current cards and found 17 bound normal maps. No member currently passes all release gates. Recorded verified machine acquisition on the existing high-res candidates. AC-04.2 linen cover, CT-09.3 tray and DK-04.4 seat reached metric modeling review from new pinned local GPU runs. The exact approved bowl asset used for fit has an 81 mm height. Human modeling review remains pending before paint. No new Models cards were added. See [production and fit evidence](evidence/frastown-86-model-production-20261123.json).

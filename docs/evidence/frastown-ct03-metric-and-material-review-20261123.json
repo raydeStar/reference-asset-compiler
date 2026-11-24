@@ -1,0 +1,906 @@
+{
+  "request": "CT-03",
+  "production_ready": false,
+  "official_stage_advanced": false,
+  "art_review_findings": [
+    "Exact Boolean cuts removed jagged shop aperture silhouettes. Outer metalwork still facets up close.",
+    "Fused hinges and handles on the upper and return doors. Upper transoms and simplified rear door leaves need finish.",
+    "No facade texture bake or runtime acceptance performed."
+  ],
+  "geometry": {
+    "1": {
+      "source": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\reduction-1\\voxel-qem-candidate.glb",
+      "source_sha256": "8a0c91eb8e1a444c45b2d10034b2b13f21c015b959da00db70ef999249025822",
+      "authority": "CT-03.1-v04",
+      "extent_min_m": [
+        0.0,
+        -0.550000011920929,
+        0.0
+      ],
+      "extent_max_m": [
+        4.0,
+        0.0,
+        3.0
+      ],
+      "sockets_m": {
+        "Snap_Left": [
+          0,
+          0,
+          0
+        ],
+        "Snap_Right": [
+          4,
+          0,
+          0
+        ],
+        "Stack_Above": [
+          0,
+          0,
+          3
+        ]
+      },
+      "trim_operations": {
+        "rear_cap_cut_edges": 274,
+        "rear_plane_before_fit_m": -0.55,
+        "aperture_bounds_m": {
+          "doorway": [
+            [
+              2.224,
+              -0.7,
+              0.021
+            ],
+            [
+              2.904,
+              0.12,
+              1.98
+            ]
+          ],
+          "display_window": [
+            [
+              0.434,
+              -0.7,
+              0.766
+            ],
+            [
+              2.048,
+              0.12,
+              2.304
+            ]
+          ]
+        },
+        "left_butt_plane_edges": 124,
+        "right_butt_plane_edges": 124
+      },
+      "triangles": 2636,
+      "vertices": 1314,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "shop_door_probe": {
+        "rays": [
+          {
+            "x_m": 2.52,
+            "z_m": 0.25,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.52,
+            "z_m": 0.85,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.52,
+            "z_m": 1.45,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.52,
+            "z_m": 1.85,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.68,
+            "z_m": 0.25,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.68,
+            "z_m": 0.85,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.68,
+            "z_m": 1.45,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.68,
+            "z_m": 1.85,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.82,
+            "z_m": 0.25,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.82,
+            "z_m": 0.85,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.82,
+            "z_m": 1.45,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 2.82,
+            "z_m": 1.85,
+            "clear": true,
+            "hit_distance_m": null
+          }
+        ],
+        "clear": 12,
+        "count": 12
+      },
+      "display_window_probe": {
+        "rays": [
+          {
+            "x_m": 0.84,
+            "z_m": 1.03,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 0.84,
+            "z_m": 1.49,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 0.84,
+            "z_m": 1.89,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 1.32,
+            "z_m": 1.03,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 1.32,
+            "z_m": 1.49,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 1.32,
+            "z_m": 1.89,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 1.78,
+            "z_m": 1.03,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 1.78,
+            "z_m": 1.49,
+            "clear": true,
+            "hit_distance_m": null
+          },
+          {
+            "x_m": 1.78,
+            "z_m": 1.89,
+            "clear": true,
+            "hit_distance_m": null
+          }
+        ],
+        "clear": 9,
+        "count": 9
+      },
+      "image": {
+        "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.1-v04_00001_.png",
+        "sha256": "5fe39e644ec09c2067a9b8b3efbf18c2e509d44baa58ccf7b3bf9bf1fdd92e8b"
+      },
+      "reduction_receipt": {
+        "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\reduction-1\\reduction-report.json",
+        "sha256": "ef8970b1d71f9d292ad2cb0c25031ba4bb5c216a17f02196585d1a0b741b8400"
+      },
+      "views": [
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.1\\matcap-back.png",
+          "sha256": "f005f09b83f922602cbcc4331a6909fee251b1e80a55ae67a4131f255cb8e9c0"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.1\\matcap-front.png",
+          "sha256": "6cfa27455e3bea891d55ce5bd2e92d514d755e90f4891f9aeb35bdfb37e20c5b"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.1\\matcap-side.png",
+          "sha256": "adc726d3df38f19758e7b188539cd64cb215e6ac2cec977aca240184b86119d4"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.1\\matcap-three-quarter.png",
+          "sha256": "a4ec73791848ffb28fb737c1a8fc6dc0180899982a46deddb26c58180aafa318"
+        }
+      ],
+      "ledger": {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-1-v04\\state.json",
+        "sha256": "37953e0bb96e2223411fbdc060c29d9db9bdc28d1217dbf91631b29a73f091a6"
+      }
+    },
+    "2": {
+      "source": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\reduction-2\\voxel-qem-candidate.glb",
+      "source_sha256": "9cc1b7324f70a793a6da98a26627f1d41ad168781a0d8cc44e2a74ce04fdb5ab",
+      "authority": "CT-03.2-v07",
+      "extent_min_m": [
+        0.0,
+        -0.47999998927116394,
+        0.0
+      ],
+      "extent_max_m": [
+        4.0,
+        0.0,
+        3.0
+      ],
+      "sockets_m": {
+        "Snap_Left": [
+          0,
+          0,
+          0
+        ],
+        "Snap_Right": [
+          4,
+          0,
+          0
+        ],
+        "Stack_Above": [
+          0,
+          0,
+          3
+        ]
+      },
+      "trim_operations": {
+        "rear_cap_cut_edges": 196,
+        "rear_plane_before_fit_m": -0.48,
+        "left_butt_plane_edges": 79,
+        "right_butt_plane_edges": 93
+      },
+      "triangles": 3482,
+      "vertices": 1741,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "image": {
+        "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.2-v07_isolated.png",
+        "sha256": "4c9604eb87da19012be113e364ecb8e270dccc8da956b89a17919d7ec53bc7ba"
+      },
+      "reduction_receipt": {
+        "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\reduction-2\\reduction-report.json",
+        "sha256": "c43fdd26522ceadf8900581f6894f3738ed57f9a4df303256362c05ee0fa6f44"
+      },
+      "views": [
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.2\\matcap-back.png",
+          "sha256": "1a09598ccf8a7f1ba6707dc2a02abb68721ff26f89ca2c6ec1e4520b746f4baf"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.2\\matcap-front.png",
+          "sha256": "8a3104444827d71c4a0d5d1d6f187390c7f54d7e99063767cf0ad1936cc5b08a"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.2\\matcap-side.png",
+          "sha256": "3c17f49025b3bebafe7bfa10a4d64694667c954868c480b13ab9ef1c10fbd30a"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.2\\matcap-three-quarter.png",
+          "sha256": "f1ed4e73ad9666844e0282619b14492249a13d943705ff394310eb94cc8cd607"
+        }
+      ],
+      "ledger": {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v07\\state.json",
+        "sha256": "0ea63c2070c699c0d165717ce212330d93124d6eb7320a90f021238faa47d3b3"
+      }
+    },
+    "3": {
+      "source": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\reduction-3\\voxel-qem-candidate.glb",
+      "source_sha256": "9e12fe5ad106153b6cd868a989dda03d30b0b01e3c6f182850aa47ca519005d4",
+      "authority": "CT-03.3-v07",
+      "extent_min_m": [
+        0.0,
+        -0.5400000214576721,
+        0.0
+      ],
+      "extent_max_m": [
+        4.0,
+        0.0,
+        3.0
+      ],
+      "sockets_m": {
+        "Snap_Left": [
+          0,
+          0,
+          0
+        ],
+        "Snap_Right": [
+          4,
+          0,
+          0
+        ],
+        "Stack_Above": [
+          0,
+          0,
+          3
+        ]
+      },
+      "trim_operations": {
+        "rear_plane_before_fit_m": -0.42,
+        "left_butt_plane_edges": 141,
+        "right_butt_plane_edges": 160
+      },
+      "triangles": 4000,
+      "vertices": 1990,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "image": {
+        "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.3-v07_isolated.png",
+        "sha256": "1a897ba6fd18e6176cd3c4bae62ed399432d1007e24a0df5ee060a0ab317be3d"
+      },
+      "reduction_receipt": {
+        "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\reduction-3\\reduction-report.json",
+        "sha256": "bf054431b5bf28c38a2f2487720bc39a5ec355ca8929f93843cd875f8b849a5d"
+      },
+      "views": [
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.3\\matcap-back.png",
+          "sha256": "3fc813decba787c6a52e97137ac0411a83cb9333a99f0975bca405a2952b386c"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.3\\matcap-front.png",
+          "sha256": "7d30bc22d2c95ac754279be404236bfa928eeae121f76978c16fb1e5c9e71946"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.3\\matcap-side.png",
+          "sha256": "7fd90f5522441e4469fcc442587bbb014c814b51cea8ffa69785ff27355a4b71"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.3\\matcap-three-quarter.png",
+          "sha256": "3618128bf42c2c41fc4d36ee43ba29791f1e5ebdd45e5934d1418ca373ecae24"
+        }
+      ],
+      "ledger": {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-3-v07\\state.json",
+        "sha256": "c5883eff2ea2e62f32c8cd344dacd068fb914aa729640f321da98db24dfd110a"
+      }
+    },
+    "4": {
+      "source": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\reduction-4\\voxel-qem-candidate.glb",
+      "source_sha256": "d89a4e49c5590b6d6bccfa00825a1735cb4969d367ab8854bcbf36c8e0e7d596",
+      "authority": "CT-03.4-v07",
+      "extent_min_m": [
+        0.0,
+        -2.5799999237060547,
+        0.0
+      ],
+      "extent_max_m": [
+        4.0,
+        0.0,
+        3.0
+      ],
+      "sockets_m": {
+        "Snap_Left": [
+          0,
+          0,
+          0
+        ],
+        "Snap_Right": [
+          4,
+          0,
+          0
+        ],
+        "Stack_Above": [
+          0,
+          0,
+          3
+        ],
+        "Corner_Return": [
+          0,
+          -2.58,
+          0
+        ]
+      },
+      "trim_operations": {
+        "source_x_min": -0.6944032826423645,
+        "source_block_cut_edges": 88,
+        "rear_cap_cut_edges": 342,
+        "rear_plane_before_fit_m": -2.58,
+        "right_butt_plane_edges": 95
+      },
+      "triangles": 2748,
+      "vertices": 1372,
+      "boundary_edges": 0,
+      "nonmanifold_edges": 0,
+      "open_interior_probe": {
+        "rays": [
+          {
+            "x_m": 0.8,
+            "y_m": -0.76,
+            "clear": true
+          },
+          {
+            "x_m": 0.8,
+            "y_m": -1.4,
+            "clear": true
+          },
+          {
+            "x_m": 0.8,
+            "y_m": -2.15,
+            "clear": true
+          },
+          {
+            "x_m": 1.7,
+            "y_m": -0.76,
+            "clear": true
+          },
+          {
+            "x_m": 1.7,
+            "y_m": -1.4,
+            "clear": true
+          },
+          {
+            "x_m": 1.7,
+            "y_m": -2.15,
+            "clear": true
+          },
+          {
+            "x_m": 2.6,
+            "y_m": -0.76,
+            "clear": true
+          },
+          {
+            "x_m": 2.6,
+            "y_m": -1.4,
+            "clear": true
+          },
+          {
+            "x_m": 2.6,
+            "y_m": -2.15,
+            "clear": true
+          },
+          {
+            "x_m": 3.5,
+            "y_m": -0.76,
+            "clear": true
+          },
+          {
+            "x_m": 3.5,
+            "y_m": -1.4,
+            "clear": true
+          },
+          {
+            "x_m": 3.5,
+            "y_m": -2.15,
+            "clear": true
+          }
+        ],
+        "clear": 12,
+        "count": 12
+      },
+      "image": {
+        "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.4-v07_isolated.png",
+        "sha256": "2d4a72f8c15e7aa347e8701d6d8c16e9e94ac0ed19f36417997eef826ca18ba3"
+      },
+      "reduction_receipt": {
+        "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\reduction-4\\reduction-report.json",
+        "sha256": "564d12a52b51b94ea3a56dee4124fc7c9ef7120529c3e28d6832bf40148bad69"
+      },
+      "views": [
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.4\\matcap-back.png",
+          "sha256": "76f65df128e875fcfdf5e02e772d8e7793e1e8dc49de615cf401c67f8214bd8f"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.4\\matcap-front.png",
+          "sha256": "e54ef1fd0cdcfe0f98151357551614de9b936f233c7813c4591e0b3e2d187c56"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.4\\matcap-side.png",
+          "sha256": "793eeb0cc5bcaccddfcf00cf9a556292f63ea77aa940796d57dfb77898757ee4"
+        },
+        {
+          "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\CT03-production\\fixed-views\\CT-03.4\\matcap-three-quarter.png",
+          "sha256": "39c2debc6b06ff3b4b4fbfe7384193effcafde1cce6b2d1debcc5274400bf6d4"
+        }
+      ],
+      "ledger": {
+        "path": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-4-v07\\state.json",
+        "sha256": "05a7353b146cc9197d6c3d3585ce619665744feaf2a81920a5396cdab9520716"
+      }
+    }
+  },
+  "roundtrip": {
+    "meshes": {
+      "CT-03.1": {
+        "min_world_m": [
+          4.0,
+          -0.550000011920929,
+          0.0
+        ],
+        "max_world_m": [
+          8.0,
+          0.0,
+          3.0
+        ],
+        "uv_layers": [
+          "UVMap"
+        ]
+      },
+      "CT-03.2": {
+        "min_world_m": [
+          8.0,
+          -0.47999998927116394,
+          0.0
+        ],
+        "max_world_m": [
+          12.0,
+          0.0,
+          3.0
+        ],
+        "uv_layers": [
+          "UVMap"
+        ]
+      },
+      "CT-03.3": {
+        "min_world_m": [
+          4.0,
+          -0.5400000214576721,
+          3.0
+        ],
+        "max_world_m": [
+          8.0,
+          0.0,
+          6.0
+        ],
+        "uv_layers": [
+          "UVMap"
+        ]
+      },
+      "CT-03.4": {
+        "min_world_m": [
+          0.0,
+          -2.5799999237060547,
+          0.0
+        ],
+        "max_world_m": [
+          4.0,
+          0.0,
+          3.0
+        ],
+        "uv_layers": [
+          "UVMap"
+        ]
+      }
+    },
+    "eye_height_m": 1.65,
+    "snap_connections": [
+      {
+        "source": "CT-03.4/Snap_Right",
+        "target": "CT-03.1/Snap_Left",
+        "position_m": [
+          4.0,
+          0.0,
+          0.0
+        ],
+        "error_m": 0.0
+      },
+      {
+        "source": "CT-03.1/Snap_Right",
+        "target": "CT-03.2/Snap_Left",
+        "position_m": [
+          8.0,
+          0.0,
+          0.0
+        ],
+        "error_m": 0.0
+      },
+      {
+        "source": "CT-03.1/Stack_Above",
+        "target": "CT-03.3/Snap_Left",
+        "position_m": [
+          4.0,
+          0.0,
+          3.0
+        ],
+        "error_m": 0.0
+      }
+    ]
+  },
+  "material_checks": {
+    "maps": {
+      "CliffAshlar": {
+        "nominal_texels_per_m": 2048.0,
+        "normal_stddev_8bit_rgb": [
+          36.521,
+          36.428,
+          13.582
+        ],
+        "gl_dx_complement_error_max_8bit": 1,
+        "roughness_p02_p50_p98": [
+          0.7961,
+          0.8941,
+          0.9451
+        ]
+      },
+      "DarkIron": {
+        "nominal_texels_per_m": 4096.0,
+        "normal_stddev_8bit_rgb": [
+          5.366,
+          4.611,
+          2.508
+        ],
+        "gl_dx_complement_error_max_8bit": 1,
+        "roughness_p02_p50_p98": [
+          0.3882,
+          0.6824,
+          0.9098
+        ]
+      },
+      "OldTeal": {
+        "nominal_texels_per_m": 4096.0,
+        "normal_stddev_8bit_rgb": [
+          0.963,
+          0.871,
+          0.034
+        ],
+        "gl_dx_complement_error_max_8bit": 0,
+        "roughness_p02_p50_p98": [
+          0.4667,
+          0.502,
+          0.549
+        ]
+      }
+    },
+    "normal_response_render": {
+      "files": [
+        "CliffAshlar_Closeup.png",
+        "CliffAshlar_WithoutNormal.png"
+      ],
+      "percent_pixels_at_least_6_of_255_channel_change": 69.228,
+      "mean_abs_8bit_rgb_difference": 11.149
+    }
+  },
+  "ue_material_check": {
+    "engine": "5.8.4-58902052+++UE5+Release-5.8",
+    "materials": {
+      "CliffAshlar": {
+        "material": "/Game/FrastownCT03/Materials/CliffAshlar/M_Frastown_CliffAshlar.M_Frastown_CliffAshlar",
+        "maps": {
+          "BaseColor": {
+            "texture": "/Game/FrastownCT03/Materials/CliffAshlar/T_CliffAshlar_BaseColor.T_CliffAshlar_BaseColor",
+            "size": [
+              4096,
+              4096
+            ],
+            "sRGB": true,
+            "compression": "TC_DEFAULT"
+          },
+          "NormalDX": {
+            "texture": "/Game/FrastownCT03/Materials/CliffAshlar/T_CliffAshlar_NormalDX.T_CliffAshlar_NormalDX",
+            "size": [
+              4096,
+              4096
+            ],
+            "sRGB": false,
+            "compression": "TC_NORMALMAP"
+          },
+          "ORM": {
+            "texture": "/Game/FrastownCT03/Materials/CliffAshlar/T_CliffAshlar_ORM.T_CliffAshlar_ORM",
+            "size": [
+              4096,
+              4096
+            ],
+            "sRGB": false,
+            "compression": "TC_MASKS"
+          }
+        },
+        "connections": [
+          [
+            "BaseColor",
+            "RGB",
+            "MP_BASE_COLOR"
+          ],
+          [
+            "NormalDX",
+            "RGB",
+            "MP_NORMAL"
+          ],
+          [
+            "ORM",
+            "R",
+            "MP_AMBIENT_OCCLUSION"
+          ],
+          [
+            "ORM",
+            "G",
+            "MP_ROUGHNESS"
+          ],
+          [
+            "ORM",
+            "B",
+            "MP_METALLIC"
+          ]
+        ]
+      },
+      "DarkIron": {
+        "material": "/Game/FrastownCT03/Materials/DarkIron/M_Frastown_DarkIron.M_Frastown_DarkIron",
+        "maps": {
+          "BaseColor": {
+            "texture": "/Game/FrastownCT03/Materials/DarkIron/T_DarkIron_BaseColor.T_DarkIron_BaseColor",
+            "size": [
+              4096,
+              4096
+            ],
+            "sRGB": true,
+            "compression": "TC_DEFAULT"
+          },
+          "NormalDX": {
+            "texture": "/Game/FrastownCT03/Materials/DarkIron/T_DarkIron_NormalDX.T_DarkIron_NormalDX",
+            "size": [
+              4096,
+              4096
+            ],
+            "sRGB": false,
+            "compression": "TC_NORMALMAP"
+          },
+          "ORM": {
+            "texture": "/Game/FrastownCT03/Materials/DarkIron/T_DarkIron_ORM.T_DarkIron_ORM",
+            "size": [
+              4096,
+              4096
+            ],
+            "sRGB": false,
+            "compression": "TC_MASKS"
+          }
+        },
+        "connections": [
+          [
+            "BaseColor",
+            "RGB",
+            "MP_BASE_COLOR"
+          ],
+          [
+            "NormalDX",
+            "RGB",
+            "MP_NORMAL"
+          ],
+          [
+            "ORM",
+            "R",
+            "MP_AMBIENT_OCCLUSION"
+          ],
+          [
+            "ORM",
+            "G",
+            "MP_ROUGHNESS"
+          ],
+          [
+            "ORM",
+            "B",
+            "MP_METALLIC"
+          ]
+        ]
+      },
+      "OldTeal": {
+        "material": "/Game/FrastownCT03/Materials/OldTeal/M_Frastown_OldTeal.M_Frastown_OldTeal",
+        "maps": {
+          "BaseColor": {
+            "texture": "/Game/FrastownCT03/Materials/OldTeal/T_OldTeal_BaseColor.T_OldTeal_BaseColor",
+            "size": [
+              4096,
+              4096
+            ],
+            "sRGB": true,
+            "compression": "TC_DEFAULT"
+          },
+          "NormalDX": {
+            "texture": "/Game/FrastownCT03/Materials/OldTeal/T_OldTeal_NormalDX.T_OldTeal_NormalDX",
+            "size": [
+              4096,
+              4096
+            ],
+            "sRGB": false,
+            "compression": "TC_NORMALMAP"
+          },
+          "ORM": {
+            "texture": "/Game/FrastownCT03/Materials/OldTeal/T_OldTeal_ORM.T_OldTeal_ORM",
+            "size": [
+              4096,
+              4096
+            ],
+            "sRGB": false,
+            "compression": "TC_MASKS"
+          }
+        },
+        "connections": [
+          [
+            "BaseColor",
+            "RGB",
+            "MP_BASE_COLOR"
+          ],
+          [
+            "NormalDX",
+            "RGB",
+            "MP_NORMAL"
+          ],
+          [
+            "ORM",
+            "R",
+            "MP_AMBIENT_OCCLUSION"
+          ],
+          [
+            "ORM",
+            "G",
+            "MP_ROUGHNESS"
+          ],
+          [
+            "ORM",
+            "B",
+            "MP_METALLIC"
+          ]
+        ]
+      }
+    }
+  },
+  "framewright": {
+    "project_id": "8b2756f3-ab0f-41c4-9729-0d0cc3fcd048",
+    "assembly_id": "5d79953c-43c1-4194-8c3c-d20693393452",
+    "review_anchor": "a1830b13-79a7-430a-a6f5-bb8585dcf8b4",
+    "note_id": "8f33aa62-0563-446e-8d05-c8e75205fa7e",
+    "current_review_cards_before": 18,
+    "current_review_cards_after": 18
+  },
+  "deliverables": [
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-CT03\\Modeling\\CT03_OpenShopfront_Geometry.glb",
+      "sha256": "7e37b35fc273d68f09cc0a6b230792e155568fa80bc95f2847c8f8408871480d"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-CT03\\Modeling\\CT03_OutboardCorner_Geometry.glb",
+      "sha256": "f3f9dec533df76ee4b12dba4ef3146fea086a0980079f0d63b8328fdc775b5b9"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-CT03\\Modeling\\CT03_UpperTwoDoorFront_Geometry.glb",
+      "sha256": "8458d7c07d6f06dff265f56775f08a1fd5dbb2f1b96494faa85819037ce1e667"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-CT03\\Modeling\\CT03_WorkerHouseFront_Geometry.glb",
+      "sha256": "03ff63904748c8690cf2abc10c40c766a802903a16c746871f015054e4681ccb"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-CT03\\Review\\CT03_Labeled_Contact_Sheet.png",
+      "sha256": "3fd4b4c5e48163740a6ec9370784dc050c5593bfb30eaf195e2704506e9fc344"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-CT03\\Review\\CT03_Metric_Eye_Height.png",
+      "sha256": "002dfac989f1b12a1020d5612f37e94ba500d8f2ce0ef081d9e6c0df610af30b"
+    },
+    {
+      "path": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-CT03\\Frastown_Facade_Materials.blend",
+      "sha256": "3d9c1c2ea2412c4d1448e47dd70d54512021b0a742ebf405e7fc071b1968e60b"
+    }
+  ]
+}
