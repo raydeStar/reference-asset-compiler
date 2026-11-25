@@ -600,3 +600,40 @@ bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'ramp.blend')!r})
     assert receipt['status'] == 'passed'
     assert overlap['faces_before'] > 20 and overlap['texel_share_before'] > 0.05
     assert overlap['texel_share_after_repack'] <= 0.001
+
+
+def test_a_picture_lands_on_the_face_its_camera_sees_and_nowhere_else(tmp_path):
+    # A painted cube, a red picture, and a camera on the cube's depth axis:
+    # only the face looking at the camera takes the picture; the four faces
+    # edge-on to it and the one facing away keep the paint.
+    from PIL import Image
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add(size=0.5)
+cube = bpy.context.object
+image = bpy.data.images.new('paint', 128, 128)
+image.pixels = [0.1, 0.6, 0.2, 1.0] * (128 * 128)
+image.filepath_raw = {str(tmp_path / 'paint.png')!r}
+image.file_format = 'PNG'
+image.save()
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+texture = material.node_tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+material.node_tree.links.new(texture.outputs['Color'], material.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+cube.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    Image.new('RGB', (100, 100), (220, 30, 30)).save(tmp_path / 'picture.png')
+    Image.new('RGBA', (100, 100), (220, 30, 30, 255)).save(tmp_path / 'cutout.png')
+    (tmp_path / 'camera.json').write_text(json.dumps({'params': [0, 0, 0, 15], 'scale': 600, 'offset': [50, 50]}))
+    (tmp_path / 'affine.json').write_text(json.dumps({'matrix': [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                                                      'translation': [0, 0, 0]}))
+    report = tmp_path / 'bake.json'
+    run(ROOT / 'scripts/blender/project_reference_bake.py', tmp_path / 'painted.glb', tmp_path / 'projected.glb', report,
+        tmp_path / 'picture.png', tmp_path / 'cutout.png', tmp_path / 'camera.json', tmp_path / 'affine.json')
+    receipt = json.loads(report.read_text())
+    assert 0.05 < receipt['share_of_model_from_picture'] < 0.35
+    assert receipt['rays'] > 0
+    assert (tmp_path / 'projected.glb').stat().st_size > 0

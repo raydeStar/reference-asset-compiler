@@ -3491,3 +3491,30 @@ The owner looked at the WK-04.1 stair in Framewright, after the cage fix, and fo
 - **Other pieces:** the landing's layout had none (a box). The approved skiff's had 0.5 %.
 
 **Open:** whether the Pixal route can bake occlusion again now that no texel is shared. The stair is being painted at 8192 on the new layout, with both detail bakes, to decide.
+
+## 2026-11-25 · Project the reference onto the faces it shows: `project-reference`
+
+The painter smooths away fine, high-contrast wear. On the WK-04.3 landing, 21 sections at 8192 still lost every scratch of the reference and painted its dark steel pale. That happens on either geometry route, because both use the same painter. But Pixal3D builds its mesh in the picture's own camera, so the picture itself can be laid onto the faces it shows. The owner passed the result: "Pass, canonize it."
+
+**The camera.**
+- **Pixal3D's model:** it crops the cutout to a square 1.1 times the object (alpha over 0.8). It puts a perspective camera on the depth axis of its frame at 0.5 / tan(fov/2), with the field of view MoGe-2 estimates and the run's log records (`camera_angle_x`).
+- **Axes:** in the GLB Pixal3D exports, the camera frame is x across (mirrored), z depth, y up. That convention was found by trying all 48 signed axis permutations against the cutout's outline: 0.987 overlap for one, nothing close for the others.
+- **The stage's fit:** it starts from the logged field of view and refines small turns, the field of view and the framing against the outline. On the rebuilt landing it found 15.66° with no turn, the logged value, at 0.995 overlap.
+- **A different picture of the same object:** it fits with a small turn (the revised landing picture, 6° higher, 0.994). But that is not enough, as the next point shows.
+
+**Same picture for geometry and projection.** The first try projected the landing's revised picture onto geometry made from the first one. The outlines matched (0.994), but the revised render puts its bolts about 2 cm elsewhere, and every bolt showed twice: a 3D bolt with a flat bolt beside it. The owner caught it close up. The stage now refuses a reference whose hash is not the geometry report's picture: revise the picture, then make the geometry again.
+
+**Where the painted model is.** Levelling, sizing and unwrapping move the mesh, and the Frastown run's "sized" landing had one side stretched 7.8 % to make it square. An affine map from Pixal3D's own game mesh to the painted one is fitted by nearest points, starting from the levelling transform. It fits to 0.04 mm on the rebuilt landing (0.0 mm on the stretched one). Above 2 mm it is refused.
+
+**The blend, per texel.** Each texel's position and normal are baked at up to 2048. Its weight is:
+- how squarely it faces the camera: nothing below 0.2, all of it from 0.5;
+- whether a ray to the camera is clear;
+- whether it lands inside the cutout, eroded by 4 px.
+
+Per-corner weights faded half of a big flat triangle from one grazing corner. Texels the picture cannot see keep the paint, moved toward the picture's colour in luma and chroma: brightness level and contrast, colour average. Per-channel grading turned the painter's grey bolts purple on the bolts' far sides.
+
+**After a projection, no relief from the paint.** `bake-detail --relief-tilt` raised the picture's photographic grain into lumps across the landing's side panels. The dense mesh's own shape, baked by `bake-shape`, is clean.
+
+**Occlusion is back on the Pixal route.** The entry that took it off blamed the occlusion bake. The cause was the overlapping UV layout, fixed in `uv-unwrap`. The stair re-baked on the fixed layout with occlusion shows no triangles, and the owner passed it.
+
+**Measured:** the stage on the rebuilt landing ran in 39 s (0.8 M rays). Its result matches the owner-passed prototype within 0.26/255 on average in the elevated view.

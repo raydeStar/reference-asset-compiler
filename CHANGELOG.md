@@ -5,6 +5,16 @@ and any attached wheel.
 
 ## Unreleased
 
+`project-reference`: the reference picture laid onto the faces of a Pixal3D model
+it shows, over the paint. Pixal3D builds its mesh in the picture's camera; the
+stage fits that camera (Pixal3D's logged field of view, refined by the outline)
+and blends the picture in per texel by facing, line of sight and the cutout, so
+the WK-04.3 landing carries its reference's own scratches and dark steel, which
+painting in sections had lost. Geometry and picture must be the same image; a
+revised picture is refused until the geometry is made again. The Pixal route
+bakes occlusion again (the overlapping UVs that broke it are fixed) and, after a
+projection, no relief from the paint.
+
 `uv-unwrap` no longer lets two faces share a texel. Smart Project laid the
 WK-04.1 stair's folded treads on top of themselves (8.9 % of its texels shared),
 which put hidden faces' occlusion and roughness onto visible ones as triangles.

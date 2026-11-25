@@ -174,6 +174,10 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--allow-triangulated-glb", action="store_true",
                        help="Accept an approved static triangle mesh for UV unwrapping as it stands")
     stage.add_argument("--reference", type=Path, help="The image a paint stage paints from")
+    stage.add_argument("--geometry", type=Path,
+                       help="Project reference: the pixal-geometry report of the mesh the model was painted on")
+    stage.add_argument("--minimum-fit", type=float,
+                       help="Project reference: the least outline overlap the fitted camera must reach (default 0.97)")
     stage.add_argument("--views", type=int, help="Paint views, 6..12 (default: 6)")
     stage.add_argument("--resolution", type=int,
                        help="Paint resolution, 512 or 768; or fixed-view render size")
@@ -465,6 +469,8 @@ def main(argv: list[str] | None = None) -> int:
                     "edge_wear": args.edge_wear,
                     "relief_from_paint": args.relief_from_paint,
                     "relief_tilt": args.relief_tilt,
+                    "geometry": args.geometry,
+                    "minimum_fit": args.minimum_fit,
                     "no_occlusion": args.no_occlusion,
                     "directions": args.directions,
                     "most": args.most,
