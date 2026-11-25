@@ -204,6 +204,9 @@ def separate_overlaps(obj: bpy.types.Object, margin: float) -> dict[str, object]
                                      area_weight=0.0, correct_aspect=True, scale_to_bounds=False)
         bpy.ops.mesh.select_all(action="SELECT")
         bpy.ops.uv.select_all(action="SELECT")
+        # Reprojecting a subset gives it a whole UV square. Restore area-based density
+        # across all islands before packing, including single faces made by reset().
+        bpy.ops.uv.average_islands_scale()
         bpy.ops.uv.pack_islands(rotate=True, rotate_method="ANY", scale=True, shape_method="CONCAVE",
                                 margin_method="FRACTION", margin=margin)
         bpy.ops.object.mode_set(mode="OBJECT")
