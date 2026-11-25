@@ -51,6 +51,17 @@ rather than editing them in place:
      view far finer than the sheet (see bake_at_texel_scale). --atlas 8192
      computes and writes the sheet at 8192.
 
+  8. The bake adds each view into the sheet as it is projected, instead of
+     keeping every view's sheet-sized projection and merging them all again
+     after each view. Same sums, same order, same maps (see
+     bake_from_multiview_one_view_at_a_time).
+
+  9. The map from texels to surface points keeps only the texels the mesh
+     covers, instead of a dozen sheet-sized scratch buffers (see
+     extract_textiles_covered_texels_only). With 8, an 8192 sheet's peak fell
+     from 13.2-18 GiB allocated to the diffusion's own, so it fits the same
+     12 GB card as a 4096 sheet. The maps are byte for byte the same.
+
 The UV lock, the local model snapshots, the validation gate and its 1e-6
 tolerances match the legacy runner exactly, because those parts were right.
 
@@ -242,6 +253,97 @@ def uv_inpaint_cv_fallback(self, texture, mask, **inpaint_kwargs):
 
 
 MeshRender.uv_inpaint = uv_inpaint_cv_fallback
+
+# --- patch 4b: bake one view at a time ---------------------------------------
+from utils.pipeline_utils import ViewProcessor  # noqa: E402
+
+
+@torch.no_grad()
+def bake_from_multiview_one_view_at_a_time(self, views, camera_elevs, camera_azims, view_weights):
+    """Upstream's bake, with each view added in as it is projected.
+
+    Upstream keeps every view's projection (a texture, a weight map and an
+    unused boundary map, each the size of the sheet) in lists, and calls the
+    merge inside its loop, so the lists are merged from scratch after every
+    view: 78 passes for 12 views where 12 do. At an 8192 sheet the lists were
+    the whole run's peak, 13 to 18 GiB allocated, over a 12 GB card. Here the
+    same sums are taken in the same order, view by view, with the same rule
+    for skipping a view whose texels are already 99% painted, so the merged
+    texture and mask are the ones upstream's last pass returns, byte for byte.
+    """
+    render = self.render
+    texture_merge = trust_map_merge = None
+    for view, camera_elev, camera_azim, weight in zip(views, camera_elevs, camera_azims, view_weights):
+        texture, cos_map, _ = render.back_project(view, camera_elev, camera_azim)
+        cos_map = weight * (cos_map ** self.config.bake_exp)
+        if texture_merge is None:
+            texture_merge = torch.zeros(render.texture_size + (texture.shape[-1],)).to(render.device)
+            trust_map_merge = torch.zeros(render.texture_size + (1,)).to(render.device)
+        view_sum = (cos_map > 0).sum()
+        painted_sum = ((cos_map > 0) * (trust_map_merge > 0)).sum()
+        if not painted_sum / view_sum > 0.99:
+            texture_merge += texture * cos_map
+            trust_map_merge += cos_map
+        del texture, cos_map
+    texture_merge = texture_merge / torch.clamp(trust_map_merge, min=1e-8)
+    return texture_merge, trust_map_merge > 1e-8
+
+
+ViewProcessor.bake_from_multiview = bake_from_multiview_one_view_at_a_time
+
+# --- patch 4c: map texels to the surface without sheet-sized scratch ----------
+
+
+@torch.no_grad()
+def extract_textiles_covered_texels_only(self):
+    """Upstream's texel-to-surface map, holding only the texels the mesh covers.
+
+    Upstream builds it from a dozen sheet-sized buffers at once: the raster,
+    positions and smoothed normals for every texel, a 64-bit row and column for
+    every texel, then masks them to the covered ones. At an 8192 sheet that
+    was 7.2 GiB on top of the models already on the card, the run's peak (13.2
+    GiB). The smoothed normals are wasted too: upstream then overwrites every
+    covered texel's normal with its face's flat normal. Here the covered texels
+    are found once from the raster, and only their positions, face normals and
+    rows and columns are kept, in upstream's order, so every map that follows
+    is byte for byte the same.
+    """
+    vertex_count = self.vtx_uv.shape[0]
+    vtx_uv = torch.cat(
+        (self.vtx_uv, torch.zeros_like(self.vtx_uv[:, 0:1]), torch.ones_like(self.vtx_uv[:, 0:1])), axis=1)
+    vtx_uv = vtx_uv.view(1, vertex_count, 4) * 2 - 1
+    rast_out, _ = self.raster_rasterize(vtx_uv, self.uv_idx, resolution=self.texture_size)
+    height, width = self.texture_size
+    face_of_texel = rast_out[0, ..., 3].reshape(-1)
+    covered = torch.nonzero(face_of_texel > 0).squeeze(1)
+    faces = (face_of_texel[covered] - 1).long()
+    barycentric = rast_out[0, ..., :3].reshape(-1, 3)[covered]
+    del rast_out, face_of_texel
+    # custom_rasterizer.interpolate's own arithmetic -- the corners' values
+    # weighted by the barycentrics and summed over the corners -- on the covered
+    # texels only, a slice at a time: it built (8192 x 8192 x 3 x 3) index and
+    # value tensors for the whole sheet, 6.4 GiB, to keep a third of them.
+    corners = self.pos_idx.long()
+    position = torch.empty((covered.shape[0], 3), dtype=self.vtx_pos.dtype, device=self.device)
+    step = 1 << 22
+    for start in range(0, covered.shape[0], step):
+        stop = min(start + step, covered.shape[0])
+        values = self.vtx_pos[corners[faces[start:stop]]]
+        position[start:stop] = torch.sum(barycentric[start:stop].view(-1, 3, 1) * values, axis=-2)
+    del barycentric
+    v0 = self.vtx_pos[self.pos_idx[:, 0], :]
+    v1 = self.vtx_pos[self.pos_idx[:, 1], :]
+    v2 = self.vtx_pos[self.pos_idx[:, 2], :]
+    face_normals = torch.nn.functional.normalize(torch.cross(v1 - v0, v2 - v0, dim=-1), dim=-1)
+    texture_indices = torch.full((height, width), -1, device=self.device, dtype=torch.long)
+    texture_indices.view(-1)[covered] = torch.arange(covered.shape[0], device=self.device, dtype=torch.long)
+    self.tex_position = torch.cat((position, torch.ones_like(position[:, :1])), axis=-1)
+    self.tex_normal = face_normals.reshape(-1, 3)[faces]
+    self.tex_grid = torch.stack((covered // width, covered % width), -1)
+    self.texture_indices = texture_indices
+
+
+MeshRender.extract_textiles = extract_textiles_covered_texels_only
 
 
 def inpaint_while_baking(painter):
