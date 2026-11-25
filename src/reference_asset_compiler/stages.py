@@ -35,6 +35,7 @@ from .human_scale import HumanScaleError, named_sizes, resolve_height
 from .rebake import MESH_SUFFIXES, RebakeError, check_binding, read_reduction
 from .processes import run_bounded
 from .resources import checkout_root
+from .segmentation import segmentation_missing
 
 BLENDER_ENVIRONMENT = "RAC_BLENDER"
 """Where the Blender executable is named, matching workflow_doctor."""
@@ -399,6 +400,44 @@ STAGES: dict[str, dict[str, Any]] = {
         # consumer quotes a cost and sets a timeout from this, not from a guess.
         "estimate": {"unit": "section", "minutes": 2.5, "free_vram_mib": 21504},
     },
+    "label-parts": {
+        "runner": "python",
+        "script": "scripts/label_parts.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("vocab", "reference", "torch_python", "detector", "sam"),
+        "prepare": "label-parts",
+        "needs": ("blender", "segmentation"),
+        # The labelling paint-parts paints by: one part index a face, and the
+        # same parts in the reference picture. 24 renders with the face under
+        # every pixel, Grounding DINO and SAM in a torch Python, votes carried
+        # onto the faces, and fixed views in part colours for a person to check.
+        "output_suffix": ".npz",
+        "timeout": 7200,
+        "summary": "Find a painted model's parts face by face, and in its reference, from a vocabulary of "
+                   "parts. Renders, a detector and SAM; needs a GPU for a few minutes.",
+        "produces": "reference-asset-compiler.part-labels.v1",
+    },
+    "paint-parts": {
+        "runner": "python",
+        "script": "scripts/paint_parts.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("parts", "reference", "views", "resolution", "atlas", "together", "surface",
+                    "reuse_parts", "min_free_vram"),
+        "timeout": 7200,
+        "prepare": "paint-parts",
+        "needs": ("paint-stack",),
+        # Painted whole, a model's parts bleed: the skiff's fin red landed on
+        # the strut holding it. This paints each part alone, from the reference
+        # with the other parts masked out, and lays each on its own faces, the
+        # colour changing at the edge where parts meet. paint-sections goes on
+        # top afterwards, its finished sections reused.
+        "summary": "Paint a model again part by part, each from the reference with the other parts masked "
+                   "out, and lay each on its own faces. One painter run a piece; needs a GPU with 21 GiB free.",
+        "produces": "reference-asset-compiler.part-paint.v1",
+        # Measured on an RTX 4090 on 2026-11-24: the skiff's hull (2.2 m) in
+        # 3.4 minutes, its seat in 3.2 and both fins together in 2.6.
+        "estimate": {"unit": "piece", "minutes": 3.5, "free_vram_mib": 21504},
+    },
 }
 
 
@@ -441,6 +480,10 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # upstream checkout and its own weights, and a machine that can
             # generate geometry often cannot paint it.
             missing += [item for item in paint_missing(legacy) if item not in missing]
+        if "segmentation" in needs:
+            # A third: the part labeller's detector and SAM run in a Python
+            # with torch, which this compiler's own environment does not carry.
+            missing += [item for item in segmentation_missing() if item not in missing]
         described = {
             "stage": name,
             "runner": stage["runner"],
@@ -598,6 +641,10 @@ def run_stage(
         context = prepare_paint_head(options or {}, resolve_legacy_root(legacy_root))
     elif prepare == "paint-sections":
         context = prepare_paint_sections(options or {}, resolve_legacy_root(legacy_root))
+    elif prepare == "label-parts":
+        context = prepare_label_parts(root, options or {}, resolve_blender(blender))
+    elif prepare == "paint-parts":
+        context = prepare_paint_parts(options or {}, resolve_legacy_root(legacy_root))
     extra = [str(item) for item in context.get("arguments", ())]
 
     if stage["runner"] == "blender":
@@ -1311,6 +1358,86 @@ def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, A
             raise StageError("There is no earlier section attempt at {0}.".format(earlier))
         arguments += ["--reuse-sections", str(earlier)]
     return {"arguments": arguments, "payload": {"reference": str(reference)}}
+
+
+def prepare_label_parts(root: Path, options: dict[str, Any], blender: str) -> dict[str, Any]:
+    """What the part labeller insists on: a vocabulary, the picture, Blender and a segmenter.
+
+    A vocabulary may be named as a file or by its name under
+    profiles/segmentation (skiff-parts). It is checked here, before a GPU is
+    asked for: one base part, at least one part to find, every part named once.
+    """
+    vocab = options.get("vocab")
+    if not vocab:
+        raise StageError("Labelling parts needs a vocabulary: pass --vocab, e.g. skiff-parts or a JSON file.")
+    path = Path(vocab)
+    if not path.is_file():
+        named = root / "profiles" / "segmentation" / "{0}.json".format(vocab)
+        if not named.is_file():
+            raise StageError("There is no part vocabulary {0}, as a file or under profiles/segmentation.".format(
+                vocab))
+        path = named
+    try:
+        parts = json.loads(path.read_text(encoding="utf-8"))["parts"]
+        names = [part["name"] for part in parts]
+    except (OSError, ValueError, KeyError, TypeError) as problem:
+        raise StageError("The part vocabulary {0} could not be read: {1}".format(path, problem))
+    if sum(1 for part in parts if part.get("base")) != 1 or len(parts) < 2 or len(set(names)) != len(names):
+        raise StageError("A part vocabulary names one base part, at least one part to find, and each part once.")
+    for part in parts:
+        if not part.get("base") and not part.get("prompts"):
+            raise StageError("The part {0} has no prompts to look for it with.".format(part["name"]))
+    reference = options.get("reference")
+    if not reference:
+        raise StageError("Labelling parts needs the reference the model was painted from: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The reference does not exist: {0}".format(reference))
+    missing = segmentation_missing(options.get("torch_python"), options.get("detector"), options.get("sam"))
+    if missing:
+        raise StageError(
+            "This machine cannot label parts; it is missing: {0}. Name them with --torch-python, --detector "
+            "and --sam, or RAC_TORCH_PYTHON, RAC_GROUNDING_DINO and RAC_SAM_CHECKPOINT.".format(", ".join(missing)))
+    arguments = ["--vocab", str(path.resolve()), "--reference", str(reference), "--blender", blender]
+    for flag, name in (("--torch-python", "torch_python"), ("--detector", "detector"), ("--sam", "sam")):
+        if options.get(name):
+            arguments += [flag, str(options[name])]
+    return {"arguments": arguments, "payload": {"reference": str(reference), "vocab": str(path.resolve())}}
+
+
+def prepare_paint_parts(options: dict[str, Any], legacy: Path) -> dict[str, Any]:
+    """What the part painter insists on: the labelling, the same picture, and the paint stack."""
+    labelling = options.get("parts")
+    if not labelling:
+        raise StageError("Painting by parts needs the labelling label-parts made: pass --parts <labels.npz>.")
+    labelling = Path(labelling).resolve()
+    if not labelling.is_file():
+        raise StageError("The part labelling does not exist: {0}".format(labelling))
+    reference = options.get("reference")
+    if not reference:
+        raise StageError("Painting by parts needs the reference the model was painted from: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The paint reference does not exist: {0}".format(reference))
+    if options.get("surface") not in (None, "first", "parts"):
+        raise StageError("--surface is first (keep the first paint's roughness and metal) or parts.")
+    missing = paint_missing(legacy)
+    if missing:
+        raise StageError(
+            "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
+    arguments = ["--parts", str(labelling), "--reference", str(reference), "--legacy-root", str(legacy)]
+    for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
+                       ("--surface", "surface"), ("--min-free-vram", "min_free_vram")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    if options.get("together") is not None:
+        arguments += ["--together", *[str(name) for name in options["together"]]]
+    if options.get("reuse_parts") is not None:
+        earlier = Path(options["reuse_parts"]).resolve()
+        if not earlier.is_dir():
+            raise StageError("There is no earlier part attempt at {0}.".format(earlier))
+        arguments += ["--reuse-parts", str(earlier)]
+    return {"arguments": arguments, "payload": {"reference": str(reference), "parts": str(labelling)}}
 
 
 def collect_produced(produced: dict[str, Path], output: Path, report: Path) -> None:

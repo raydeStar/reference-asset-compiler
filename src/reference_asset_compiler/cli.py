@@ -220,6 +220,22 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--bake-scale", type=float,
                        help="Paint in sections: bake each section's views at about this many pixels a "
                             "texel (default: 1; 0 bakes them as upstream does)")
+    stage.add_argument("--vocab",
+                       help="Label parts: the part vocabulary, a JSON file or a name under "
+                            "profiles/segmentation (e.g. skiff-parts)")
+    stage.add_argument("--torch-python",
+                       help="Label parts: a Python with torch, transformers and segment_anything "
+                            "(default: $RAC_TORCH_PYTHON, then ComfyUI's portable Python)")
+    stage.add_argument("--detector", help="Label parts: the grounding-dino-base folder (default: $RAC_GROUNDING_DINO)")
+    stage.add_argument("--sam", help="Label parts: sam_vit_b_01ec64.pth (default: $RAC_SAM_CHECKPOINT)")
+    stage.add_argument("--parts", type=Path, help="Paint by parts: the labelling label-parts made (.npz)")
+    stage.add_argument("--together", nargs="+",
+                       help="Paint by parts: parts painted as one piece however far apart (default: the "
+                            "vocabulary's own 'together' parts)")
+    stage.add_argument("--surface", choices=("first", "parts"),
+                       help="Paint by parts: roughness and metal from the first paint (default) or the part paints")
+    stage.add_argument("--reuse-parts", type=Path,
+                       help="Paint by parts: an earlier attempt whose pieces are reused where mesh and crop match")
     stage.add_argument("--target-triangles", type=int, help="Remesh target before the budget check")
     stage.add_argument("--voxel-resolution", type=int, help="Remesh grid resolution (default: 420)")
     stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
@@ -254,7 +270,7 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
     stage.add_argument("--timeout", type=int,
                        help="Seconds before the stage is abandoned (default: the stage's own; "
-                            "3600 for most, 14400 for paint-sections)")
+                            "3600 for most, 14400 for paint-sections, 7200 for label-parts and paint-parts)")
     stage.add_argument("--list", action="store_true",
                        help="Report the runnable stages and what is missing, and run nothing")
 
@@ -475,6 +491,14 @@ def main(argv: list[str] | None = None) -> int:
                     "normal_resolution": args.normal_resolution,
                     "threads": args.threads,
                     "no_climb": args.no_climb or None,
+                    "vocab": args.vocab,
+                    "torch_python": args.torch_python,
+                    "detector": args.detector,
+                    "sam": args.sam,
+                    "parts": args.parts,
+                    "together": args.together,
+                    "surface": args.surface,
+                    "reuse_parts": args.reuse_parts,
                 })
             print_payload(payload)
             return 0 if payload["ok"] else 1

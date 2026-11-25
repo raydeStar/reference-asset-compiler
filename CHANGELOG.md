@@ -3,6 +3,15 @@
 Release notes live under `docs/releases/`; GitHub releases carry the same text
 and any attached wheel.
 
+## v0.5.0 — 2026-11-24
+
+Paint by parts. `label-parts` finds a painted model's parts face by face, and in
+its reference (Grounding DINO and SAM on 24 renders, votes onto faces, review
+views in part colours). `paint-parts` paints each part alone from the reference
+with the other parts masked out and lays it on its own faces, so one part's
+colour no longer bleeds onto another. `paint-sections` goes over it with its
+sections reused. Notes: [docs/releases/v0.5.0.md](docs/releases/v0.5.0.md).
+
 ## v0.4.0 — 2026-11-24
 
 Props that hold up at arm's length. A Pixal3D route end to end: Pixal's own
