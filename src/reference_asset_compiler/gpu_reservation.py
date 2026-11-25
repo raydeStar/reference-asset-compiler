@@ -104,6 +104,29 @@ def contain_windows_worker():
     if not kernel.AssignProcessToJobObject(job, wintypes.HANDLE(-1)):
         raise ctypes.WinError(ctypes.get_last_error())
     # The OS closes the sole, non-inheritable handle on process exit.
+    return job
+
+
+def run_windows_tree(command):
+    """The program may exit while a painter it spawned is still working."""
+    import ctypes
+    from ctypes import wintypes
+    job = contain_windows_worker()
+    kernel = ctypes.WinDLL("kernel32", use_last_error=True)
+    kernel.QueryInformationJobObject.argtypes = [wintypes.HANDLE, ctypes.c_int, ctypes.c_void_p,
+                                                wintypes.DWORD, ctypes.c_void_p]
+
+    class Accounting(ctypes.Structure):
+        _fields_ = [("times", ctypes.c_int64 * 4), ("pagefaults", wintypes.DWORD),
+                    ("total", wintypes.DWORD), ("active", wintypes.DWORD), ("terminated", wintypes.DWORD)]
+
+    code = subprocess.call(command)
+    info = Accounting()
+    while kernel.QueryInformationJobObject(job, 1, ctypes.byref(info), ctypes.sizeof(info), None):
+        if info.active == 1:  # this supervisor alone
+            return code
+        time.sleep(0.1)
+    raise ctypes.WinError(ctypes.get_last_error())
 
 
 def wait_for_memory(required_mib):
@@ -123,13 +146,15 @@ def wait_for_memory(required_mib):
 
 
 def main(argv):
+    if argv[0] == "--run-tree":
+        return run_windows_tree(argv[1:])
     required = int(argv[0])
     command = argv[1:]
     if os.name == "nt":
         contain_windows_worker()
         with windows_reservation():
             wait_for_memory(required)
-            return subprocess.call(command)
+            return subprocess.call([sys.executable, __file__, "--run-tree", *command])
     with linux_reservation() as lock:
         wait_for_memory(required)
         os.set_inheritable(lock.fileno(), True)

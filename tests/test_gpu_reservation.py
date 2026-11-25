@@ -54,3 +54,32 @@ def test_only_one_worker_enters_even_after_the_native_owner_dies(tmp_path):
         finally:
             if owner.poll() is None:
                 owner.kill()
+
+
+@pytest.mark.skipif(os.name != "nt" or not os.environ.get("RAC_TEST_WSL_GPU_LOCK"),
+                    reason="requires Windows and the Pixal distro")
+def test_linux_owner_keeps_windows_painter_waiting_until_linux_exits(tmp_path):
+    key = "/tmp/rac-test-" + uuid.uuid4().hex + ".lock"
+    env = {**os.environ, "RAC_GPU_LOCK_PATH": key}
+    first, release, second = (tmp_path / name for name in ("first", "release", "second"))
+    linux = ["wsl.exe", "-d", os.environ.get("RAC_WSL_DISTRO", "Ubuntu-22.04"), "--",
+             "env", "RAC_GPU_LOCK_PATH=" + key, "python3", linux_path(GUARD), "0",
+             "python3", "-c", "import pathlib,sys,time; pathlib.Path(sys.argv[1]).touch()\n"
+             "while not pathlib.Path(sys.argv[2]).exists(): time.sleep(.05)",
+             linux_path(first), linux_path(release)]
+    native = [sys.executable, str(GUARD), "0", sys.executable, "-c", HOLD, str(second), "0"]
+    with subprocess.Popen(linux) as owner:
+        try:
+            wait_for(first, owner)
+            with subprocess.Popen(native, env=env) as contender:
+                try:
+                    time.sleep(1)
+                    assert contender.poll() is None and not second.exists()
+                    release.touch()
+                    assert owner.wait(timeout=10) == contender.wait(timeout=25) == 0
+                    assert second.exists()
+                finally:
+                    if contender.poll() is None:
+                        contender.kill()
+        finally:
+            release.touch()
