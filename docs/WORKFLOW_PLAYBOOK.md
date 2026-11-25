@@ -341,7 +341,7 @@ directly or edit its path logic ad hoc mid-experiment.
 
 It requires at least 21 GiB free VRAM and refuses face-order, geometry, or UV
 drift beyond `1e-6`. The studio runner releases stages by default, needs
-10.5 GiB (a 12 GB card) at every setting up to 12 views × 768. Its maps differ invisibly
+10.5 GiB (a 12 GB card) at every setting up to 12 views × 768 and an 8192 sheet. Its maps differ invisibly
 from a resident run; `-KeepStagesResident` reproduces older attempts. See
 "Painting with less VRAM" in `AI_STAGES_SETUP.md`. A validation JSON is required even if upstream teardown
 returns an error. Never auto-retry.
@@ -439,7 +439,7 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   byte for byte, with `painted: false` and `reason: shorter_than_min_length`
   in its receipt; every receipt carries `whole_model_mm_per_pixel`.
 - One painter run a section, about 2.5 minutes each on the 4090 (the stage
-  listing carries this as `estimate`), each needing 21 GiB free; a section that
+  listing carries this as `estimate`), each needing 10.5 GiB free; a section that
   fails fails the stage, and no half-painted model is delivered.
 - `--max-sections` counts sections that are painted; a cell of the grid the
   model does not reach costs nothing. Crops fit the model's extremes to the
@@ -480,7 +480,8 @@ The route that took the 2.2 m Frastown skiff (AC-01.1) from a picture to wood
 grain that holds up at arm's length. Times are from an RTX 4090.
 
 ```powershell
-# 1. Geometry: a few seeds (about 2.5 min each, in WSL), picked by fixed views.
+# 1. Geometry: a few seeds (about 2.5 min and 7.7 GiB each, in WSL), picked by fixed views.
+#    A seed picks the design, not exact triangles: Pixal3D is not deterministic.
 #    --extra-targets also writes the game mesh, from the same generation.
 python workflows/geometry/pixal3d/run_pixal3d.py --image cutout.png --output pixal.glb `
   --resolution 1024 --seed 45 --extra-targets 100000

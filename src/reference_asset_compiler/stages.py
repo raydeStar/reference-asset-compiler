@@ -354,7 +354,8 @@ STAGES: dict[str, dict[str, Any]] = {
         # words -- process health is separate from whether the paint is sound --
         # so what this stage produced is the verdict, not how its runner died.
         "verdict": "produced",
-        "summary": "Paint a UV-mapped mesh from its reference image. Needs a GPU with 21 GiB free.",
+        "summary": "Paint a UV-mapped mesh from its reference image. With --atlas (the studio painter) it needs "
+                   "10.5 GiB free, a 12 GB card, at any sheet up to 8192; without, 21 GiB.",
         "produces": "reference-asset-compiler.paint-validation.v1",
     },
     "paint-head": {
@@ -370,7 +371,7 @@ STAGES: dict[str, dict[str, Any]] = {
         # and lays it back over the body's atlas -- same UVs, so it lands where
         # the first paint did. No Blender: the mesh is read from the GLB.
         "summary": "Paint the head again on its own, at head scale, and lay it over the body's paint. "
-                   "Needs a GPU with 21 GiB free.",
+                   "Needs 10.5 GiB free, a 12 GB card.",
         "produces": "reference-asset-compiler.head-detail-paint.v1",
     },
     "paint-sections": {
@@ -393,12 +394,12 @@ STAGES: dict[str, dict[str, Any]] = {
         # back over the first paint on the same UVs, the first paint's tone kept.
         # A model under the minimum length is passed through unchanged.
         "summary": "Paint a large model again in sections of about half a metre and lay them over "
-                   "its first paint. One painter run a section; needs a GPU with 21 GiB free.",
+                   "its first paint. One painter run a section; needs 10.5 GiB free, a 12 GB card.",
         "produces": "reference-asset-compiler.section-detail-paint.v1",
         # Measured on an RTX 4090 on 2026-11-24: six mast sections in 11.6
         # minutes, forty-five skiff sections at about two and a half each. A
         # consumer quotes a cost and sets a timeout from this, not from a guess.
-        "estimate": {"unit": "section", "minutes": 2.5, "free_vram_mib": 21504},
+        "estimate": {"unit": "section", "minutes": 2.5, "free_vram_mib": 10752},
     },
     "label-parts": {
         "runner": "python",
@@ -432,11 +433,11 @@ STAGES: dict[str, dict[str, Any]] = {
         # colour changing at the edge where parts meet. paint-sections goes on
         # top afterwards, its finished sections reused.
         "summary": "Paint a model again part by part, each from the reference with the other parts masked "
-                   "out, and lay each on its own faces. One painter run a piece; needs a GPU with 21 GiB free.",
+                   "out, and lay each on its own faces. One painter run a piece; needs 10.5 GiB free, a 12 GB card.",
         "produces": "reference-asset-compiler.part-paint.v1",
         # Measured on an RTX 4090 on 2026-11-24: the skiff's hull (2.2 m) in
         # 3.4 minutes, its seat in 3.2 and both fins together in 2.6.
-        "estimate": {"unit": "piece", "minutes": 3.5, "free_vram_mib": 21504},
+        "estimate": {"unit": "piece", "minutes": 3.5, "free_vram_mib": 10752},
     },
 }
 

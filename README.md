@@ -215,8 +215,9 @@ approved image
   `single_view` when only the picture exists). No ComfyUI graph is executed; the
   launcher only inspects a live ComfyUI queue so it will not steal the GPU.
 - **Texturing** uses the official Hunyuan3D-Paint 2.1 pipeline through
-  `scripts/run_hy3d21_texture.ps1`, patched only to keep your UVs. It needs
-  21 GiB of free VRAM and the studio's `upstream/Hunyuan3D-2.1` checkout plus
+  `scripts/run_hy3d21_texture.ps1`, patched only to keep your UVs. The studio
+  painter needs 10.5 GiB free (a 12 GB card) at any sheet up to 8192, the legacy
+  one 21 GiB; both need the studio's `upstream/Hunyuan3D-2.1` checkout plus
   weights; the wrapper hash-verifies the studio copy of the runner and never
   auto-retries a crash. `workflows/texture/hunyuan3d21/` holds provenance copies.
 - **Rigging** is either-or per run (`scripts/run_rig_candidate.ps1`): Auto-Rig

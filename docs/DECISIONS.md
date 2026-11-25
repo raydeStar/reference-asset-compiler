@@ -3365,3 +3365,62 @@ The hull is 2.2 m painted whole, too coarse for chips. A finer split of the hull
 - EXCEPTION_ILLEGAL_INSTRUCTION inside numpy in a Blender bake.
 
 The same commands ran cleanly when repeated with nothing else running. Both fit the i9-14900K instability already on record. Long CPU stages on that machine should run alone, and be repeated once before a failure is believed.
+
+<!-- 8192-in-12gb-20261124 -->
+## 2026-11-24 · An 8192 sheet paints within a 12 GB card, byte for byte
+
+The studio painter fitted a 12 GB card at 4096: 12 views × 768 peaked at 9.6 GiB under a hard 10 GiB cap. The 8192 sheet that v0.4.0 made the prop route's default did not. Across 456 painter runs recorded at 8192, the peak was 13.2 to 18.0 GiB allocated. Every section and part of the skiff needed a 16 GB card or more.
+
+**Where the memory went.** Wrapping each pipeline step with a peak counter, on the skiff's seat at 8192:
+- The diffusion itself peaked at 9.1 GiB.
+- The peak, 13.2 GiB, came from loading the mesh: 7.2 GiB of scratch on top of the 6 GiB of models already on the card.
+- `MeshRender.extract_textiles` builds the map from texels to surface points out of a dozen sheet-sized buffers: the raster, positions and smoothed normals for every texel, a 64-bit row and column for every texel, then a mask down to the covered ones. The smoothed normals are wasted. Upstream overwrites every covered texel's normal with its face's flat normal.
+- The custom rasterizer's `interpolate` built 8192 × 8192 × 3 × 3 index and value tensors for the whole sheet, 6.4 GiB, to keep a third of the result.
+- The bake kept every view's sheet-sized projection in lists, and merged the lists from scratch after every view: 78 merges for 12 views where 12 do.
+
+**Fix.** Three patches in the studio runner, each keeping upstream's arithmetic and order:
+- The bake adds each view in as it is projected.
+- The texel map is built from the covered texels only.
+- Those texels' positions are interpolated a slice at a time.
+
+| Step | Peak allocated | Maps |
+|---|---|---|
+| v0.5.0 | 14.27 GiB | |
+| + bake one view at a time | 13.24 GiB | identical |
+| + covered texels only | 12.50 GiB | identical |
+| + slice-wise interpolation | 9.14 GiB | identical |
+
+"Identical" is pixel for pixel, for base colour, metal and roughness at 8192. Run under a hard 10 GiB allocator cap, as a 12 GB card leaves after the desktop, the same paint finished at 9.14 GiB allocated and 9.55 GiB reserved, again identical. A run took 184 s against 190 s.
+
+**How to measure it on Windows.** A process holding memory on the card does not shrink what PyTorch reports as free: Windows backs an over-full card with shared memory. With 11 GiB left free by a placeholder, the painter still set its pool budget to 22 GiB. Only a hard `set_per_process_memory_fraction` cap tests that a run fits.
+
+The section, part and head passes, and `texture --atlas`, now say they need 10.5 GiB free, the launcher's own floor for the studio painter. The legacy painter (no `--atlas`) still needs 21 GiB.
+
+<!-- pixal-12gb-20261124 -->
+## 2026-11-24 · Pixal3D at 1024 runs within a 12 GB card; the same seed does not give the same mesh
+
+Measured on the skiff (seed 45, `--resolution 1024`, upstream's `low_vram`), Pixal3D peaked at 14.22 GiB allocated (15.27 GiB reserved, about 16 GiB on the card), against upstream's note of "about 10 to 12 GB" in that mode. A peak counter around each pipeline step put every step at 6.2 GiB or less, except one: the texture stage's image conditioning, at 14.2 GiB for about a second.
+
+**Cause.** `DinoV3ProjFeatureExtractor` upsamples DINOv3's 1024-channel patch features with NAF to a full 1024 × 1024 map, then samples it at the 64³ voxel grid's 262,144 projected points. NAF's attention resizes the values to the full map first. The 1024-channel map (4 GiB) and its 8 GiB of scratch existed only to be sampled at those points. The shape stage does the same at 512 × 512 (6.2 GiB).
+
+**Fix.** NAF's four attention heads are independent, and each owns its own 256 channels of the features. `run_pixal3d.py` now upsamples one head at a time, samples it at the grid straight away, and puts the heads' channels back in upstream's order. This is the same computation in pieces.
+
+| Measurement | Upstream | Head by head |
+|---|---|---|
+| Texture conditioning peak | 14.21 GiB | 7.70 GiB |
+| Shape conditioning peak | 6.18 GiB | 5.19 GiB |
+| Whole run | 14.22 GiB allocated, 15.27 reserved, 166 s | 7.71 GiB allocated, 8.51 reserved, 157 s |
+
+On the same inputs in one process, both extractors' outputs were `torch.equal` to upstream's (largest difference 0.0). The run also completed under a hard 10 GiB allocator cap at the same 7.71 GiB.
+
+**Pixal3D is not deterministic.** Two unmodified runs of seed 45 gave different meshes: 757,294 against 756,491 vertices, and 82,778 against 83,457 in the 100k export. A seed picks the design, not the exact triangles. That is why the change above was proved on the conditioning tensor and not on the final mesh. Renders of the three runs (unmodified, head by head, and capped) show the same boat at the same detail.
+
+![Pixal3D seed 45 as pinned, head by head, and head by head under a 10 GiB cap](evidence/pixal-12gb-check.jpg)
+
+With this and the painter's fix, every GPU stage of the prop route runs within a 12 GB card:
+
+| Stage | Peak allocated |
+|---|---|
+| Pixal3D at 1024 | 7.7 GiB |
+| First paint, sections and parts at 8192 | 9.1 GiB |
+| label-parts (Grounding DINO + SAM ViT-B) | 3.6 GiB |
