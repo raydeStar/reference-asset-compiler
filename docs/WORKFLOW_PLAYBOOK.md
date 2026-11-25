@@ -517,17 +517,24 @@ rac run-stage paint-sections --source parts.glb --output sections.glb --report s
   --reference approved.png --views 12 --resolution 768 --atlas 8192 `
   --section 0.45 --overlap 0.2 --context 0.05 --max-sections 48
 
-# 7. Relief from the paint, then the dense shape under it (a few minutes each).
-rac run-stage bake-detail --source sections.glb --output detail.glb --report detail.json `
-  --resolution 2048 --relief-tilt 6 --no-occlusion
-#    --no-occlusion: an occlusion map baked on Pixal3D's layered game mesh darkens visible
-#    triangles in Framewright and Unreal (both read the slot; Blender's renderer does not).
+# 7. The picture itself on the faces it shows (under a minute). Pixal3D built the mesh in
+#    the picture's camera; the stage fits that camera (Pixal3D's logged field of view, refined
+#    by the outline) and lays the picture over the paint, so the reference's own scratches and
+#    colour are on the model and the painter keeps the faces it cannot see. The reference must
+#    be the picture this geometry was made from: a revised picture means geometry again.
+rac run-stage project-reference --source sections.glb --output projected.glb --report projected.json `
+  --geometry pixal.json --reference approved.png
+
+# 8. Occlusion and curvature, then the dense shape under them (a few minutes each). No relief
+#    from the paint after a projection: it raises the picture's grain into lumps, and the
+#    dense mesh carries the real shape. Without a projection, add --relief-tilt 6.
+rac run-stage bake-detail --source projected.glb --output detail.glb --report detail.json --resolution 2048
 rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense low-dense.blend
 #    Where Pixal3D's dense mesh has a stray sheet inside the 8 mm cage, a ray meets its
 #    back and would bake black; those texels are baked again from 3 mm and 1 mm cages.
 #    The report's texels_flat_share is what faced in from every cage (0.8 % on the stair).
 
-# 8. A browser copy: specular reset, then 8192 JPEG (the skiff came to 51 MB).
+# 9. A browser copy: specular reset, then 8192 JPEG (the skiff came to 51 MB).
 rac run-stage browser-payload --source shape.glb --output payload.glb --report payload.json
 rac run-stage compress-textures --source payload.glb --output packed.glb --report packed.json `
   --colour-size 8192 --data-size 8192 --quality 92 --texture-format jpeg
