@@ -28,7 +28,8 @@ param(
     [string] $DiagnosticsDir,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D-Paint runner, upstream checkout and models.' }),
     # 0 selects the measured floor: 21504 resident, 10752 released (a 12 GB
-    # card; 12 views x 768 peaked at 9.6 GiB under a hard 10 GiB cap).
+    # card; 12 views x 768 peaked at 9.6 GiB under a hard 10 GiB cap, and an
+    # 8192 sheet at 9.1 GiB once the bake stopped holding every view's sheet).
     [int] $MinimumFreeVramMiB = 0,
     [string] $ComfyUrl = 'http://127.0.0.1:8188'
 )

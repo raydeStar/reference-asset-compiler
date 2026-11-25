@@ -3,6 +3,13 @@
 Release notes live under `docs/releases/`; GitHub releases carry the same text
 and any attached wheel.
 
+## Unreleased
+
+An 8192 sheet paints within a 12 GB card: the studio painter's peak fell from
+13.2 to 18 GiB to the diffusion's own 9.1 GiB, with the maps byte for byte the
+same (the bake adds one view at a time, and the texel map keeps only covered
+texels). Notes: [docs/DECISIONS.md](docs/DECISIONS.md).
+
 ## v0.5.0 — 2026-11-24
 
 Paint by parts. `label-parts` finds a painted model's parts face by face, and in

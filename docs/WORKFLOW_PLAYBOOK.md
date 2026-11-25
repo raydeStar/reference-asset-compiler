@@ -341,7 +341,7 @@ directly or edit its path logic ad hoc mid-experiment.
 
 It requires at least 21 GiB free VRAM and refuses face-order, geometry, or UV
 drift beyond `1e-6`. The studio runner releases stages by default, needs
-10.5 GiB (a 12 GB card) at every setting up to 12 views × 768. Its maps differ invisibly
+10.5 GiB (a 12 GB card) at every setting up to 12 views × 768 and an 8192 sheet. Its maps differ invisibly
 from a resident run; `-KeepStagesResident` reproduces older attempts. See
 "Painting with less VRAM" in `AI_STAGES_SETUP.md`. A validation JSON is required even if upstream teardown
 returns an error. Never auto-retry.
@@ -439,7 +439,7 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   byte for byte, with `painted: false` and `reason: shorter_than_min_length`
   in its receipt; every receipt carries `whole_model_mm_per_pixel`.
 - One painter run a section, about 2.5 minutes each on the 4090 (the stage
-  listing carries this as `estimate`), each needing 21 GiB free; a section that
+  listing carries this as `estimate`), each needing 10.5 GiB free; a section that
   fails fails the stage, and no half-painted model is delivered.
 - `--max-sections` counts sections that are painted; a cell of the grid the
   model does not reach costs nothing. Crops fit the model's extremes to the
