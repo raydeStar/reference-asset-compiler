@@ -3453,3 +3453,20 @@ The Frastown run stopped two props on faults in Pixal3D's meshes. Neither came f
 **WK-04.1 stair: a black crescent after `bake-shape`.** The dense mesh had a stray thin sheet 4 to 40 mm under the top landing's plate. A ray starts on the cage, 8 mm out, and takes the first surface it meets going in. Where the sheet lay inside the cage, the ray met its back first and baked a normal pointing into the surface, which renders black. The band where the sheet crossed the cage was the crescent. A longer ray cannot help, since the ray starts beyond the sheet; that is why Codex's 20 to 52 mm test changed nothing. Making the dense mesh's winding consistent changed nothing either: it had 4 disagreeing edges in a million faces.
 - **The fix:** `bake-shape` bakes again from closer cages (`--fallback-cages`, 3 mm and 1 mm by default). Each texel keeps the first result, from the outermost cage in, that faces out of the surface (tangent z at least 0.05). A texel that faces in from every cage is left flat; the relief still rides on it.
 - **On the stair (4096 map):** 16.25 M texels kept the 8 mm result, 324 k took 3 mm, 62 k took 1 mm, and 138 k (0.8 %, mostly along sharp edges) were left flat. The crescent and the black nicks on the tread edges are gone, at 15 s of bake instead of 5.
+
+## 2026-11-25 · Pixal3D props bake no occlusion map; the browser copy carries its tangents
+
+The owner looked at the WK-04.1 stair in Framewright, after the cage fix, and found its treads shattered into dark triangles. No Blender render had shown them, Codex's or mine.
+
+**The cause: the occlusion map from `bake-detail`.** Framewright's Lit view showed the triangles, and so did its Roughness view, but not Colour, Normal or Metal. The same file with its occlusion slot removed was clean at the same camera. Blender's renderer ignores a glTF occlusion map, which is why every Blender check passed. Framewright (three.js) reads it, and so does Unreal.
+
+**Why the bake goes wrong on these meshes.** Pixal3D's game meshes carry enclosed interior shells and stacked sheets: on the stair, 34 % of the surface baked under 0.2. The darkest vertices had 60 of 64 rays stopped by inward-facing surfaces of the same mesh about 3 cm away. Tried and ruled out:
+- Flat or angle-split normals: about 1,150 open faces stayed dark either way.
+- Baking occlusion from the dense mesh, selected to active, with the game mesh hidden from rays: still shattered.
+- Counting only occluders whose front faces the point, beyond 3 mm (per vertex): still shattered.
+
+**The decision: `bake-detail --no-occlusion` for the Pixal3D route.** Without the map, Framewright and Unreal light the model the same way; Unreal adds its own occlusion at runtime, and the dense mesh's real shape is in `bake-shape`'s normal map. The Hunyuan route keeps its occlusion, and the approved skiff (revision 9) is not changed.
+
+**And the browser copy now exports tangents** whenever a material reads a normal map (`export_browser_payload.py`). The normal maps are baked against Blender's MikkTSpace tangents. A viewer given none estimates its own: three.js per triangle from screen derivatives, Unreal its own MikkTSpace on its own vertex split. Tangents in the file keep Framewright and Unreal on the frame the map was baked in. This alone did not remove the stair's triangles; the occlusion map did.
+
+**Corrected:** the note that the stair's seed 45 had fused its open treads was wrong. From above, the treads are separate with gaps, as in the reference.

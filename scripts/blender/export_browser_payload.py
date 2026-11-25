@@ -7,6 +7,12 @@ the way out, so the payload arrives in browser convention without anything
 downstream converting it -- which is exactly what the browser studio contract
 requires, because an import that converts is an import that can convert wrongly.
 
+A model whose material has a normal map is exported with its tangents. The
+normal map was baked in Blender against Blender's own (MikkTSpace) tangents; a
+browser given none estimates them per triangle from the screen, and where the
+map tilts steeply the two disagree triangle by triangle. The WK-04.1 stair's
+treads showed dark triangles in Framewright that no Blender render had.
+
 Nothing is judged here and the source is not modified. The stage exports, counts
 what it exported, and stops; the skeleton fingerprint is taken from the written
 file afterwards by the compiler, never from this scene's memory.
@@ -251,6 +257,18 @@ def scene_counts() -> dict:
     }
 
 
+def uses_normal_map() -> bool:
+    """Whether any material on a mesh with UVs reads a normal map."""
+    for obj in bpy.data.objects:
+        if obj.type != "MESH" or not obj.data.uv_layers:
+            continue
+        for slot in obj.material_slots:
+            tree = slot.material.node_tree if slot.material and slot.material.use_nodes else None
+            if tree and any(node.type == "NORMAL_MAP" and node.inputs["Color"].links for node in tree.nodes):
+                return True
+    return False
+
+
 def reset_doubled_specular():
     """Put the painter's doubled specular back to the real-world default.
 
@@ -329,6 +347,7 @@ def main() -> int:
 
     textures["specular_reset"] = reset_doubled_specular()
 
+    tangents = uses_normal_map()
     payload.parent.mkdir(parents=True, exist_ok=True)
     # A self-contained GLB: one file, textures inside it, no external URIs, and
     # the exporter's own Z-up to Y-up conversion rather than a hand-rolled one.
@@ -339,6 +358,7 @@ def main() -> int:
         export_apply=True,
         export_texture_dir="",
         export_skins=before["armatures"] > 0,
+        export_tangents=tangents,
         export_animations=False,
         export_cameras=False,
         export_lights=False,
@@ -358,6 +378,7 @@ def main() -> int:
         "convention": {"up": "+Y", "units": "metres", "self_contained": True},
         "exported": before,
         "textures": textures,
+        "tangents_exported": tangents,
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

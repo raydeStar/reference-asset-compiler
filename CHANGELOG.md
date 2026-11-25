@@ -5,6 +5,11 @@ and any attached wheel.
 
 ## Unreleased
 
+Pixal3D props look the same in Framewright and Unreal. `bake-detail --no-occlusion`
+leaves out the occlusion map, which on Pixal3D's layered game meshes darkened
+visible triangles in every viewer that reads it (the stair's treads), and the
+browser copy now carries the tangents its normal map was baked against.
+
 Pixal3D meshes the route can use as they come. `level_pair.py` mends each game
 mesh: specks, fins on edges shared by three faces, slivers and small holes (the
 crate's 9 to 58 open edges went to 0 on four seeds of six). `bake-shape` bakes
