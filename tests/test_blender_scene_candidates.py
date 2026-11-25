@@ -568,3 +568,35 @@ def test_detail_baked_without_occlusion_leaves_the_occlusion_slot_empty(tmp_path
     assert 'occlusionTexture' not in _glb_json(tmp_path / 'detail.glb')['materials'][0]
     assert (tmp_path / 'detail-maps' / 'curvature.png').is_file()
     assert not (tmp_path / 'detail-maps' / 'occlusion.png').exists()
+
+
+def test_a_surface_that_passes_over_itself_is_unwrapped_without_sharing_a_texel(tmp_path):
+    # A helical ramp: every face looks up and all are joined, so Smart Project
+    # makes one island of it and projects it flat, and after one turn it lands
+    # on itself. The WK-04.1 stair's folded treads did the same: 8.9 % of their
+    # texels were shared, and a hidden face's occlusion showed on a visible one.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, bmesh, math
+bpy.ops.wm.read_factory_settings(use_empty=True)
+mesh = bpy.data.meshes.new('ramp'); obj = bpy.data.objects.new('ramp', mesh)
+bpy.context.scene.collection.objects.link(obj)
+bm = bmesh.new(); rows = []
+for i in range(73):
+    t = i / 72 * 2.5 * math.pi
+    rows.append([bm.verts.new((r * math.cos(t), r * math.sin(t), 0.05 * t / (2 * math.pi))) for r in (0.5, 0.75, 1.0)])
+for a, b in zip(rows, rows[1:]):
+    for j in range(2):
+        bm.faces.new((a[j], b[j], b[j + 1], a[j + 1]))
+bm.to_mesh(mesh); bm.free()
+bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'ramp.blend')!r})
+''')
+    run(make)
+    report = tmp_path / 'uv.json'
+    run(ROOT / 'scripts/blender/prepare_texture_uv_transport.py', tmp_path / 'ramp.blend', tmp_path / 'uv.blend',
+        tmp_path / 'uv.obj', report)
+    receipt = json.loads(report.read_text())
+    overlap = receipt['settings']['overlap']
+    assert receipt['status'] == 'passed'
+    assert overlap['faces_before'] > 20 and overlap['texel_share_before'] > 0.05
+    assert overlap['texel_share_after_repack'] <= 0.001

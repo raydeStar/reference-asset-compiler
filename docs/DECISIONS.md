@@ -3470,3 +3470,24 @@ The owner looked at the WK-04.1 stair in Framewright, after the cage fix, and fo
 **And the browser copy now exports tangents** whenever a material reads a normal map (`export_browser_payload.py`). The normal maps are baked against Blender's MikkTSpace tangents. A viewer given none estimates its own: three.js per triangle from screen derivatives, Unreal its own MikkTSpace on its own vertex split. Tangents in the file keep Framewright and Unreal on the frame the map was baked in. This alone did not remove the stair's triangles; the occlusion map did.
 
 **Corrected:** the note that the stair's seed 45 had fused its open treads was wrong. From above, the treads are separate with gaps, as in the reference.
+
+## 2026-11-25 · No two faces share a texel: `uv-unwrap` separates what Smart Project folds onto itself
+
+**Correction to the entry above.** The stair's shattered triangles were not caused by interior shells darkening an occlusion bake. They came from the UV layout: 8.9 % of the texels the stair's layout used belonged to two or more faces (2,142 faces).
+- **How it showed:** a hidden face (the floor of a tread's hollow) sharing texels with a visible one (the tread's top) gave the visible face the hidden one's occlusion and roughness. That is why colour stayed clean (the painter projects only what its cameras see) while Lit, Roughness and Unreal showed triangles.
+- **What misled the diagnosis:** a cross-section shows each tread is a folded channel: a top plate about 1 cm thick, a nose, and a lower plate under a 2 to 4 cm hollow. No underside pokes through. Every test that changed the occlusion (dense mesh, front faces only) kept the same texels shared, so kept the triangles.
+
+**Why Smart Project does it.** It groups connected faces that face roughly the same way and projects each group flat, so a surface that passes back over itself lands on itself; re-packing cannot fix an island that overlaps itself. A helical ramp reproduces it in the tests.
+
+**The fix, in `prepare_texture_uv_transport.py`:**
+- After Smart Project, the layout is rasterised at 1024 (slightly inside each triangle, so seams do not count).
+- Faces whose texels another face also covers are projected again at 45°, then 30°, then 15°, packing all islands after each pass. Any face still overlapping gets an island of its own.
+- A layout that still shares more than 0.1 % of its texels is refused, and the report records overlap before, after each pass, and after the final pack.
+- A layout without overlap is unchanged.
+
+**On the stair:**
+- **Overlap:** 8.85 % → 0 in three passes (12 faces left after 45°, 4 after 30°, none after 15°), in 32 s.
+- **Resolution:** covered texels at 2048 went from 1.50 M to 2.33 M, about 55 % more paint resolution on the same sheet.
+- **Other pieces:** the landing's layout had none (a box). The approved skiff's had 0.5 %.
+
+**Open:** whether the Pixal route can bake occlusion again now that no texel is shared. The stair is being painted at 8192 on the new layout, with both detail bakes, to decide.
