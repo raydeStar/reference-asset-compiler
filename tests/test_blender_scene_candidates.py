@@ -291,6 +291,66 @@ bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_for
     assert (tmp_path / 'shaped.glb').stat().st_size > 0
 
 
+def test_a_stray_sheet_inside_the_cage_is_baked_from_a_closer_cage_not_black(tmp_path):
+    # WK-04.1's stair: Pixal3D's dense mesh had a thin stray sheet a few
+    # millimetres off the real surface. A ray starting on the 8 mm cage met the
+    # sheet's back first and baked a normal pointing in, a black crescent. The
+    # closer cage starts under the sheet and meets the real surface.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, math
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_plane_add(size=1.0)
+bpy.ops.mesh.primitive_plane_add(size=0.4, location=(0, 0, 0.004), rotation=(math.pi, 0, 0))
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+bpy.ops.object.join()
+bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'dense.blend')!r})
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_plane_add(size=1.0)
+low = bpy.context.object
+image = bpy.data.images.new('paint', 128, 128)
+image.pixels = [0.6, 0.4, 0.2, 1.0] * (128 * 128)
+image.filepath_raw = {str(tmp_path / 'paint.png')!r}
+image.file_format = 'PNG'
+image.save()
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+texture = material.node_tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+material.node_tree.links.new(texture.outputs['Color'], material.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+low.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    check = tmp_path / 'inward.py'
+    check.write_text('''
+import bpy, sys, numpy as np
+image = bpy.data.images.load(sys.argv[sys.argv.index("--") + 1])
+pixels = np.asarray(image.pixels[:], dtype=np.float32).reshape(-1, 4)[:, :3] * 2 - 1
+print("INWARD", int((pixels[:, 2] < 0.05).sum()))
+''')
+
+    def inward(maps):
+        result = subprocess.run([BLENDER, '-b', '--factory-startup', '--python', str(check), '--',
+                                 str(maps / 'dense_shape.png')], capture_output=True, text=True, timeout=90)
+        return int(next(line for line in result.stdout.splitlines() if line.startswith('INWARD')).split()[1])
+
+    # One cage: the sheet's 0.4 m square (about 2600 of 128x128 texels) faces
+    # in. Those texels are left flat rather than black, and counted.
+    run(ROOT / 'scripts/blender/bake_dense_shape.py', tmp_path / 'painted.glb', tmp_path / 'one.glb',
+        tmp_path / 'one.json', '--dense', tmp_path / 'dense.blend', '--fallback-cages', 'none')
+    one = json.loads((tmp_path / 'one.json').read_text())
+    assert one['texels_flat'] > 2000
+    assert inward(tmp_path / 'one-maps') == 0
+    report = tmp_path / 'shaped.json'
+    run(ROOT / 'scripts/blender/bake_dense_shape.py', tmp_path / 'painted.glb', tmp_path / 'shaped.glb', report,
+        '--dense', tmp_path / 'dense.blend')
+    receipt = json.loads(report.read_text())
+    assert receipt['cages_m'] == [0.008, 0.003, 0.001]
+    assert receipt['texels_by_cage']['0.003'] > 2000
+    assert receipt['texels_flat_share'] < 0.01
+    assert inward(tmp_path / 'shaped-maps') == 0
+
+
 def test_a_dense_mesh_in_another_place_is_refused(tmp_path):
     make = tmp_path / 'make.py'
     make.write_text(f'''
@@ -344,6 +404,49 @@ bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'low.glb')!r}, export_format=
         assert abs(dense['min_m'][axis] - low['min_m'][axis]) < 0.03
         assert abs(dense['max_m'][axis] - low['max_m'][axis]) < 0.03
     assert low['triangles'] < dense['triangles']
+
+
+def test_a_game_mesh_is_mended_of_small_holes_specks_and_fins_but_not_a_large_opening(tmp_path):
+    # PR-04.2's crate: Pixal3D's own game meshes came with missing triangles,
+    # loose specks and fins on edges shared by three faces. The game mesh is
+    # closed; a bowl's mouth, a large opening that may be meant, stays open;
+    # and the dense mesh is left as it came.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, bmesh
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=0.5)
+obj = bpy.context.object
+bm = bmesh.new(); bm.from_mesh(obj.data); bm.faces.ensure_lookup_table()
+bmesh.ops.delete(bm, geom=[bm.faces[200], bm.faces[300]], context='FACES')
+# a fin: a third face on one edge
+bm.faces.ensure_lookup_table()
+edge = bm.faces[100].edges[0]
+tip = bm.verts.new((edge.verts[0].co + edge.verts[1].co) / 2 * 1.02)
+bm.faces.new((edge.verts[0], edge.verts[1], tip))
+# a speck: one tiny loose triangle
+a = bm.verts.new((0.3, 0.3, 0.3)); b = bm.verts.new((0.3001, 0.3, 0.3)); c = bm.verts.new((0.3, 0.3001, 0.3))
+bm.faces.new((a, b, c))
+bm.to_mesh(obj.data); bm.free()
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'holed.glb')!r}, export_format='GLB')
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=0.5)
+obj = bpy.context.object
+bm = bmesh.new(); bm.from_mesh(obj.data)
+bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.calc_center_median().z > 0.25], context='FACES')
+bm.to_mesh(obj.data); bm.free()
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'bowl.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    report = tmp_path / 'level.json'
+    run(ROOT / 'scripts/blender/level_pair.py', '1.0', report, tmp_path / 'holed.glb', tmp_path / 'dense.blend',
+        tmp_path / 'holed.glb', tmp_path / 'low.blend', tmp_path / 'bowl.glb', tmp_path / 'bowl.blend')
+    dense, low, bowl = json.loads(report.read_text())['files']
+    assert dense['holes_filled'] == 0 and dense['open_edges_after'] == dense['open_edges_before'] > 0
+    assert low['open_edges_before'] > 0 and low['nonmanifold_edges_before'] > 0
+    assert low['specks_dropped'] >= 1 and low['fins_dropped'] >= 1 and low['holes_filled'] >= 2
+    assert low['open_edges_after'] == 0 and low['nonmanifold_edges_after'] == 0
+    assert bowl['holes_filled'] == 0 and bowl['open_edges_after'] == bowl['open_edges_before'] >= 32
 
 
 def test_a_tall_piece_stands_up_when_its_longest_axis_is_up(tmp_path):

@@ -690,6 +690,9 @@ class BakeShapeStageTests(unittest.TestCase):
         arguments = prepare_bake_shape({"dense": dense, "cage": 0.01})["arguments"]
         self.assertEqual(arguments[arguments.index("--dense") + 1], str(dense.resolve()))
         self.assertEqual(arguments[arguments.index("--cage") + 1], "0.01")
+        self.assertNotIn("--fallback-cages", arguments)
+        arguments = prepare_bake_shape({"dense": dense, "fallback_cages": "0.004,0.002"})["arguments"]
+        self.assertEqual(arguments[arguments.index("--fallback-cages") + 1], "0.004,0.002")
         with self.assertRaises(StageError):
             prepare_bake_shape({})
         with self.assertRaises(StageError):

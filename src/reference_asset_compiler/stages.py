@@ -194,7 +194,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "blender",
         "script": "scripts/blender/bake_dense_shape.py",
         "arguments": ("source", "output", "report"),
-        "options": ("dense", "cage", "max_ray"),
+        "options": ("dense", "cage", "fallback_cages", "max_ray"),
         "prepare": "bake-shape",
         "needs": ("blender",),
         # After paint and bake-detail, onto the game mesh's own UVs: the dense
@@ -888,7 +888,7 @@ def prepare_bake_shape(options: dict[str, Any]) -> dict[str, Any]:
         raise StageError("The dense mesh must be .blend, .glb or .gltf, not {0}.".format(
             dense.suffix or "a file without an extension"))
     arguments = ["--dense", str(dense)]
-    for flag, name in (("--cage", "cage"), ("--max-ray", "max_ray")):
+    for flag, name in (("--cage", "cage"), ("--fallback-cages", "fallback_cages"), ("--max-ray", "max_ray")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
     return {"arguments": arguments, "payload": {"dense": str(dense)}}
