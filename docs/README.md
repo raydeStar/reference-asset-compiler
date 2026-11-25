@@ -77,6 +77,7 @@ escalations are retained verbatim so nobody repeats them. Start with
 - [releases/v0.2.1.md](releases/v0.2.1.md) — geometry about 3× faster, paint about 40 s faster, same output.
 - [releases/v0.3.0.md](releases/v0.3.0.md) — large models as sharp as small ones: paint in sections, calibrated relief, hard-surface finishing.
 - [releases/v0.4.0.md](releases/v0.4.0.md) — props that hold up at arm's length: Pixal3D end to end, texel-scale section bakes, 8192 sheets, the first paint's colour kept.
+- [releases/v0.5.0.md](releases/v0.5.0.md) — paint by parts: label-parts and paint-parts, so one part's colour no longer bleeds onto another.
 - [RAIDER_REVAMP.md](RAIDER_REVAMP.md) — rebuilding CH-03 Raider as a modular, speaking, open-source character; plan, diagnosis and progress.
 - [MAINTENANCE_REVIEW_2026-09-11.md](MAINTENANCE_REVIEW_2026-09-11.md) — the accepted review mapped to implementation and verification.
 
