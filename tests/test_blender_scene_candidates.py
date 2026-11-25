@@ -344,3 +344,30 @@ bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'low.glb')!r}, export_format=
         assert abs(dense['min_m'][axis] - low['min_m'][axis]) < 0.03
         assert abs(dense['max_m'][axis] - low['max_m'][axis]) < 0.03
     assert low['triangles'] < dense['triangles']
+
+
+def test_a_tall_piece_stands_up_when_its_longest_axis_is_up(tmp_path):
+    # A lantern-like column: two metres tall, tilted the way Pixal3D keeps the
+    # picture's camera. Levelled with the default it would lie down; with
+    # --up longest it stands, two metres tall, on the floor.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=1.0)
+obj = bpy.context.object
+obj.scale = (0.25, 0.35, 1.0)
+obj.rotation_euler = (0.35, 0.1, 0.6)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'tall.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    for up, standing in (('shortest', False), ('longest', True)):
+        report = tmp_path / 'level-{0}.json'.format(up)
+        run(ROOT / 'scripts/blender/level_pair.py', '2.0', report, tmp_path / 'tall.glb',
+            tmp_path / 'tall-{0}.blend'.format(up), '--up', up)
+        levelled = json.loads(report.read_text())
+        size = [hi - lo for lo, hi in zip(levelled['files'][0]['min_m'], levelled['files'][0]['max_m'])]
+        assert levelled['up'] == up
+        assert abs(max(size) - 2.0) < 1e-3
+        assert abs(levelled['files'][0]['min_m'][2]) < 1e-4
+        assert (size[2] == max(size)) is standing

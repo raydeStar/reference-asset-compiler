@@ -486,7 +486,9 @@ grain that holds up at arm's length. Times are from an RTX 4090.
 python workflows/geometry/pixal3d/run_pixal3d.py --image cutout.png --output pixal.glb `
   --resolution 1024 --seed 45 --extra-targets 100000
 
-# 2. Level the dense mesh and the game mesh with one transform, at the real length.
+# 2. Level the dense mesh and the game mesh with one transform, at the real length
+#    (the model's longest side). A tall piece (lantern, ladder, column) needs --up longest,
+#    a panel standing on its edge --up middle; --flip turns one standing on its head.
 blender -b --factory-startup --python scripts/blender/level_pair.py -- `
   2.2 level.json pixal.glb dense.blend pixal-v100000.glb low.blend
 
