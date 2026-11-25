@@ -680,6 +680,13 @@ class StudioPainterPinTests(unittest.TestCase):
         self.assertIn("def bake_at_texel_scale", source)
 
 
+class BakeDetailStageTests(unittest.TestCase):
+    def test_occlusion_is_left_out_only_when_asked(self):
+        from reference_asset_compiler.stages import prepare_bake_detail  # noqa: PLC0415
+        self.assertNotIn("--no-occlusion", prepare_bake_detail({"resolution": 2048})["arguments"])
+        self.assertIn("--no-occlusion", prepare_bake_detail({"resolution": 2048, "no_occlusion": True})["arguments"])
+
+
 class BakeShapeStageTests(unittest.TestCase):
     def test_the_shape_bake_is_handed_its_dense_mesh_and_refuses_without_one(self):
         from reference_asset_compiler.stages import prepare_bake_shape  # noqa: PLC0415

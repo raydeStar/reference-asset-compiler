@@ -19,12 +19,21 @@ roughness map, deliberately: a later stage that gives a part a new surface
 releases the roughness map it was bound to, and occlusion living in that map
 would go with it. In its own slot it survives.
 
+`--no-occlusion` leaves occlusion out. Pixal3D's game meshes carry enclosed
+interior shells and stacked sheets, and an occlusion map baked on them darkens
+visible triangles: the WK-04.1 stair's treads came out shattered into dark
+triangles in Framewright, and would have in Unreal, which reads the same glTF
+occlusion slot. Blender ignores that slot, which is why no Blender render
+showed it. Without the map both viewers light the model the same way, and
+Unreal adds its own occlusion at runtime; the dense mesh's real shape is in
+the normal map `bake-shape` adds.
+
 Nothing here moves a vertex or changes a UV.
 
 Usage:
   blender -b --factory-startup --python scripts/blender/bake_derived_maps.py \
       -- <painted.glb> <output.glb> <report.json> \
-         [--resolution 1024] [--samples 64] [--distance 0.08] [--edge-wear 0.25]
+         [--resolution 1024] [--samples 64] [--distance 0.08] [--edge-wear 0.25] [--no-occlusion]
 """
 
 from __future__ import annotations
@@ -269,6 +278,7 @@ def main() -> int:
     # tilts this far. Naming it turns relief on.
     relief_tilt = read_option(argv, "--relief-tilt")
     relief_tilt = float(relief_tilt) if relief_tilt is not None else None
+    with_occlusion = "--no-occlusion" not in argv
 
     if resolution not in (512, 1024, 2048):
         print("[BAKE] FAILED: resolution is 512, 1024 or 2048. Got {0}".format(resolution))
@@ -321,7 +331,8 @@ def main() -> int:
     bake_coverage(mesh_object, coverage)
     reached = settle(coverage)[..., 0] > 0.5
 
-    bake_occlusion(mesh_object, occlusion, samples, distance)
+    if with_occlusion:
+        bake_occlusion(mesh_object, occlusion, samples, distance)
     occluded = settle(occlusion)[..., 0]
     bake_curvature(mesh_object, curvature, samples)
     curved = settle(curvature)[..., 0]
@@ -340,14 +351,15 @@ def main() -> int:
 
     # A bake that came back uniform found nothing, and delivering it would put
     # a map on the asset that costs bytes and says nothing.
-    if float(occluded[touched].std()) < 0.002:
+    if with_occlusion and float(occluded[touched].std()) < 0.002:
         print("[BAKE] FAILED: the occlusion bake came back flat ({0:.4f} spread), so there is "
               "nothing in it. Check the mesh has thickness and the UVs do not overlap.".format(
                   float(occluded[touched].std())))
         return 1
 
     painted = mesh_object.data.materials[0]
-    wire_occlusion(painted, occlusion)
+    if with_occlusion:
+        wire_occlusion(painted, occlusion)
 
     worn = None
     if edge_wear > 0:
@@ -412,7 +424,7 @@ def main() -> int:
     # numbers measured off the buffer said it was full of detail.
     beside = output.parent / (output.stem + "-maps")
     beside.mkdir(parents=True, exist_ok=True)
-    made = [(occlusion, "occlusion"), (curvature, "curvature")]
+    made = ([(occlusion, "occlusion")] if with_occlusion else []) + [(curvature, "curvature")]
     if normal_image is not None:
         made.append((normal_image, "normal"))
     if recoded is not None:
@@ -438,7 +450,9 @@ def main() -> int:
         "output_sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
         "resolution": resolution,
         "samples": samples,
-        "occlusion": {
+        "occlusion": {"left_out": "--no-occlusion: an occlusion map baked on a layered game mesh "
+                                    "darkens visible triangles in every viewer that reads it"}
+        if not with_occlusion else {
             "distance_m": distance,
             # Measured where the bake actually landed, not across the whole
             # sheet. Only about a quarter of a sheet is reachable by geometry,
@@ -492,11 +506,14 @@ def main() -> int:
     if normal_image is not None:
         print("[BAKE] relief from paint at {0}: local detail {1:.5f} raised into a normal map".format(
             relief, relief_mean))
-    print("[BAKE] occlusion {0:.3f} where baked, {1:.1%} of the model shaded, {2:.0%} of the "
-          "sheet reached; curvature spread {3:.3f}{4}".format(
-        report["occlusion"]["mean_where_baked"], report["occlusion"]["shaded_share_of_model"],
-        report["occlusion"]["sheet_reached"], report["curvature"]["spread"],
-        "" if worn is None else "; edge wear {0} at {1:.2f}".format(worn, edge_wear)))
+    if with_occlusion:
+        print("[BAKE] occlusion {0:.3f} where baked, {1:.1%} of the model shaded, {2:.0%} of the "
+              "sheet reached; curvature spread {3:.3f}{4}".format(
+            report["occlusion"]["mean_where_baked"], report["occlusion"]["shaded_share_of_model"],
+            report["occlusion"]["sheet_reached"], report["curvature"]["spread"],
+            "" if worn is None else "; edge wear {0} at {1:.2f}".format(worn, edge_wear)))
+    else:
+        print("[BAKE] occlusion left out; curvature spread {0:.3f}".format(report["curvature"]["spread"]))
     return 0
 
 

@@ -498,3 +498,73 @@ bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'boat.glb')!r}, export_format
     assert levelled['size_is'] == 'height'
     assert abs((high[2] - low[2]) - 0.5) < 1e-3
     assert (high[0] - low[0]) > 1.5
+
+
+def _glb_json(path):
+    import struct
+    data = Path(path).read_bytes()
+    length = struct.unpack('<I', data[12:16])[0]
+    return json.loads(data[20:20 + length])
+
+
+def _painted_sphere(tmp_path, with_normal_map):
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, math, random
+random.seed(3)
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=0.5)
+obj = bpy.context.object
+for v in obj.data.vertices:
+    v.co *= 1.0 + 0.04 * math.sin(9 * v.co.x) * math.sin(9 * v.co.z)
+bpy.ops.object.shade_smooth()
+image = bpy.data.images.new('paint', 256, 256)
+image.pixels = [c for _ in range(256 * 256) for c in (random.random() * 0.5 + 0.2, 0.4, 0.3, 1.0)]
+image.filepath_raw = {str(tmp_path / 'paint.png')!r}
+image.file_format = 'PNG'
+image.save()
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+tree = material.node_tree
+texture = tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+tree.links.new(texture.outputs['Color'], tree.nodes['Principled BSDF'].inputs['Base Color'])
+if {with_normal_map!r}:
+    bump = bpy.data.images.new('nrm', 64, 64)
+    bump.pixels = [0.5, 0.5, 1.0, 1.0] * (64 * 64)
+    bump.filepath_raw = {str(tmp_path / 'nrm.png')!r}
+    bump.file_format = 'PNG'
+    bump.save()
+    node = tree.nodes.new('ShaderNodeTexImage'); node.image = bump
+    node.image.colorspace_settings.name = 'Non-Color'
+    normal = tree.nodes.new('ShaderNodeNormalMap')
+    tree.links.new(node.outputs['Color'], normal.inputs['Color'])
+    tree.links.new(normal.outputs['Normal'], tree.nodes['Principled BSDF'].inputs['Normal'])
+obj.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    return tmp_path / 'painted.glb'
+
+
+def test_a_normal_mapped_model_reaches_the_browser_with_its_tangents(tmp_path):
+    # The normal map was baked against Blender's tangents; a viewer given none
+    # estimates its own per triangle, and Unreal computes its own. Shipping
+    # Blender's keeps every viewer on the same frame.
+    painted = _painted_sphere(tmp_path, with_normal_map=True)
+    report = tmp_path / 'payload.json'
+    run(ROOT / 'scripts/blender/export_browser_payload.py', painted, tmp_path / 'payload.glb', report)
+    assert json.loads(report.read_text())['tangents_exported'] is True
+    attributes = _glb_json(tmp_path / 'payload.glb')['meshes'][0]['primitives'][0]['attributes']
+    assert 'TANGENT' in attributes
+
+
+def test_detail_baked_without_occlusion_leaves_the_occlusion_slot_empty(tmp_path):
+    # Pixal3D's layered game meshes bake occlusion that darkens visible
+    # triangles in every viewer that reads the slot; --no-occlusion leaves it out.
+    painted = _painted_sphere(tmp_path, with_normal_map=False)
+    report = tmp_path / 'detail.json'
+    run(ROOT / 'scripts/blender/bake_derived_maps.py', painted, tmp_path / 'detail.glb', report,
+        '--resolution', '512', '--samples', '8', '--no-occlusion')
+    assert 'left_out' in json.loads(report.read_text())['occlusion']
+    assert 'occlusionTexture' not in _glb_json(tmp_path / 'detail.glb')['materials'][0]
+    assert (tmp_path / 'detail-maps' / 'curvature.png').is_file()
+    assert not (tmp_path / 'detail-maps' / 'occlusion.png').exists()

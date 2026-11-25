@@ -519,7 +519,9 @@ rac run-stage paint-sections --source parts.glb --output sections.glb --report s
 
 # 7. Relief from the paint, then the dense shape under it (a few minutes each).
 rac run-stage bake-detail --source sections.glb --output detail.glb --report detail.json `
-  --resolution 2048 --relief-tilt 6
+  --resolution 2048 --relief-tilt 6 --no-occlusion
+#    --no-occlusion: an occlusion map baked on Pixal3D's layered game mesh darkens visible
+#    triangles in Framewright and Unreal (both read the slot; Blender's renderer does not).
 rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense low-dense.blend
 #    Where Pixal3D's dense mesh has a stray sheet inside the 8 mm cage, a ray meets its
 #    back and would bake black; those texels are baked again from 3 mm and 1 mm cages.

@@ -160,6 +160,9 @@ def build_parser() -> argparse.ArgumentParser:
                             "through glass, so this deletes what is behind it.")
     stage.add_argument("--relief-from-paint", type=float,
                        help="Raise the relief somebody painted into a normal map, 0..2")
+    stage.add_argument("--no-occlusion", action="store_true",
+                       help="Bake detail: leave the occlusion map out (Pixal3D game meshes, whose "
+                            "interior shells darken visible triangles in an occlusion bake)")
     stage.add_argument("--relief-tilt", type=float,
                        help="Relief from paint, calibrated: the steepness in degrees one texel in ten "
                             "reaches, whatever the paint's contrast (try 6)")
@@ -462,6 +465,7 @@ def main(argv: list[str] | None = None) -> int:
                     "edge_wear": args.edge_wear,
                     "relief_from_paint": args.relief_from_paint,
                     "relief_tilt": args.relief_tilt,
+                    "no_occlusion": args.no_occlusion,
                     "directions": args.directions,
                     "most": args.most,
                     "largest_part": args.largest_part,
