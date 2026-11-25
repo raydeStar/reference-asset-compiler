@@ -406,6 +406,31 @@ bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'low.glb')!r}, export_format=
     assert low['triangles'] < dense['triangles']
 
 
+def test_box_faces_determine_width_and_a_level_base_after_camera_roll(tmp_path):
+    make = tmp_path / 'rolled_box.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add()
+obj = bpy.context.object
+obj.scale = (.28, .24, .22)
+obj.rotation_euler = (.42, .63, .24)
+bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'box.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    source = tmp_path / 'box.glb'
+    report = tmp_path / 'box.json'
+    run(ROOT / 'scripts/blender/level_pair.py', '.55', report, source, tmp_path / 'dense.blend',
+        source, tmp_path / 'game.blend', '--width', '--topology', 'closed')
+    data = json.loads(report.read_text())
+    assert data['alignment'] == 'six opposing planes'
+    assert data['game_mesh_checks'][0]['ok']
+    game = data['files'][1]
+    spans = [b - a for a, b in zip(game['min_m'], game['max_m'])]
+    assert spans == pytest.approx([.55, .55 * .24 / .28, .55 * .22 / .28], abs=.0003)
+
+
 def test_a_game_mesh_is_mended_of_small_holes_specks_and_fins_but_not_a_large_opening(tmp_path):
     # PR-04.2's crate: Pixal3D's own game meshes came with missing triangles,
     # loose specks and fins on edges shared by three faces. The game mesh is

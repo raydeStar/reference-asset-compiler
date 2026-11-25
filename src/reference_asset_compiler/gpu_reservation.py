@@ -20,6 +20,19 @@ def lock_path() -> str:
     return os.environ.get("RAC_GPU_LOCK_PATH", "/tmp/reference-asset-compiler-gpu0.lock")
 
 
+def report_wait(message):
+    """The stage's studio can show a wait while the child still owns its logs."""
+    path = os.environ.get("RAC_GPU_WAIT_FILE")
+    if path:
+        target = Path(path)
+        if message:
+            pending = target.with_name(f"{target.name}.{os.getpid()}.tmp")
+            pending.write_text(message, encoding="utf-8")
+            os.replace(pending, target)
+        else:
+            target.unlink(missing_ok=True)
+
+
 @contextlib.contextmanager
 def linux_reservation():
     import fcntl
@@ -27,8 +40,10 @@ def linux_reservation():
         try:
             fcntl.flock(handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
         except BlockingIOError:
+            report_wait("Waiting for the workstation GPU reservation")
             print("[GPU] Waiting for the workstation GPU reservation", file=sys.stderr, flush=True)
             fcntl.flock(handle, fcntl.LOCK_EX)
+        report_wait(None)
         yield handle
 
 
@@ -57,20 +72,24 @@ def windows_reservation():
                 break
             except PermissionError:
                 if not waiting:
+                    report_wait("Waiting for the workstation GPU reservation")
                     print("[GPU] Waiting for the workstation GPU reservation", file=sys.stderr, flush=True)
                     waiting = True
                 time.sleep(0.25)
         distro = pixal_distro()
         if not distro:
+            report_wait(None)
             yield
             return
         command = ["wsl.exe", "-d", distro, "--", "flock", "-x", lock_path(),
                    "sh", "-c", 'printf "reserved\\n"; cat >/dev/null']
         with subprocess.Popen(command, stdin=subprocess.PIPE, stdout=subprocess.PIPE) as holder:
             try:
+                report_wait("Waiting for the workstation GPU reservation")
                 print("[GPU] Reserving the workstation GPU", file=sys.stderr, flush=True)
                 if holder.stdout.readline().strip() != b"reserved":
                     raise RuntimeError("WSL did not grant the workstation GPU reservation")
+                report_wait(None)
                 yield
             finally:
                 holder.stdin.close()
@@ -138,8 +157,10 @@ def wait_for_memory(required_mib):
                                   "--format=csv,noheader,nounits"], capture_output=True, text=True,
                                  check=True, timeout=15)
         if int(reading.stdout.strip()) >= required_mib:
+            report_wait(None)
             return
         if not announced:
+            report_wait(f"Waiting for {required_mib} MiB of free VRAM")
             print(f"[GPU] Waiting for {required_mib} MiB of free VRAM", file=sys.stderr, flush=True)
             announced = True
         time.sleep(2)

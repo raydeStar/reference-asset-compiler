@@ -709,14 +709,26 @@ def run_stage(
         # Let 5.1 build its own standard path; all other configuration survives.
         environment = {key: value for key, value in os.environ.items()
                        if key.upper() != "PSMODULEPATH"}
+    gpu_stages = ("geometry", "texture", "label-parts", "paint-parts", "paint-sections", "paint-head")
+    if stage_name in (*gpu_stages, "pixal-geometry"):
+        environment = dict(os.environ if environment is None else environment)
+        wait_file = Path(str(report) + ".gpu-wait").resolve()
+        wait_file.parent.mkdir(parents=True, exist_ok=True)
+        wait_file.unlink(missing_ok=True)
+        environment["RAC_GPU_WAIT_FILE"] = str(wait_file)
+        if os.name == "nt":
+            bridge = environment.get("WSLENV", "").split(":")
+            for setting in ("RAC_GPU_WAIT_FILE/p", "RAC_MIN_FREE_VRAM_MIB"):
+                if setting not in bridge:
+                    bridge.append(setting)
+            environment["WSLENV"] = ":".join(filter(None, bridge))
     started = time.monotonic()
     try:
         finished = run_command(
             command, capture_output=True, text=True, errors="replace", timeout=timeout,
             **({"gpu_mib": max(int(os.environ.get("RAC_MIN_FREE_VRAM_MIB", 0)),
                                 stage.get("estimate", {}).get("free_vram_mib", 0))}
-               if stage_name in ("geometry", "texture", "label-parts", "paint-parts",
-                                 "paint-sections", "paint-head") else {}),
+               if stage_name in gpu_stages else {}),
             env=environment,
             # Nothing here may ever wait to be typed at. A stage is run by a
             # queue worker whose own input is whatever its parent happened to
