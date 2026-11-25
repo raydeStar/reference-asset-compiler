@@ -488,6 +488,15 @@ Registered GPU stages serialize with the direct Pixal worker. On Windows
 with the Pixal distro installed, native workers and WSL use one Linux
 `flock`. `RAC_MIN_FREE_VRAM_MIB` can increase the free-memory floor.
 
+For a **single closed volume** whose dense acquisition holds up in the fixed views but whose
+game mesh tears, use `--game-export solid --topology closed`. The registered remesh stage
+rebuilds the dominant volume, reduces it to the triangle target and preserves the original
+dense mesh for the normal bake. Check any detachable hardware in the views. Use the open
+shell route for grating, assemblies of separate pieces and intentional open boundaries.
+To recover a specific acquisition, add `--geometry path/to/previous/pixal.json` with its
+original picture, seed and resolution. RAC verifies the dense mesh and cutout hashes before
+reusing them. The new geometry receipt goes to the projection stage.
+
 The route that took the 2.2 m Frastown skiff (AC-01.1) from a picture to wood
 grain that holds up at arm's length. Times are from an RTX 4090.
 
