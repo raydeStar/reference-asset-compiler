@@ -5,6 +5,13 @@ and any attached wheel.
 
 ## Unreleased
 
+`uv-unwrap` no longer lets two faces share a texel. Smart Project laid the
+WK-04.1 stair's folded treads on top of themselves (8.9 % of its texels shared),
+which put hidden faces' occlusion and roughness onto visible ones as triangles.
+Overlapping faces are now projected again, tighter, until none overlap, and a
+layout that still overlaps is refused. The stair's sheet also gained about 55 %
+more painted texels.
+
 Pixal3D props look the same in Framewright and Unreal. `bake-detail --no-occlusion`
 leaves out the occlusion map, which on Pixal3D's layered game meshes darkened
 visible triangles in every viewer that reads it (the stair's treads), and the
