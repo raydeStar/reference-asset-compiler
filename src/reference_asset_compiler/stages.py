@@ -12,6 +12,7 @@ and the files can move without breaking anyone downstream.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -424,6 +425,23 @@ STAGES: dict[str, dict[str, Any]] = {
         # 8.5 GiB reserved at --pixal-resolution 1024.
         "estimate": {"unit": "seed", "minutes": 3, "free_vram_mib": 9216},
     },
+    "project-reference": {
+        "runner": "python",
+        "script": "scripts/project_reference.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("geometry", "reference", "minimum_fit"),
+        "prepare": "project-reference",
+        "needs": ("blender",),
+        # The painter smooths fine wear away (the WK-04.3 landing kept none of
+        # its scratches through 21 sections at 8192), but Pixal3D builds its mesh
+        # in the picture's camera, so the picture itself is laid on the faces it
+        # shows and the paint kept for the rest. Only the picture the geometry
+        # was made from: a revised one doubled every bolt by 2 cm.
+        "timeout": 3600,
+        "summary": "Lay the reference picture onto the faces of a Pixal3D model it shows, over the paint: the "
+                   "picture's own scratches and colour. The geometry must be made from the same picture.",
+        "produces": "reference-asset-compiler.reference-projection.v1",
+    },
     "label-parts": {
         "runner": "python",
         "script": "scripts/label_parts.py",
@@ -673,6 +691,8 @@ def run_stage(
                                          resolve_legacy_root(legacy_root, required=False))
     elif prepare == "label-parts":
         context = prepare_label_parts(root, options or {}, resolve_blender(blender))
+    elif prepare == "project-reference":
+        context = prepare_project_reference(options or {}, resolve_blender(blender))
     elif prepare == "paint-parts":
         context = prepare_paint_parts(options or {}, resolve_legacy_root(legacy_root))
     extra = [str(item) for item in context.get("arguments", ())]
@@ -1457,6 +1477,38 @@ def prepare_pixal_geometry(options: dict[str, Any], blender: str, legacy: Path |
     if scale:
         payload["scale"] = scale
     return {"arguments": arguments, "payload": payload}
+
+
+def prepare_project_reference(options: dict[str, Any], blender: str) -> dict[str, Any]:
+    """The geometry report and its own picture, checked before anything runs."""
+    geometry = options.get("geometry")
+    if not geometry:
+        raise StageError("Projecting a reference needs the pixal-geometry report of the mesh it was painted on: "
+                         "pass --geometry.")
+    geometry = Path(geometry).resolve()
+    try:
+        made = json.loads(geometry.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as problem:
+        raise StageError("The geometry report {0} could not be read: {1}".format(geometry, problem))
+    if made.get("schema") != "reference-asset-compiler.pixal-geometry.v1":
+        raise StageError("{0} is not a pixal-geometry report; projection needs Pixal3D's camera.".format(geometry))
+    reference = options.get("reference")
+    if not reference:
+        raise StageError("Projecting a reference needs the picture: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The reference does not exist: {0}".format(reference))
+    if hashlib.sha256(reference.read_bytes()).hexdigest() != made.get("picture_sha256"):
+        raise StageError("The reference is not the picture this geometry was made from ({0}). A revised picture "
+                         "puts its details a little elsewhere; make the geometry again from it with "
+                         "pixal-geometry, then paint and project.".format(made.get("picture")))
+    arguments = ["--geometry", str(geometry), "--reference", str(reference), "--blender", blender]
+    if options.get("minimum_fit") is not None:
+        fit = float(options["minimum_fit"])
+        if not 0.5 <= fit <= 1.0:
+            raise StageError("--minimum-fit is an outline overlap between 0.5 and 1. Got {0}.".format(fit))
+        arguments += ["--minimum-fit", repr(fit)]
+    return {"arguments": arguments, "payload": {"geometry": str(geometry), "reference": str(reference)}}
 
 
 def prepare_label_parts(root: Path, options: dict[str, Any], blender: str) -> dict[str, Any]:
