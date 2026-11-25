@@ -5,6 +5,12 @@ and any attached wheel.
 
 ## Unreleased
 
+Pixal3D meshes the route can use as they come. `level_pair.py` mends each game
+mesh: specks, fins on edges shared by three faces, slivers and small holes (the
+crate's 9 to 58 open edges went to 0 on four seeds of six). `bake-shape` bakes
+again from closer cages where the first bakes a normal facing into the surface,
+which removed the stair's black crescent. Notes: [docs/DECISIONS.md](docs/DECISIONS.md).
+
 `pixal-geometry`: one picture to a levelled game mesh and dense mesh with Pixal3D,
 in one stage, so Framewright can drive the prop route. `level_pair.py` gains
 `--up` (tall and edge-standing pieces), `--flip` and `--height`.

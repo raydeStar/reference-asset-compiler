@@ -196,6 +196,9 @@ def build_parser() -> argparse.ArgumentParser:
                             "sees past the overlap, as a fraction of a section (default: 0.1)")
     stage.add_argument("--cage", type=float,
                        help="Bake shape: how far out the rays start, in metres (default: 0.008)")
+    stage.add_argument("--fallback-cages",
+                       help="Bake shape: closer cages, comma-separated metres, for texels the first cage "
+                            "bakes facing in, or 'none' (default: 0.003,0.001)")
     stage.add_argument("--max-ray", type=float,
                        help="Bake shape: how far a ray may travel, in metres (default: 0.02)")
     stage.add_argument("--reuse-sections", type=Path,
@@ -497,6 +500,7 @@ def main(argv: list[str] | None = None) -> int:
                     "minimum_share": args.minimum_share,
                     "dense": args.dense,
                     "cage": args.cage,
+                    "fallback_cages": args.fallback_cages,
                     "max_ray": args.max_ray,
                     "reduction_report": args.reduction_report,
                     "appearance_reference": args.appearance_reference,

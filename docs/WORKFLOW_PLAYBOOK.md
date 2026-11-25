@@ -493,6 +493,9 @@ grain that holds up at arm's length. Times are from an RTX 4090.
 rac run-stage pixal-geometry --source approved.png --output low.blend --report pixal.json `
   --size-m 2.2 --seed 45 --vertex-target 100000
 rac run-stage review-views --source low.blend --output views-45 --report views-45.json
+#    The game mesh is mended of Pixal3D's specks, fins and small holes as it is levelled;
+#    the report gives each file's open_edges_before and _after. Prefer a seed whose game
+#    mesh closes (open_edges_after 0).
 
 # 3. UVs, then the first paint on an 8192 sheet (about 3 min).
 rac run-stage uv-unwrap --source low.blend --output uv.obj --report uv.json
@@ -518,6 +521,9 @@ rac run-stage paint-sections --source parts.glb --output sections.glb --report s
 rac run-stage bake-detail --source sections.glb --output detail.glb --report detail.json `
   --resolution 2048 --relief-tilt 6
 rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense low-dense.blend
+#    Where Pixal3D's dense mesh has a stray sheet inside the 8 mm cage, a ray meets its
+#    back and would bake black; those texels are baked again from 3 mm and 1 mm cages.
+#    The report's texels_flat_share is what faced in from every cage (0.8 % on the stair).
 
 # 8. A browser copy: specular reset, then 8192 JPEG (the skiff came to 51 MB).
 rac run-stage browser-payload --source shape.glb --output payload.glb --report payload.json

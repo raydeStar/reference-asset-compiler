@@ -14,10 +14,22 @@ The two meshes must be the same model in the same place: `level_pair.py`
 levels them with one transform. They are refused if their bounding boxes'
 centres differ by more than a centimetre or their diagonals by more than two.
 
+A ray starts on the cage, `--cage` out from the game mesh, and takes the first
+dense surface it meets going in. Pixal3D's dense meshes carry stray thin sheets
+a few millimetres off the real surface (the WK-04.1 stair had one 4-40 mm under
+its top landing). Where such a sheet lies inside the cage, the ray meets its
+back first and bakes a normal pointing into the surface, which renders black:
+a crescent where the sheet curves through the cage. A longer ray cannot help,
+because the ray starts beyond the sheet. So the bake runs again from closer
+cages (`--fallback-cages`), and each texel keeps the first result, from the
+outermost cage in, that faces out of the surface. A texel that faces in from
+every cage (mostly along sharp edges, where a ray strikes the next face) is
+left flat: it gets no shape, but the relief still rides on it.
+
 Usage:
   blender -b --factory-startup --python scripts/blender/bake_dense_shape.py -- \\
       <painted.glb> <output.glb> <report.json> --dense <dense.blend|dense.glb> \\
-      [--cage 0.008] [--max-ray 0.02]
+      [--cage 0.008] [--fallback-cages 0.003,0.001] [--max-ray 0.02]
 """
 
 from __future__ import annotations
@@ -34,6 +46,9 @@ import numpy as np
 from mathutils import Vector
 
 TAG = "[SHAPE]"
+# A baked tangent-space normal whose z is below this points into the surface,
+# or so nearly along it that it is a ray that struck the next face, not shape.
+FACING_OUT = 0.05
 
 
 def sha256(path):
@@ -66,9 +81,19 @@ def main(argv) -> int:
     parser.add_argument("--dense", required=True)
     parser.add_argument("--cage", type=float, default=0.008,
                         help="How far out the rays start, in metres; above the reduction's deviation")
+    parser.add_argument("--fallback-cages", default="0.003,0.001",
+                        help="Closer cages, in metres, comma-separated, for texels the first cage bakes "
+                             "facing in; 'none' for one bake")
     parser.add_argument("--max-ray", type=float, default=0.02, help="How far a ray may travel, in metres")
     args = parser.parse_args(argv)
     started = time.time()
+    cages = [args.cage]
+    if args.fallback_cages.strip().lower() not in ("", "none"):
+        cages += [float(value) for value in args.fallback_cages.split(",") if value.strip()]
+    if any(cage <= 0 for cage in cages) or cages != sorted(cages, reverse=True):
+        print("{0} FAILED: cages must be positive and each fallback closer than the one before: {1}".format(
+            TAG, cages))
+        return 1
 
     if args.dense.lower().endswith(".blend"):
         bpy.ops.wm.open_mainfile(filepath=args.dense)
@@ -128,11 +153,34 @@ def main(argv) -> int:
     dense.select_set(True)
     painted.select_set(True)
     bpy.context.view_layer.objects.active = painted
-    bpy.ops.object.bake(type="NORMAL", use_selected_to_active=True, cage_extrusion=args.cage,
-                        max_ray_distance=args.max_ray, margin=16, normal_space="TANGENT")
+    shape = None
+    unsettled = np.ones((height, width), dtype=bool)
+    texels_by_cage = {}
+    for cage in cages:
+        if not unsettled.any():
+            texels_by_cage["{0:g}".format(cage)] = 0
+            continue
+        # Cleared first: a bake leaves texels it does not reach as they were.
+        baked.pixels.foreach_set(np.zeros(width * height * 4, dtype=np.float32))
+        bpy.ops.object.bake(type="NORMAL", use_selected_to_active=True, cage_extrusion=cage,
+                            max_ray_distance=args.max_ray, margin=16, normal_space="TANGENT")
+        buffer = np.empty(width * height * 4, dtype=np.float32)
+        baked.pixels.foreach_get(buffer)
+        this = buffer.reshape(height, width, 4)[..., :3] * 2.0 - 1.0
+        if shape is None:
+            shape = this.copy()
+        taken = unsettled & (this[..., 2] >= FACING_OUT)
+        shape[taken] = this[taken]
+        unsettled &= ~taken
+        texels_by_cage["{0:g}".format(cage)] = int(taken.sum())
+    texels_flat = int(unsettled.sum())
+    shape[unsettled] = (0.0, 0.0, 1.0)
+    pixels = np.ones((height, width, 4), dtype=np.float32)
+    pixels[..., :3] = shape * 0.5 + 0.5
+    baked.pixels.foreach_set(pixels.reshape(-1))
+    baked.update()
     bake_seconds = time.time() - started
 
-    shape = np.asarray(baked.pixels[:], dtype=np.float32).reshape(height, width, 4)[..., :3] * 2.0 - 1.0
     if relief_node is not None and relief_node.image is not None:
         relief = np.asarray(relief_node.image.pixels[:], dtype=np.float32).reshape(height, width, 4)[..., :3]
         combined = reoriented(shape, relief * 2.0 - 1.0)
@@ -180,6 +228,8 @@ def main(argv) -> int:
         "dense": args.dense, "dense_sha256": sha256(args.dense),
         "output": args.output, "output_sha256": sha256(args.output),
         "size": [width, height], "cage_m": args.cage, "max_ray_m": args.max_ray,
+        "cages_m": cages, "texels_by_cage": texels_by_cage, "texels_flat": texels_flat,
+        "texels_flat_share": round(texels_flat / float(width * height), 5),
         "centre_offset_m": round(offset, 5), "diagonal_gap_m": round(diagonal_gap, 5),
         "normal": mode,
         "tilt_degrees_p50_p90": np.percentile(tilt, [50, 90]).round(2).tolist(),

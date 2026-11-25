@@ -16,15 +16,21 @@ from the first (dense) mesh, and applied to every file:
   `--height` its height, the way a size given as a landmark on a person means;
 - the model is centred on X and Y and stood on the floor (lowest point at 0).
 
-Each mesh is welded where its export split vertices along texture seams, its
-materials and UVs are dropped (the game mesh is unwrapped and painted
+Each mesh is welded where its export split vertices along texture seams, and
+its small holes are filled: Pixal3D leaves missing triangles and slivers in
+both its dense mesh and its own simplifications (the PR-04.2 crate's game
+meshes had 9 to 58 open edges, visible near corners: specks, fins on edges
+shared by three faces, and slits). `mend` below closes them in each game mesh (not the dense
+mesh, which is only baked from); a hole is filled
+only when it is small and has at most `--fill-holes` edges (64; 0 turns mending
+off), and a larger opening is left, since it may be meant (a shade's free edge). Its materials and UVs are dropped (the game mesh is unwrapped and painted
 afterwards), and it is saved as a .blend, which `uv-unwrap` and `bake-shape`
 open directly. A JSON report records the transform and each file's extent.
 
 Usage:
   blender -b --factory-startup --python scripts/blender/level_pair.py -- \\
       <length m> <report.json> <dense.glb> <dense.blend> [<low.glb> <low.blend>]... \\
-      [--up shortest|middle|longest] [--flip] [--height]
+      [--up shortest|middle|longest] [--flip] [--height] [--fill-holes 64]
 """
 
 from __future__ import annotations
@@ -38,7 +44,118 @@ import numpy as np
 from mathutils import Matrix
 
 
-def load(path):
+def components(bm):
+    """The faces of a mesh in connected groups."""
+    remaining, groups = set(bm.faces), []
+    while remaining:
+        seed = remaining.pop()
+        group, stack = [seed], [seed]
+        while stack:
+            for edge in stack.pop().edges:
+                for neighbour in edge.link_faces:
+                    if neighbour in remaining:
+                        remaining.remove(neighbour)
+                        group.append(neighbour)
+                        stack.append(neighbour)
+        groups.append(group)
+    return groups
+
+
+def open_loops(bm):
+    """The open edges of a mesh, in connected loops."""
+    seen, loops = set(), []
+    for edge in bm.edges:
+        if not edge.is_boundary or edge in seen:
+            continue
+        loop, stack = [], [edge]
+        while stack:
+            item = stack.pop()
+            if item in seen:
+                continue
+            seen.add(item)
+            loop.append(item)
+            for vertex in item.verts:
+                stack.extend(other for other in vertex.link_edges if other.is_boundary and other not in seen)
+        loops.append(loop)
+    return loops
+
+
+def wind_like_neighbours(bm, faces):
+    for face in faces:
+        for loop in face.loops:
+            neighbour = next((other for other in loop.edge.link_loops if other.face is not face), None)
+            if neighbour is not None:
+                if neighbour.vert == loop.vert:
+                    bmesh.ops.reverse_faces(bm, faces=[face])
+                break
+
+
+def mend(bm, size, limit):
+    """Close the small holes Pixal3D leaves, and count what is left.
+
+    In order: specks (loose bits under a hundred-thousandth of the surface)
+    are dropped; zero-area faces dissolved; on an edge shared by more than two
+    faces the smallest extra faces (fins) are dropped; open vertices closer
+    than a thousandth of the model's size are welded, which zips cracks; then
+    each open loop of at most `limit` edges is filled when it is small (its
+    area under half a percent of the surface, or its perimeter under 15 % of
+    the model's size), up to three passes. A larger opening is left open: it
+    may be meant.
+    """
+    before = sum(1 for edge in bm.edges if edge.is_boundary)
+    nonmanifold_before = sum(1 for edge in bm.edges if len(edge.link_faces) > 2)
+    record = {"open_edges_before": before, "nonmanifold_edges_before": nonmanifold_before,
+              "specks_dropped": 0, "fins_dropped": 0, "holes_filled": 0}
+    if limit <= 0 or (before == 0 and nonmanifold_before == 0):
+        record.update(open_edges_after=before, nonmanifold_edges_after=nonmanifold_before)
+        return record
+    surface = sum(face.calc_area() for face in bm.faces)
+    specks = [face for group in components(bm) if sum(f.calc_area() for f in group) < surface * 1e-5
+              for face in group]
+    if specks:
+        bmesh.ops.delete(bm, geom=specks, context="FACES")
+    bmesh.ops.delete(bm, geom=[vertex for vertex in bm.verts if not vertex.link_faces], context="VERTS")
+    bmesh.ops.dissolve_degenerate(bm, dist=size * 1e-5, edges=bm.edges[:])
+    fins = set()
+    for edge in bm.edges:
+        if len(edge.link_faces) > 2:
+            ranked = sorted(edge.link_faces, key=lambda face: face.calc_area())
+            fins.update(ranked[:len(ranked) - 2])
+    if fins:
+        bmesh.ops.delete(bm, geom=list(fins), context="FACES")
+    edge_verts = list({vertex for edge in bm.edges if edge.is_boundary for vertex in edge.verts})
+    if edge_verts:
+        bmesh.ops.remove_doubles(bm, verts=edge_verts, dist=size * 1e-3)
+    filled = 0
+    for _ in range(3):
+        made = []
+        for loop in open_loops(bm):
+            if len(loop) > limit or not all(edge.is_valid for edge in loop):
+                continue
+            verts = list({vertex for edge in loop for vertex in edge.verts})
+            centre = sum((vertex.co for vertex in verts), verts[0].co * 0) / len(verts)
+            area = sum((edge.verts[0].co - centre).cross(edge.verts[1].co - centre).length / 2 for edge in loop)
+            if area >= surface * 0.005 and sum(edge.calc_length() for edge in loop) >= size * 0.15:
+                continue
+            faces = bmesh.ops.holes_fill(bm, edges=loop, sides=0)["faces"]
+            if not faces:
+                try:
+                    faces = bmesh.ops.contextual_create(bm, geom=loop)["faces"]
+                except (RuntimeError, ValueError):
+                    faces = []
+            made += faces
+        if not made:
+            break
+        wind_like_neighbours(bm, made)
+        bmesh.ops.triangulate(bm, faces=[face for face in made if face.is_valid])
+        filled += len(made)
+    record.update(specks_dropped=len(specks), fins_dropped=len(fins), holes_filled=filled,
+                  open_edges_after=sum(1 for edge in bm.edges if edge.is_boundary),
+                  nonmanifold_edges_after=sum(1 for edge in bm.edges if len(edge.link_faces) > 2))
+    return record
+
+
+def load(path, sides=64):
     bpy.ops.wm.read_factory_settings(use_empty=True)
     bpy.ops.import_scene.gltf(filepath=path)
     meshes = [obj for obj in bpy.context.scene.objects if obj.type == "MESH"]
@@ -56,6 +173,8 @@ def load(path):
     bm.from_mesh(obj.data)
     before = len(bm.verts)
     bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=max(obj.dimensions) * 1e-6)
+    welded = before - len(bm.verts)
+    mended = mend(bm, max(obj.dimensions), sides)
     bm.to_mesh(obj.data)
     bm.free()
     obj.data.update()
@@ -66,7 +185,7 @@ def load(path):
         obj.data.uv_layers.remove(obj.data.uv_layers[0])
     for polygon in obj.data.polygons:
         polygon.use_smooth = True
-    return obj, before - len(obj.data.vertices)
+    return obj, welded, mended
 
 
 UP_AXIS = {"shortest": (0, 1, 2), "middle": (0, 2, 1), "longest": (1, 2, 0)}
@@ -106,7 +225,17 @@ def levelling_transform(points, length, up="shortest", flip=False, by_height=Fal
 
 def main(argv) -> int:
     argv = list(argv)
-    up, flip, by_height = "shortest", False, False
+    up, flip, by_height, sides = "shortest", False, False, 64
+    if "--fill-holes" in argv:
+        at = argv.index("--fill-holes")
+        try:
+            sides = int(argv[at + 1])
+        except (IndexError, ValueError):
+            sides = -1
+        del argv[at:at + 2]
+        if sides < 0:
+            print("[LEVEL] FAILED: --fill-holes is how many edges a hole may have to be filled, 0 for none")
+            return 1
     if "--height" in argv:
         argv.remove("--height")
         by_height = True
@@ -127,7 +256,9 @@ def main(argv) -> int:
         return 1
     transform, records = None, []
     for source, output in pairs:
-        obj, welded = load(source)
+        # The first file is the dense mesh: it is only baked from, the bake
+        # copes with its holes, and mending a million faces takes minutes.
+        obj, welded, mended = load(source, sides if records else 0)
         points = np.array([vertex.co for vertex in obj.data.vertices], dtype=np.float64)
         if transform is None:
             transform = levelling_transform(points, length, up, flip, by_height)
@@ -136,14 +267,14 @@ def main(argv) -> int:
         obj.name = "GEO_" + bpy.path.display_name_from_filepath(output)
         bpy.ops.wm.save_as_mainfile(filepath=output)
         levelled = np.array([vertex.co for vertex in obj.data.vertices])
-        records.append({"source": source, "output": output, "seam_copies_welded": int(welded),
+        records.append({"source": source, "output": output, "seam_copies_welded": int(welded), **mended,
                         "triangles": int(sum(len(p.vertices) - 2 for p in obj.data.polygons)),
                         "min_m": levelled.min(axis=0).round(4).tolist(),
                         "max_m": levelled.max(axis=0).round(4).tolist()})
-        print("[LEVEL] {0}: {1} triangles, {2} seam copies welded".format(
-            output, records[-1]["triangles"], welded))
+        print("[LEVEL] {0}: {1} triangles, {2} seam copies welded, {3} holes filled, {4} open edges left".format(
+            output, records[-1]["triangles"], welded, mended["holes_filled"], mended["open_edges_after"]))
     with open(report_path, "w", encoding="utf-8") as stream:
-        json.dump({"schema": "reference-asset-compiler.level-pair.v1", "length_m": length, "size_is": "height" if by_height else "longest side", "up": up, "flip": flip,
+        json.dump({"schema": "reference-asset-compiler.level-pair.v1", "length_m": length, "size_is": "height" if by_height else "longest side", "up": up, "flip": flip, "fill_holes_up_to_edges": sides,
                    "transform": np.round(transform, 8).tolist(), "files": records}, stream, indent=2)
     return 0
 
