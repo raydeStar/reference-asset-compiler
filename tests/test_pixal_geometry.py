@@ -71,6 +71,14 @@ class PictureTests(unittest.TestCase):
 
 
 class PreparationTests(unittest.TestCase):
+    def test_game_export_is_opt_in_and_reaches_the_native_runner(self):
+        for options, expected in (({}, "remesh"), ({"game_export": "clean"}, "clean")):
+            command = prepare_pixal_geometry({"size_m": 0.55, **options}, "blender", None)["arguments"]
+            args = rpg.parse_arguments(["picture.png", "game.blend", "geometry.json", *command])
+            self.assertEqual(args.game_export, expected)
+        with self.assertRaises(StageError):
+            prepare_pixal_geometry({"size_m": 0.55, "game_export": "other"}, "blender", None)
+
     def test_game_mesh_bounds_and_shell_are_checked_independently(self):
         mesh = {"min_m": [0, 0, 0], "max_m": [.55, .61, .65], "open_edges_after": 105}
         check = game_mesh_check(mesh, .55, "longest", "closed")

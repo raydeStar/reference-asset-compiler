@@ -58,7 +58,7 @@
       "id": "pixal3d_candidate",
       "stage": "geometry_candidate",
       "path": "geometry/pixal3d/run_pixal3d.py",
-      "sha256": "220F981434BC355DD5D648A4D56B2539C4AB0377F6B30C7C0084487CB2318B0B",
+      "sha256": "175E268BE82774BA857E26904C0188FF2607A3ABD4D72C302C020FB6CB7A0ECE",
       "selection": "preferred_high_fidelity_challenger",
       "runtime": "WSL_isolated_environment",
       "input_contract": "presegmented_nonopaque_RGBA",

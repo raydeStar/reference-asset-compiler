@@ -283,6 +283,8 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Pixal3D geometry: whether --size-m is the height or the longest side (default: longest)")
     stage.add_argument("--pixal-resolution", type=int, choices=(512, 1024, 1536),
                        help="Pixal3D geometry: the generation's resolution (default: 1024)")
+    stage.add_argument("--game-export", choices=("remesh", "clean"),
+                       help="Pixal3D game mesh export: native remeshing or native two-pass simplify and clean")
     stage.add_argument("--vertex-target", type=int,
                        help="Pixal3D geometry: the game mesh's vertices, from Pixal's own simplifier "
                             "(default: 100000)")
@@ -534,6 +536,7 @@ def main(argv: list[str] | None = None) -> int:
                     "topology": args.topology,
                     "pixal_resolution": args.pixal_resolution,
                     "vertex_target": args.vertex_target,
+                    "game_export": args.game_export,
                     "up": args.up,
                     "flip": args.flip or None,
                 })

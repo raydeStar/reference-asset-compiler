@@ -91,8 +91,12 @@ _to_glb = upstream.o_voxel.postprocess.to_glb
 
 def to_glb_with_extra_targets(*args, **kwargs):
     glb = _to_glb(*args, **kwargs)
-    for target, path in EXTRA_TARGETS:
-        extra = _to_glb(*args, **{**kwargs, "decimation_target": target})
+    for target, path, mode in EXTRA_TARGETS:
+        options = {**kwargs, "decimation_target": target}
+        if mode == "clean":
+            # Pixal's native two-pass simplifier cleans holes and fins after each reduction.
+            options["remesh"] = False
+        extra = _to_glb(*args, **options)
         extra.apply_transform(_UPSTREAM_ROTATION)
         extra.export(path, extension_webp=True)
         print("[Pixal3D] decimation_target {0} -> {1}".format(target, path), flush=True)
@@ -199,13 +203,14 @@ def main() -> None:
     parser.add_argument("--resolution", type=int, default=1024)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--fov", type=float, default=-1.0)
+    parser.add_argument("--game-export", choices=("remesh", "clean"), default="remesh")
     parser.add_argument("--extra-targets", default="",
                         help="Comma-separated vertex targets, each also exported from the same "
                              "generation as <output>-v<target>.glb, e.g. 100000 for a game mesh")
     args = parser.parse_args()
     stem = os.path.splitext(args.output)[0]
     for target in [int(item) for item in args.extra_targets.split(",") if item.strip()]:
-        EXTRA_TARGETS.append((target, "{0}-v{1}.glb".format(stem, target)))
+        EXTRA_TARGETS.append((target, "{0}-v{1}.glb".format(stem, target), args.game_export))
 
     image = Image.open(args.image)
     if image.mode != "RGBA" or image.getchannel("A").getextrema() == (255, 255):

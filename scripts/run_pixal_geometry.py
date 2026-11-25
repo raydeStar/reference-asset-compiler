@@ -100,6 +100,7 @@ def parse_arguments(argv):
     parser.add_argument("report", type=Path)
     parser.add_argument("--size-m", type=float, required=True, help="the real size, in metres")
     parser.add_argument("--topology", choices=("closed", "open"), default="closed")
+    parser.add_argument("--game-export", choices=("remesh", "clean"), default="remesh")
     parser.add_argument("--size-is", choices=("height", "width", "longest"), default="height",
                         help="whether --size-m is the height (as a landmark on a person gives it) or the longest side")
     parser.add_argument("--seed", type=int, default=42)
@@ -143,7 +144,7 @@ def main(argv=None) -> int:
     attempt = next_attempt(args.output)
     report = {"schema": SCHEMA, "picture": str(args.picture), "picture_sha256": sha256(args.picture),
               "runner": str(RUNNER), "runner_sha256": expected, "seed": args.seed,
-              "resolution": args.resolution, "vertex_target": args.vertex_target,
+              "resolution": args.resolution, "vertex_target": args.vertex_target, "game_export": args.game_export,
               "size_m": args.size_m, "size_is": args.size_is, "up": args.up, "flip": args.flip,
               "attempt": str(attempt), "deterministic": False,
               "requires_fixed_view_review": True, "production_grade": False}
@@ -184,7 +185,7 @@ def main(argv=None) -> int:
     simplified = attempt / "pixal-v{0}.glb".format(args.vertex_target)
     command = pixal_command([linux_path(RUNNER), "--image", linux_path(cutout), "--output", linux_path(generated),
                              "--resolution", str(args.resolution), "--seed", str(args.seed),
-                             "--extra-targets", str(args.vertex_target)], paths)
+                             "--extra-targets", str(args.vertex_target), "--game-export", args.game_export], paths)
     report["pixal"] = {"root": paths["root"], "python": paths["python"], "distro": paths["distro"]}
     begun = time.monotonic()
     try:
