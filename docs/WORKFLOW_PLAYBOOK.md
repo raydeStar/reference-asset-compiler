@@ -80,8 +80,17 @@ export PIXAL3D_ROOT=/path/to/Pixal3D            # your WSL checkout
 python workflows/geometry/pixal3d/run_pixal3d.py \
   --image /path/to/authority-cutout.png \
   --output /path/to/candidate.glb \
-  --resolution 1024 --seed 42
+  --resolution 1024 --seed 42 --extra-targets 100000
 ```
+
+`--extra-targets 100000` also writes `candidate-v100000.glb`: the same model,
+simplified by Pixal's own exporter (the skiff came to about 98k triangles). Use
+it as the game mesh rather than reducing the dense one with `remesh` or
+`reduce-mesh`; both lose Pixal's hard edges. Level both with one transform
+(`scripts/blender/level_pair.py`), then bake the dense shape onto the game mesh
+after painting with `bake-shape`. A single picture leaves hidden parts to the
+generator, so generate a few seeds (about 2.5 minutes each) and pick by fixed
+views: seed 42 of the skiff left a hole in the floor that seed 45 did not.
 
 The RGBA alpha mask is mandatory. Promote neither path until neutral fixed
 front, three-quarter, side, and back clay views pass identity, anatomy,
@@ -405,9 +414,12 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   every prop it is run on (a 2.2 m mast, 2026-11-24: the top 22% crisp and the
   picture's dark iron, the pole below flat light putty). On a prop, paint in
   sections instead of the head pass; the head pass is for figures.
-- The design comes from the first paint (`--keep-colour 0.03`, the default):
-  every colour coarser than 3 cm is the whole-model paint's, and the sections
-  add only their fine light and dark. A section's painter sees too little to
+- The design comes from the first paint (`--keep-colour 0.01`, the default):
+  its colour is kept exactly as painted, and the sections add only their light
+  and dark finer than 1 cm. The first paint is never blurred, because a blur on
+  the flat sheet reaches into unrelated neighbouring islands. With a 3 cm blur,
+  the skiff's teal chips smeared and its stern went grey in wedges. A section's
+  painter sees too little to
   tell iron from wood: on the AC-01.1 skiff in 45 sections, the red fins, iron
   straps and teal paint all came back as wood, and keeping the design brought
   them back with the sections' grain, nail holes and wear on them. The owner
@@ -436,6 +448,13 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   surface a painted pixel on a 2 to 3 m prop. To reach a small prop's 0.6 to
   1 mm, cut finer and overlap less: `--section 0.45 --overlap 0.2 --context
   0.05 --max-sections 48` put a 2.2 m skiff at about 0.7 mm in 45 sections.
+- Each section's views are shrunk to about a texel a pixel before they are
+  baked (`--bake-scale 1`, the default; 0 bakes them as upstream does). A
+  section seen far finer than the sheet holds otherwise breaks its grain into
+  single-texel specks. For detail that holds up at arm's length, paint the
+  first paint and the sections on an 8192 sheet (`--atlas 8192` on both
+  stages): a 2.2 m skiff goes from 1.75 mm to about 0.9 mm a texel at the same
+  painting time. Compress for a browser afterwards; the maps are large.
 - The stage gets four hours from `run-stage` unless `--timeout` says otherwise;
   every other stage gets one. A pass that was stopped anyway resumes with
   `--reuse-sections <the stopped attempt directory>`: a section the painter
@@ -454,6 +473,53 @@ wear needs a curvature map as large as the base colour, so leave it off on a
 - Above about 4 m one 4096 sheet cannot hold the detail however well it is
   painted (a 15 m hull is about 4 mm a texel). Split such a piece into
   modules at acquisition instead.
+
+### A hard-surface prop from Pixal3D, end to end
+
+The route that took the 2.2 m Frastown skiff (AC-01.1) from a picture to wood
+grain that holds up at arm's length. Times are from an RTX 4090.
+
+```powershell
+# 1. Geometry: a few seeds (about 2.5 min each, in WSL), picked by fixed views.
+#    --extra-targets also writes the game mesh, from the same generation.
+python workflows/geometry/pixal3d/run_pixal3d.py --image cutout.png --output pixal.glb `
+  --resolution 1024 --seed 45 --extra-targets 100000
+
+# 2. Level the dense mesh and the game mesh with one transform, at the real length.
+blender -b --factory-startup --python scripts/blender/level_pair.py -- `
+  2.2 level.json pixal.glb dense.blend pixal-v100000.glb low.blend
+
+# 3. UVs, then the first paint on an 8192 sheet (about 3 min).
+rac run-stage uv-unwrap --source low.blend --output uv.obj --report uv.json
+rac run-stage texture --source uv.obj --output painted.glb --report painted.json `
+  --reference approved.png --views 12 --resolution 768 --atlas 8192
+
+# 4. Sections at the finer cut (about 4 min each at 8192; the skiff had 32).
+rac run-stage paint-sections --source painted.glb --output sections.glb --report sections.json `
+  --reference approved.png --views 12 --resolution 768 --atlas 8192 `
+  --section 0.45 --overlap 0.2 --context 0.05 --max-sections 48
+
+# 5. Relief from the paint, then the dense shape under it (a few minutes each).
+rac run-stage bake-detail --source sections.glb --output detail.glb --report detail.json `
+  --resolution 2048 --relief-tilt 6
+rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense dense.blend
+
+# 6. A browser copy: specular reset, then 8192 JPEG (the skiff came to 51 MB).
+rac run-stage browser-payload --source shape.glb --output payload.glb --report payload.json
+rac run-stage compress-textures --source payload.glb --output packed.glb --report packed.json `
+  --colour-size 8192 --data-size 8192 --quality 92 --texture-format jpeg
+```
+
+Keep `payload.glb`, with lossless 8192 maps, for Unreal. A section pass that is
+stopped resumes with `--reuse-sections <its attempt directory>`, and a change
+that only affects how sections are laid (for example `--keep-colour`) reuses
+every painted section and costs minutes, not hours.
+
+The paint still has two known faults, both left for painting by parts:
+
+- the painter can project one part's colour onto another behind it (the
+  skiff's fin red on an iron bracket);
+- unseen faces are filled in flat.
 
 ### Challenger: TRELLIS.2
 

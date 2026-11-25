@@ -188,6 +188,19 @@ STAGES: dict[str, dict[str, Any]] = {
         "summary": "Bake the occlusion and curvature a model's own geometry already implies.",
         "produces": "reference-asset-compiler.derived-maps.v1",
     },
+    "bake-shape": {
+        "runner": "blender",
+        "script": "scripts/blender/bake_dense_shape.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("dense", "cage", "max_ray"),
+        "prepare": "bake-shape",
+        "needs": ("blender",),
+        # After paint and bake-detail, onto the game mesh's own UVs: the dense
+        # mesh a generator made (Pixal3D's million triangles) gives the normal
+        # map its bolts, seams and bevels, under the paint's relief.
+        "summary": "Bake a dense mesh's shape onto a painted game mesh's normal map, under its relief.",
+        "produces": "reference-asset-compiler.dense-shape.v1",
+    },
     "cull-unseen": {
         "runner": "blender",
         "script": "scripts/blender/cull_unseen_faces.py",
@@ -365,7 +378,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "arguments": ("source", "output", "report"),
         "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "context",
                     "keep_colour", "keep_tone", "min_length", "max_sections", "min_free_vram",
-                    "reuse_sections"),
+                    "reuse_sections", "bake_scale"),
         # A section is one painter run of about 2.5 minutes, and the finer cut
         # paints up to 48: the hour every other stage gets killed the skiff's
         # pass at section 20 of 32. Four hours, as Framewright already passes.
@@ -545,6 +558,8 @@ def run_stage(
         context = prepare_compress_textures(options or {})
     elif prepare == "cull-unseen":
         context = prepare_cull_unseen(options or {})
+    elif prepare == "bake-shape":
+        context = prepare_bake_shape(options or {})
     elif prepare == "bake-detail":
         context = prepare_bake_detail(options or {})
     elif prepare == "survey-surfaces":
@@ -783,6 +798,24 @@ def prepare_bake_detail(options: dict[str, Any]) -> dict[str, Any]:
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
     return {"arguments": arguments}
+
+
+def prepare_bake_shape(options: dict[str, Any]) -> dict[str, Any]:
+    """The dense mesh the shape comes from, refused here if it is missing or no mesh file."""
+    dense = options.get("dense")
+    if not dense:
+        raise StageError("Baking a shape needs the dense mesh it comes from: pass --dense.")
+    dense = Path(dense).resolve()
+    if not dense.is_file():
+        raise StageError("The dense mesh does not exist: {0}".format(dense))
+    if dense.suffix.lower() not in (".blend", ".glb", ".gltf"):
+        raise StageError("The dense mesh must be .blend, .glb or .gltf, not {0}.".format(
+            dense.suffix or "a file without an extension"))
+    arguments = ["--dense", str(dense)]
+    for flag, name in (("--cage", "cage"), ("--max-ray", "max_ray")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {"arguments": arguments, "payload": {"dense": str(dense)}}
 
 
 def prepare_cull_unseen(options: dict[str, Any]) -> dict[str, Any]:
@@ -1265,6 +1298,7 @@ def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, A
     arguments = ["--reference", str(reference), "--legacy-root", str(legacy)]
     for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
                        ("--section", "section"), ("--overlap", "overlap"), ("--context", "context"),
+                       ("--bake-scale", "bake_scale"),
                        ("--keep-colour", "keep_colour"),
                        ("--keep-tone", "keep_tone"),
                        ("--min-length", "min_length"), ("--max-sections", "max_sections"),

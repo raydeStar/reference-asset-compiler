@@ -3301,3 +3301,27 @@ A single-view generator also guesses what the picture hides. Seed 42 left a hole
 `rac run-stage` gave every stage one hour. The finer section cut paints up to 48 sections at two and a half to three and a half minutes each, so the documented command could not finish on the skiff: the pass was stopped at section 20 of 32. Framewright already passed four hours, which is why only the command line was caught. `paint-sections` now has its own four-hour default, and the stage listing reports each stage's limit. A pass that is stopped anyway resumes with `--reuse-sections`, which takes a finished section only when the painter's own record shows the same mesh, crop and settings.
 
 The stop did not end the painter. `subprocess.run` kills the process it started, not that process's children, so section 20's painter ran on and finished with nobody waiting for it. A second run started then would have shared the GPU with it. Stages and the painters inside `paint-sections` now run through `processes.run_bounded`, which stops the whole tree on a timeout: `taskkill /T` on Windows, the process group elsewhere.
+
+<!-- texel-scale-bake-20261124 -->
+## 2026-11-24 · Bake a section from about a texel a pixel, or its grain breaks into specks
+
+The owner found the section-painted Pixal skiff "super grainy" up close, though it looked incredible from a step back. The grain was in the section paint itself, before any compositing: wood grain broken into dashes, stair-steps and single-texel specks.
+
+**Cause.** The painter bakes by giving each texel one bilinear sample of each view. Before baking, it upscales every 768-pixel view four times, to 3072 pixels. Upstream then resizes only the first two views to `render_size`, because its loop counts the two map kinds rather than the twelve views. On a whole 2.4 m model, a 3072-pixel view is about 0.8 mm a pixel, close to a texel, so the sample is smooth. On a 0.6 m section it is 0.2 mm a pixel against 1.75 mm texels. Each texel then took one pore at random.
+
+**Fix.** The studio painter now shrinks every view to about a texel a pixel, with an antialiasing filter, before baking (`--bake-size`). `paint-sections` sizes that for each section from the model's own texel density (`--bake-scale 1`). On the same section, the speckle measure halved, from 5.49 to 2.62, and the grain ran as continuous lines again.
+
+**8192 sheet.** The same section painted on an 8192 sheet, which the studio painter now offers, kept the painter's cracks and knots. Painting time per section did not change: about 3.5 minutes at either size.
+
+**Blending.** Sections now cross-fade through weights interpolated from each face's corners. Weights constant per face had left hard triangles on Pixal's large simplified faces.
+
+<!-- sharp-first-paint-20261124 -->
+## 2026-11-24 · Keep the first paint's colour as painted; take only the sections' fine light and dark
+
+On the 8192 skiff, the owner saw flat grey and orange wedges on the stern and at the bow strap, and the teal paint chips had faded to a glow. The first paint had none of that.
+
+**Cause.** `paint-sections` kept the first paint's colour coarser than 3 cm by blurring it, and the blur is taken on the flat texture sheet. Near a UV island's edge it reaches into whatever unrelated island sits beside it on the sheet. Pixal's simplified mesh unwraps into thousands of small islands, so whole stern parts took a grey average of their neighbours. The crisp chips smeared, and the fin lost its cream band. A 1 cm or 5 mm blur helped the bow but not the stern.
+
+**Fix.** The first paint is no longer blurred at all. Each section contributes only its own light and dark finer than `--keep-colour`, now 1 cm by default, as a ratio to its own blurred light. A ratio changes brightness, never colour, so what the blur picks up near an island's edge cannot move colour. The stern matched the first paint, the chips and the fin's band came back, and the section grain stayed. A section re-lay reused all 32 painted sections and took about 16 minutes.
+
+**Still open.** The first paint itself can carry another part's colour, projected from a view where the parts overlap: the fin's red on an iron bracket. Compositing cannot remove that. Painting by parts can.

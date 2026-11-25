@@ -249,3 +249,98 @@ assert remove_tiny_components(obj, 24)['faces'] == 0
 assert len(obj.data.polygons) == faces
 ''')
     run(script)
+
+
+def test_a_dense_shape_is_baked_onto_a_painted_mesh_and_lands_in_its_normal_map(tmp_path):
+    # A bumpy dense sphere and a smooth painted one in the same place: the bake
+    # must give the smooth one a normal map that tilts where the bumps are.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, math
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=96, ring_count=48, radius=0.5)
+dense = bpy.context.object
+for v in dense.data.vertices:
+    bump = 1.0 + 0.03 * math.sin(14 * v.co.x) * math.sin(14 * v.co.y)
+    v.co *= bump
+bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'dense.blend')!r})
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, radius=0.5)
+low = bpy.context.object
+bpy.ops.object.shade_smooth()
+image = bpy.data.images.new('paint', 256, 256)
+image.pixels = [0.6, 0.4, 0.2, 1.0] * (256 * 256)
+image.filepath_raw = {str(tmp_path / 'paint.png')!r}
+image.file_format = 'PNG'
+image.save()
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+texture = material.node_tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+material.node_tree.links.new(texture.outputs['Color'], material.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+low.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    report = tmp_path / 'shape.json'
+    run(ROOT / 'scripts/blender/bake_dense_shape.py', tmp_path / 'painted.glb', tmp_path / 'shaped.glb', report,
+        '--dense', tmp_path / 'dense.blend', '--cage', '0.04', '--max-ray', '0.1')
+    receipt = json.loads(report.read_text())
+    assert receipt['size'] == [256, 256]
+    assert receipt['centre_offset_m'] < 0.01
+    assert 'alone' in receipt['normal']
+    assert receipt['tilt_degrees_p50_p90'][1] > 3.0
+    assert (tmp_path / 'shaped.glb').stat().st_size > 0
+
+
+def test_a_dense_mesh_in_another_place_is_refused(tmp_path):
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add(location=(3, 0, 0))
+bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'dense.blend')!r})
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add()
+image = bpy.data.images.new('paint', 64, 64)
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+texture = material.node_tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+material.node_tree.links.new(texture.outputs['Color'], material.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+bpy.context.object.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    result = subprocess.run([BLENDER, '-b', '--factory-startup', '--python-exit-code', '1', '--python',
+                             str(ROOT / 'scripts/blender/bake_dense_shape.py'), '--', str(tmp_path / 'painted.glb'),
+                             str(tmp_path / 'o.glb'), str(tmp_path / 'o.json'), '--dense', str(tmp_path / 'dense.blend')],
+                            capture_output=True, text=True, timeout=90)
+    assert 'not the same model in the same place' in result.stdout
+    assert not (tmp_path / 'o.glb').exists()
+
+
+def test_a_dense_mesh_and_its_simplified_copy_are_levelled_by_one_transform(tmp_path):
+    # A tilted boat-like box and a coarser copy of it: both must come out with
+    # the same length along X, on the floor, and matching each other closely.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, math
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=64, ring_count=32, radius=1.0)
+obj = bpy.context.object
+obj.scale = (2.0, 0.7, 0.4)
+obj.rotation_euler = (0.3, 0.2, 0.9)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'dense.glb')!r}, export_format='GLB')
+mod = obj.modifiers.new('fewer', 'DECIMATE'); mod.ratio = 0.2
+bpy.ops.object.modifier_apply(modifier=mod.name)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'low.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    report = tmp_path / 'level.json'
+    run(ROOT / 'scripts/blender/level_pair.py', '2.2', report, tmp_path / 'dense.glb', tmp_path / 'dense.blend',
+        tmp_path / 'low.glb', tmp_path / 'low.blend')
+    files = json.loads(report.read_text())['files']
+    dense, low = files[0], files[1]
+    assert abs((dense['max_m'][0] - dense['min_m'][0]) - 2.2) < 1e-3
+    assert abs(dense['min_m'][2]) < 1e-4
+    for axis in range(3):
+        assert abs(dense['min_m'][axis] - low['min_m'][axis]) < 0.03
+        assert abs(dense['max_m'][axis] - low['max_m'][axis]) < 0.03
+    assert low['triangles'] < dense['triangles']

@@ -194,12 +194,16 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--context", type=float,
                        help="Paint in sections: how much more of the model each section's painter "
                             "sees past the overlap, as a fraction of a section (default: 0.1)")
+    stage.add_argument("--cage", type=float,
+                       help="Bake shape: how far out the rays start, in metres (default: 0.008)")
+    stage.add_argument("--max-ray", type=float,
+                       help="Bake shape: how far a ray may travel, in metres (default: 0.02)")
     stage.add_argument("--reuse-sections", type=Path,
                        help="Paint in sections: an earlier attempt directory whose finished sections "
                             "are reused where the mesh and crop are the same")
     stage.add_argument("--keep-colour", type=float,
-                       help="Paint in sections: colour coarser than this many metres stays the first "
-                            "paint's, the sections add their fine light and dark (default: 0.03; 0 "
+                       help="Paint in sections: keep the first paint's colour as painted and add the "
+                            "sections' light and dark finer than this many metres (default: 0.01; 0 "
                             "takes the sections' own colour)")
     stage.add_argument("--keep-tone", type=float,
                        help="Paint in sections: tone coarser than this many metres stays the first "
@@ -210,16 +214,19 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Paint in sections: the most sections a model is cut into (default: 12)")
     stage.add_argument("--min-free-vram", type=int,
                        help="MiB of GPU memory the painter must find free before it starts")
-    stage.add_argument("--atlas", type=int, choices=(2048, 4096),
+    stage.add_argument("--atlas", type=int, choices=(2048, 4096, 8192),
                        help="Paint atlas size. Naming one selects the studio runner, which "
                             "writes lossless maps; unnamed, the legacy runner writes 2048 JPEG")
+    stage.add_argument("--bake-scale", type=float,
+                       help="Paint in sections: bake each section's views at about this many pixels a "
+                            "texel (default: 1; 0 bakes them as upstream does)")
     stage.add_argument("--target-triangles", type=int, help="Remesh target before the budget check")
     stage.add_argument("--voxel-resolution", type=int, help="Remesh grid resolution (default: 420)")
     stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
     stage.add_argument("--preserve-components", action="store_true", help="Keep separate substantive parts during remeshing")
     stage.add_argument("--smooth-lambda", type=float, help="Remesh smoothing strength (default: 0.28)")
     stage.add_argument("--dense", type=Path,
-                       help="The dense, painted original a reduced mesh is re-baked from")
+                       help="The dense original: the painted mesh a reduction is re-baked from, or the dense shape bake-shape bakes from")
     stage.add_argument("--reduction-report", type=Path,
                        help="The reduction's receipt: proves the re-bake pairs the right files "
                             "and offers the budget ladder to climb")
@@ -443,6 +450,7 @@ def main(argv: list[str] | None = None) -> int:
                     "section": args.section,
                     "overlap": args.overlap,
                     "context": args.context,
+                    "bake_scale": args.bake_scale,
                     "reuse_sections": args.reuse_sections,
                     "keep_colour": args.keep_colour,
                     "keep_tone": args.keep_tone,
@@ -458,6 +466,8 @@ def main(argv: list[str] | None = None) -> int:
                     "transmission": args.transmission,
                     "minimum_share": args.minimum_share,
                     "dense": args.dense,
+                    "cage": args.cage,
+                    "max_ray": args.max_ray,
                     "reduction_report": args.reduction_report,
                     "appearance_reference": args.appearance_reference,
                     "reference_views": args.reference_views,

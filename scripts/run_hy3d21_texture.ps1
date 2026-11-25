@@ -10,7 +10,11 @@ param(
     # run_hy3d21_studio.py, hash-pinned likewise, which keeps the 4096 atlas
     # the pipeline already computes and writes every map as PNG.
     [ValidateSet('legacy', 'studio')][string] $RunnerKind = 'legacy',
-    [ValidateSet(2048, 4096)][int] $Atlas = 2048,
+    [ValidateSet(2048, 4096, 8192)][int] $Atlas = 2048,
+    # Studio only: shrink every view to this many pixels before it is baked,
+    # about one pixel a texel, so a texel's sample is an average rather than a
+    # random pore of a far finer view. 0 keeps upstream's sizes.
+    [ValidateRange(0, 4096)][int] $BakeSize = 0,
     [switch] $SmoothConditioningNormals,
     # The studio runner moves one-shot helpers off the GPU before sampling, runs
     # the UNet feed-forward and the VAE decode one image at a time, and moves
@@ -41,7 +45,7 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
 }
 $expectedRunnerHash = 'B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B'
-$expectedStudioRunnerHash = 'F73604C3FE64E8C75B3DE035653F84461CCC870B782AB137F59CE8DA3FC76F9A'
+$expectedStudioRunnerHash = '0EBEF0F08CF2925C03C5BA130FEE162D2D1738476044ADDC1C9426F421CBCDDF'
 $python = Join-Path $LegacyRoot '.venv-hy3d21\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d21_pbr.py'
 if ($RunnerKind -eq 'studio') {
@@ -109,6 +113,7 @@ if ($RunnerKind -eq 'studio') {
     $runnerArgs += @('--atlas', $Atlas, '--legacy-root', $LegacyRoot)
     if ($SmoothConditioningNormals) { $runnerArgs += '--smooth-conditioning-normals' }
     if ($releaseStages) { $runnerArgs += '--release-stages' }
+    if ($BakeSize -gt 0) { $runnerArgs += @('--bake-size', $BakeSize) }
     # The runner rechecks the same floor after CUDA initialises.
     $runnerArgs += @('--min-free-gib', ([double]$MinimumFreeVramMiB / 1024).ToString([Globalization.CultureInfo]::InvariantCulture))
 }
@@ -140,6 +145,7 @@ $execution = [ordered]@{
     resolution = $Resolution
     runner_kind = $RunnerKind
     atlas = $Atlas
+    bake_size = $BakeSize
     conditioning_normals = $(if ($SmoothConditioningNormals) { 'seam_independent_vertex' } else { 'face' })
     release_stages = $releaseStages
     required_free_vram_mib = $MinimumFreeVramMiB
