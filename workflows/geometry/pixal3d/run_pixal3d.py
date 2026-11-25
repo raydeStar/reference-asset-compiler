@@ -90,6 +90,96 @@ def to_glb_with_extra_targets(*args, **kwargs):
 
 upstream.o_voxel.postprocess.to_glb = to_glb_with_extra_targets
 
+# The texture stage's image features are upsampled by NAF to a full 1024 x 1024
+# map of 1024 channels (4 GiB, with 8 GiB of scratch beside it: the values are
+# resized to the full map before attention), only to be sampled at the voxel
+# grid's 262,144 projected points. That was the whole run's peak, 14.2 GiB at
+# --resolution 1024, against 6.2 GiB for every other step. NAF's attention
+# heads are independent, and each owns its own slice of the channels, so here
+# each head is upsampled and sampled on its own and the slices are put back in
+# upstream's order. The features are the same tensor, compared exactly.
+import torch  # noqa: E402
+from einops import rearrange  # noqa: E402
+from pixal3d.trainers.flow_matching.mixins import image_conditioned_proj as proj_module  # noqa: E402
+
+_original_extractor_forward = proj_module.DinoV3ProjFeatureExtractor.forward
+
+
+@torch.no_grad()
+def naf_projected_one_head_at_a_time(naf, image, features, output_size, proj_grid, *proj_args):
+    """NAF's upsampling of `features`, sampled at the projection grid, one attention head at a time."""
+    encoded = naf.image_encoder(image, output_size=output_size)
+    queries = naf.query_encoder(encoded)
+    keys = naf.key_encoder(encoded, features)
+    attention = naf.upsampler
+    layer = sys.modules[type(attention).__module__]
+    hq, wq = queries.shape[-2:]
+    hk, wk = keys.shape[-2:]
+    dilation = (hq // hk, wq // wk)
+    attention.dilation = dilation
+    heads = attention.num_heads
+    q_all = rearrange(queries, "b (n d) h w -> b h w n d", n=heads)
+    k_all = attention._resize(keys, size=(hq, wq), dtype=q_all.dtype)
+    width = features.shape[1] // heads
+    sampled = []
+    for head in range(heads):
+        q = q_all[..., head:head + 1, :].contiguous()
+        k = k_all[..., head:head + 1, :].contiguous()
+        # CrossAttention._resize, for one head's channels: the same nearest-exact
+        # resize, then one head where it lays out num_heads.
+        v = torch.nn.functional.interpolate(features[:, head * width:(head + 1) * width], size=(hq, wq),
+                                            mode="nearest-exact")
+        v = rearrange(v, "b (n d) h w -> b h w n d", n=1).to(q.dtype)
+        if layer.NATTEN_RECENT:
+            out = layer.na2d(q, k, v, kernel_size=attention.kernel_size, dilation=dilation, stride=1,
+                             backend="cutlass-fna")
+        else:
+            out = layer.legacy_attention(q, k, v, attention.kernel_size, dilation, scale=attention.scale)
+        out = rearrange(out, "b h w n d -> b (n d) h w")
+        sampled.append(proj_grid(out, *proj_args, BHWC=False))
+        del q, k, v, out
+    return torch.cat(sampled, dim=-1)
+
+
+def extractor_forward_one_head_at_a_time(self, image, camera_angle_x=None, distance=None, mesh_scale=None,
+                                         transform_matrix=None):
+    """Upstream's DinoV3ProjFeatureExtractor.forward, with the NAF branch run head by head."""
+    if not self.use_naf_upsample:
+        return _original_extractor_forward(self, image, camera_angle_x, distance, mesh_scale, transform_matrix)
+    if isinstance(image, torch.Tensor):
+        assert image.ndim == 4, "Image tensor should be batched (B, C, H, W)"
+    elif isinstance(image, list):
+        assert all(isinstance(i, Image.Image) for i in image), "Image list should be list of PIL images"
+        image = [i.resize((self.image_size, self.image_size), Image.LANCZOS) for i in image]
+        image = [np.array(i.convert('RGB')).astype(np.float32) / 255 for i in image]
+        image = [torch.from_numpy(i).permute(2, 0, 1).float() for i in image]
+        image = torch.stack(image).cuda()
+    else:
+        raise ValueError(f"Unsupported type of image: {type(image)}")
+    batch = image.shape[0]
+    image_for_naf = image.clone()
+    image = self.transform(image)
+    with torch.no_grad():
+        z = self.extract_features(image)
+        z_clstoken = z[:, 0:1]
+        num_reg = getattr(self.model.config, 'num_register_tokens', 4)
+        z_regtokens = z[:, 1:1 + num_reg]
+        z_patchtokens = z[:, 1 + num_reg:]
+        z_patchtokens_spatial = z_patchtokens.reshape(batch, self.patch_number, self.patch_number, -1)
+        if camera_angle_x is None or distance is None or mesh_scale is None:
+            raise ValueError("camera_angle_x, distance, and mesh_scale must be provided")
+        z_proj_lr = self.proj_grid(z_patchtokens_spatial, camera_angle_x, distance, mesh_scale, transform_matrix)
+        self._load_naf()
+        z_proj_hr = naf_projected_one_head_at_a_time(
+            self.naf_model, image_for_naf, z_patchtokens_spatial.permute(0, 3, 1, 2), self.naf_target_size,
+            self.proj_grid, camera_angle_x, distance, mesh_scale, transform_matrix)
+        z_proj = torch.cat([z_proj_lr, z_proj_hr], dim=-1)
+        z_global = torch.cat([z_clstoken, z_regtokens], dim=1)
+    return z_global, z_proj
+
+
+proj_module.DinoV3ProjFeatureExtractor.forward = extractor_forward_one_head_at_a_time
+
 
 def main() -> None:
     parser = ArgumentParser()

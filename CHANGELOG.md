@@ -5,10 +5,12 @@ and any attached wheel.
 
 ## Unreleased
 
-An 8192 sheet paints within a 12 GB card: the studio painter's peak fell from
-13.2 to 18 GiB to the diffusion's own 9.1 GiB, with the maps byte for byte the
-same (the bake adds one view at a time, and the texel map keeps only covered
-texels). Notes: [docs/DECISIONS.md](docs/DECISIONS.md).
+Every GPU stage of the prop route within a 12 GB card, with the same results.
+The studio painter at an 8192 sheet peaked at 13.2 to 18 GiB and now at the
+diffusion's own 9.1 GiB, maps byte for byte the same (the bake adds one view at
+a time; the texel map keeps only covered texels). Pixal3D at 1024 peaked at
+14.2 GiB and now at 7.7 GiB, its conditioning exactly the same (NAF upsamples
+one attention head at a time). Notes: [docs/DECISIONS.md](docs/DECISIONS.md).
 
 ## v0.5.0 — 2026-11-24
 

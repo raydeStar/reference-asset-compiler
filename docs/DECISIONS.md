@@ -3395,3 +3395,32 @@ The studio painter fitted a 12 GB card at 4096: 12 views × 768 peaked at 9.6 Gi
 **How to measure it on Windows.** A process holding memory on the card does not shrink what PyTorch reports as free: Windows backs an over-full card with shared memory. With 11 GiB left free by a placeholder, the painter still set its pool budget to 22 GiB. Only a hard `set_per_process_memory_fraction` cap tests that a run fits.
 
 The section, part and head passes, and `texture --atlas`, now say they need 10.5 GiB free, the launcher's own floor for the studio painter. The legacy painter (no `--atlas`) still needs 21 GiB.
+
+<!-- pixal-12gb-20261124 -->
+## 2026-11-24 · Pixal3D at 1024 runs within a 12 GB card; the same seed does not give the same mesh
+
+Measured on the skiff (seed 45, `--resolution 1024`, upstream's `low_vram`), Pixal3D peaked at 14.22 GiB allocated (15.27 GiB reserved, about 16 GiB on the card), against upstream's note of "about 10 to 12 GB" in that mode. A peak counter around each pipeline step put every step at 6.2 GiB or less, except one: the texture stage's image conditioning, at 14.2 GiB for about a second.
+
+**Cause.** `DinoV3ProjFeatureExtractor` upsamples DINOv3's 1024-channel patch features with NAF to a full 1024 × 1024 map, then samples it at the 64³ voxel grid's 262,144 projected points. NAF's attention resizes the values to the full map first. The 1024-channel map (4 GiB) and its 8 GiB of scratch existed only to be sampled at those points. The shape stage does the same at 512 × 512 (6.2 GiB).
+
+**Fix.** NAF's four attention heads are independent, and each owns its own 256 channels of the features. `run_pixal3d.py` now upsamples one head at a time, samples it at the grid straight away, and puts the heads' channels back in upstream's order. This is the same computation in pieces.
+
+| Measurement | Upstream | Head by head |
+|---|---|---|
+| Texture conditioning peak | 14.21 GiB | 7.70 GiB |
+| Shape conditioning peak | 6.18 GiB | 5.19 GiB |
+| Whole run | 14.22 GiB allocated, 15.27 reserved, 166 s | 7.71 GiB allocated, 8.51 reserved, 157 s |
+
+On the same inputs in one process, both extractors' outputs were `torch.equal` to upstream's (largest difference 0.0). The run also completed under a hard 10 GiB allocator cap at the same 7.71 GiB.
+
+**Pixal3D is not deterministic.** Two unmodified runs of seed 45 gave different meshes: 757,294 against 756,491 vertices, and 82,778 against 83,457 in the 100k export. A seed picks the design, not the exact triangles. That is why the change above was proved on the conditioning tensor and not on the final mesh. Renders of the three runs (unmodified, head by head, and capped) show the same boat at the same detail.
+
+![Pixal3D seed 45 as pinned, head by head, and head by head under a 10 GiB cap](evidence/pixal-12gb-check.jpg)
+
+With this and the painter's fix, every GPU stage of the prop route runs within a 12 GB card:
+
+| Stage | Peak allocated |
+|---|---|
+| Pixal3D at 1024 | 7.7 GiB |
+| First paint, sections and parts at 8192 | 9.1 GiB |
+| label-parts (Grounding DINO + SAM ViT-B) | 3.6 GiB |

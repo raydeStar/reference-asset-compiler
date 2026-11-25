@@ -480,7 +480,8 @@ The route that took the 2.2 m Frastown skiff (AC-01.1) from a picture to wood
 grain that holds up at arm's length. Times are from an RTX 4090.
 
 ```powershell
-# 1. Geometry: a few seeds (about 2.5 min each, in WSL), picked by fixed views.
+# 1. Geometry: a few seeds (about 2.5 min and 7.7 GiB each, in WSL), picked by fixed views.
+#    A seed picks the design, not exact triangles: Pixal3D is not deterministic.
 #    --extra-targets also writes the game mesh, from the same generation.
 python workflows/geometry/pixal3d/run_pixal3d.py --image cutout.png --output pixal.glb `
   --resolution 1024 --seed 45 --extra-targets 100000
