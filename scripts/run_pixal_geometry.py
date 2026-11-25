@@ -100,7 +100,8 @@ def parse_arguments(argv):
     parser.add_argument("report", type=Path)
     parser.add_argument("--size-m", type=float, required=True, help="the real size, in metres")
     parser.add_argument("--topology", choices=("closed", "open"), default="closed")
-    parser.add_argument("--game-export", choices=("remesh", "clean"), default="remesh")
+    parser.add_argument("--game-export", choices=("remesh", "clean", "solid"), default="remesh")
+    parser.add_argument("--geometry", type=Path, help="Reuse a hash-verified Pixal acquisition for closed retopology")
     parser.add_argument("--size-is", choices=("height", "width", "longest"), default="height",
                         help="whether --size-m is the height (as a landmark on a person gives it) or the longest side")
     parser.add_argument("--seed", type=int, default=42)
@@ -115,11 +116,83 @@ def parse_arguments(argv):
     return parser.parse_args(argv)
 
 
+def acquire(args, attempt, report):
+    # 1. The cutout.
+    cutout = attempt / "cutout.png"
+    if has_transparency(args.picture):
+        shutil.copyfile(args.picture, cutout)
+        report["cutout"] = "the picture's own transparency"
+    else:
+        venv = (args.legacy_root / ".venv-hy3d21" / "Scripts" / "python.exe") if args.legacy_root else None
+        if venv is None or not venv.is_file():
+            return ("the picture has an opaque background, and without the painter's environment "
+                    "(--legacy-root) there is nothing to remove it with")
+        done = run_bounded([str(venv), str(ROOT / "scripts" / "crop_reference_region.py"), str(args.picture),
+                            str(cutout), str(attempt / "cutout.json"), "--cutout-only"],
+                           capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL,
+                           gpu_mib=0, timeout=600)
+        if done.returncode != 0 or not cutout.is_file():
+            return ("the picture's background could not be removed: {0}".format(
+                " | ".join((done.stdout + done.stderr).strip().splitlines()[-3:])))
+        report["cutout"] = "removed by the painter's environment"
+    if not has_transparency(cutout):
+        return "the cutout has no transparent background; Pixal3D needs the object alone"
+    report["cutout_sha256"] = sha256(cutout)
+
+    # 2. The geometry, in Pixal3D's own environment.
+    paths = pixal_paths()
+    generated = attempt / "pixal.glb"
+    simplified = attempt / "pixal-v{0}.glb".format(args.vertex_target)
+    params = [linux_path(RUNNER), "--image", linux_path(cutout), "--output", linux_path(generated),
+              "--resolution", str(args.resolution), "--seed", str(args.seed)]
+    if args.game_export != "solid":
+        params += ["--extra-targets", str(args.vertex_target), "--game-export", args.game_export]
+    command = pixal_command(params, paths)
+    report["pixal"] = {"root": paths["root"], "python": paths["python"], "distro": paths["distro"]}
+    begun = time.monotonic()
+    try:
+        done = run_bounded(command, capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL,
+                           timeout=args.timeout)
+    except subprocess.TimeoutExpired:
+        return ("Pixal3D did not finish within {0} seconds, and everything it started was stopped".format(
+            args.timeout))
+    (attempt / "pixal.log").write_text(done.stdout + "\n" + done.stderr, encoding="utf-8")
+    report["pixal"]["seconds"] = round(time.monotonic() - begun, 1)
+    report["pixal"]["exit_code"] = done.returncode
+    if done.returncode != 0 or not generated.is_file() or (args.game_export != "solid" and not simplified.is_file()):
+        tail = [line for line in (done.stdout + "\n" + done.stderr).splitlines() if line.strip()][-4:]
+        return ("Pixal3D produced no meshes (exit {0}): {1}".format(done.returncode, " | ".join(tail)))
+    return None
+
+
+def reuse_dense(args, attempt, report):
+    previous = json.loads(args.geometry.read_text(encoding="utf-8"))
+    if (previous.get("schema") != SCHEMA or previous.get("picture_sha256") != report["picture_sha256"]
+            or previous.get("seed") != args.seed or previous.get("resolution") != args.resolution):
+        raise ValueError("The retained geometry must match the picture, seed and Pixal resolution.")
+    source = Path(previous["attempt"])
+    for name, digest in (("pixal.glb", previous["pixal"]["dense_sha256"]),
+                         ("cutout.png", previous["cutout_sha256"])):
+        path = source / name
+        if sha256(path) != digest:
+            raise ValueError(f"The retained {name} differs from its geometry receipt.")
+        shutil.copyfile(path, attempt / name)
+    shutil.copyfile(source / "pixal.log", attempt / "pixal.log")
+    report.update(cutout=previous["cutout"], cutout_sha256=previous["cutout_sha256"],
+                  reused_geometry=str(args.geometry.resolve()), reused_geometry_sha256=sha256(args.geometry))
+    report["pixal"] = {"reused": True, "source_runner_sha256": previous["pixal"].get(
+        "source_runner_sha256", previous["runner_sha256"])}
+
+
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if "--" in argv:
         argv = argv[argv.index("--") + 1:]
     args = parse_arguments(argv)
+    if args.geometry and args.game_export != "solid":
+        return failed("A retained geometry receipt is used only for the solid game export.")
+    if args.game_export == "solid" and args.topology != "closed":
+        return failed("Solid retopology is available only for a declared closed prop.")
     started = time.monotonic()
     if not args.picture.is_file():
         return failed("the picture does not exist: {0}".format(args.picture))
@@ -157,50 +230,29 @@ def main(argv=None) -> int:
         print("{0} {1}".format(TAG, note) if code == 0 else "{0} FAILED: {1}".format(TAG, note))
         return code
 
-    # 1. The cutout.
-    cutout = attempt / "cutout.png"
-    if has_transparency(args.picture):
-        shutil.copyfile(args.picture, cutout)
-        report["cutout"] = "the picture's own transparency"
-    else:
-        venv = (args.legacy_root / ".venv-hy3d21" / "Scripts" / "python.exe") if args.legacy_root else None
-        if venv is None or not venv.is_file():
-            return finish("the picture has an opaque background, and without the painter's environment "
-                          "(--legacy-root) there is nothing to remove it with", 1)
-        done = run_bounded([str(venv), str(ROOT / "scripts" / "crop_reference_region.py"), str(args.picture),
-                            str(cutout), str(attempt / "cutout.json"), "--cutout-only"],
-                           capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL,
-                           gpu_mib=0, timeout=600)
-        if done.returncode != 0 or not cutout.is_file():
-            return finish("the picture's background could not be removed: {0}".format(
-                " | ".join((done.stdout + done.stderr).strip().splitlines()[-3:])), 1)
-        report["cutout"] = "removed by the painter's environment"
-    if not has_transparency(cutout):
-        return finish("the cutout has no transparent background; Pixal3D needs the object alone", 1)
-    report["cutout_sha256"] = sha256(cutout)
-
-    # 2. The geometry, in Pixal3D's own environment.
-    paths = pixal_paths()
     generated = attempt / "pixal.glb"
-    simplified = attempt / "pixal-v{0}.glb".format(args.vertex_target)
-    command = pixal_command([linux_path(RUNNER), "--image", linux_path(cutout), "--output", linux_path(generated),
-                             "--resolution", str(args.resolution), "--seed", str(args.seed),
-                             "--extra-targets", str(args.vertex_target), "--game-export", args.game_export], paths)
-    report["pixal"] = {"root": paths["root"], "python": paths["python"], "distro": paths["distro"]}
-    begun = time.monotonic()
-    try:
-        done = run_bounded(command, capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL,
-                           timeout=args.timeout)
-    except subprocess.TimeoutExpired:
-        return finish("Pixal3D did not finish within {0} seconds, and everything it started was stopped".format(
-            args.timeout), 1)
-    (attempt / "pixal.log").write_text(done.stdout + "\n" + done.stderr, encoding="utf-8")
-    report["pixal"]["seconds"] = round(time.monotonic() - begun, 1)
-    report["pixal"]["exit_code"] = done.returncode
-    if done.returncode != 0 or not generated.is_file() or not simplified.is_file():
-        tail = [line for line in (done.stdout + "\n" + done.stderr).splitlines() if line.strip()][-4:]
-        return finish("Pixal3D produced no meshes (exit {0}): {1}".format(done.returncode, " | ".join(tail)), 1)
+    simplified = attempt / f"pixal-v{args.vertex_target}.glb"
+    if args.geometry:
+        try:
+            reuse_dense(args, attempt, report)
+        except (KeyError, TypeError, OSError, ValueError) as problem:
+            return finish(f"Cannot reuse the retained Pixal acquisition: {problem}", 1)
+    else:
+        problem = acquire(args, attempt, report)
+        if problem:
+            return finish(problem, 1)
     report["pixal"]["dense_sha256"] = sha256(generated)
+    if args.game_export == "solid":
+        reduction = attempt / "reduction.json"
+        report["retopology"] = str(reduction)
+        try:
+            result = run_stage("remesh", generated, simplified, reduction, repo_root=ROOT, blender=args.blender,
+                               options={"triangle_budget": args.vertex_target, "target_triangles": args.vertex_target,
+                                        "voxel_resolution": 384, "smooth_iterations": 2})
+        except (StageError, OSError) as problem:
+            return finish(f"Closed-surface reduction failed: {problem}", 1)
+        if not result["ok"] or not simplified.is_file():
+            return finish(f"Closed-surface reduction failed; see {reduction}", 1)
     report["pixal"]["game_sha256"] = sha256(simplified)
 
     # 3. Both meshes levelled by one transform, at their real size.
@@ -214,6 +266,8 @@ def main(argv=None) -> int:
                str(ROOT / "scripts" / "blender" / "level_pair.py"), "--", repr(args.size_m), str(level),
                str(generated), str(dense_candidate), str(simplified), str(game_candidate), "--up", args.up,
                "--topology", args.topology]
+    if args.game_export == "solid":
+        command.append("--weighted-normals")
     if args.flip:
         command.append("--flip")
     if args.size_is in ("height", "width"):

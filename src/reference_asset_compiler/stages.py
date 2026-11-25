@@ -409,7 +409,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "script": "scripts/run_pixal_geometry.py",
         "arguments": ("source", "output", "report"),
         "options": ("size", "size_adjust", "size_m", "size_is", "seed", "pixal_resolution", "vertex_target",
-                    "up", "flip", "topology", "game_export"),
+                    "up", "flip", "topology", "game_export", "geometry"),
         "prepare": "pixal-geometry",
         "needs": ("blender", "pixal"),
         # The prop route the owner chose on 24 November: Pixal3D keeps rivets,
@@ -1467,8 +1467,14 @@ def prepare_pixal_geometry(options: dict[str, Any], blender: str, legacy: Path |
         raise StageError("Topology must be closed or open.")
     arguments += ["--topology", topology]
     game_export = options.get("game_export") or "remesh"
-    if game_export not in ("remesh", "clean"):
-        raise StageError("Pixal3D game export must be remesh or clean.")
+    if game_export not in ("remesh", "clean", "solid"):
+        raise StageError("Pixal3D game export must be remesh, clean or solid.")
+    if game_export == "solid" and topology != "closed":
+        raise StageError("Solid retopology needs a closed shell.")
+    if options.get("geometry"):
+        if game_export != "solid":
+            raise StageError("Reusing a Pixal acquisition requires the solid game export.")
+        arguments += ["--geometry", str(Path(options["geometry"]).resolve())]
     arguments += ["--game-export", game_export]
     for flag, name in (("--seed", "seed"), ("--resolution", "pixal_resolution"), ("--vertex-target", "vertex_target")):
         if options.get(name) is not None:

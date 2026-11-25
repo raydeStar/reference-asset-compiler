@@ -284,6 +284,9 @@ def main(argv) -> int:
     argv = list(argv)
     up, flip, size_is, sides = "shortest", False, "longest", 64
     topology = "legacy"
+    weighted_normals = "--weighted-normals" in argv
+    if weighted_normals:
+        argv.remove("--weighted-normals")
     if "--topology" in argv:
         at = argv.index("--topology")
         topology = argv[at + 1]
@@ -336,6 +339,13 @@ def main(argv) -> int:
             transform = levelling_transform(points, length, up, flip, size_is, rows)
         obj.data.transform(Matrix(transform.tolist()))
         obj.data.update()
+        if records and weighted_normals:
+            # The long board faces should not borrow their shading from short corner bevels.
+            obj.data.set_sharp_from_angle(angle=np.deg2rad(42.0))
+            modifier = obj.modifiers.new("Weighted corner normals", "WEIGHTED_NORMAL")
+            modifier.mode = "FACE_AREA_WITH_ANGLE"
+            modifier.keep_sharp = True
+            bpy.ops.object.modifier_apply(modifier=modifier.name)
         obj.name = "GEO_" + bpy.path.display_name_from_filepath(output)
         bpy.ops.wm.save_as_mainfile(filepath=output)
         levelled = np.array([vertex.co for vertex in obj.data.vertices])
