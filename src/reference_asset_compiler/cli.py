@@ -277,6 +277,8 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Refuse if the colour covers less of the model than this (default: 0.005)")
     stage.add_argument("--size-m", type=float,
                        help="Pixal3D geometry: the real size in metres, the longest side unless --size-is height")
+    stage.add_argument("--mounts", help="Open-frame reference coordinates and foot spacing, as a JSON object")
+    stage.add_argument("--check-outline", action="store_true", help="Measure the unpainted Pixal silhouettes at source resolution")
     stage.add_argument("--topology", choices=("closed", "open"),
                        help="Pixal3D game mesh: require a closed shell or preserve intentional open boundaries")
     stage.add_argument("--size-is", choices=("height", "width", "longest"),
@@ -536,7 +538,7 @@ def main(argv: list[str] | None = None) -> int:
                     "topology": args.topology,
                     "pixal_resolution": args.pixal_resolution,
                     "vertex_target": args.vertex_target,
-                    "game_export": args.game_export,
+                    "game_export": args.game_export, "mounts": args.mounts, "check_outline": args.check_outline,
                     "up": args.up,
                     "flip": args.flip or None,
                 })

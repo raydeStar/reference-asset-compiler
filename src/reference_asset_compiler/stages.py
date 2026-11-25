@@ -404,12 +404,20 @@ STAGES: dict[str, dict[str, Any]] = {
         # consumer quotes a cost and sets a timeout from this, not from a guess.
         "estimate": {"unit": "section", "minutes": 2.5, "free_vram_mib": 10752},
     },
+    "check-socket-layout": {
+        "runner": "python",
+        "script": "scripts/check_socket_layout.py",
+        "arguments": ("source", "output", "report"),
+        "output_suffix": ".png",
+        "summary": "Compare marked socket heights with their assembly dimensions before acquiring or painting a part.",
+        "produces": "reference-asset-compiler.socket-layout.v1",
+    },
     "pixal-geometry": {
         "runner": "python",
         "script": "scripts/run_pixal_geometry.py",
         "arguments": ("source", "output", "report"),
         "options": ("size", "size_adjust", "size_m", "size_is", "seed", "pixal_resolution", "vertex_target",
-                    "up", "flip", "topology", "game_export", "geometry"),
+                    "up", "flip", "topology", "game_export", "geometry", "mounts", "check_outline"),
         "prepare": "pixal-geometry",
         "needs": ("blender", "pixal"),
         # The prop route the owner chose on 24 November: Pixal3D keeps rivets,
@@ -1471,8 +1479,14 @@ def prepare_pixal_geometry(options: dict[str, Any], blender: str, legacy: Path |
         raise StageError("Pixal3D game export must be remesh, clean or solid.")
     if game_export == "solid" and topology != "closed":
         raise StageError("Solid retopology needs a closed shell.")
+    if options.get("mounts"):
+        if topology != "open" or size_is != "width" or options.get("flip"):
+            raise StageError("Mounting landmarks require an open frame measured by horizontal run.")
+        arguments += ["--mounts", options["mounts"]]
+    if options.get("check_outline"):
+        arguments.append("--check-outline")
     if options.get("geometry"):
-        if game_export != "solid":
+        if game_export != "solid" and not (options.get("mounts") or options.get("check_outline")):
             raise StageError("Reusing a Pixal acquisition requires the solid game export.")
         arguments += ["--geometry", str(Path(options["geometry"]).resolve())]
     arguments += ["--game-export", game_export]

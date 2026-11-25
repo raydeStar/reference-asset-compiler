@@ -101,7 +101,9 @@ def parse_arguments(argv):
     parser.add_argument("--size-m", type=float, required=True, help="the real size, in metres")
     parser.add_argument("--topology", choices=("closed", "open"), default="closed")
     parser.add_argument("--game-export", choices=("remesh", "clean", "solid"), default="remesh")
-    parser.add_argument("--geometry", type=Path, help="Reuse a hash-verified Pixal acquisition for closed retopology")
+    parser.add_argument("--geometry", type=Path, help="Reuse a hash-verified Pixal acquisition")
+    parser.add_argument("--mounts", help="Open-frame mounting landmarks and foot spacing in JSON")
+    parser.add_argument("--check-outline", action="store_true", help="Check dense and game silhouettes before paint")
     parser.add_argument("--size-is", choices=("height", "width", "longest"), default="height",
                         help="whether --size-m is the height (as a landmark on a person gives it) or the longest side")
     parser.add_argument("--seed", type=int, default=42)
@@ -184,16 +186,67 @@ def reuse_dense(args, attempt, report):
         "source_runner_sha256", previous["runner_sha256"])}
 
 
+def recover_frame_reduction(args, attempt, simplified, check, mounts, report):
+    """Only a passing dense source can repair a simplification. Keep both measurements."""
+    from pixal_frame import camera_frame, frame_check, reduction_weights, turn
+    if not mounts or check["ok"] or any(reason.startswith("dense") for reason in check["reasons"]):
+        return check
+    camera = check["camera"]
+    pitch, yaw, roll, fov = camera["params"]
+    # Images are projected from glTF coordinates; the reducer receives Blender Z-up.
+    blender_basis_in_gltf = np.array([[1., 0., 0.], [0., 0., -1.], [0., 1., 0.]])
+    orientation = turn(pitch, yaw, roll) @ camera_frame(blender_basis_in_gltf).T
+    recovery = attempt / "protected-reduction"
+    recovery.mkdir()
+    for entry in check["surfaces"].values():
+        path = Path(entry["overlay"])
+        saved = recovery / ("before-" + path.name)
+        shutil.copyfile(path, saved)
+        entry["overlay"] = str(saved)
+    report["protected_reduction"] = {"before": check, "source_sha256": sha256(attempt / "pixal.glb"),
+                                     "original_game_sha256": sha256(simplified)}
+    settings = recovery / "camera.json"
+    settings.write_text(json.dumps({**camera, "orientation": orientation.tolist(),
+                                    "distance": .5 / np.tan(np.deg2rad(fov)/2),
+                                    "vertex_target": args.vertex_target}), encoding="utf-8")
+    weights = recovery / "weights.npy"
+    with Image.open(attempt / "cutout.png") as image:
+        np.save(weights, reduction_weights(np.asarray(image.convert("RGBA"))[:, :, 3] > 127))
+    candidate = recovery / "game.glb"
+    done = run_bounded([args.blender, "-b", "--factory-startup", "--python-exit-code", "1", "--python",
+                        str(ROOT / "scripts" / "blender" / "reduce_frame.py"), "--", str(attempt / "pixal.glb"),
+                        str(candidate), str(settings), str(weights)], capture_output=True, text=True,
+                       errors="replace", stdin=subprocess.DEVNULL, timeout=1800)
+    (recovery / "blender.log").write_text(done.stdout + done.stderr, encoding="utf-8")
+    if done.returncode or not candidate.is_file():
+        raise ValueError(f"Protected frame reduction failed (exit {done.returncode}); see {recovery}")
+    after = frame_check(attempt, candidate, mounts, camera=camera)
+    report["protected_reduction"].update(candidate_sha256=sha256(candidate), accepted=after["ok"])
+    if after["ok"]:
+        shutil.copyfile(simplified, recovery / "original-game.glb")
+        shutil.copyfile(candidate, simplified)
+        report["pixal"]["game_sha256"] = sha256(simplified)
+    return after
+
+
 def main(argv=None) -> int:
     argv = list(sys.argv[1:] if argv is None else argv)
     if "--" in argv:
         argv = argv[argv.index("--") + 1:]
     args = parse_arguments(argv)
-    if args.geometry and args.game_export != "solid":
+    if args.geometry and args.game_export != "solid" and not (args.mounts or args.check_outline):
         return failed("A retained geometry receipt is used only for the solid game export.")
     if args.game_export == "solid" and args.topology != "closed":
         return failed("Solid retopology is available only for a declared closed prop.")
     started = time.monotonic()
+    if args.mounts:
+        from pixal_frame import validate_mounts
+        try:
+            mounts = validate_mounts(json.loads(args.mounts), args.size_m)
+        except (ValueError, TypeError, KeyError) as problem:
+            return failed(str(problem))
+        if args.topology != "open" or args.size_is != "width" or args.flip:
+            return failed("Mounting landmarks require an open frame measured by horizontal run.")
     if not args.picture.is_file():
         return failed("the picture does not exist: {0}".format(args.picture))
     if args.output.exists():
@@ -235,6 +288,13 @@ def main(argv=None) -> int:
     if args.geometry:
         try:
             reuse_dense(args, attempt, report)
+            if args.mounts or args.check_outline:
+                prior = json.loads(args.geometry.read_text(encoding="utf-8"))
+                native = Path(prior["attempt"]) / simplified.name
+                if (prior["game_export"] != args.game_export or prior["vertex_target"] != args.vertex_target
+                        or sha256(native) != prior["pixal"]["game_sha256"]):
+                    raise ValueError("Retained game export differs from the requested geometry.")
+                shutil.copyfile(native, simplified)
         except (KeyError, TypeError, OSError, ValueError) as problem:
             return finish(f"Cannot reuse the retained Pixal acquisition: {problem}", 1)
     else:
@@ -242,7 +302,7 @@ def main(argv=None) -> int:
         if problem:
             return finish(problem, 1)
     report["pixal"]["dense_sha256"] = sha256(generated)
-    if args.game_export == "solid":
+    if args.game_export == "solid" and not simplified.is_file():
         reduction = attempt / "reduction.json"
         report["retopology"] = str(reduction)
         try:
@@ -254,6 +314,25 @@ def main(argv=None) -> int:
         if not result["ok"] or not simplified.is_file():
             return finish(f"Closed-surface reduction failed; see {reduction}", 1)
     report["pixal"]["game_sha256"] = sha256(simplified)
+    if args.mounts or args.check_outline:
+        from pixal_frame import frame_check
+        if args.mounts:
+            report["mounts"] = mounts
+        try:
+            check = frame_check(attempt, simplified, mounts if args.mounts else None)
+            if args.mounts:
+                check = recover_frame_reduction(args, attempt, simplified, check, mounts, report)
+        except (ValueError, OSError) as problem:
+            return finish(f"Open-frame check failed: {problem}", 1)
+        report["frame_check"] = check
+        if not check["ok"]:
+            report["game_mesh_check"] = {"ok": False, "reasons": check["reasons"]}
+            return finish("Open-frame check: " + "; ".join(check["reasons"]), 1)
+        if args.mounts:
+            transform_file = attempt / "mount-transform.json"
+            transform_file.write_text(json.dumps({"transform": check["transform"], "run": args.size_m,
+                                                  "rise": mounts["riseM"]}),
+                                      encoding="utf-8")
 
     # 3. Both meshes levelled by one transform, at their real size.
     dense = args.output.with_name(args.output.stem + "-dense.blend")
@@ -268,6 +347,8 @@ def main(argv=None) -> int:
                "--topology", args.topology]
     if args.game_export == "solid":
         command.append("--weighted-normals")
+    if args.mounts:
+        command.extend(["--mount-transform", str(transform_file)])
     if args.flip:
         command.append("--flip")
     if args.size_is in ("height", "width"):
@@ -279,7 +360,8 @@ def main(argv=None) -> int:
         return finish("levelling failed (exit {0}): {1}".format(done.returncode, " | ".join(tail)), 1)
     report["level"] = json.loads(level.read_text(encoding="utf-8"))
     files = report["level"]["files"]
-    check = game_mesh_check(files[1], args.size_m, args.size_is, args.topology)
+    check = (report["level"]["game_mesh_checks"][0] if args.mounts else
+             game_mesh_check(files[1], args.size_m, args.size_is, args.topology))
     report["game_mesh_check"] = check
     if not check["ok"]:
         reason = f'seed {args.seed}: ' + "; ".join(check["reasons"])

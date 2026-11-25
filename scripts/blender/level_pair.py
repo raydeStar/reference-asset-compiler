@@ -43,6 +43,8 @@ import bmesh
 import bpy
 import numpy as np
 from mathutils import Matrix
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from frame_seating import measure_seats
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
 from reference_asset_compiler.prop_quality import game_mesh_check
 
@@ -284,6 +286,13 @@ def main(argv) -> int:
     argv = list(argv)
     up, flip, size_is, sides = "shortest", False, "longest", 64
     topology = "legacy"
+    mounted = None
+    if "--mount-transform" in argv:
+        at = argv.index("--mount-transform")
+        with open(argv[at + 1], encoding="utf-8") as stream:
+            mounting = json.load(stream)
+            mounted = np.asarray(mounting["transform"], dtype=float)
+        del argv[at:at + 2]
     weighted_normals = "--weighted-normals" in argv
     if weighted_normals:
         argv.remove("--weighted-normals")
@@ -326,7 +335,7 @@ def main(argv) -> int:
     if not pairs:
         print("[LEVEL] FAILED: expected <length> <report.json> <dense.glb> <dense.blend> [...]")
         return 1
-    transform, records, alignment = None, [], "principal axes"
+    transform, records, alignment = mounted, [], "mounting feet and post" if mounted is not None else "principal axes"
     for source, output in pairs:
         # The first file is the dense mesh: it is only baked from, the bake
         # copes with its holes, and mending a million faces takes minutes.
@@ -356,6 +365,11 @@ def main(argv) -> int:
         print("[LEVEL] {0}: {1} triangles, {2} seam copies welded, {3} holes filled, {4} open edges left".format(
             output, records[-1]["triangles"], welded, mended["holes_filled"], mended["open_edges_after"]))
     checks = [game_mesh_check(record, length, size_is, topology) for record in records[1:]] if topology != "legacy" else []
+    if mounted is not None:
+        # The requested width measures socket-to-socket. Flanges extend beyond those sockets.
+        game, reasons = measure_seats(levelled, length, mounting["rise"])
+        checks = [{"ok": not reasons, "topology": topology, "reasons": reasons, "size_is": "mounting run",
+                   "target_m": length, "measured_m": game["run_m"], **game}]
     with open(report_path, "w", encoding="utf-8") as stream:
         json.dump({"schema": "reference-asset-compiler.level-pair.v1", "length_m": length, "size_is": "longest side" if size_is == "longest" else size_is, "topology": topology, "up": up, "flip": flip, "fill_holes_up_to_edges": 0 if topology == "open" else sides,
                    "transform": np.round(transform, 8).tolist(), "alignment": alignment,
