@@ -3325,3 +3325,43 @@ On the 8192 skiff, the owner saw flat grey and orange wedges on the stern and at
 **Fix.** The first paint is no longer blurred at all. Each section contributes only its own light and dark finer than `--keep-colour`, now 1 cm by default, as a ratio to its own blurred light. A ratio changes brightness, never colour, so what the blur picks up near an island's edge cannot move colour. The stern matched the first paint, the chips and the fin's band came back, and the section grain stayed. A section re-lay reused all 32 painted sections and took about 16 minutes.
 
 **Still open.** The first paint itself can carry another part's colour, projected from a view where the parts overlap: the fin's red on an iron bracket. Compositing cannot remove that. Painting by parts can.
+
+<!-- paint-by-parts-20261124 -->
+## 2026-11-24 · Paint a model part by part; the fins together, the first paint's surface kept
+
+Revision 8 of the skiff still had the painter's own bleed: the fin's red on the strut that holds it, and a fin without its cream band. Compositing could not remove either; both were in the first paint. The owner asked whether it was better to split the pieces apart and reassemble them. It was. Revision 9, painted by parts, was accepted as "perfect" on 2026-11-24.
+
+**Finding the parts.** `label-parts` renders the painted model from 24 angles with the face under every pixel, labels each render with Grounding DINO boxes and SAM masks, and votes the labels onto faces.
+- **Boxes against the model.** The first run labelled most of the boat "iron" or "strut": a small part's phrase also matched the whole boat. The boat filled a fifth of a render, so a box limit taken against the picture let that box through. Judged against the model's own box in the picture, the whole-boat boxes are dropped.
+- **Parts compete.** Where two parts' boxes cover one region (IoU above 0.6), the better score keeps it. The fin's pole matched "wooden pole" as well as "red fin".
+- **Name only parts the detector finds.** "Iron strap", "metal bracket" and "wooden strut" were found in a few views and confused in the rest. The vocabulary that worked is hull (base, with struts and straps), seat and fin. Every render then labelled the seat and both fins.
+- **Votes.** A pixel left to the base votes weakly (0.15), since it means only that nothing was found there. A detected pixel votes with its strength. 24 views at 768 saw 30% of the 98k faces; the rest are small faces between pixel samples, filled from their neighbours.
+
+**Painting the parts.** `paint-parts` paints each piece alone with the model's own UVs, from the reference with the other parts made transparent, and lays it on exactly its own faces' texels.
+- **Fill the base's holes.** In the hull's picture, the seat and fins left holes. They are filled from the surrounding colours, so the painter is not shown a cut-out shape.
+- **Close a part's own holes.** The detector gave the strut crossing a fin to the hull. The hole that left in the fin's mask came back as white marks on the fin. Masks are now closed over their holes with the picture's own pixels.
+- **Thin, repeated parts together.** Painted one at a time, one fin's top came out pale and the other kept small marks. Painted as one piece from a picture of both, both fins came out red, cream and red.
+- **Keep the first paint's roughness and metal.** Isolated, the fins came back glossy: roughness 114 to 153 out of 255, against the first paint's 178 to 195, with some metal. The sun washed them out. The part paints now give colour only (`--surface first`).
+
+The four pieces took 12 minutes on an RTX 4090: hull 3.4, seat 3.2, the fins 2.6 to 2.7 each. The 32 detail sections went over the result unchanged. They depend on the mesh and their crop, not on the base, so all were reused.
+
+**What it fixed.** The far strut is wood, not fin red. The seat has the iron edging and rivets of the picture, which the whole paint had painted as wood. Both fins show their bands.
+
+![Revision 8 above, painted by parts below: the far strut, the seat's edging and the fins](evidence/paint-by-parts-vs-sections.jpg)
+
+![The skiff's labelling from label-parts: hull, seat and fins](evidence/paint-by-parts-labels.jpg)
+
+**What it did not fix.** The hull's teal paint is solid pastel bands where the picture has chipped paint over wood. The owner first read them as "blue streaks". Measured against the reference, the teal is 7 L lighter relative to the wood, 1.6 times the chroma, and 10 to 17 degrees bluer. A blue sky in the viewer pushes it to sky blue. Three attempts, none adopted:
+- Grading the teal to the reference's measured colour calmed it a little, but it stayed a band.
+- Taking the sections' own colour (`--keep-colour 0`) washed out the whole boat and lost the fins' red.
+- Matching each section's colour to the base under it in Lab (mean and spread) was not judged against the reference before the owner accepted revision 9.
+
+The hull is 2.2 m painted whole, too coarse for chips. A finer split of the hull, or colour from sections that can be trusted, is the open problem.
+
+![The reference's chipped teal against revision 9's bands, and the graded attempt](evidence/paint-by-parts-teal-open.jpg)
+
+**Two crashes on the workstation's CPU**, unrelated to this work:
+- 0xC0000005 in the section compositor (plain Python and numpy) while Blender renders ran beside it;
+- EXCEPTION_ILLEGAL_INSTRUCTION inside numpy in a Blender bake.
+
+The same commands ran cleanly when repeated with nothing else running. Both fit the i9-14900K instability already on record. Long CPU stages on that machine should run alone, and be repeated once before a failure is believed.

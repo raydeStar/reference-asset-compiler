@@ -494,17 +494,27 @@ rac run-stage uv-unwrap --source low.blend --output uv.obj --report uv.json
 rac run-stage texture --source uv.obj --output painted.glb --report painted.json `
   --reference approved.png --views 12 --resolution 768 --atlas 8192
 
-# 4. Sections at the finer cut (about 4 min each at 8192; the skiff had 32).
-rac run-stage paint-sections --source painted.glb --output sections.glb --report sections.json `
+# 4. Find the parts (a few minutes: 24 renders, then Grounding DINO and SAM on the GPU),
+#    and look at labels-review/ before going on: every face in its part's colour.
+rac run-stage label-parts --source painted.glb --output labels.npz --report labels.json `
+  --vocab skiff-parts --reference approved.png
+
+# 5. Paint by parts: each part alone, from the picture with the other parts masked out,
+#    laid on its own faces (about 3.5 min a piece; the skiff is hull, seat, fins).
+rac run-stage paint-parts --source painted.glb --output parts.glb --report parts.json `
+  --parts labels.npz --reference approved.png --views 12 --resolution 768 --atlas 8192
+
+# 6. Sections at the finer cut, over the parts (about 4 min each at 8192; the skiff had 32).
+rac run-stage paint-sections --source parts.glb --output sections.glb --report sections.json `
   --reference approved.png --views 12 --resolution 768 --atlas 8192 `
   --section 0.45 --overlap 0.2 --context 0.05 --max-sections 48
 
-# 5. Relief from the paint, then the dense shape under it (a few minutes each).
+# 7. Relief from the paint, then the dense shape under it (a few minutes each).
 rac run-stage bake-detail --source sections.glb --output detail.glb --report detail.json `
   --resolution 2048 --relief-tilt 6
 rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense dense.blend
 
-# 6. A browser copy: specular reset, then 8192 JPEG (the skiff came to 51 MB).
+# 8. A browser copy: specular reset, then 8192 JPEG (the skiff came to 51 MB).
 rac run-stage browser-payload --source shape.glb --output payload.glb --report payload.json
 rac run-stage compress-textures --source payload.glb --output packed.glb --report packed.json `
   --colour-size 8192 --data-size 8192 --quality 92 --texture-format jpeg
@@ -513,13 +523,35 @@ rac run-stage compress-textures --source payload.glb --output packed.glb --repor
 Keep `payload.glb`, with lossless 8192 maps, for Unreal. A section pass that is
 stopped resumes with `--reuse-sections <its attempt directory>`, and a change
 that only affects how sections are laid (for example `--keep-colour`) reuses
-every painted section and costs minutes, not hours.
+every painted section and costs minutes, not hours. Sections depend on the mesh
+and their crop of the picture, not on the base under them, so sections painted
+over the first paint are reused over the parts too; `paint-parts` likewise
+takes `--reuse-parts <its attempt directory>`.
 
-The paint still has two known faults, both left for painting by parts:
+**The part vocabulary.** `profiles/segmentation/skiff-parts.json` names the
+skiff's parts: a base part that every unclaimed face belongs to (the hull,
+with its struts and iron straps), and the parts to find, each with the phrases
+the detector is asked, the largest share of the model's box one may take, and
+whether its pieces are painted `together`. For another model, copy it and name
+its parts. Only name a part the detector finds in most views: the skiff's
+struts and straps were found unreliably and paint well with the hull. A part
+that repeats and is thin (the skiff's two fins) is painted together; painted
+one at a time, one fin came back pale and the other marked.
 
-- the painter can project one part's colour onto another behind it (the
-  skiff's fin red on an iron bracket);
-- unseen faces are filled in flat.
+`label-parts` needs, besides Blender, a Python with torch, transformers and
+segment_anything (ComfyUI's portable one), Grounding DINO base and SAM ViT-B,
+both Apache-2.0. Name them with `--torch-python`, `--detector` and `--sam`, or
+`RAC_TORCH_PYTHON`, `RAC_GROUNDING_DINO` and `RAC_SAM_CHECKPOINT`;
+`rac run-stage --list` says what is missing. The labelling is a candidate: look
+at the review views in `labels-review/` before painting. A fin labelled as hull
+would be painted from the hull's picture.
+
+What painting by parts fixed on the skiff, against revision 8 (sections over
+the first paint): the strut that carried the fin's red is wood, the seat has
+the iron edging and rivets of the picture, and the fins are red, cream and red
+as drawn. One fault remains: the hull's teal paint is solid bands where the
+picture has chipped paint over wood. The hull is painted whole at 2.2 m, too
+coarse for chips, and the sections add only light and dark.
 
 ### Challenger: TRELLIS.2
 

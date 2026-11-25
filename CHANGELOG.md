@@ -3,6 +3,16 @@
 Release notes live under `docs/releases/`; GitHub releases carry the same text
 and any attached wheel.
 
+## Unreleased
+
+Painting by parts. `label-parts` finds a painted model's parts face by face, and
+in its reference, from a part vocabulary (Grounding DINO and SAM on 24 renders,
+votes onto faces, review views in part colours); `profiles/segmentation/skiff-parts.json`
+is the first vocabulary. `paint-parts` paints each part alone from the reference
+with the other parts masked out and lays it on its own faces, so one part's colour
+no longer bleeds onto another; `paint-sections` goes over it, its sections reused.
+Notes: [docs/DECISIONS.md](docs/DECISIONS.md#2026-11-24--paint-a-model-part-by-part-the-fins-together-the-first-paints-surface-kept).
+
 ## v0.4.0 — 2026-11-24
 
 Props that hold up at arm's length. A Pixal3D route end to end: Pixal's own
