@@ -627,6 +627,30 @@ bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'ramp.blend')!r})
     assert overlap['texel_share_after_repack'] <= 0.001
 
 
+def test_recutted_tiny_faces_keep_their_physical_share_of_the_atlas(tmp_path):
+    script = tmp_path / 'uv_density.py'
+    script.write_text(f'''
+import bpy, sys
+sys.path.insert(0, {str(ROOT / 'scripts/blender')!r})
+from prepare_texture_uv_transport import separate_overlaps, uv_metrics
+bpy.ops.wm.read_factory_settings(use_empty=True)
+mesh = bpy.data.meshes.new("panels")
+mesh.from_pydata([(0,0,0),(1,0,0),(0,1,0),(2,0,0),(2.01,0,0),(2,.01,0),
+                  (3,0,0),(3.01,0,0),(3,.01,0)], [], [(0,1,2),(3,4,5),(6,7,8)])
+obj = bpy.data.objects.new("panels", mesh)
+bpy.context.collection.objects.link(obj)
+bpy.context.view_layer.objects.active = obj
+obj.select_set(True)
+uv = mesh.uv_layers.new()
+for loop, xy in zip(uv.data, [(0,0),(.4,0),(0,.4)] + [(.5,.5),(.98,.5),(.5,.98)] * 2):
+    loop.uv = xy
+assert uv_metrics(obj)["densest_one_percent_texel_share"] > .5
+assert separate_overlaps(obj, .003)["faces_before"] == 2
+assert uv_metrics(obj)["densest_one_percent_texel_share"] < .02
+''')
+    run(script)
+
+
 def test_a_picture_lands_on_the_face_its_camera_sees_and_nowhere_else(tmp_path):
     # A painted cube, a red picture, and a camera on the cube's depth axis:
     # only the face looking at the camera takes the picture; the four faces
