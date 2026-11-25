@@ -3,6 +3,15 @@
 Release notes live under `docs/releases/`; GitHub releases carry the same text
 and any attached wheel.
 
+## v0.4.0 — 2026-11-24
+
+Props that hold up at arm's length. A Pixal3D route end to end: Pixal's own
+simplification of the same generation as the game mesh (`run_pixal3d.py
+--extra-targets`), `level_pair.py`, and a new `bake-shape` stage that bakes the
+dense mesh into the normal map. Section paint is baked at texel scale (no more
+specks), can be painted on an 8192 sheet, cross-fades between sections, and
+keeps the first paint's colour as painted. Notes: [docs/releases/v0.4.0.md](docs/releases/v0.4.0.md).
+
 ## v0.3.0 — 2026-11-24
 
 Large models as sharp as small ones. `paint-sections` paints a large model again

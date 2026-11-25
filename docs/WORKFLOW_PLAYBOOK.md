@@ -504,7 +504,7 @@ rac run-stage bake-detail --source sections.glb --output detail.glb --report det
   --resolution 2048 --relief-tilt 6
 rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense dense.blend
 
-# 6. A browser copy: specular reset, then 8192 JPEG (the skiff came to 47 MB).
+# 6. A browser copy: specular reset, then 8192 JPEG (the skiff came to 51 MB).
 rac run-stage browser-payload --source shape.glb --output payload.glb --report payload.json
 rac run-stage compress-textures --source payload.glb --output packed.glb --report packed.json `
   --colour-size 8192 --data-size 8192 --quality 92 --texture-format jpeg
