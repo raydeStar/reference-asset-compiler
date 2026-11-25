@@ -5,6 +5,10 @@ and any attached wheel.
 
 ## Unreleased
 
+`pixal-geometry`: one picture to a levelled game mesh and dense mesh with Pixal3D,
+in one stage, so Framewright can drive the prop route. `level_pair.py` gains
+`--up` (tall and edge-standing pieces), `--flip` and `--height`.
+
 Every GPU stage of the prop route within a 12 GB card, with the same results.
 The studio painter at an 8192 sheet peaked at 13.2 to 18 GiB and now at the
 diffusion's own 9.1 GiB, maps byte for byte the same (the bake adds one view at

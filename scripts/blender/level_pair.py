@@ -12,7 +12,8 @@ from the first (dense) mesh, and applied to every file:
   a bench, a crate), the longest (a lantern, a ladder, a column standing), or
   the middle one (a wall panel or a sign standing on its edge). `--flip` turns
   the result upside down when the fixed views show it standing on its head;
-- the model's longest principal axis is scaled to the size asked for;
+- the model's longest principal axis is scaled to the size asked for, or with
+  `--height` its height, the way a size given as a landmark on a person means;
 - the model is centred on X and Y and stood on the floor (lowest point at 0).
 
 Each mesh is welded where its export split vertices along texture seams, its
@@ -23,7 +24,7 @@ open directly. A JSON report records the transform and each file's extent.
 Usage:
   blender -b --factory-startup --python scripts/blender/level_pair.py -- \\
       <length m> <report.json> <dense.glb> <dense.blend> [<low.glb> <low.blend>]... \\
-      [--up shortest|middle|longest] [--flip]
+      [--up shortest|middle|longest] [--flip] [--height]
 """
 
 from __future__ import annotations
@@ -72,8 +73,8 @@ UP_AXIS = {"shortest": (0, 1, 2), "middle": (0, 2, 1), "longest": (1, 2, 0)}
 """For each choice of up, which principal axes (longest first) become X, Y and Z."""
 
 
-def levelling_transform(points, length, up="shortest", flip=False):
-    """Principal axes to X/Y/Z, open side up, longest axis to `length`, centred, on the floor."""
+def levelling_transform(points, length, up="shortest", flip=False, by_height=False):
+    """Principal axes to X/Y/Z, open side up, longest axis (or the height) to `length`, centred, on the floor."""
     centre = points.mean(axis=0)
     _, _, rows = np.linalg.svd(points - centre, full_matrices=False)
     axes = rows[list(UP_AXIS[up])].copy()
@@ -93,7 +94,7 @@ def levelling_transform(points, length, up="shortest", flip=False):
     shift = np.eye(4)
     shift[:3, 3] = -centre
     turned = (np.c_[points, np.ones(len(points))] @ (rotate @ shift).T)[:, :3]
-    scale = length / np.ptp(turned[:, UP_AXIS[up].index(0)])
+    scale = length / np.ptp(turned[:, 2 if by_height else UP_AXIS[up].index(0)])
     turned *= scale
     place = np.eye(4)
     place[:3, 3] = [-(turned[:, 0].min() + turned[:, 0].max()) / 2,
@@ -105,7 +106,10 @@ def levelling_transform(points, length, up="shortest", flip=False):
 
 def main(argv) -> int:
     argv = list(argv)
-    up, flip = "shortest", False
+    up, flip, by_height = "shortest", False, False
+    if "--height" in argv:
+        argv.remove("--height")
+        by_height = True
     if "--flip" in argv:
         argv.remove("--flip")
         flip = True
@@ -126,7 +130,7 @@ def main(argv) -> int:
         obj, welded = load(source)
         points = np.array([vertex.co for vertex in obj.data.vertices], dtype=np.float64)
         if transform is None:
-            transform = levelling_transform(points, length, up, flip)
+            transform = levelling_transform(points, length, up, flip, by_height)
         obj.data.transform(Matrix(transform.tolist()))
         obj.data.update()
         obj.name = "GEO_" + bpy.path.display_name_from_filepath(output)
@@ -139,7 +143,7 @@ def main(argv) -> int:
         print("[LEVEL] {0}: {1} triangles, {2} seam copies welded".format(
             output, records[-1]["triangles"], welded))
     with open(report_path, "w", encoding="utf-8") as stream:
-        json.dump({"schema": "reference-asset-compiler.level-pair.v1", "length_m": length, "up": up, "flip": flip,
+        json.dump({"schema": "reference-asset-compiler.level-pair.v1", "length_m": length, "size_is": "height" if by_height else "longest side", "up": up, "flip": flip,
                    "transform": np.round(transform, 8).tolist(), "files": records}, stream, indent=2)
     return 0
 

@@ -265,6 +265,20 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--transmission", type=float, help="How much the glass transmits, 0..1 (default: 0.85)")
     stage.add_argument("--minimum-share", type=float,
                        help="Refuse if the colour covers less of the model than this (default: 0.005)")
+    stage.add_argument("--size-m", type=float,
+                       help="Pixal3D geometry: the real size in metres, the longest side unless --size-is height")
+    stage.add_argument("--size-is", choices=("height", "longest"),
+                       help="Pixal3D geometry: whether --size-m is the height or the longest side (default: longest)")
+    stage.add_argument("--pixal-resolution", type=int, choices=(512, 1024, 1536),
+                       help="Pixal3D geometry: the generation's resolution (default: 1024)")
+    stage.add_argument("--vertex-target", type=int,
+                       help="Pixal3D geometry: the game mesh's vertices, from Pixal's own simplifier "
+                            "(default: 100000)")
+    stage.add_argument("--up", choices=("shortest", "middle", "longest"),
+                       help="Pixal3D geometry: which principal axis stands up (default: shortest, a boat; "
+                            "longest for a lantern or column; middle for a panel on its edge)")
+    stage.add_argument("--flip", action="store_true",
+                       help="Pixal3D geometry: turn the levelled piece upside down")
     stage.add_argument("--repo-root", type=Path,
                        help="Pipeline checkout; required outside a source installation")
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
@@ -499,6 +513,12 @@ def main(argv: list[str] | None = None) -> int:
                     "together": args.together,
                     "surface": args.surface,
                     "reuse_parts": args.reuse_parts,
+                    "size_m": args.size_m,
+                    "size_is": args.size_is,
+                    "pixal_resolution": args.pixal_resolution,
+                    "vertex_target": args.vertex_target,
+                    "up": args.up,
+                    "flip": args.flip or None,
                 })
             print_payload(payload)
             return 0 if payload["ok"] else 1

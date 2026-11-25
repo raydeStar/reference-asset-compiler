@@ -480,17 +480,19 @@ The route that took the 2.2 m Frastown skiff (AC-01.1) from a picture to wood
 grain that holds up at arm's length. Times are from an RTX 4090.
 
 ```powershell
-# 1. Geometry: a few seeds (about 2.5 min and 7.7 GiB each, in WSL), picked by fixed views.
-#    A seed picks the design, not exact triangles: Pixal3D is not deterministic.
-#    --extra-targets also writes the game mesh, from the same generation.
-python workflows/geometry/pixal3d/run_pixal3d.py --image cutout.png --output pixal.glb `
-  --resolution 1024 --seed 45 --extra-targets 100000
-
-# 2. Level the dense mesh and the game mesh with one transform, at the real length
-#    (the model's longest side). A tall piece (lantern, ladder, column) needs --up longest,
-#    a panel standing on its edge --up middle; --flip turns one standing on its head.
-blender -b --factory-startup --python scripts/blender/level_pair.py -- `
-  2.2 level.json pixal.glb dense.blend pixal-v100000.glb low.blend
+# 1-2. Geometry and levelling in one stage, about 3 min and 9 GiB free a seed. Pixal3D runs in
+#    its Linux environment (WSL on Windows; RAC_PIXAL3D_ROOT, RAC_PIXAL3D_PYTHON, RAC_WSL_DISTRO).
+#    A picture with an opaque background has it removed first. It writes the game mesh
+#    (low.blend, from Pixal's own simplifier) and the dense mesh beside it (low-dense.blend),
+#    levelled by one transform at the real size: --size-m is the longest side (or the height
+#    with --size-is height); --size knee gives a landmark height instead. A tall piece
+#    (lantern, ladder, column) needs --up longest, a panel on its edge --up middle, and
+#    --flip turns one standing on its head. Try a few seeds and pick by fixed views
+#    (review-views): a seed picks the design, not exact triangles, since Pixal3D is not
+#    deterministic.
+rac run-stage pixal-geometry --source approved.png --output low.blend --report pixal.json `
+  --size-m 2.2 --seed 45 --vertex-target 100000
+rac run-stage review-views --source low.blend --output views-45 --report views-45.json
 
 # 3. UVs, then the first paint on an 8192 sheet (about 3 min).
 rac run-stage uv-unwrap --source low.blend --output uv.obj --report uv.json
@@ -515,7 +517,7 @@ rac run-stage paint-sections --source parts.glb --output sections.glb --report s
 # 7. Relief from the paint, then the dense shape under it (a few minutes each).
 rac run-stage bake-detail --source sections.glb --output detail.glb --report detail.json `
   --resolution 2048 --relief-tilt 6
-rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense dense.blend
+rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense low-dense.blend
 
 # 8. A browser copy: specular reset, then 8192 JPEG (the skiff came to 51 MB).
 rac run-stage browser-payload --source shape.glb --output payload.glb --report payload.json
