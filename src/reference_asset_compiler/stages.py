@@ -35,6 +35,7 @@ from .human_scale import HumanScaleError, named_sizes, resolve_height
 from .rebake import MESH_SUFFIXES, RebakeError, check_binding, read_reduction
 from .processes import run_bounded
 from .resources import checkout_root
+from .pixal import pixal_missing
 from .segmentation import segmentation_missing
 
 BLENDER_ENVIRONMENT = "RAC_BLENDER"
@@ -401,6 +402,27 @@ STAGES: dict[str, dict[str, Any]] = {
         # consumer quotes a cost and sets a timeout from this, not from a guess.
         "estimate": {"unit": "section", "minutes": 2.5, "free_vram_mib": 10752},
     },
+    "pixal-geometry": {
+        "runner": "python",
+        "script": "scripts/run_pixal_geometry.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("size", "size_adjust", "size_m", "size_is", "seed", "pixal_resolution", "vertex_target",
+                    "up", "flip"),
+        "prepare": "pixal-geometry",
+        "needs": ("blender", "pixal"),
+        # The prop route the owner chose on 24 November: Pixal3D keeps rivets,
+        # straps and seams as geometry. One picture in; the game mesh (a .blend
+        # for uv-unwrap) and beside it the dense mesh for bake-shape, both from
+        # one generation and levelled by one transform at their real size.
+        "output_suffix": ".blend",
+        "timeout": 3600,
+        "summary": "Turn one picture into a levelled game mesh and dense mesh with Pixal3D (a Linux "
+                   "environment; WSL on Windows). About 3 minutes and 9 GiB free.",
+        "produces": "reference-asset-compiler.pixal-geometry.v1",
+        # Measured on an RTX 4090 on 2026-11-24: 157 s, 7.7 GiB allocated and
+        # 8.5 GiB reserved at --pixal-resolution 1024.
+        "estimate": {"unit": "seed", "minutes": 3, "free_vram_mib": 9216},
+    },
     "label-parts": {
         "runner": "python",
         "script": "scripts/label_parts.py",
@@ -481,6 +503,9 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # upstream checkout and its own weights, and a machine that can
             # generate geometry often cannot paint it.
             missing += [item for item in paint_missing(legacy) if item not in missing]
+        if "pixal" in needs:
+            # Pixal3D runs in its own Linux environment, WSL on Windows.
+            missing += [item for item in pixal_missing() if item not in missing]
         if "segmentation" in needs:
             # A third: the part labeller's detector and SAM run in a Python
             # with torch, which this compiler's own environment does not carry.
@@ -642,6 +667,9 @@ def run_stage(
         context = prepare_paint_head(options or {}, resolve_legacy_root(legacy_root))
     elif prepare == "paint-sections":
         context = prepare_paint_sections(options or {}, resolve_legacy_root(legacy_root))
+    elif prepare == "pixal-geometry":
+        context = prepare_pixal_geometry(options or {}, resolve_blender(blender),
+                                         resolve_legacy_root(legacy_root, required=False))
     elif prepare == "label-parts":
         context = prepare_label_parts(root, options or {}, resolve_blender(blender))
     elif prepare == "paint-parts":
@@ -1359,6 +1387,53 @@ def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, A
             raise StageError("There is no earlier section attempt at {0}.".format(earlier))
         arguments += ["--reuse-sections", str(earlier)]
     return {"arguments": arguments, "payload": {"reference": str(reference)}}
+
+
+PIXAL_UP = ("shortest", "middle", "longest")
+
+
+def prepare_pixal_geometry(options: dict[str, Any], blender: str, legacy: Path | None) -> dict[str, Any]:
+    """The real size, the seed and how the piece stands, settled before a GPU is asked for.
+
+    The size is given as a landmark on a person (--size knee, the way the rest of
+    the compiler and Framewright ask it), which is the piece's height, or as
+    metres with --size-m, which is its longest side unless --size-is height says
+    otherwise. The painter's environment is passed on when there is one: it
+    removes the background of a picture that still has one.
+    """
+    if options.get("size") and options.get("size_m"):
+        raise StageError("Give the real size once: --size (a landmark on a person) or --size-m (metres).")
+    if options.get("size"):
+        try:
+            resolved = resolve_height(str(options["size"]), float(options.get("size_adjust") or 1.0))
+        except HumanScaleError as problem:
+            raise StageError(str(problem)) from problem
+        size_m, size_is, scale = resolved["height_m"], "height", resolved
+    elif options.get("size_m"):
+        size_m, size_is, scale = float(options["size_m"]), options.get("size_is") or "longest", None
+        if size_is not in ("height", "longest"):
+            raise StageError("--size-is is height or longest.")
+    else:
+        raise StageError("Pixal3D geometry needs the piece's real size: --size knee (a landmark on a person) "
+                         "or --size-m 2.2 (metres along its longest side).")
+    if not 0.01 <= size_m <= 50.0:
+        raise StageError("A real size of {0} m is not plausible.".format(size_m))
+    up = options.get("up") or "shortest"
+    if up not in PIXAL_UP:
+        raise StageError("--up is shortest (a boat, a bench), longest (a lantern, a column) or middle "
+                         "(a panel standing on its edge).")
+    arguments = ["--size-m", repr(float(size_m)), "--size-is", size_is, "--up", up, "--blender", blender]
+    for flag, name in (("--seed", "seed"), ("--resolution", "pixal_resolution"), ("--vertex-target", "vertex_target")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    if options.get("flip"):
+        arguments.append("--flip")
+    if legacy is not None:
+        arguments += ["--legacy-root", str(legacy)]
+    payload = {"size_m": size_m, "size_is": size_is, "up": up}
+    if scale:
+        payload["scale"] = scale
+    return {"arguments": arguments, "payload": payload}
 
 
 def prepare_label_parts(root: Path, options: dict[str, Any], blender: str) -> dict[str, Any]:

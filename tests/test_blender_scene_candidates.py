@@ -371,3 +371,27 @@ bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'tall.glb')!r}, export_format
         assert abs(max(size) - 2.0) < 1e-3
         assert abs(levelled['files'][0]['min_m'][2]) < 1e-4
         assert (size[2] == max(size)) is standing
+
+
+def test_a_size_given_as_a_height_sets_the_height(tmp_path):
+    # Framewright gives a size as a landmark on a person, which is a height: a
+    # long, low boat of knee height must come out knee high, not knee long.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=1.0)
+obj = bpy.context.object
+obj.scale = (2.0, 0.7, 0.4)
+obj.rotation_euler = (0.3, 0.2, 0.9)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'boat.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    report = tmp_path / 'level.json'
+    run(ROOT / 'scripts/blender/level_pair.py', '0.5', report, tmp_path / 'boat.glb', tmp_path / 'boat.blend',
+        '--height')
+    levelled = json.loads(report.read_text())
+    low, high = levelled['files'][0]['min_m'], levelled['files'][0]['max_m']
+    assert levelled['size_is'] == 'height'
+    assert abs((high[2] - low[2]) - 0.5) < 1e-3
+    assert (high[0] - low[0]) > 1.5

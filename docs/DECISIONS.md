@@ -3424,3 +3424,18 @@ With this and the painter's fix, every GPU stage of the prop route runs within a
 | Pixal3D at 1024 | 7.7 GiB |
 | First paint, sections and parts at 8192 | 9.1 GiB |
 | label-parts (Grounding DINO + SAM ViT-B) | 3.6 GiB |
+
+<!-- pixal-geometry-stage-20261125 -->
+## 2026-11-25 · Pixal3D becomes a stage, so Framewright can drive it
+
+The owner chose Pixal3D for props. Framewright can only run `rac run-stage` stages, so the prop route stayed a hand-run recipe: a cutout, the WSL runner and `level_pair.py`. The Frastown run was therefore told to run the compiler directly.
+
+`pixal-geometry` does those three steps in one call. It takes a picture and writes the levelled game mesh (`.blend`, for `uv-unwrap`) and, beside it, the levelled dense mesh (`<name>-dense.blend`, for `bake-shape --dense`).
+- **Cutout:** a picture with an opaque background has it removed by the painter's environment.
+- **Pinned runner:** the runner's hash is checked against `workflows/catalog.json` before every run.
+- **Where Pixal3D runs:** `RAC_PIXAL3D_ROOT`, `RAC_PIXAL3D_PYTHON` and `RAC_WSL_DISTRO` name its Linux environment.
+- **The listing stays fast:** on Windows it checks only that WSL is installed; a run checks the rest and refuses in plain words.
+
+**Size.** A size can be a landmark on a person (`--size knee`), which is a height, as Framewright asks it. It can also be metres (`--size-m`), the longest side unless `--size-is height`. `level_pair.py --height` scales by height for the first case.
+
+**Measured on the skiff's own picture:** 179 s end to end (Pixal3D 170 s). A 97,938-triangle game mesh and a 991,833-triangle dense mesh, both levelled to 2.2 m.
