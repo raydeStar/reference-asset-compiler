@@ -283,6 +283,21 @@ class KeepTheDesignTests(unittest.TestCase):
         other_chroma = other / np.maximum(other.sum(axis=2, keepdims=True), 1e-3)
         self.assertGreater(float(other_chroma[..., 2].std()), 0.05)
 
+    def test_a_sharp_colour_edge_in_the_first_paint_stays_sharp(self):
+        # Two islands side by side on the sheet, teal paint and iron. The first
+        # paint's colour used to be blurred across the sheet, so each picked up
+        # the other's colour near the edge they share on the sheet but not on
+        # the model: the skiff's teal chips smeared and its stern went grey.
+        size = 64
+        base = np.zeros((size, size, 3), np.float32)
+        base[:, :32] = (40.0, 150.0, 160.0)                   # teal paint
+        base[:, 32:] = (70.0, 60.0, 55.0)                     # iron
+        section = np.full_like(base, 120.0)                   # the section, flat: no detail to add
+        weights = np.ones((size, size), np.float32)
+        out = composite(base, [(section, weights, weights > 0)], sigma=6.0, mode="light")
+        np.testing.assert_allclose(out[:, 28:32], base[:, 28:32], atol=1.0)
+        np.testing.assert_allclose(out[:, 32:36], base[:, 32:36], atol=1.0)
+
     def test_the_fast_blur_agrees_with_a_full_one(self):
         from scipy.ndimage import gaussian_filter  # noqa: PLC0415
         rng = np.random.default_rng(1)
@@ -345,7 +360,7 @@ class RunTests(unittest.TestCase):
         self.assertEqual(len(receipt["plan"]["sections"]), 4)
         self.assertEqual(receipt["orientation"]["chosen"], "+X right, +Y up")
         self.assertEqual(receipt["reason"], "plan_only")
-        self.assertEqual(receipt["settings"]["keep_colour_m"], 0.03)
+        self.assertEqual(receipt["settings"]["keep_colour_m"], 0.01)
         whole = receipt["plan"]["whole_model_mm_per_pixel"]
         for section in receipt["plan"]["sections"]:
             self.assertLess(section["painted_mm_per_pixel"], whole)
@@ -663,3 +678,22 @@ class StudioPainterPinTests(unittest.TestCase):
         self.assertIn("choices=(2048, 4096, 8192)", source)
         self.assertIn('"--bake-size"', source)
         self.assertIn("def bake_at_texel_scale", source)
+
+
+class BakeShapeStageTests(unittest.TestCase):
+    def test_the_shape_bake_is_handed_its_dense_mesh_and_refuses_without_one(self):
+        from reference_asset_compiler.stages import prepare_bake_shape  # noqa: PLC0415
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        dense = root / "dense.blend"
+        dense.write_bytes(b"BLENDER")
+        arguments = prepare_bake_shape({"dense": dense, "cage": 0.01})["arguments"]
+        self.assertEqual(arguments[arguments.index("--dense") + 1], str(dense.resolve()))
+        self.assertEqual(arguments[arguments.index("--cage") + 1], "0.01")
+        with self.assertRaises(StageError):
+            prepare_bake_shape({})
+        with self.assertRaises(StageError):
+            prepare_bake_shape({"dense": root / "missing.blend"})
+        (root / "dense.txt").write_text("x", encoding="utf-8")
+        with self.assertRaises(StageError):
+            prepare_bake_shape({"dense": root / "dense.txt"})

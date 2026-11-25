@@ -111,9 +111,9 @@ def parse_arguments(argv):
     parser.add_argument("--context", type=float, default=0.1,
                         help="How much more of the model each section's painter sees past the "
                              "overlap, as a fraction of a section; painted but not used")
-    parser.add_argument("--keep-colour", type=float, default=0.03,
-                        help="Colour coarser than this many metres is the first paint's, and the "
-                             "sections add only their fine light and dark. 0 takes the sections' "
+    parser.add_argument("--keep-colour", type=float, default=0.01,
+                        help="Keep the first paint's colour as painted, and add only the sections' "
+                             "light and dark finer than this many metres. 0 takes the sections' "
                              "own colour, matched to each other.")
     parser.add_argument("--keep-tone", type=float, default=0.0,
                         help="With --keep-colour 0: tone coarser than this many metres comes from "
@@ -584,8 +584,16 @@ def composite(base, sections, sigma, gains=None, mode="colour"):
     all. `gains` scales each section's paint first. With `sigma` texels of blur,
     tone coarser than the blur comes from the base and only finer detail from
     each section: in `mode` "colour", the section's fine colour; in "light",
-    only its fine light and dark, multiplying the base's colour, so a section
-    that painted an iron strap as wood leaves the strap iron. With 0, the
+    only its fine light and dark, multiplying the base as it was painted, so a
+    section that painted an iron strap as wood leaves the strap iron.
+
+    In "light" the base is not blurred. The blur is taken on the flat sheet,
+    and near a UV island's edge it reaches into whatever unrelated island sits
+    beside it: blurring the base's colour 3 cm smeared the skiff's teal chips,
+    greyed its iron, and left hard wedges of the wrong colour on its many small
+    stern islands. A ratio of the section's own light to its blurred light can
+    only change brightness, so what the same reach picks up near an edge moves
+    brightness a little and never colour. With 0, the
     sections' paint is used as it is. Texels no
     section reached keep the base, and the atlas padding is refilled from the
     nearest laid texel so mip levels read what the islands hold.
@@ -593,7 +601,7 @@ def composite(base, sections, sigma, gains=None, mode="colour"):
     total = np.zeros(base.shape[:2], dtype=np.float32)
     laid = np.zeros_like(base)
     base_tone = None
-    if sigma > 0:
+    if sigma > 0 and mode != "light":
         everywhere = np.zeros(base.shape[:2], dtype=bool)
         for _, _, mask in sections:
             everywhere |= mask
@@ -605,7 +613,7 @@ def composite(base, sections, sigma, gains=None, mode="colour"):
         if sigma > 0 and mode == "light":
             own = masked_blur(paint, mask, sigma)
             ratio = np.clip((paint @ LUMINANCE + 4.0) / (own @ LUMINANCE + 4.0), 0.55, 1.6)
-            paint = base_tone * ratio[..., None]
+            paint = base * ratio[..., None]
         elif sigma > 0:
             paint = base_tone + (paint - masked_blur(paint, mask, sigma))
         laid += paint * weights[..., None]
@@ -971,7 +979,7 @@ def main(argv=None) -> int:
         "atlas_size": size,
         "texels_per_metre": round(density, 1),
         "tone_blur_texels": round(sigma, 1),
-        "tone_from": ("the first paint's colour coarser than {0} m; the sections' light and dark finer".format(
+        "tone_from": ("the first paint's colour as painted; the sections' light and dark finer than {0} m".format(
                           args.keep_colour) if mode == "light"
                       else "the first paint, coarser than {0} m".format(args.keep_tone) if sigma > 0
                       else "the sections, matched to each other" if harmonize_sections else "the sections"),

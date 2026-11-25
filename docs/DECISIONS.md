@@ -3314,3 +3314,14 @@ The owner found the section-painted Pixal skiff "super grainy" up close, though 
 **8192 sheet.** The same section painted on an 8192 sheet, which the studio painter now offers, kept the painter's cracks and knots. Painting time per section did not change: about 3.5 minutes at either size.
 
 **Blending.** Sections now cross-fade through weights interpolated from each face's corners. Weights constant per face had left hard triangles on Pixal's large simplified faces.
+
+<!-- sharp-first-paint-20261124 -->
+## 2026-11-24 · Keep the first paint's colour as painted; take only the sections' fine light and dark
+
+On the 8192 skiff, the owner saw flat grey and orange wedges on the stern and at the bow strap, and the teal paint chips had faded to a glow. The first paint had none of that.
+
+**Cause.** `paint-sections` kept the first paint's colour coarser than 3 cm by blurring it, and the blur is taken on the flat texture sheet. Near a UV island's edge it reaches into whatever unrelated island sits beside it on the sheet. Pixal's simplified mesh unwraps into thousands of small islands, so whole stern parts took a grey average of their neighbours. The crisp chips smeared, and the fin lost its cream band. A 1 cm or 5 mm blur helped the bow but not the stern.
+
+**Fix.** The first paint is no longer blurred at all. Each section contributes only its own light and dark finer than `--keep-colour`, now 1 cm by default, as a ratio to its own blurred light. A ratio changes brightness, never colour, so what the blur picks up near an island's edge cannot move colour. The stern matched the first paint, the chips and the fin's band came back, and the section grain stayed. A section re-lay reused all 32 painted sections and took about 16 minutes.
+
+**Still open.** The first paint itself can carry another part's colour, projected from a view where the parts overlap: the fin's red on an iron bracket. Compositing cannot remove that. Painting by parts can.
