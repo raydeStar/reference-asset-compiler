@@ -14,6 +14,17 @@ import sys
 
 from PIL import Image
 
+# Take ownership in the actual Linux worker. If its Windows launcher disappears,
+# this process keeps the reservation until its own CUDA work has ended.
+if __name__ == "__main__":
+    import atexit
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
+    from reference_asset_compiler.gpu_reservation import linux_reservation, wait_for_memory
+    _reservation = linux_reservation()
+    _reservation.__enter__()
+    atexit.register(_reservation.__exit__, None, None, None)
+    wait_for_memory(max(9216, int(os.environ.get("RAC_MIN_FREE_VRAM_MIB", 0))))
+
 
 PIXAL_ROOT = Path(os.environ.get("PIXAL3D_ROOT", "/path/to/Pixal3D"))
 

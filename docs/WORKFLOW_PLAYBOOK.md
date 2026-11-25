@@ -476,6 +476,18 @@ wear needs a curvature map as large as the base colour, so leave it off on a
 
 ### A hard-surface prop from Pixal3D, end to end
 
+Declare the shell before generation. Use `--topology closed` for a closed prop
+and `--topology open` when intentional boundaries must survive without hole
+filling. Width is the levelled X extent, height is Z, and longest is the
+largest of the three measured extents. For a 55 cm wide crate use
+`--size-m 0.55 --size-is width`. The game mesh is checked before paint.
+Rejections keep the levelled meshes, measurements and review views in the
+attempt directory. Pick another seed after inspecting the failure.
+
+Registered GPU stages serialize with the direct Pixal worker. On Windows
+with the Pixal distro installed, native workers and WSL use one Linux
+`flock`. `RAC_MIN_FREE_VRAM_MIB` can increase the free-memory floor.
+
 The route that took the 2.2 m Frastown skiff (AC-01.1) from a picture to wood
 grain that holds up at arm's length. Times are from an RTX 4090.
 

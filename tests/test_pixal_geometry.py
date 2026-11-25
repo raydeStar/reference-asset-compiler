@@ -16,6 +16,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 import run_pixal_geometry as rpg  # noqa: E402
 from reference_asset_compiler.pixal import linux_path, pixal_command  # noqa: E402
+from reference_asset_compiler.prop_quality import game_mesh_check
 from reference_asset_compiler.stages import STAGES, StageError, prepare_pixal_geometry  # noqa: E402
 
 
@@ -70,6 +71,16 @@ class PictureTests(unittest.TestCase):
 
 
 class PreparationTests(unittest.TestCase):
+    def test_game_mesh_bounds_and_shell_are_checked_independently(self):
+        mesh = {"min_m": [0, 0, 0], "max_m": [.55, .61, .65], "open_edges_after": 105}
+        check = game_mesh_check(mesh, .55, "longest", "closed")
+        self.assertEqual(len(check["reasons"]), 2)
+        self.assertFalse(check["ok"])
+        self.assertTrue(game_mesh_check(mesh, .55, "width", "open")["ok"])
+        mesh["open_edges_after"] = 0
+        self.assertTrue(game_mesh_check(mesh, .55, "width", "closed")["ok"])
+        self.assertTrue(game_mesh_check(mesh, .65, "height", "closed")["ok"])
+
     def test_a_landmark_is_a_height_and_metres_are_the_longest_side(self):
         landmark = prepare_pixal_geometry({"size": "knee", "seed": 45, "vertex_target": 100000}, "blender.exe", None)
         arguments = landmark["arguments"]
@@ -86,7 +97,7 @@ class PreparationTests(unittest.TestCase):
 
     def test_it_refuses_a_missing_double_or_implausible_size_and_an_unknown_up(self):
         for options in ({}, {"size": "knee", "size_m": 1.0}, {"size_m": 0.001}, {"size": "giraffe"},
-                        {"size_m": 1.0, "up": "sideways"}, {"size_m": 1.0, "size_is": "width"}):
+                        {"size_m": 1.0, "up": "sideways"}, {"size_m": 1.0, "size_is": "diagonal"}):
             with self.assertRaises(StageError):
                 prepare_pixal_geometry(options, "blender.exe", None)
 

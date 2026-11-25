@@ -34,6 +34,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import os
 import shutil
 import subprocess
 import sys
@@ -47,6 +48,8 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 from reference_asset_compiler.pixal import linux_path, pixal_command, pixal_paths  # noqa: E402
 from reference_asset_compiler.processes import run_bounded  # noqa: E402
+from reference_asset_compiler.prop_quality import game_mesh_check  # noqa: E402
+from reference_asset_compiler.stages import StageError, run_stage  # noqa: E402
 
 TAG = "[PIXAL]"
 SCHEMA = "reference-asset-compiler.pixal-geometry.v1"
@@ -82,8 +85,11 @@ def has_transparency(path: Path) -> bool:
 def next_attempt(output: Path) -> Path:
     for number in range(1, 1000):
         attempt = output.parent / "{0}-pixal-attempt{1:03d}".format(output.stem, number)
-        if not attempt.exists():
+        try:
+            attempt.mkdir(parents=True)
             return attempt
+        except FileExistsError:
+            continue
     raise RuntimeError("there are already 999 attempts beside {0}".format(output))
 
 
@@ -93,7 +99,8 @@ def parse_arguments(argv):
     parser.add_argument("output", type=Path)
     parser.add_argument("report", type=Path)
     parser.add_argument("--size-m", type=float, required=True, help="the real size, in metres")
-    parser.add_argument("--size-is", choices=("height", "longest"), default="height",
+    parser.add_argument("--topology", choices=("closed", "open"), default="closed")
+    parser.add_argument("--size-is", choices=("height", "width", "longest"), default="height",
                         help="whether --size-m is the height (as a landmark on a person gives it) or the longest side")
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--resolution", type=int, default=1024, choices=(512, 1024, 1536))
@@ -134,7 +141,6 @@ def main(argv=None) -> int:
                       "workflows/catalog.json before generating")
 
     attempt = next_attempt(args.output)
-    attempt.mkdir(parents=True)
     report = {"schema": SCHEMA, "picture": str(args.picture), "picture_sha256": sha256(args.picture),
               "runner": str(RUNNER), "runner_sha256": expected, "seed": args.seed,
               "resolution": args.resolution, "vertex_target": args.vertex_target,
@@ -162,7 +168,8 @@ def main(argv=None) -> int:
                           "(--legacy-root) there is nothing to remove it with", 1)
         done = run_bounded([str(venv), str(ROOT / "scripts" / "crop_reference_region.py"), str(args.picture),
                             str(cutout), str(attempt / "cutout.json"), "--cutout-only"],
-                           capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL, timeout=600)
+                           capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL,
+                           gpu_mib=0, timeout=600)
         if done.returncode != 0 or not cutout.is_file():
             return finish("the picture's background could not be removed: {0}".format(
                 " | ".join((done.stdout + done.stderr).strip().splitlines()[-3:])), 1)
@@ -200,24 +207,55 @@ def main(argv=None) -> int:
     if dense.exists():
         return finish("refusing to overwrite {0}".format(dense), 1)
     level = attempt / "level.json"
+    game_candidate = attempt / "game.blend"
+    dense_candidate = attempt / "dense.blend"
     command = [args.blender, "-b", "--factory-startup", "--python-exit-code", "1", "--python",
                str(ROOT / "scripts" / "blender" / "level_pair.py"), "--", repr(args.size_m), str(level),
-               str(generated), str(dense), str(simplified), str(args.output), "--up", args.up]
+               str(generated), str(dense_candidate), str(simplified), str(game_candidate), "--up", args.up,
+               "--topology", args.topology]
     if args.flip:
         command.append("--flip")
-    if args.size_is == "height":
-        command.append("--height")
+    if args.size_is in ("height", "width"):
+        command.append("--" + args.size_is)
     done = run_bounded(command, capture_output=True, text=True, errors="replace", stdin=subprocess.DEVNULL,
                        timeout=1800)
-    if done.returncode != 0 or not args.output.is_file() or not dense.is_file():
+    if not game_candidate.is_file() or not dense_candidate.is_file() or not level.is_file():
         tail = [line for line in (done.stdout + "\n" + done.stderr).splitlines() if line.strip()][-4:]
         return finish("levelling failed (exit {0}): {1}".format(done.returncode, " | ".join(tail)), 1)
     report["level"] = json.loads(level.read_text(encoding="utf-8"))
+    files = report["level"]["files"]
+    check = game_mesh_check(files[1], args.size_m, args.size_is, args.topology)
+    report["game_mesh_check"] = check
+    if not check["ok"]:
+        reason = f'seed {args.seed}: ' + "; ".join(check["reasons"])
+        # The artist can inspect a rejected seed without a publishable output.
+        views = attempt / "review-views"
+        try:
+            result = run_stage("review-views", game_candidate, views, attempt / "views.json",
+                               repo_root=ROOT, blender=args.blender)
+            if result.get("ok"):
+                report["rejected_views"] = str(views)
+            else:
+                report["review_error"] = result.get("error", "Review views failed")
+        except (StageError, OSError) as problem:
+            report["review_error"] = str(problem)
+        return finish(reason, 1)
+    if done.returncode != 0:
+        return finish(f"levelling exited {done.returncode} after writing its measurements", 1)
+    # The game output is the completion marker. Keep the candidates for replay.
+    try:
+        os.link(dense_candidate, dense)
+        try:
+            os.link(game_candidate, args.output)
+        except OSError:
+            dense.unlink()
+            raise
+    except OSError as problem:
+        return finish(f"Could not publish the levelled pair: {problem}", 1)
     report["output"] = str(args.output)
     report["output_sha256"] = sha256(args.output)
     report["dense"] = str(dense)
     report["dense_sha256"] = sha256(dense)
-    files = report["level"]["files"]
     return finish("seed {0}: a {1:,}-triangle game mesh and a {2:,}-triangle dense one, levelled at {3} m ({4})".format(
         args.seed, files[1]["triangles"], files[0]["triangles"], args.size_m, args.size_is), 0)
 

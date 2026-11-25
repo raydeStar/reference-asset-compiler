@@ -408,7 +408,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "script": "scripts/run_pixal_geometry.py",
         "arguments": ("source", "output", "report"),
         "options": ("size", "size_adjust", "size_m", "size_is", "seed", "pixal_resolution", "vertex_target",
-                    "up", "flip"),
+                    "up", "flip", "topology"),
         "prepare": "pixal-geometry",
         "needs": ("blender", "pixal"),
         # The prop route the owner chose on 24 November: Pixal3D keeps rivets,
@@ -713,6 +713,10 @@ def run_stage(
     try:
         finished = run_command(
             command, capture_output=True, text=True, errors="replace", timeout=timeout,
+            **({"gpu_mib": max(int(os.environ.get("RAC_MIN_FREE_VRAM_MIB", 0)),
+                                stage.get("estimate", {}).get("free_vram_mib", 0))}
+               if stage_name in ("geometry", "texture", "label-parts", "paint-parts",
+                                 "paint-sections", "paint-head") else {}),
             env=environment,
             # Nothing here may ever wait to be typed at. A stage is run by a
             # queue worker whose own input is whatever its parent happened to
@@ -1414,8 +1418,8 @@ def prepare_pixal_geometry(options: dict[str, Any], blender: str, legacy: Path |
         size_m, size_is, scale = resolved["height_m"], "height", resolved
     elif options.get("size_m"):
         size_m, size_is, scale = float(options["size_m"]), options.get("size_is") or "longest", None
-        if size_is not in ("height", "longest"):
-            raise StageError("--size-is is height or longest.")
+        if size_is not in ("height", "width", "longest"):
+            raise StageError("--size-is is height, width or longest.")
     else:
         raise StageError("Pixal3D geometry needs the piece's real size: --size knee (a landmark on a person) "
                          "or --size-m 2.2 (metres along its longest side).")
@@ -1426,6 +1430,10 @@ def prepare_pixal_geometry(options: dict[str, Any], blender: str, legacy: Path |
         raise StageError("--up is shortest (a boat, a bench), longest (a lantern, a column) or middle "
                          "(a panel standing on its edge).")
     arguments = ["--size-m", repr(float(size_m)), "--size-is", size_is, "--up", up, "--blender", blender]
+    topology = options.get("topology") or "closed"
+    if topology not in ("closed", "open"):
+        raise StageError("Topology must be closed or open.")
+    arguments += ["--topology", topology]
     for flag, name in (("--seed", "seed"), ("--resolution", "pixal_resolution"), ("--vertex-target", "vertex_target")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]

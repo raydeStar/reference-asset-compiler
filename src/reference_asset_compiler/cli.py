@@ -273,7 +273,9 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Refuse if the colour covers less of the model than this (default: 0.005)")
     stage.add_argument("--size-m", type=float,
                        help="Pixal3D geometry: the real size in metres, the longest side unless --size-is height")
-    stage.add_argument("--size-is", choices=("height", "longest"),
+    stage.add_argument("--topology", choices=("closed", "open"),
+                       help="Pixal3D game mesh: require a closed shell or preserve intentional open boundaries")
+    stage.add_argument("--size-is", choices=("height", "width", "longest"),
                        help="Pixal3D geometry: whether --size-m is the height or the longest side (default: longest)")
     stage.add_argument("--pixal-resolution", type=int, choices=(512, 1024, 1536),
                        help="Pixal3D geometry: the generation's resolution (default: 1024)")
@@ -523,6 +525,7 @@ def main(argv: list[str] | None = None) -> int:
                     "reuse_parts": args.reuse_parts,
                     "size_m": args.size_m,
                     "size_is": args.size_is,
+                    "topology": args.topology,
                     "pixal_resolution": args.pixal_resolution,
                     "vertex_target": args.vertex_target,
                     "up": args.up,

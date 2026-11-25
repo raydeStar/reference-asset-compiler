@@ -37,11 +37,14 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 
 import bmesh
 import bpy
 import numpy as np
 from mathutils import Matrix
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from reference_asset_compiler.prop_quality import game_mesh_check
 
 
 def components(bm):
@@ -192,7 +195,7 @@ UP_AXIS = {"shortest": (0, 1, 2), "middle": (0, 2, 1), "longest": (1, 2, 0)}
 """For each choice of up, which principal axes (longest first) become X, Y and Z."""
 
 
-def levelling_transform(points, length, up="shortest", flip=False, by_height=False):
+def levelling_transform(points, length, up="shortest", flip=False, size_is="longest"):
     """Principal axes to X/Y/Z, open side up, longest axis (or the height) to `length`, centred, on the floor."""
     centre = points.mean(axis=0)
     _, _, rows = np.linalg.svd(points - centre, full_matrices=False)
@@ -213,7 +216,11 @@ def levelling_transform(points, length, up="shortest", flip=False, by_height=Fal
     shift = np.eye(4)
     shift[:3, 3] = -centre
     turned = (np.c_[points, np.ones(len(points))] @ (rotate @ shift).T)[:, :3]
-    scale = length / np.ptp(turned[:, 2 if by_height else UP_AXIS[up].index(0)])
+    extents = np.ptp(turned, axis=0)
+    span = {"height": extents[2], "width": extents[0], "longest": max(extents)}[size_is]
+    if not np.isfinite(span) or span <= 0:
+        raise ValueError("The oriented mesh has no measurable " + size_is)
+    scale = length / span
     turned *= scale
     place = np.eye(4)
     place[:3, 3] = [-(turned[:, 0].min() + turned[:, 0].max()) / 2,
@@ -225,7 +232,14 @@ def levelling_transform(points, length, up="shortest", flip=False, by_height=Fal
 
 def main(argv) -> int:
     argv = list(argv)
-    up, flip, by_height, sides = "shortest", False, False, 64
+    up, flip, size_is, sides = "shortest", False, "longest", 64
+    topology = "legacy"
+    if "--topology" in argv:
+        at = argv.index("--topology")
+        topology = argv[at + 1]
+        if topology not in ("closed", "open"):
+            raise ValueError("Topology must be closed or open")
+        del argv[at:at + 2]
     if "--fill-holes" in argv:
         at = argv.index("--fill-holes")
         try:
@@ -238,7 +252,12 @@ def main(argv) -> int:
             return 1
     if "--height" in argv:
         argv.remove("--height")
-        by_height = True
+        size_is = "height"
+    if "--width" in argv:
+        if size_is == "height":
+            raise ValueError("Specify one sizing axis")
+        argv.remove("--width")
+        size_is = "width"
     if "--flip" in argv:
         argv.remove("--flip")
         flip = True
@@ -258,10 +277,10 @@ def main(argv) -> int:
     for source, output in pairs:
         # The first file is the dense mesh: it is only baked from, the bake
         # copes with its holes, and mending a million faces takes minutes.
-        obj, welded, mended = load(source, sides if records else 0)
+        obj, welded, mended = load(source, sides if records and topology != "open" else 0)
         points = np.array([vertex.co for vertex in obj.data.vertices], dtype=np.float64)
         if transform is None:
-            transform = levelling_transform(points, length, up, flip, by_height)
+            transform = levelling_transform(points, length, up, flip, size_is)
         obj.data.transform(Matrix(transform.tolist()))
         obj.data.update()
         obj.name = "GEO_" + bpy.path.display_name_from_filepath(output)
@@ -273,9 +292,14 @@ def main(argv) -> int:
                         "max_m": levelled.max(axis=0).round(4).tolist()})
         print("[LEVEL] {0}: {1} triangles, {2} seam copies welded, {3} holes filled, {4} open edges left".format(
             output, records[-1]["triangles"], welded, mended["holes_filled"], mended["open_edges_after"]))
+    checks = [game_mesh_check(record, length, size_is, topology) for record in records[1:]] if topology != "legacy" else []
     with open(report_path, "w", encoding="utf-8") as stream:
-        json.dump({"schema": "reference-asset-compiler.level-pair.v1", "length_m": length, "size_is": "height" if by_height else "longest side", "up": up, "flip": flip, "fill_holes_up_to_edges": sides,
-                   "transform": np.round(transform, 8).tolist(), "files": records}, stream, indent=2)
+        json.dump({"schema": "reference-asset-compiler.level-pair.v1", "length_m": length, "size_is": "longest side" if size_is == "longest" else size_is, "topology": topology, "up": up, "flip": flip, "fill_holes_up_to_edges": 0 if topology == "open" else sides,
+                   "transform": np.round(transform, 8).tolist(), "files": records, "game_mesh_checks": checks}, stream, indent=2)
+    for check in checks:
+        if not check["ok"]:
+            print("[LEVEL] FAILED: " + "; ".join(check["reasons"]))
+            return 1
     return 0
 
 
