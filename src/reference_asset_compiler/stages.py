@@ -20,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -398,12 +399,14 @@ STAGES: dict[str, dict[str, Any]] = {
         # back over the first paint on the same UVs, the first paint's tone kept.
         # A model under the minimum length is passed through unchanged.
         "summary": "Paint a large model again in sections of about half a metre and lay them over "
-                   "its first paint. One painter run a section; needs 10.5 GiB free, a 12 GB card.",
+                   "its first paint. One painter run for every section; needs 10.5 GiB free, a 12 GB card.",
         "produces": "reference-asset-compiler.section-detail-paint.v1",
-        # Measured on an RTX 4090 on 2026-11-24: six mast sections in 11.6
-        # minutes, forty-five skiff sections at about two and a half each. A
-        # consumer quotes a cost and sets a timeout from this, not from a guess.
-        "estimate": {"unit": "section", "minutes": 2.5, "free_vram_mib": 10752},
+        # Measured on an RTX 4090: on 2026-11-24 six mast sections in 11.6
+        # minutes and forty-five skiff sections at about two and a half each,
+        # one painter run a section; on 2026-11-26 the WK-04.1 stair's 33 in 42
+        # minutes, one run for them all on an idle machine (a busy CPU adds
+        # about 35 s a section). A consumer quotes a cost from this, not from a guess.
+        "estimate": {"unit": "section", "minutes": 1.5, "free_vram_mib": 10752},
     },
     "pixal-geometry": {
         "runner": "python",
@@ -465,7 +468,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "script": "scripts/paint_parts.py",
         "arguments": ("source", "output", "report"),
         "options": ("parts", "reference", "views", "resolution", "atlas", "together", "surface",
-                    "reuse_parts", "min_free_vram"),
+                    "reuse_parts", "min_free_vram", "inpaint_reach", "separate_runs"),
         "timeout": 7200,
         "prepare": "paint-parts",
         "needs": ("paint-stack",),
@@ -475,11 +478,14 @@ STAGES: dict[str, dict[str, Any]] = {
         # colour changing at the edge where parts meet. paint-sections goes on
         # top afterwards, its finished sections reused.
         "summary": "Paint a model again part by part, each from the reference with the other parts masked "
-                   "out, and lay each on its own faces. One painter run a piece; needs 10.5 GiB free, a 12 GB card.",
+                   "out, and lay each on its own faces. One painter run for every piece; needs 10.5 GiB free, "
+                   "a 12 GB card.",
         "produces": "reference-asset-compiler.part-paint.v1",
-        # Measured on an RTX 4090 on 2026-11-24: the skiff's hull (2.2 m) in
-        # 3.4 minutes, its seat in 3.2 and both fins together in 2.6.
-        "estimate": {"unit": "piece", "minutes": 3.5, "free_vram_mib": 10752},
+        # Measured on an RTX 4090: on 2026-11-24 the skiff's hull (2.2 m) in
+        # 3.4 minutes, its seat in 3.2 and both fins together in 2.6, one painter
+        # run a piece; on 2026-11-26 the PR-02.3 counter's four pieces in 5.9
+        # minutes together (60-91 s each on the card), one run for them all.
+        "estimate": {"unit": "piece", "minutes": 1.5, "free_vram_mib": 10752},
     },
 }
 
@@ -731,6 +737,9 @@ def run_stage(
         environment = {key: value for key, value in os.environ.items()
                        if key.upper() != "PSMODULEPATH"}
     started = time.monotonic()
+    # Wall-clock times as well as the seconds, so `rac time-to-model` can lay a
+    # model's stages out in order from their receipts alone.
+    started_utc = datetime.now(timezone.utc).isoformat(timespec="seconds")
     try:
         finished = run_command(
             command, capture_output=True, text=True, errors="replace", timeout=timeout,
@@ -754,6 +763,8 @@ def run_stage(
         "blender": runner,
         "exit_code": finished.returncode,
         "seconds": seconds,
+        "started_utc": started_utc,
+        "finished_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "report": str(report),
     }
 
@@ -1561,9 +1572,12 @@ def prepare_paint_parts(options: dict[str, Any], legacy: Path) -> dict[str, Any]
             "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
     arguments = ["--parts", str(labelling), "--reference", str(reference), "--legacy-root", str(legacy)]
     for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
-                       ("--surface", "surface"), ("--min-free-vram", "min_free_vram")):
+                       ("--surface", "surface"), ("--min-free-vram", "min_free_vram"),
+                       ("--inpaint-reach", "inpaint_reach")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
+    if options.get("separate_runs"):
+        arguments.append("--separate-runs")
     if options.get("together") is not None:
         arguments += ["--together", *[str(name) for name in options["together"]]]
     if options.get("reuse_parts") is not None:

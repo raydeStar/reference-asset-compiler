@@ -490,6 +490,55 @@ wear needs a curvature map as large as the base colour, so leave it off on a
   painted (a 15 m hull is about 4 mm a texel). Split such a piece into
   modules at acquisition instead.
 
+### A hard-surface prop from Hunyuan3D, end to end
+
+The default for hard-surface props since 25 November 2026: on Frastown's
+WK-04.5 post-end crops Hunyuan3D kept one upright with its three connectors
+where Pixal3D added a second upright, and the owner found Hunyuan3D follows the
+picture more faithfully. The finishing stages are the Pixal route's below,
+without `project-reference` (it needs a Pixal3D camera). Times are from an RTX
+4090 on an otherwise idle machine; run one model at a time, and nothing
+CPU-heavy beside a painter (a busy CPU costs a section about 35 s).
+
+```powershell
+# 1. Geometry from the picture (35-50 s), then the four fixed views of the dense mesh.
+rac run-stage geometry --source reference.png --output dense.glb --report geometry.json --seed 41
+rac run-stage review-views --source dense.glb --output views-dense --report views-dense.json
+# 2. Its real size (a landmark on a person, or --size-m), its pivot, then the hero game mesh
+#    (20-35 s): 2.5 x `rac budget`, at most 100,000 triangles. Keep the scaled dense mesh
+#    (dense-fit.blend here) for the normal bake.
+rac run-stage stage-mesh --source dense.glb --output scaled.blend --report scaled.json --size knee
+rac run-stage remesh --source dense-fit.blend --output game.glb --report reduction.json --target-triangles 50000
+# 3. UVs (20-45 s) and the first paint on an 8192 sheet (about 3 min).
+rac run-stage uv-unwrap --source game.glb --output uv.obj --report uv.json
+rac run-stage texture --source uv.obj --output painted.glb --report painted.json `
+  --reference reference.png --views 12 --resolution 768 --atlas 8192
+# 4. Parts, when it has parts of other materials (labelling about 45 s, then about 1.5 min a piece).
+rac run-stage label-parts --source painted.glb --output labels.npz --report labels.json `
+  --vocab parts.json --reference reference.png
+rac run-stage paint-parts --source painted.glb --output parts.glb --report parts.json `
+  --parts labels.npz --reference reference.png --views 12 --resolution 768 --atlas 8192
+# 5. Sections, for a hero over 1.2 m (about 75 s a section).
+rac run-stage paint-sections --source parts.glb --output sections.glb --report sections.json `
+  --reference reference.png --views 12 --resolution 768 --atlas 8192 `
+  --section 0.45 --overlap 0.2 --context 0.05 --max-sections 48
+# 6. Occlusion and curvature (about 25 s), the dense shape under them (about 65 s), the browser copy.
+rac run-stage bake-detail --source sections.glb --output detail.glb --report detail.json --resolution 2048
+rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense dense-fit.blend
+rac run-stage browser-payload --source shape.glb --output payload.glb --report payload.json
+rac run-stage compress-textures --source payload.glb --output packed.glb --report packed.json `
+  --colour-size 8192 --data-size 8192 --quality 92 --texture-format jpeg
+# 7. How long it took, front to back, from the receipts in its folder.
+rac time-to-model .
+```
+
+`rac time-to-model <folder>` lays out every stage receipt under a model's
+folder in order: each stage's start and seconds, the time in stages, the time
+between them (looking at views, writing a vocabulary), and pauses over 30
+minutes left out. `--each <folder of models>` gives one line a model. Receipts
+from 26 November on carry their start and finish; older ones are timed by their
+file's time.
+
 ### A hard-surface prop from Pixal3D, end to end
 
 The route that took the 2.2 m Frastown skiff (AC-01.1) from a picture to wood
@@ -524,11 +573,11 @@ rac run-stage label-parts --source painted.glb --output labels.npz --report labe
   --vocab skiff-parts --reference approved.png
 
 # 5. Paint by parts: each part alone, from the picture with the other parts masked out,
-#    laid on its own faces (about 3.5 min a piece; the skiff is hull, seat, fins).
+#    laid on its own faces (about 1.5 min a piece in one painter run; the skiff is hull, seat, fins).
 rac run-stage paint-parts --source painted.glb --output parts.glb --report parts.json `
   --parts labels.npz --reference approved.png --views 12 --resolution 768 --atlas 8192
 
-# 6. Sections at the finer cut, over the parts (about 4 min each at 8192; the skiff had 32).
+# 6. Sections at the finer cut, over the parts (about 75 s each at 8192 on an idle machine; the skiff had 32).
 rac run-stage paint-sections --source parts.glb --output sections.glb --report sections.json `
   --reference approved.png --views 12 --resolution 768 --atlas 8192 `
   --section 0.45 --overlap 0.2 --context 0.05 --max-sections 48

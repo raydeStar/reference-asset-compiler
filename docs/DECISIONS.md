@@ -3566,3 +3566,22 @@ The owner asked for more speed after the one-run section pass (above). Before bu
 - **Against the stair the owner passed:** this was the first time all 33 sections were painted with the near-mesh fill. Colour moved on 1.6 % of texels, almost all by 4/255 or less (0.0013 % by more than 8, at most 15). Metal-rough moved on 6 % (0.11 % by more than 8, 0.0065 % by more than 16, at most 41). A copy of the stair coloured where it moved was rendered in the four fixed views and, unlit, from below and both low sides. Its marks covered 0-11 pixels of the fixed views and none from below: the texels that moved lie on faces no outside view reaches, or in the atlas padding. The passed and new stairs look the same from every one of those views.
 
 **Next, if more is wanted:** the diffusion itself (42-63 s, varying between sections for reasons not yet found) and the 4x upscale (10-13 s) are what is left. Skipping the upscale changes the paint and needs the owner's eye.
+
+## 2026-11-26 · Parts paint in one painter run; what else was tried for a whole model's time
+
+The owner swapped hard-surface geometry back to Hunyuan3D (it follows the picture more faithfully than Pixal3D) and asked for every easy speed-up left, and for a model's time front to back. The receipts of Codex's run on 25 November gave that time per stage: the PR-04.3 basket (no parts, no sections) took 9 min 22 s front to back, 7 min 07 s of it in stages, the first paint the largest at 3 min 15 s. The PR-02.3 counter (four parts, 30 sections) spent 2 h 14 min in stages, 91 minutes of it in sections. That section pass ran at 182 s a section beside Codex's remeshes and unwraps of other pieces. A remesh run beside it took 20 minutes where its neighbours took 20-35 s.
+
+**Kept:**
+- **`rac time-to-model <folder>`** reads the stage receipts under a model's folder and lays them out in order: each stage's start and seconds, the time in stages, the time between them, pauses over 30 minutes left out. Stage receipts now carry `started_utc` and `finished_utc`; older ones are timed by their file's time.
+- **`paint-parts` in one painter run**, as sections: the painter's models loaded once, each piece's maps finished while the next paints, each piece's unseen texels filled near its own faces (`--inpaint-reach 32`). On the PR-02.3 counter, on Codex's own first paint, labelling and picture: 354 s instead of 686, the pieces 60-91 s each on the card instead of 154-166. Metal-rough is byte-identical (the first paint's, kept). Colour moved on 0.0087 % of texels, up to 47/255, all texels no view saw. On a grey copy marked where it moved, the marks covered 0-2 pixels of the four fixed views and none from below or the low sides. The two counters look the same.
+- **`bake-shape` writes its normal map in bulk** (`foreach_set`, not a 268-million-float Python list): 66.8 s instead of 72.5 on the basket. The map matches within the bake's own noise: two CPU runs of the unchanged script differ on 25 texels by 1/255, the bulk write on 34.
+
+**Tried and dropped:**
+- **The allocator's early cache clean-up** (`garbage_collection_threshold:0.8`) makes the painter's pool swing by about 5 GB a second during diffusion. With it off, diffusion took 78 s against 76, and the maps were byte-identical. It is not what makes diffusion slow.
+- **The near-mesh fill on the first paint** (`texture --inpaint-reach 32`): the painter took 157 s against 154-157 with the whole-sheet fill. On a whole model the reach that fills deep gaps as the whole sheet does covers nearly all the empty sheet anyway.
+- **`bake-shape` on the GPU (OptiX):** 55 s of baking against 52 on the CPU. Blender casts selected-to-active rays on the CPU whatever the device.
+- **`bake-shape`'s closer cages on only the faces that need them** (1,797 of 50,000, with every face touching them): 15 and 14 s against 18 s for the whole mesh. Blender's cost per bake at 8192 is the whole image (setting up and margining 67 million texels), not the rays; 4 s saved was not worth the code.
+
+**Repeatable:** the first paint of the basket, run twice the same morning, gave byte-identical maps, also identical to Codex's paint of the night before. Start-up before the first job was 19 s with the model files cached, about 50 s cold.
+
+**What is left is the diffusion.** It takes 42-76 s a job (76-78 s on the whole basket), and the GPU is busy throughout. The levers left change the paint: fewer views, fewer or larger sections, skipping the 4x upscale. Each needs the owner's eye on an A/B.

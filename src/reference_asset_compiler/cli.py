@@ -19,6 +19,7 @@ from .io import read_json, write_json
 from .planner import plan
 from .retopology import record_retopology_receipt
 from .resources import checkout_root, load_registry
+from .run_times import models_under, render as render_times, summarise as summarise_times
 from .stages import STAGES, describe_stages, run_stage
 from .workspace import audit_workspace, create_workspace, promote_stage
 
@@ -93,6 +94,19 @@ def build_parser() -> argparse.ArgumentParser:
     cohort_audit.add_argument("manifest", type=Path)
     cohort_audit.add_argument("--workspace-root", type=Path, default=Path("work"))
     cohort_audit.add_argument("--output", type=Path)
+
+    times = subcommands.add_parser(
+        "time-to-model",
+        help="How long a model took front to back, from the stage receipts under its folder")
+    times.add_argument("folders", type=Path, nargs="+",
+                       help="A model's folder; every stage-run receipt under it counts")
+    times.add_argument("--each", action="store_true",
+                       help="Each folder holds models: report every folder directly under it")
+    times.add_argument("--pause-minutes", type=float, default=30.0,
+                       help="A wait between stages longer than this is a pause and left out (default: 30)")
+    times.add_argument("--json", action="store_true", help="Print the JSON instead of text")
+    times.add_argument("--brief", action="store_true", help="With several models, only the table")
+    times.add_argument("--output", type=Path, help="Also write the JSON here")
 
     geometry_preflight = subcommands.add_parser(
         "geometry-preflight", help="Validate a one-attempt Hunyuan multiview request"
@@ -231,12 +245,12 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Paint in sections: bake each section's views at about this many pixels a "
                             "texel (default: 1; 0 bakes them as upstream does)")
     stage.add_argument("--inpaint-reach", type=int,
-                       help="Paint in sections: fill the texels no view saw only within at least this many "
-                            "texels of each section's faces, wider where the views left deeper gaps "
-                            "(default: 32; 0 fills the whole sheet, as before)")
+                       help="Paint in sections or by parts: fill the texels no view saw only within at "
+                            "least this many texels of each section's or piece's faces, wider where the "
+                            "views left deeper gaps (default: 32; 0 fills the whole sheet, as before)")
     stage.add_argument("--separate-runs", action="store_true",
-                       help="Paint in sections: start the painter once for each section instead of once "
-                            "for them all")
+                       help="Paint in sections or by parts: start the painter once for each section or "
+                            "piece instead of once for them all")
     stage.add_argument("--vocab",
                        help="Label parts: the part vocabulary, a JSON file or a name under "
                             "profiles/segmentation (e.g. skiff-parts)")
@@ -423,6 +437,21 @@ def main(argv: list[str] | None = None) -> int:
                 write_json(args.output, payload)
             print_payload(payload)
             return 0 if payload["ok"] else 1
+        if args.command == "time-to-model":
+            folders: list[Path] = []
+            for folder in args.folders:
+                if not folder.is_dir():
+                    raise ValueError("There is no folder at {0}".format(folder))
+                folders += models_under(folder) if args.each else [folder]
+            summaries = [summarise_times(folder, args.pause_minutes * 60.0) for folder in folders]
+            payload = {"schema": "reference-asset-compiler.time-to-model-set.v1", "models": summaries}
+            if args.output:
+                write_json(args.output, payload)
+            if args.json:
+                print_payload(payload)
+            else:
+                print(render_times(summaries, detail=not args.brief), end="")
+            return 0
         if args.command == "cohort-audit":
             payload = audit_cohort(args.manifest, args.workspace_root)
             if args.output:
