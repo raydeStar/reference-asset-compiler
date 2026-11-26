@@ -384,7 +384,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "arguments": ("source", "output", "report"),
         "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "context",
                     "keep_colour", "keep_tone", "min_length", "max_sections", "min_free_vram",
-                    "reuse_sections", "bake_scale", "inpaint_reach", "separate_runs"),
+                    "reuse_sections", "bake_scale", "inpaint_reach", "separate_runs", "no_upscale"),
         # A section took about 2.5 minutes at 4096 and 3.5 at 8192, and the
         # finer cut paints up to 48: the hour every other stage gets killed the
         # skiff's pass at section 20 of 32. Four hours, as Framewright already
@@ -468,7 +468,7 @@ STAGES: dict[str, dict[str, Any]] = {
         "script": "scripts/paint_parts.py",
         "arguments": ("source", "output", "report"),
         "options": ("parts", "reference", "views", "resolution", "atlas", "together", "surface",
-                    "reuse_parts", "min_free_vram", "inpaint_reach", "separate_runs"),
+                    "reuse_parts", "min_free_vram", "inpaint_reach", "separate_runs", "no_upscale"),
         "timeout": 7200,
         "prepare": "paint-parts",
         "needs": ("paint-stack",),
@@ -1418,6 +1418,8 @@ def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, A
             arguments += [flag, str(options[name])]
     if options.get("separate_runs"):
         arguments.append("--separate-runs")
+    if options.get("no_upscale"):
+        arguments.append("--no-upscale")
     if options.get("reuse_sections") is not None:
         earlier = Path(options["reuse_sections"]).resolve()
         if not earlier.is_dir():
@@ -1578,6 +1580,8 @@ def prepare_paint_parts(options: dict[str, Any], legacy: Path) -> dict[str, Any]
             arguments += [flag, str(options[name])]
     if options.get("separate_runs"):
         arguments.append("--separate-runs")
+    if options.get("no_upscale"):
+        arguments.append("--no-upscale")
     if options.get("together") is not None:
         arguments += ["--together", *[str(name) for name in options["together"]]]
     if options.get("reuse_parts") is not None:

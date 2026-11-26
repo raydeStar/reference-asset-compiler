@@ -145,6 +145,10 @@ def parse_arguments(argv):
                         help="Fill the texels no view saw only within at least this many texels of each "
                              "section's faces (wider where the views left deeper gaps), the rest of its "
                              "sheet from the nearest paint; 0 fills the whole sheet")
+    parser.add_argument("--no-upscale", action="store_true",
+                        help="Skip the painter's 4x upscale of each view: every view is resized to the "
+                             "section's bake size anyway, and on the PR-02.3 counter it looked the same "
+                             "and saved about 10 s a section")
     parser.add_argument("--separate-runs", action="store_true",
                         help="Start the painter once for each section instead of once for them all")
     parser.add_argument("--plan-only", action="store_true",
@@ -848,6 +852,8 @@ def paint_section(args, mesh_obj, crop_png, paint_dir, bake_size=0):
         command += ["-BakeSize", str(int(bake_size))]
     if getattr(args, "inpaint_reach", 0) > 0:
         command += ["-InpaintReach", str(int(args.inpaint_reach))]
+    if getattr(args, "no_upscale", False):
+        command.append("-NoUpscale")
     painted = run_bounded(command, capture_output=True, text=True, errors="replace",
                              stdin=subprocess.DEVNULL, timeout=3000,
                              env={key: value for key, value in os.environ.items()
@@ -882,6 +888,8 @@ def paint_batch(args, jobs, attempt, minutes_each=10.0, on_progress=None):
         command += ["-MinimumFreeVramMiB", str(args.min_free_vram)]
     if args.inpaint_reach > 0:
         command += ["-InpaintReach", str(int(args.inpaint_reach))]
+    if getattr(args, "no_upscale", False):
+        command.append("-NoUpscale")
     limit = 600.0 + minutes_each * 60.0 * len(jobs)
     started = time.monotonic()
     reported = set()
@@ -980,7 +988,7 @@ def reusable_paint(previous, folder, args, bake_size=0):
     finished section by what the painter itself recorded it was given: the hash
     of the mesh and of the crop, and the views, resolution and atlas. A section
     planned differently, cut from a different crop or painted at other settings
-    has other hashes or other numbers and is painted again. The painter's exit
+    (the upscale among them) has other hashes or other numbers and is painted again. The painter's exit
     code is not consulted; its known teardown fault comes after it has written
     everything, which is why the gate, not the exit code, decides here too.
     """
@@ -994,7 +1002,8 @@ def reusable_paint(previous, folder, args, bake_size=0):
     same_inputs = (str(record.get("input_mesh_sha256", "")).lower() == sha256(folder / "section.obj")
                    and str(record.get("reference_sha256", "")).lower() == sha256(folder / "reference.png"))
     same_settings = (record.get("views"), record.get("resolution"), record.get("atlas"),
-                     int(record.get("bake_size") or 0)) == (args.views, args.resolution, args.atlas, int(bake_size))
+                     int(record.get("bake_size") or 0), bool(record.get("no_upscale"))) == (
+        args.views, args.resolution, args.atlas, int(bake_size), bool(getattr(args, "no_upscale", False)))
     if not (same_inputs and same_settings):
         return None
     try:
@@ -1063,7 +1072,8 @@ def main(argv=None) -> int:
                      "max_sections": args.max_sections, "views": args.views,
                      "resolution": args.resolution, "atlas": args.atlas,
                      "inpaint_reach": args.inpaint_reach,
-                     "painter_runs": "one per section" if args.separate_runs else "one for every section"},
+                     "painter_runs": "one per section" if args.separate_runs else "one for every section",
+                     "upscale": "none" if args.no_upscale else "4x RealESRGAN"},
         "geometry_unchanged": True,
         "uvs_unchanged": True,
         "requires_fixed_view_review": True,

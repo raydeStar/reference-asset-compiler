@@ -251,6 +251,9 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--separate-runs", action="store_true",
                        help="Paint in sections or by parts: start the painter once for each section or "
                             "piece instead of once for them all")
+    stage.add_argument("--no-upscale", action="store_true",
+                       help="Paint in sections or by parts: skip the painter's 4x upscale of each view "
+                            "(each is resized to its bake size anyway; about 10 s a section saved)")
     stage.add_argument("--vocab",
                        help="Label parts: the part vocabulary, a JSON file or a name under "
                             "profiles/segmentation (e.g. skiff-parts)")
@@ -532,6 +535,7 @@ def main(argv: list[str] | None = None) -> int:
                     "bake_scale": args.bake_scale,
                     "inpaint_reach": args.inpaint_reach,
                     "separate_runs": args.separate_runs or None,
+                    "no_upscale": args.no_upscale or None,
                     "reuse_sections": args.reuse_sections,
                     "keep_colour": args.keep_colour,
                     "keep_tone": args.keep_tone,

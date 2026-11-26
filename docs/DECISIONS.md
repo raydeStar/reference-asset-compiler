@@ -3585,3 +3585,24 @@ The owner swapped hard-surface geometry back to Hunyuan3D (it follows the pictur
 **Repeatable:** the first paint of the basket, run twice the same morning, gave byte-identical maps, also identical to Codex's paint of the night before. Start-up before the first job was 19 s with the model files cached, about 50 s cold.
 
 **What is left is the diffusion.** It takes 42-76 s a job (76-78 s on the whole basket), and the GPU is busy throughout. The levers left change the paint: fewer views, fewer or larger sections, skipping the 4x upscale. Each needs the owner's eye on an A/B.
+
+## 2026-11-26 · The section pass's own speed levers, A/B on the PR-02.3 counter
+
+The owner asked which speed levers that change the paint are worth it, with a fast version tuned for looks beside them. Every version started from the same first paint, parts paint and picture as the counter in review (12 views, 30 sections of 0.45 m, `--keep-colour 0.001`), changed only the section pass, and was finished the same way. They are revisions 2-7 of its Framewright card; revision 1, in review, stayed current. Times are the section pass on an otherwise idle machine:
+
+| Version | Sections | Time | Up close (fixed views, then three arm's-length close-ups and a full-resolution plank crop) |
+|---|---|---|---|
+| In review: 12 views, 0.45 m, 4x upscale | 30 | about 33-34 min today (C plus about 11 s a section) | the reference |
+| B: 8 views | 30 | 32.8 min, 62 s a section | the same as revision 1 |
+| C: no upscale | 30 | 27.7 min, 52 s a section | the same as revision 1, even in the full-resolution crop |
+| D: 0.6 m sections | 16 | 19.0 min, 65 s a section | faint false board lines on the planks, a spiral painted on the bolt heads |
+| F: 8 views, 0.6 m, upscale kept (fast, tuned) | 16 | 18.7 min, 64 s a section | as D |
+| E: 8 views, 0.6 m, no upscale | 16 | 15.8 min, 53 s a section | slightly softer, no false lines |
+| G: no sections (the parts paint, finished) | 0 | 0 | clean but plainer: the body is painted at 2.8 mm a pixel, against 0.9 with sections, and the fine cracks and grain are gone |
+
+- **Fewer views does not pay:** about 3 s a section.
+- **The upscale** costs about 11 s a section and, at a section's bake size (1,100-1,800 px, to which every view is resized anyway), showed nothing on this wood-and-bread piece. The owner chose `--no-upscale` for pieces like it, the upscale staying available for complex ones.
+- **Bigger sections** are the largest saving and the visible cost: the painter, given more of the counter in one view, paints board lines and bolt spirals of its own.
+- The owner, from the fixed views: "all versions look nearly identical to my eye."
+
+The whole-model first paint keeps its upscale: it bakes the views at the size the upscale leaves them, not at a bake size.

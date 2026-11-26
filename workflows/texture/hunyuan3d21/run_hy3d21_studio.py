@@ -155,6 +155,11 @@ parser.add_argument(
 parser.add_argument(
     "--min-free-gib", type=float, default=21.0,
     help="Refuse to launch below this much free VRAM. Never kills anything.")
+parser.add_argument("--no-upscale", action="store_true",
+                    help="Skip the 4x RealESRGAN upscale of each generated view; the views are resized "
+                         "straight to the bake size (--bake-size or a job's bake_size). For section and part "
+                         "passes, which shrink every view to the bake size anyway; a whole-model paint bakes "
+                         "from the upscaled views as they are and should keep it.")
 parser.add_argument("--maps-only", action="store_true",
                     help="Write the OBJ and its PNG maps, not the GLB. The GLB is the same maps packed by "
                          "Blender's exporter (metal-rough as 255, roughness, metallic); a caller that reads "
@@ -767,6 +772,11 @@ try:
     inpaint_while_baking(painter)
     current = {"bake_size": 0}
     bake_at_texel_scale(painter, lambda: current["bake_size"])
+    if args.no_upscale:
+        # The owner's A/B on the PR-02.3 counter (26 November): sections painted
+        # without it looked the same up close, and each took about 10 s less.
+        painter.models["super_model"] = lambda image: image
+        print("HY3D21_NO_UPSCALE", flush=True)
     rearm = release_between_stages(painter) if args.release_stages else None
     if args.smooth_conditioning_normals:
         painter.render.shader_type = 'vertex'
@@ -859,6 +869,7 @@ def paint(job, number):
             "seconds": round(time.monotonic() - started, 1),
             "seconds_painting": on_card,
             "finished_beside_next": write_later is not None,
+            "upscale": "none" if args.no_upscale else "4x RealESRGAN",
             "vram": vram,
         }
         report_path = output_obj.with_suffix(".validation.json")

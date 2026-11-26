@@ -342,6 +342,21 @@ class OnePainterRunTests(unittest.TestCase):
         self.assertEqual([job["bake_size"] for job in listed], [256, 257, 258])
         self.assertEqual(Path(listed[1]["output_obj"]), self.root / "section-01" / "paint" / "section.obj")
 
+    def test_the_painter_run_is_told_to_skip_the_upscale_only_when_asked(self):
+        paint_sections.paint_batch(self.args, self.jobs, self.root)
+        self.assertNotIn("-NoUpscale", FakePainter.calls[-1])
+        self.args.no_upscale = True
+        paint_sections.paint_batch(self.args, self.jobs, self.root)
+        self.assertIn("-NoUpscale", FakePainter.calls[-1])
+
+    def test_the_studio_painter_can_skip_the_upscale(self):
+        source = (ROOT / "workflows" / "texture" / "hunyuan3d21" / "run_hy3d21_studio.py").read_text(encoding="utf-8")
+        self.assertIn('parser.add_argument("--no-upscale"', source)
+        self.assertIn('painter.models["super_model"] = lambda image: image', source)
+        launcher = (ROOT / "scripts" / "run_hy3d21_texture.ps1").read_text(encoding="utf-8")
+        self.assertIn("if ($NoUpscale) { $runnerArgs += '--no-upscale' }", launcher)
+        self.assertIn("no_upscale = [bool]$NoUpscale", launcher)
+
     def test_a_section_the_painter_failed_says_why(self):
         paint_sections.paint_batch(self.args, self.jobs, self.root)
         self.assertIn("CUDA out of memory", paint_sections.why_unpainted(self.jobs[2][2], self.root))
