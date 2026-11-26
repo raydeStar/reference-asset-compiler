@@ -3518,3 +3518,21 @@ Per-corner weights faded half of a big flat triangle from one grazing corner. Te
 **Occlusion is back on the Pixal route.** The entry that took it off blamed the occlusion bake. The cause was the overlapping UV layout, fixed in `uv-unwrap`. The stair re-baked on the fixed layout with occlusion shows no triangles, and the owner passed it.
 
 **Measured:** the stage on the rebuilt landing ran in 39 s (0.8 M rays). Its result matches the owner-passed prototype within 0.26/255 on average in the elevated view.
+
+## 2026-11-25 · Sections paint in one painter run, fill only near their faces, and are laid only where they weigh
+
+At hero quality a model went from about 10 minutes to about 2 hours. The WK-04.1 stair took 128 minutes; 114 of them were its 33 sections, and the owner asked for the speed back without losing what he had passed. Measured from the stair's GPU trace and its section receipts:
+
+- **Each section, about 3.5 minutes (210 s) at 8192:**
+  - 13 s starting PowerShell and Python;
+  - 12 s loading the models;
+  - 58 s on the GPU, painting the views and upscaling them;
+  - about 90 s with the GPU idle, while OpenCV filled every texel of the 8192 sheet that no view saw, on one core per map;
+  - about 25 s writing the maps and the GLB, then the painter's teardown.
+- **The section only uses its own faces.** A half-metre section is a few percent of an 8192 sheet, and the composite reads only its faces' texels and 2 texels round them. On a test sheet the whole-sheet fill took 147 s a map; filling near the faces alone took 5 s.
+- **The composite, 14.5 minutes after the last section.** For every section and both maps it blurred the whole 8192 sheet (25-30 s each) to take the tone from the first paint, though the section weighs on about 2 % of it.
+
+**What changed, none of it in what the painter paints:**
+- `run_hy3d21_studio.py --inpaint-reach N` fills unseen texels with upstream's OpenCV fill only within N texels of the mesh's own texels. The rest of the sheet first takes the nearest paint by a pull-push fill (`sheet_fill.py`, hash-pinned like the normal helper), so the band OpenCV fills is edged with paint and not with the empty sheet's black. On a test sheet, 99.9 % of the texels the composite reads were identical to the whole-sheet fill and none differed by more than 11/255. `paint-sections` passes 8.
+- `run_hy3d21_studio.py --jobs` paints a list of meshes in one process. The painter seeds every run itself (seed 0, a fresh generator), and before each job after the first the diffusion and DINO go back on the card as the first job found them, so each job's maps are those a process of its own would paint. Each job gets its own execution receipt and validation report from `run_hy3d21_texture.ps1 -Jobs`; a job that fails is recorded beside its output and the next goes on. `paint-sections` paints every section in one run; `--separate-runs` keeps one run a section.
+- `composite` sums only where a section weighs and blurs only round those texels (`masked_blur_at`): tile by tile with the Gaussian's full reach for a full-size blur, and read back from the shrunk sheet by the interpolation that grows it otherwise. On random sheets every mode gives the whole-sheet numbers within 0.0002 of 255.

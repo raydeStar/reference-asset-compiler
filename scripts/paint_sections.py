@@ -476,13 +476,19 @@ def smooth_weights(sheet, triangles, vertex_weights, painted_faces):
     paint weighs nothing, whatever its corners say.
     """
     size = sheet["size"]
-    corners = triangles[sheet["faces"]]
-    values = (vertex_weights[corners] * sheet["bary"]).sum(axis=1)
-    values *= painted_faces[sheet["faces"]]
+    # Only the texels of the section's own faces: on an 8192 sheet the rest are
+    # most of it, and their weight is nothing whatever their corners say.
+    painted = np.asarray(painted_faces)[sheet["faces"]]
+    if painted.dtype != bool:
+        painted = painted != 0
+    faces = sheet["faces"][painted]
+    corners = triangles[faces]
+    values = (vertex_weights[corners] * sheet["bary"][painted]).sum(axis=1)
+    rows, columns = sheet["rows"][painted], sheet["columns"][painted]
     weights = np.zeros((size, size), dtype=np.float32)
-    weights[sheet["rows"], sheet["columns"]] = values
+    weights[rows, columns] = values
     mask = np.zeros((size, size), dtype=bool)
-    mask[sheet["rows"], sheet["columns"]] = painted_faces[sheet["faces"]]
+    mask[rows, columns] = True
     return weights, mask
 
 
@@ -1115,6 +1121,8 @@ def main(argv=None) -> int:
     harmonize_sections = not args.no_harmonize and args.keep_colour == 0
     albedo_layers, mr_layers = [], []
     sheet = face_sheet(uvs, triangles, size)
+    timings = {}
+    clock = time.monotonic()
     pending = []
     for record in sections:
         folder = Path(record["folder"])
@@ -1150,6 +1158,8 @@ def main(argv=None) -> int:
                           "delivered. The sections it finished are kept: pass --reuse-sections {1} to paint "
                           "only the rest".format(problem.timeout / 60.0, attempt))
         exit_codes = {record["number"]: exit_code for record in pending}
+    timings["painting"] = round(time.monotonic() - clock, 1)
+    clock = time.monotonic()
 
     for record, cell in zip(sections, plan["cells"]):
         folder = Path(record["folder"])
@@ -1174,6 +1184,8 @@ def main(argv=None) -> int:
             mr_layers.append((as_pixels(Image.open(io.BytesIO(
                 image_bytes(section_document, section_binary, section_mr))), size), weights, mask))
 
+    timings["reading_sections"] = round(time.monotonic() - clock, 1)
+    clock = time.monotonic()
     albedo_gains, albedo_pairs = (None, [])
     if harmonize_sections:
         albedo_gains, albedo_pairs = harmonize(albedo_layers)
@@ -1191,9 +1203,13 @@ def main(argv=None) -> int:
             record["colour_gain"] = [round(float(g), 4) for g in albedo_gains[number]]
         if mr_gains is not None:
             record["metal_rough_gain"] = [round(float(g), 4) for g in mr_gains[number]]
+    timings["composite"] = round(time.monotonic() - clock, 1)
+    clock = time.monotonic()
     document, rebuilt = swap_images(document, binary, replacements)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(write_glb(document, rebuilt))
+    timings["writing"] = round(time.monotonic() - clock, 1)
+    report["seconds_by_step"] = timings
     report["reused_sections"] = sum(1 for record in sections if "reused_from" in record)
     report["composite"] = {
         "atlas_size": size,

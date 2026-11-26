@@ -383,10 +383,11 @@ STAGES: dict[str, dict[str, Any]] = {
         "arguments": ("source", "output", "report"),
         "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "context",
                     "keep_colour", "keep_tone", "min_length", "max_sections", "min_free_vram",
-                    "reuse_sections", "bake_scale"),
-        # A section is one painter run of about 2.5 minutes, and the finer cut
-        # paints up to 48: the hour every other stage gets killed the skiff's
-        # pass at section 20 of 32. Four hours, as Framewright already passes.
+                    "reuse_sections", "bake_scale", "inpaint_reach", "separate_runs"),
+        # A section took about 2.5 minutes at 4096 and 3.5 at 8192, and the
+        # finer cut paints up to 48: the hour every other stage gets killed the
+        # skiff's pass at section 20 of 32. Four hours, as Framewright already
+        # passes. One painter run with the near-mesh fill is about a minute a section.
         "timeout": 14400,
         "prepare": "paint-sections",
         "needs": ("paint-stack",),
@@ -1401,9 +1402,11 @@ def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, A
                        ("--keep-colour", "keep_colour"),
                        ("--keep-tone", "keep_tone"),
                        ("--min-length", "min_length"), ("--max-sections", "max_sections"),
-                       ("--min-free-vram", "min_free_vram")):
+                       ("--min-free-vram", "min_free_vram"), ("--inpaint-reach", "inpaint_reach")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
+    if options.get("separate_runs"):
+        arguments.append("--separate-runs")
     if options.get("reuse_sections") is not None:
         earlier = Path(options["reuse_sections"]).resolve()
         if not earlier.is_dir():

@@ -263,6 +263,37 @@ class OnePainterRunTests(unittest.TestCase):
         self.assertEqual(self.killed, [4321])
 
 
+class StageOptionTests(unittest.TestCase):
+    def setUp(self):
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from test_texture_stage import paint_stack  # noqa: PLC0415
+        self.root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
+        self.legacy = paint_stack(self.root / "studio")
+        self.reference = self.root / "reference.png"
+        self.reference.write_bytes(b"png")
+
+    def test_by_default_the_pass_is_left_its_own_reach_and_one_painter_run(self):
+        from reference_asset_compiler.stages import prepare_paint_sections  # noqa: PLC0415
+        arguments = prepare_paint_sections({"reference": self.reference}, self.legacy)["arguments"]
+        self.assertNotIn("--inpaint-reach", arguments)
+        self.assertNotIn("--separate-runs", arguments)
+        self.assertEqual(paint_sections.parse_arguments(["a.glb", "b.glb", "c.json", "--reference", "r.png"])
+                         .inpaint_reach, 8)
+
+    def test_the_whole_sheet_fill_and_a_run_per_section_can_still_be_asked_for(self):
+        from reference_asset_compiler import cli  # noqa: PLC0415
+        from reference_asset_compiler.stages import prepare_paint_sections  # noqa: PLC0415
+        args = cli.build_parser().parse_args([
+            "run-stage", "paint-sections", "--source", "painted.glb", "--output", "s.glb", "--report", "s.json",
+            "--reference", str(self.reference), "--inpaint-reach", "0", "--separate-runs"])
+        self.assertEqual((args.inpaint_reach, args.separate_runs), (0, True))
+        arguments = prepare_paint_sections({"reference": self.reference, "inpaint_reach": 0, "separate_runs": True},
+                                           self.legacy)["arguments"]
+        self.assertEqual(arguments[arguments.index("--inpaint-reach") + 1], "0")
+        self.assertIn("--separate-runs", arguments)
+
+
 class PainterPinTests(unittest.TestCase):
     def test_the_launcher_pins_the_sheet_fill_helper_as_it_is(self):
         actual = hashlib.sha256(HELPER.read_bytes()).hexdigest().upper()
