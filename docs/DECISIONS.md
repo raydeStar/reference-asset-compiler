@@ -3544,3 +3544,25 @@ At hero quality a model went from about 10 minutes to about 2 hours. The WK-04.1
 **Measured on the stair's first three sections (8192, 12 views at 768):** 99-132 s a section in one run, against 140-197 s each before; reading 33 sections took 1.7 minutes and the composite 4.5, against 14.5 for the composite alone. That puts the stair's section pass near 75 minutes instead of 114, and the model near 90 instead of 128.
 
 **Where the time still goes:** each section has about 45 s of diffusion and 13 s of upscaling on the GPU, then about 50 s with the GPU idle: the fill, writing the maps, and the next section's setup. Running that tail beside the next section's diffusion is the next step. Skipping the 4x upscale, which a texel-scale bake shrinks straight back, would save 13 s more, but it changes the paint and needs the owner's eye.
+
+## 2026-11-26 · A section's maps are finished while the next one paints, and sections are laid as they come
+
+The owner asked for more speed after the one-run section pass (above). Before building, each step of a section was timed on the WK-04.1 stair's first three sections, on an otherwise idle machine:
+
+- **On the card:** diffusion 42-63 s, the 4x upscale 10-13 s, the two bakes about 4 s.
+- **The tail after the bakes, about 12 s with the card idle:** waiting for the metal-rough fill (the colour fill runs beside it, 8.5-9 s each), setting the maps (1.3 s) and writing them (2.4 s).
+- **The next section's setup, about 3 s:** putting the diffusion back on the card (1.1-1.3 s), choosing views (0.8 s), rendering normals and positions (0.7 s).
+- The "about 50 s idle" in the previous entry came from a once-a-second GPU trace and counted short gaps inside the upscale; only the 12 s tail could move.
+
+**A busy CPU costs more than any of that.** The same three sections took 82, 69 and 97 s on an idle machine, through the launcher or run straight, and 99-144 s in four earlier runs of the same code, at least one of which shared the CPU with Codex's composite (the CPU was not traced then; on the idle runs it averaged 7 %). The 99-132 s a section quoted in the previous entry was measured on a busy machine. Nothing CPU-heavy should run beside painting.
+
+**What changed, none of it in what the painter paints:**
+- `run_hy3d21_studio.py` (patch 4d): with `--jobs` and `--maps-only`, everything a job's tail reads (the baked sheets, their masks, the mesh's texels and the mesh itself) is copied off the card and out of the renderer when it is baked. Upstream's own fill, texture-setting and save functions then run on those copies on a thread while the next job paints. At most one job is finishing at a time. Its report is written after its maps, whole (written to a temporary name and renamed), and gives its time on the card as `seconds_painting`. Single-mesh runs are unchanged.
+- `paint_sections.py`: each section's place on the sheet comes from the geometry alone, so it is planned on a thread while the painter loads its models. The first paint's tone under every section is blurred then too. `Stitch` lays each section as soon as its report appears, in section order, with the sums `composite` takes (`composite` is now `Stitch` laid all at once), and lets each section's paint go once laid. Harmonising neighbours (`--keep-colour 0`) reads every section first, so it lays them at the end as before.
+
+**Measured:**
+- **Three sections (8192, 12 views at 768):** the maps, OBJ and MTL are byte-identical to main's. Each section spent 9-13 s less on the card (69, 60 and 88 s), and the batch took 249 s instead of 267.
+- **The whole stair, end to end, on the passed first paint and settings:** 42 minutes instead of 114 (2,525 s against 6,817), with the CPU at 7 % on average. All 33 sections were laid while the painter ran, leaving 26 s of stitching after the last one, where reading and compositing had taken about 6 minutes. Sections spent 60-100 s each on the card, 74 s on average.
+- **Against the stair the owner passed:** this was the first time all 33 sections were painted with the near-mesh fill. Colour moved on 1.6 % of texels, almost all by 4/255 or less (0.0013 % by more than 8, at most 15). Metal-rough moved on 6 % (0.11 % by more than 8, 0.0065 % by more than 16, at most 41). A copy of the stair coloured where it moved was rendered in the four fixed views and, unlit, from below and both low sides. Its marks covered 0-11 pixels of the fixed views and none from below: the texels that moved lie on faces no outside view reaches, or in the atlas padding. The passed and new stairs look the same from every one of those views.
+
+**Next, if more is wanted:** the diffusion itself (42-63 s, varying between sections for reasons not yet found) and the 4x upscale (10-13 s) are what is left. Skipping the upscale changes the paint and needs the owner's eye.

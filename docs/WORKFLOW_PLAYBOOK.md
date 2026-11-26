@@ -437,6 +437,12 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   the painter failed is recorded beside its maps and the others are kept:
   rerun with `--reuse-sections <attempt>`. `--separate-runs` starts one painter
   run a section, as before.
+- While the painter paints the next section, it finishes the last one's maps
+  on a thread, and the pass lays each finished section over the first paint.
+  The receipt's `sections_laid_while_painting` says how many were laid before
+  the painter stopped; each section's `section.validation.json` gives its time
+  on the card as `seconds_painting`. Paint with the CPU otherwise idle: a busy
+  CPU (another model's bakes or composite) made each section about 35 s slower.
 - Each section fills the texels no view saw only near its own faces
   (`--inpaint-reach 32`, widened to twice the deepest gap the views left). The
   whole-sheet fill (`--inpaint-reach 0`) took most of each section's time at

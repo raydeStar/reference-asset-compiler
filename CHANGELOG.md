@@ -5,6 +5,18 @@ and any attached wheel.
 
 ## Unreleased
 
+`paint-sections` keeps the card busier and lays sections as they come. The
+painter finishes each section's maps (the fills, their conversion and the PNGs)
+on a thread while the next section paints, and the pass lays each section over
+the first paint as soon as it is written, so little is left once the last one is
+painted. The maps are byte for byte the same. The WK-04.1 stair's section pass
+took 42 minutes instead of 114, with 26 s left after the last section where
+reading and compositing took about 6 minutes; against the stair the owner
+passed, the texels that moved lie only on faces no outside view reaches. A
+section is about 35 s slower whenever the CPU is busy with other work, such as
+another model's bakes or composite, so nothing CPU-heavy should run beside
+painting.
+
 `paint-sections` is faster and paints the same. One painter run paints every
 section with its models loaded once and writes only the maps; each section's
 unseen texels are filled near its own faces instead of across the whole 8192
