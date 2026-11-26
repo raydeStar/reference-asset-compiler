@@ -284,6 +284,7 @@ class OnePainterRunTests(unittest.TestCase):
         command = FakePainter.calls[0]
         self.assertEqual(command[command.index("-InpaintReach") + 1], "32")
         self.assertEqual(command[command.index("-Atlas") + 1], "8192")
+        self.assertIn("-MapsOnly", command)
         listed = json.loads((self.root / "paint-jobs.json").read_text(encoding="utf-8"))
         self.assertEqual([job["bake_size"] for job in listed], [256, 257, 258])
         self.assertEqual(Path(listed[1]["output_obj"]), self.root / "section-01" / "paint" / "section.obj")
@@ -338,6 +339,37 @@ class StageOptionTests(unittest.TestCase):
         self.assertIn("--separate-runs", arguments)
 
 
+class MapsOnlyTests(unittest.TestCase):
+    def test_a_section_painted_maps_only_reads_as_its_glb_would(self):
+        from PIL import Image  # noqa: PLC0415
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        rng = np.random.default_rng(2)
+        colour = rng.integers(0, 255, (16, 16, 3)).astype(np.uint8)
+        metallic = rng.integers(0, 255, (16, 16)).astype(np.uint8)
+        roughness = rng.integers(0, 255, (16, 16)).astype(np.uint8)
+        Image.fromarray(colour, "RGB").save(root / "section.png")
+        Image.fromarray(metallic, "L").save(root / "section_metallic.png")
+        Image.fromarray(roughness, "L").save(root / "section_roughness.png")
+        (root / "section.validation.json").write_text(json.dumps(
+            {"faces_equal": True, "geometry_delta": 0.0, "uv_delta": 0.0}), encoding="utf-8")
+        glb, _ = paint_sections.read_paint(root)
+        self.assertIsNone(glb)
+        albedo, mr = paint_sections.section_maps(root, glb)
+        np.testing.assert_array_equal(np.asarray(albedo.convert("RGB")), colour)
+        packed = np.asarray(mr)
+        np.testing.assert_array_equal(packed[..., 0], 255)
+        np.testing.assert_array_equal(packed[..., 1], roughness)
+        np.testing.assert_array_equal(packed[..., 2], metallic)
+
+    def test_without_its_maps_or_a_glb_a_section_is_not_painted(self):
+        root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, root, ignore_errors=True)
+        (root / "section.validation.json").write_text("{}", encoding="utf-8")
+        with self.assertRaises(RuntimeError):
+            paint_sections.read_paint(root)
+
+
 class PainterPinTests(unittest.TestCase):
     def test_the_launcher_pins_the_sheet_fill_helper_as_it_is(self):
         actual = hashlib.sha256(HELPER.read_bytes()).hexdigest().upper()
@@ -347,11 +379,11 @@ class PainterPinTests(unittest.TestCase):
 
     def test_the_studio_painter_paints_a_batch_and_fills_near_the_mesh(self):
         source = (ROOT / "workflows" / "texture" / "hunyuan3d21" / "run_hy3d21_studio.py").read_text(encoding="utf-8")
-        for needle in ('"--jobs"', '"--inpaint-reach"', "from sheet_fill import inpaint_near", "def rearm",
+        for needle in ('"--jobs"', '"--inpaint-reach"', '"--maps-only"', "from sheet_fill import inpaint_near", "def rearm",
                        "trimesh.geometry.mean_vertex_normals = _original_mean_vertex_normals"):
             self.assertIn(needle, source)
         launcher = (ROOT / "scripts" / "run_hy3d21_texture.ps1").read_text(encoding="utf-8")
-        for needle in ("[string] $Jobs", "$InpaintReach", "'--jobs'", "'--inpaint-reach'"):
+        for needle in ("[string] $Jobs", "$InpaintReach", "'--jobs'", "'--inpaint-reach'", "'--maps-only'"):
             self.assertIn(needle, launcher)
 
 

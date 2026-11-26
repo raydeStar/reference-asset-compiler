@@ -34,6 +34,9 @@ param(
     # four-view renders identical and made it the default. This switch restores
     # the resident behaviour, e.g. to reproduce an attempt painted before it.
     [switch] $KeepStagesResident,
+    # Studio only: write the OBJ and its PNG maps, not the GLB (the same maps
+    # packed by Blender's exporter). The gate then asks for the maps.
+    [switch] $MapsOnly,
     [string] $DiagnosticsDir,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D-Paint runner, upstream checkout and models.' }),
     # 0 selects the measured floor: 21504 resident, 10752 released (a 12 GB
@@ -55,7 +58,7 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
 }
 $expectedRunnerHash = 'B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B'
-$expectedStudioRunnerHash = '0F37D12025874861F340B94F7129653E731D0952A35CD1D882A18A39C6F3742C'
+$expectedStudioRunnerHash = 'CF7F2FCE86F45108DEBAC8E3B2EC3AB901E3B264328D8A3801F09FC5C44ECCB2'
 $python = Join-Path $LegacyRoot '.venv-hy3d21\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d21_pbr.py'
 if ($RunnerKind -eq 'studio') {
@@ -77,6 +80,9 @@ if ($SmoothConditioningNormals -and $RunnerKind -ne 'studio') {
 }
 if ($InpaintReach -gt 0 -and $RunnerKind -ne 'studio') {
     throw 'InpaintReach requires RunnerKind studio.'
+}
+if ($MapsOnly -and $RunnerKind -ne 'studio') {
+    throw 'MapsOnly requires RunnerKind studio.'
 }
 if ($Jobs) {
     if ($RunnerKind -ne 'studio') {
@@ -189,6 +195,7 @@ if ($RunnerKind -eq 'studio') {
     if ($releaseStages) { $runnerArgs += '--release-stages' }
     if (-not $Jobs -and $BakeSize -gt 0) { $runnerArgs += @('--bake-size', $BakeSize) }
     if ($InpaintReach -gt 0) { $runnerArgs += @('--inpaint-reach', $InpaintReach) }
+    if ($MapsOnly) { $runnerArgs += '--maps-only' }
     # The runner rechecks the same floor after CUDA initialises.
     $runnerArgs += @('--min-free-gib', ([double]$MinimumFreeVramMiB / 1024).ToString([Globalization.CultureInfo]::InvariantCulture))
 }
@@ -264,7 +271,14 @@ function Test-PaintGate {
     if (-not $gate.faces_equal -or [double]$gate.geometry_delta -gt 0.000001 -or [double]$gate.uv_delta -gt 0.000001) {
         return "Hunyuan3D-Paint topology/UV gate failed: $report"
     }
-    if (-not (Test-Path -LiteralPath ([System.IO.Path]::ChangeExtension($Job.output_obj, '.glb')) -PathType Leaf)) {
+    if ($MapsOnly) {
+        $stem = [System.IO.Path]::ChangeExtension($Job.output_obj, $null).TrimEnd('.')
+        foreach ($suffix in @('.png', '_metallic.png', '_roughness.png')) {
+            if (-not (Test-Path -LiteralPath ($stem + $suffix) -PathType Leaf)) {
+                return "Hunyuan3D-Paint validation passed but the map $($stem + $suffix) is missing"
+            }
+        }
+    } elseif (-not (Test-Path -LiteralPath ([System.IO.Path]::ChangeExtension($Job.output_obj, '.glb')) -PathType Leaf)) {
         return 'Hunyuan3D-Paint validation passed but the expected GLB is missing'
     }
     return $null

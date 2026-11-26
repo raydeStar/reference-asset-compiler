@@ -79,6 +79,9 @@ rather than editing them in place:
      job's maps are those a process of its own would paint. Each job writes its
      own validation report; a job that fails is recorded and the next goes on.
 
+ 12. With --maps-only, the GLB is not written: it is the same maps packed by
+     Blender's exporter, which the section pass can read as they are.
+
 The UV lock, the local model snapshots, the validation gate and its 1e-6
 tolerances match the legacy runner exactly, because those parts were right.
 
@@ -143,6 +146,10 @@ parser.add_argument(
 parser.add_argument(
     "--min-free-gib", type=float, default=21.0,
     help="Refuse to launch below this much free VRAM. Never kills anything.")
+parser.add_argument("--maps-only", action="store_true",
+                    help="Write the OBJ and its PNG maps, not the GLB. The GLB is the same maps packed by "
+                         "Blender's exporter (metal-rough as 255, roughness, metallic); a caller that reads "
+                         "the maps saves that export, about 12 s a job at 8192.")
 parser.add_argument("--release-stages", action="store_true",
                     help="Move diffusion weights off the GPU before the upscale and bake.")
 args = parser.parse_args()
@@ -698,7 +705,7 @@ def paint(job, number):
             image_path=str(reference_path),
             output_mesh_path=str(output_obj),
             use_remesh=False,
-            save_glb=True,
+            save_glb=not args.maps_only,
         )
     finally:
         os.chdir(previous_cwd)
@@ -722,7 +729,7 @@ def paint(job, number):
         "source_mesh": str(mesh_path),
         "reference": str(reference_path),
         "output_obj": str(output_obj),
-        "output_glb": str(output_obj.with_suffix(".glb")),
+        "output_glb": None if args.maps_only else str(output_obj.with_suffix(".glb")),
         "vertices": int(len(source_vertices)),
         "triangles": int(len(source_faces)),
         "painted_vertices": int(len(painted_vertices)),

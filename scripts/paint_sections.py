@@ -833,7 +833,7 @@ def paint_batch(args, jobs, attempt, minutes_each=10.0):
         POWERSHELL, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
         "-File", str(args.launcher), "-Jobs", str(jobs_file), "-LegacyRoot", str(args.legacy_root),
         "-Views", str(args.views), "-Resolution", str(args.resolution),
-        "-RunnerKind", "studio", "-Atlas", str(args.atlas),
+        "-RunnerKind", "studio", "-Atlas", str(args.atlas), "-MapsOnly",
     ]
     if args.min_free_vram > 0:
         command += ["-MinimumFreeVramMiB", str(args.min_free_vram)]
@@ -885,16 +885,44 @@ def why_unpainted(paint_dir, attempt):
     return ""
 
 
+MAPS = ("section.png", "section_metallic.png", "section_roughness.png")
+
+
 def read_paint(paint_dir, why_missing=""):
-    """A painted section and the painter's own gate, refused if it moved anything."""
+    """A painted section and the painter's own gate, refused if it moved anything.
+
+    Returns its GLB, or None when the painter wrote only its maps (--maps-only).
+    """
     glb = paint_dir / "section.glb"
     validation = paint_dir / "section.validation.json"
-    if not glb.is_file() or not validation.is_file():
+    painted = glb.is_file() or all((paint_dir / name).is_file() for name in MAPS)
+    if not painted or not validation.is_file():
         raise RuntimeError("the painter produced nothing: {0}".format(why_missing))
     gate = json.loads(validation.read_text(encoding="utf-8-sig"))
     if not gate.get("faces_equal") or gate.get("geometry_delta", 1) > 1e-6 or gate.get("uv_delta", 1) > 1e-6:
         raise RuntimeError("the painter moved the section: {0}".format(json.dumps(gate, sort_keys=True)))
-    return glb, gate
+    return (glb if glb.is_file() else None), gate
+
+
+def section_maps(paint_dir, glb):
+    """A section's base colour and metal-rough images, from its GLB or from the maps it was packed from.
+
+    Blender's exporter packs the painter's maps into the GLB unchanged: the base
+    colour is section.png, and metal-rough is 255, roughness and metallic in
+    red, green and blue. Read from the maps, they are those same bytes.
+    """
+    if glb is not None:
+        document, binary = read_glb(glb.read_bytes())
+        pbr = document["materials"][0].get("pbrMetallicRoughness", {})
+        albedo_index = texture_image(document, pbr.get("baseColorTexture"))
+        mr_index = texture_image(document, pbr.get("metallicRoughnessTexture"))
+        albedo = Image.open(io.BytesIO(image_bytes(document, binary, albedo_index)))
+        mr = None if mr_index is None else Image.open(io.BytesIO(image_bytes(document, binary, mr_index)))
+        return albedo, mr
+    albedo = Image.open(paint_dir / MAPS[0])
+    metallic = np.asarray(Image.open(paint_dir / MAPS[1]).convert("L"))
+    roughness = np.asarray(Image.open(paint_dir / MAPS[2]).convert("L"))
+    return albedo, Image.fromarray(np.stack([np.full_like(roughness, 255), roughness, metallic], axis=2), "RGB")
 
 
 def reusable_paint(previous, folder, args, bake_size=0):
@@ -1174,16 +1202,11 @@ def main(argv=None) -> int:
         record["launcher_exit_code"] = exit_codes.get(record["number"])
         if "seconds" in gate:
             record["painter_seconds"] = gate["seconds"]
-        section_document, section_binary = read_glb(glb.read_bytes())
-        section_pbr = section_document["materials"][0].get("pbrMetallicRoughness", {})
         weights, mask = smooth_weights(sheet, triangles, cell["vertex_weights"], cell["faces"])
-        section_albedo = texture_image(section_document, section_pbr.get("baseColorTexture"))
-        albedo_layers.append((as_pixels(Image.open(io.BytesIO(
-            image_bytes(section_document, section_binary, section_albedo))), size), weights, mask))
-        section_mr = texture_image(section_document, section_pbr.get("metallicRoughnessTexture"))
+        section_albedo, section_mr = section_maps(folder / "paint", glb)
+        albedo_layers.append((as_pixels(section_albedo, size), weights, mask))
         if base_mr is not None and section_mr is not None:
-            mr_layers.append((as_pixels(Image.open(io.BytesIO(
-                image_bytes(section_document, section_binary, section_mr))), size), weights, mask))
+            mr_layers.append((as_pixels(section_mr, size), weights, mask))
 
     timings["reading_sections"] = round(time.monotonic() - clock, 1)
     clock = time.monotonic()
