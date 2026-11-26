@@ -75,7 +75,7 @@ class SheetFillTests(unittest.TestCase):
     def test_near_the_mesh_it_is_upstreams_fill(self):
         import cv2  # noqa: PLC0415
         whole = cv2.inpaint(self.painted, 255 - self.mask, 3, cv2.INPAINT_NS)
-        reach, _ = SHEET_FILL.reach_for(self.mask, self.footprint, 32)
+        reach, _, _ = SHEET_FILL.reach_for(self.mask, self.footprint, 32)
         near, count = SHEET_FILL.inpaint_near(self.painted, self.mask, self.footprint, reach)
         read = cv2.dilate(self.footprint.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
         np.testing.assert_array_equal(near[read], whole[read])
@@ -102,10 +102,29 @@ class SheetFillTests(unittest.TestCase):
         read = cv2.dilate(footprint.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
         narrow, _ = SHEET_FILL.inpaint_near(painted, mask, footprint, 8)
         self.assertFalse(np.array_equal(narrow[read], whole[read]))
-        reach, deepest = SHEET_FILL.reach_for(mask, footprint, 8)
+        reach, deepest, _ = SHEET_FILL.reach_for(mask, footprint, 8)
         self.assertEqual(reach, int(min(max(8, 2 * deepest + 16), 256)))
         wide, _ = SHEET_FILL.inpaint_near(painted, mask, footprint, reach)
         np.testing.assert_array_equal(wide[read], whole[read])
+
+    def test_a_face_no_view_saw_does_not_widen_the_band_and_the_rest_stays_exact(self):
+        import cv2  # noqa: PLC0415
+        footprint = self.footprint.copy()
+        far = np.zeros_like(footprint)
+        far[480:500, 480:510] = True                 # an island no view saw, far from the paint
+        footprint |= far
+        mask = self.mask.copy()
+        mask[far] = 0
+        painted = self.image * (mask[..., None] > 0)
+        reach, deepest, unseen = SHEET_FILL.reach_for(mask, footprint, 32, local=16)
+        self.assertLess(reach, 256)
+        self.assertGreater(unseen, 0)
+        whole = cv2.inpaint(painted, 255 - mask, 3, cv2.INPAINT_NS)
+        near, _ = SHEET_FILL.inpaint_near(painted, mask, footprint, reach)
+        read = cv2.dilate(footprint.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+        gap = cv2.distanceTransform((mask != 255).astype(np.uint8), cv2.DIST_L2, 5)
+        close = read & (gap <= 16)
+        np.testing.assert_array_equal(near[close], whole[close])
 
     def test_unseen_texels_are_never_filled_from_the_empty_sheets_black(self):
         near, _ = SHEET_FILL.inpaint_near(self.painted, self.mask, self.footprint, 8)

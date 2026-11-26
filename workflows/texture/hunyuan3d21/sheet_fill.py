@@ -58,7 +58,7 @@ def fill_from_coarser(image, known):
     return out[..., 0] if flat else out
 
 
-def reach_for(mask, footprint, floor, ceiling=256, grow=2):
+def reach_for(mask, footprint, floor, ceiling=256, grow=2, local=64):
     """How far round the mesh the fill must reach to fill the mesh's texels as the whole-sheet fill does.
 
     OpenCV's fill marches inward from the painted texels, each texel taken from
@@ -67,16 +67,24 @@ def reach_for(mask, footprint, floor, ceiling=256, grow=2):
     edge must lie further off than that, or the march starts from there instead.
     Measured on sheets with rims and patches of every size: twice the deepest
     gap in the mesh's texels (and the 2 texels round them the section pass
-    reads), plus 16, fills them exactly as the whole sheet does. A face no view
-    saw at all is filled from whatever paint is nearest either way; the ceiling
-    bounds the band there.
+    reads), plus 16, fills them exactly as the whole sheet does.
+
+    A face no view saw at all lies far from any paint: on the WK-04.1 stair's
+    sections, 1,000 to 3,200 texels. The whole-sheet fill colours it from
+    whatever paint its march reaches first, so no band short of the sheet
+    repeats it, and nothing about it is the picture's. Gaps deeper than `local`
+    texels are those faces, and do not widen the band. With them laid into the
+    stair, its finished maps moved by at most 2/255 (colour) and 9/255
+    (metal-rough), on 0.05 % of texels. Returns (reach, deepest gap counted,
+    texels in faces no view saw).
     """
     import cv2  # noqa: PLC0415
 
     near = cv2.dilate(np.asarray(footprint, dtype=np.uint8), np.ones((2 * grow + 1, 2 * grow + 1), np.uint8)) > 0
-    gap = cv2.distanceTransform((np.asarray(mask) != 255).astype(np.uint8), cv2.DIST_L2, 5)
-    deepest = float(gap[near].max()) if near.any() else 0.0
-    return int(min(max(floor, 2.0 * deepest + 16.0), ceiling)), deepest
+    gap = cv2.distanceTransform((np.asarray(mask) != 255).astype(np.uint8), cv2.DIST_L2, 5)[near]
+    unseen = gap > local
+    deepest = float(gap[~unseen].max()) if (~unseen).any() else 0.0
+    return int(min(max(floor, 2.0 * deepest + 16.0), ceiling)), deepest, int(unseen.sum())
 
 
 def inpaint_near(image, mask, footprint, reach, radius=3):

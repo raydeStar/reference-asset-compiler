@@ -69,8 +69,9 @@ rather than editing them in place:
      outer edge is painted colour and not black. Upstream fills the whole sheet
      with OpenCV on one core per map: on an 8192 sheet that holds a half-metre
      section, 99% of it is empty and took 140 s, of a section's 210 s, to fill
-     texels the section pass never reads. The mesh's own texels come out as the
-     whole-sheet fill leaves them; outside the band they differ, unused.
+     texels the section pass never reads. The mesh's texels near paint come out
+     as the whole-sheet fill leaves them; faces no view saw, and the sheet
+     outside the band, take other fill colours (reach_for says why that is so).
 
  11. With --jobs FILE, one process paints a list of meshes, loading the models
      once. The painter seeds every run itself (seed 0, a fresh generator) and
@@ -325,10 +326,10 @@ def inpaint_near_the_mesh(render, texture, mask, reach):
               "(shape {0} vs {1}, {2} painted texels off the mesh)".format(footprint.shape, known.shape, stray),
               flush=True)
         return cv2.inpaint(image, 255 - mask, 3, cv2.INPAINT_NS)
-    reach, deepest = reach_for(mask, footprint, reach)
+    reach, deepest, unseen = reach_for(mask, footprint, reach)
     filled, near = inpaint_near(image, mask, footprint, reach)
-    print("HY3D21_INPAINT reach={0} deepest_gap={1:.1f} texels_filled_near_mesh={2} of_sheet={3}".format(
-        reach, deepest, near, int((~known).sum())), flush=True)
+    print("HY3D21_INPAINT reach={0} deepest_gap={1:.1f} unseen_face_texels={2} texels_filled_near_mesh={3} "
+          "of_sheet={4}".format(reach, deepest, unseen, near, int((~known).sum())), flush=True)
     return filled
 
 

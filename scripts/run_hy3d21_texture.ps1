@@ -55,7 +55,7 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
 }
 $expectedRunnerHash = 'B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B'
-$expectedStudioRunnerHash = 'BB1AFA768129930C3735C61D2A52970FDD75D56ADD8ED44A864B0BF721EF7A2D'
+$expectedStudioRunnerHash = '0F37D12025874861F340B94F7129653E731D0952A35CD1D882A18A39C6F3742C'
 $python = Join-Path $LegacyRoot '.venv-hy3d21\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d21_pbr.py'
 if ($RunnerKind -eq 'studio') {
@@ -66,7 +66,7 @@ if ($RunnerKind -eq 'studio') {
         throw 'Studio normal helper changed; verify it and update its pinned hash before painting.'
     }
     $fillHelper = Join-Path (Split-Path -Parent $runner) 'sheet_fill.py'
-    if ((Get-FileHash -LiteralPath $fillHelper -Algorithm SHA256).Hash -ne 'BD551E62013F9ED438B427F5ECE0201FB19DF5E875858FDBDA8D741CE5ECF707') {
+    if ((Get-FileHash -LiteralPath $fillHelper -Algorithm SHA256).Hash -ne 'F042B1B612C039BC9527AD45421C3323E98EF3964528E530A7CF403716953628') {
         throw 'Studio sheet-fill helper changed; verify it and update its pinned hash before painting.'
     }
 } elseif ($Atlas -ne 2048) {
