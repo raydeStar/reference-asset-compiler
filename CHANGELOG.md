@@ -5,6 +5,22 @@ and any attached wheel.
 
 ## Unreleased
 
+`rac time-to-model <folder>`: how long a model took front to back, from the
+stage receipts under its folder: each stage in order with its start and
+seconds, the time in stages and between them, pauses over 30 minutes left out
+(`--each` for a folder of models, `--json`). Stage receipts now carry
+`started_utc` and `finished_utc`.
+
+`paint-parts` paints as `paint-sections` does: one painter run for every piece,
+each piece's maps finished while the next paints, and each piece's unseen
+texels filled near its own faces. The PR-02.3 counter's four pieces took 5.9
+minutes instead of 11.4; its colour moved on 0.0087 % of texels, on faces no
+outside view reaches, and its metal-rough not at all. `--separate-runs` and
+`--inpaint-reach 0` bring back the old way. `bake-shape` hands Blender its
+normal map in bulk instead of as a Python list (about 6 s of 72).
+
+The playbook has the Hunyuan3D prop route end to end, with times.
+
 `paint-sections` keeps the card busier and lays sections as they come. The
 painter finishes each section's maps (the fills, their conversion and the PNGs)
 on a thread while the next section paints, and the pass lays each section over
