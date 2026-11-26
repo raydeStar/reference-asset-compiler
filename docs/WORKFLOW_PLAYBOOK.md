@@ -517,11 +517,13 @@ rac run-stage texture --source uv.obj --output painted.glb --report painted.json
 rac run-stage label-parts --source painted.glb --output labels.npz --report labels.json `
   --vocab parts.json --reference reference.png
 rac run-stage paint-parts --source painted.glb --output parts.glb --report parts.json `
-  --parts labels.npz --reference reference.png --views 12 --resolution 768 --atlas 8192
-# 5. Sections, for a hero over 1.2 m (about 75 s a section).
+  --parts labels.npz --reference reference.png --views 12 --resolution 768 --atlas 8192 --no-upscale
+# 5. Sections, for a hero over 1.2 m (about 55 s a section without the upscale, 65-75 s with it).
+#    --no-upscale is the owner's choice for pieces like the PR-02.3 counter; leave it off for a
+#    piece whose fine detail (lettering, filigree) the close-ups show the upscale is carrying.
 rac run-stage paint-sections --source parts.glb --output sections.glb --report sections.json `
   --reference reference.png --views 12 --resolution 768 --atlas 8192 `
-  --section 0.45 --overlap 0.2 --context 0.05 --max-sections 48
+  --section 0.45 --overlap 0.2 --context 0.05 --max-sections 48 --no-upscale
 # 6. Occlusion and curvature (about 25 s), the dense shape under them (about 65 s), the browser copy.
 rac run-stage bake-detail --source sections.glb --output detail.glb --report detail.json --resolution 2048
 rac run-stage bake-shape --source detail.glb --output shape.glb --report shape.json --dense dense-fit.blend

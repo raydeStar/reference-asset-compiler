@@ -5,6 +5,13 @@ and any attached wheel.
 
 ## Unreleased
 
+`paint-sections` and `paint-parts` take `--no-upscale`: the painter skips its 4x
+upscale of each view, which these passes shrink to the bake size anyway. On the
+PR-02.3 counter its sections looked the same up close and took 27.7 minutes
+instead of about 33. The owner chose it for pieces like that one; the upscale
+stays the default, for complex pieces. A section or piece painted with the other
+setting is not reused.
+
 `rac time-to-model <folder>`: how long a model took front to back, from the
 stage receipts under its folder: each stage in order with its start and
 seconds, the time in stages and between them, pauses over 30 minutes left out

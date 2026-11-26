@@ -37,6 +37,7 @@ param(
     # Studio only: write the OBJ and its PNG maps, not the GLB (the same maps
     # packed by Blender's exporter). The gate then asks for the maps.
     [switch] $MapsOnly,
+    [switch] $NoUpscale,
     [string] $DiagnosticsDir,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D-Paint runner, upstream checkout and models.' }),
     # 0 selects the measured floor: 21504 resident, 10752 released (a 12 GB
@@ -58,7 +59,7 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
 }
 $expectedRunnerHash = 'B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B'
-$expectedStudioRunnerHash = 'D4CA162117F300EE0045B75082354C6990EFF377BAA2F498D03BDDAFB01159F8'
+$expectedStudioRunnerHash = '2920318EB594356BA141D157C30B1EF06F914288052DC5192468258AD4DFD1D2'
 $python = Join-Path $LegacyRoot '.venv-hy3d21\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d21_pbr.py'
 if ($RunnerKind -eq 'studio') {
@@ -80,6 +81,9 @@ if ($SmoothConditioningNormals -and $RunnerKind -ne 'studio') {
 }
 if ($InpaintReach -gt 0 -and $RunnerKind -ne 'studio') {
     throw 'InpaintReach requires RunnerKind studio.'
+}
+if ($NoUpscale -and $RunnerKind -ne 'studio') {
+    throw 'NoUpscale requires RunnerKind studio.'
 }
 if ($MapsOnly -and $RunnerKind -ne 'studio') {
     throw 'MapsOnly requires RunnerKind studio.'
@@ -196,6 +200,7 @@ if ($RunnerKind -eq 'studio') {
     if (-not $Jobs -and $BakeSize -gt 0) { $runnerArgs += @('--bake-size', $BakeSize) }
     if ($InpaintReach -gt 0) { $runnerArgs += @('--inpaint-reach', $InpaintReach) }
     if ($MapsOnly) { $runnerArgs += '--maps-only' }
+    if ($NoUpscale) { $runnerArgs += '--no-upscale' }
     # The runner rechecks the same floor after CUDA initialises.
     $runnerArgs += @('--min-free-gib', ([double]$MinimumFreeVramMiB / 1024).ToString([Globalization.CultureInfo]::InvariantCulture))
 }
@@ -235,6 +240,7 @@ for ($number = 0; $number -lt $paintJobs.Count; $number++) {
         atlas = $Atlas
         bake_size = $job.bake_size
         inpaint_reach = $InpaintReach
+        no_upscale = [bool]$NoUpscale
         batch = $batch
         conditioning_normals = $(if ($SmoothConditioningNormals) { 'seam_independent_vertex' } else { 'face' })
         release_stages = $releaseStages

@@ -49,7 +49,7 @@ Usage:
       --parts <labels.npz> --reference <image> --legacy-root <studio tree> \\
       [--atlas 8192] [--views 12] [--resolution 768] [--together fin] \\
       [--surface first] [--reuse-parts <earlier attempt>] [--plan-only] \\
-      [--inpaint-reach 32] [--separate-runs]
+      [--inpaint-reach 32] [--separate-runs] [--no-upscale]
 """
 
 from __future__ import annotations
@@ -114,6 +114,9 @@ def parse_arguments(argv):
                              "piece's faces (wider where the views left deeper gaps); 0 fills the whole sheet")
     parser.add_argument("--separate-runs", action="store_true",
                         help="start the painter once for each piece instead of once for them all")
+    parser.add_argument("--no-upscale", action="store_true",
+                        help="skip the painter's 4x upscale of each view; every view is resized to the "
+                             "piece's bake size anyway")
     parser.add_argument("--plan-only", action="store_true")
     return parser.parse_args(argv)
 
@@ -351,7 +354,8 @@ def main(argv=None) -> int:
                      "crop_margin": args.crop_margin, "min_piece": args.min_piece, "join_m": args.join,
                      "together": sorted(together_names), "surface_from": args.surface,
                      "inpaint_reach": args.inpaint_reach,
-                     "painter_runs": "one per piece" if args.separate_runs else "one for every piece"},
+                     "painter_runs": "one per piece" if args.separate_runs else "one for every piece",
+                     "upscale": "none" if args.no_upscale else "4x RealESRGAN"},
         "geometry_unchanged": True, "uvs_unchanged": True,
         "requires_fixed_view_review": True, "production_grade": False,
         "attempt": str(attempt), "pieces": [],

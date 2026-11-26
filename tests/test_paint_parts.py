@@ -448,6 +448,23 @@ class StageTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("--surface") + 1], "first")
         self.assertEqual(arguments[arguments.index("--reuse-parts") + 1], str(earlier.resolve()))
 
+    def test_the_section_and_part_passes_are_told_to_skip_the_upscale(self):
+        labelling = self.root / "labels.npz"
+        labelling.write_bytes(b"npz")
+        prepared = prepare_paint_parts({"parts": labelling, "reference": self.reference, "no_upscale": True},
+                                       self.legacy)
+        self.assertIn("--no-upscale", prepared["arguments"])
+        plain = prepare_paint_parts({"parts": labelling, "reference": self.reference}, self.legacy)
+        self.assertNotIn("--no-upscale", plain["arguments"])
+        from reference_asset_compiler.stages import prepare_paint_sections  # noqa: PLC0415
+        sections = prepare_paint_sections({"reference": self.reference, "no_upscale": True}, self.legacy)
+        self.assertIn("--no-upscale", sections["arguments"])
+        from reference_asset_compiler import cli  # noqa: PLC0415
+        args = cli.build_parser().parse_args([
+            "run-stage", "paint-sections", "--source", "p.glb", "--output", "o.glb", "--report", "o.json",
+            "--reference", "r.png", "--no-upscale"])
+        self.assertTrue(args.no_upscale)
+
     def test_the_part_painter_refuses_without_a_labelling(self):
         with self.assertRaises(StageError):
             prepare_paint_parts({"reference": self.reference}, self.legacy)
