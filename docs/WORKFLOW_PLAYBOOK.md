@@ -431,6 +431,16 @@ python scripts\paint_sections.py -- painted.glb sections.glb plan.json --referen
   and their weights sum to one on every face either way.
 - The atlas padding is refilled from the nearest painted texel, so mip levels
   do not outline the islands in the first paint's colour.
+- One painter run paints every section, its models loaded once, and writes
+  only the maps; `painter.log` and `paint-jobs.json` in the attempt folder
+  record it, and the receipt's `seconds_by_step` splits the time. A section
+  the painter failed is recorded beside its maps and the others are kept:
+  rerun with `--reuse-sections <attempt>`. `--separate-runs` starts one painter
+  run a section, as before.
+- Each section fills the texels no view saw only near its own faces
+  (`--inpaint-reach 32`, widened to twice the deepest gap the views left). The
+  whole-sheet fill (`--inpaint-reach 0`) took most of each section's time at
+  8192 for texels the pass never reads.
 - Which way the model faces in its picture is found by matching its outline
   against the figure's in every axis-aligned frame; the generator's frame
   (+X right, +Y up) is kept unless another fits clearly better. The receipt

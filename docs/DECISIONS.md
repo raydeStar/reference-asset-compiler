@@ -3518,3 +3518,29 @@ Per-corner weights faded half of a big flat triangle from one grazing corner. Te
 **Occlusion is back on the Pixal route.** The entry that took it off blamed the occlusion bake. The cause was the overlapping UV layout, fixed in `uv-unwrap`. The stair re-baked on the fixed layout with occlusion shows no triangles, and the owner passed it.
 
 **Measured:** the stage on the rebuilt landing ran in 39 s (0.8 M rays). Its result matches the owner-passed prototype within 0.26/255 on average in the elevated view.
+
+## 2026-11-25 · Sections paint in one painter run, fill only near their faces, and are laid only where they weigh
+
+At hero quality a model went from about 10 minutes to about 2 hours. The WK-04.1 stair took 128 minutes; 114 of them were its 33 sections, and the owner asked for the speed back without losing what he had passed. Measured from the stair's GPU trace and its section receipts:
+
+- **Each section, about 3.5 minutes (210 s) at 8192:**
+  - 13 s starting PowerShell and Python;
+  - 12 s loading the models;
+  - 58 s on the GPU, painting the views and upscaling them;
+  - about 90 s with the GPU idle, while OpenCV filled every texel of the 8192 sheet that no view saw, on one core per map;
+  - about 25 s writing the maps and the GLB, then the painter's teardown.
+- **The section only uses its own faces.** A half-metre section is a few percent of an 8192 sheet, and the composite reads only its faces' texels and 2 texels round them. On a test sheet the whole-sheet fill took 147 s a map; filling near the faces alone took 5 s.
+- **The composite, 14.5 minutes after the last section.** For every section and both maps it blurred the whole 8192 sheet (25-30 s each) to take the tone from the first paint, though the section weighs on about 2 % of it.
+
+**What changed, none of it in what the painter paints:**
+- `run_hy3d21_studio.py --inpaint-reach N` fills unseen texels with upstream's OpenCV fill only in a band round the mesh's own texels. The rest of the sheet first takes the nearest paint by a pull-push fill (`sheet_fill.py`, hash-pinned like the normal helper), so the band is edged with paint and not with the empty sheet's black. The texels inside the band start as upstream hands them, because OpenCV's fill reads them.
+  - **The band's width matters.** The first GPU check used 8 texels, and 41 % of the stair's first section moved, by up to 19/255. The old painter, run again, reproduced the passed sections byte for byte, so the painter is deterministic and the band was to blame. At a texel-scale bake a 256-pixel view leaves rims and patches of a section's own faces unpainted; OpenCV marches into them from the nearest paint, and a band edge closer than that paint becomes the source instead.
+  - **The width now comes from the paint** (`reach_for`): twice the deepest unpainted gap in the mesh's texels and the 2 round them, plus 16, between N and 256. On sheets with rims of 2-20 texels and patches up to 15 texels, every texel within 64 of paint came out identical to the whole-sheet fill. `paint-sections` passes 32.
+  - **Faces no view saw do not widen it past 256.** The stair's sections each hold faces 1,000-3,200 texels from any paint. The whole-sheet fill colours them from whatever paint its march reaches first, and no band short of the sheet repeats that; gaps deeper than 120 texels are left out of the width. With the cut at 64, a 3 x 6 cm patch of one such face moved by 32/255 in metal (0.13 to 0.26) in the finished stair; at 120 nothing moved by more than 9/255. Sections painted this way still match the passed ones on 87-96 % of texels, the rest being such faces. Laid into the passed stair in place of its own first three, its finished maps moved on 0.011 % of colour texels (at most 2/255) and 0.05 % of metal-rough texels (at most 9/255), which nobody sees.
+- `run_hy3d21_studio.py --jobs` paints a list of meshes in one process. The painter seeds every run itself (seed 0, a fresh generator), and before each job after the first the diffusion and DINO go back on the card as the first job found them, so each job's maps are those a process of its own would paint. Each job gets its own execution receipt and validation report from `run_hy3d21_texture.ps1 -Jobs`; a job that fails is recorded beside its output and the next goes on. `paint-sections` paints every section in one run; `--separate-runs` keeps one run a section.
+- `composite` sums only where a section weighs and blurs only round those texels (`masked_blur_at`): tile by tile with the Gaussian's full reach for a full-size blur, and read back from the shrunk sheet by the interpolation that grows it otherwise. On random sheets every mode gives the whole-sheet numbers within 0.0002 of 255. The passed stair, re-composited from its own 33 sections, is byte-identical to the one passed.
+- `--maps-only`: the painter's GLB is its PNG maps packed by Blender's exporter (base colour as is; metal-rough as 255, roughness, metallic). The batch writes only the maps and `paint-sections` reads them into the same bytes. Maps painted this way are byte-identical to the batch that wrote the GLB, and the painter's teardown fault went with the export.
+
+**Measured on the stair's first three sections (8192, 12 views at 768):** 99-132 s a section in one run, against 140-197 s each before; reading 33 sections took 1.7 minutes and the composite 4.5, against 14.5 for the composite alone. That puts the stair's section pass near 75 minutes instead of 114, and the model near 90 instead of 128.
+
+**Where the time still goes:** each section has about 45 s of diffusion and 13 s of upscaling on the GPU, then about 50 s with the GPU idle: the fill, writing the maps, and the next section's setup. Running that tail beside the next section's diffusion is the next step. Skipping the 4x upscale, which a texel-scale bake shrinks straight back, would save 13 s more, but it changes the paint and needs the owner's eye.

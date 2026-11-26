@@ -5,6 +5,16 @@ and any attached wheel.
 
 ## Unreleased
 
+`paint-sections` is faster and paints the same. One painter run paints every
+section with its models loaded once and writes only the maps; each section's
+unseen texels are filled near its own faces instead of across the whole 8192
+sheet; and the composite sums and blurs only where a section weighs. On the
+WK-04.1 stair a section took 99-132 s instead of 140-197 s, and the composite
+4.5 minutes instead of 14.5. The passed stair re-composited from its own
+sections is byte-identical; with three sections painted the new way, its
+finished maps moved by at most 9/255, on 0.05 % of texels. `--separate-runs`
+and `--inpaint-reach 0` bring back the old way.
+
 `project-reference`: the reference picture laid onto the faces of a Pixal3D model
 it shows, over the paint. Pixal3D builds its mesh in the picture's camera; the
 stage fits that camera (Pixal3D's logged field of view, refined by the outline)

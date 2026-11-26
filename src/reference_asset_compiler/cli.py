@@ -230,6 +230,13 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--bake-scale", type=float,
                        help="Paint in sections: bake each section's views at about this many pixels a "
                             "texel (default: 1; 0 bakes them as upstream does)")
+    stage.add_argument("--inpaint-reach", type=int,
+                       help="Paint in sections: fill the texels no view saw only within at least this many "
+                            "texels of each section's faces, wider where the views left deeper gaps "
+                            "(default: 32; 0 fills the whole sheet, as before)")
+    stage.add_argument("--separate-runs", action="store_true",
+                       help="Paint in sections: start the painter once for each section instead of once "
+                            "for them all")
     stage.add_argument("--vocab",
                        help="Label parts: the part vocabulary, a JSON file or a name under "
                             "profiles/segmentation (e.g. skiff-parts)")
@@ -494,6 +501,8 @@ def main(argv: list[str] | None = None) -> int:
                     "overlap": args.overlap,
                     "context": args.context,
                     "bake_scale": args.bake_scale,
+                    "inpaint_reach": args.inpaint_reach,
+                    "separate_runs": args.separate_runs or None,
                     "reuse_sections": args.reuse_sections,
                     "keep_colour": args.keep_colour,
                     "keep_tone": args.keep_tone,

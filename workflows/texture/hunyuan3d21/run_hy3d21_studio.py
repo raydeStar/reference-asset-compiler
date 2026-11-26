@@ -62,13 +62,35 @@ rather than editing them in place:
      from 13.2-18 GiB allocated to the diffusion's own, so it fits the same
      12 GB card as a 4096 sheet. The maps are byte for byte the same.
 
+ 10. With --inpaint-reach N, the texels no view saw are filled by OpenCV only
+     within a band round the mesh's own texels, at least N wide and wider where
+     the views left deeper gaps (sheet_fill.reach_for); the rest of the sheet
+     takes the mean of the nearest painted texels around it, so the band's
+     outer edge is painted colour and not black. Upstream fills the whole sheet
+     with OpenCV on one core per map: on an 8192 sheet that holds a half-metre
+     section, 99% of it is empty and took 140 s, of a section's 210 s, to fill
+     texels the section pass never reads. The mesh's texels near paint come out
+     as the whole-sheet fill leaves them; faces no view saw, and the sheet
+     outside the band, take other fill colours (reach_for says why that is so).
+
+ 11. With --jobs FILE, one process paints a list of meshes, loading the models
+     once. The painter seeds every run itself (seed 0, a fresh generator) and
+     each job puts the diffusion back on the card as the first found it, so a
+     job's maps are those a process of its own would paint. Each job writes its
+     own validation report; a job that fails is recorded and the next goes on.
+
+ 12. With --maps-only, the GLB is not written: it is the same maps packed by
+     Blender's exporter, which the section pass can read as they are.
+
 The UV lock, the local model snapshots, the validation gate and its 1e-6
 tolerances match the legacy runner exactly, because those parts were right.
 
 Usage:
   <venv-hy3d21>\\python.exe run_hy3d21_studio.py <mesh.obj> <reference.png> \\
       <output.obj> [--views 12] [--resolution 768] [--atlas 4096|8192] [--legacy-root PATH]
-      [--release-stages] [--bake-size N]
+      [--release-stages] [--bake-size N] [--inpaint-reach N]
+  <venv-hy3d21>\\python.exe run_hy3d21_studio.py --jobs jobs.json [the same options]
+      where jobs.json is a list of {"mesh", "reference", "output_obj", "bake_size"}
 """
 
 from __future__ import annotations
@@ -79,8 +101,11 @@ import gc
 import json
 import os
 import sys
+import time
+import traceback
 from pathlib import Path
 
+import cv2
 import huggingface_hub
 import numpy as np
 
@@ -92,11 +117,18 @@ os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "garbage_collection_threshold:0
 import torch  # noqa: E402
 import trimesh
 from seam_normals import install_seam_normal_repair
+from sheet_fill import inpaint_near, reach_for
 
 parser = argparse.ArgumentParser()
-parser.add_argument("mesh", type=Path)
-parser.add_argument("reference", type=Path)
-parser.add_argument("output_obj", type=Path)
+parser.add_argument("mesh", type=Path, nargs="?")
+parser.add_argument("reference", type=Path, nargs="?")
+parser.add_argument("output_obj", type=Path, nargs="?")
+parser.add_argument("--jobs", type=Path,
+                    help="A JSON list of {mesh, reference, output_obj, bake_size}, painted in one process")
+parser.add_argument("--inpaint-reach", type=int, default=0,
+                    help="Fill the texels no view saw with OpenCV only within this many texels of the "
+                         "mesh, and the rest of the sheet from the nearest painted texels. 0 fills the "
+                         "whole sheet as upstream does.")
 parser.add_argument("--views", type=int, default=6, choices=range(6, 13))
 parser.add_argument("--smooth-conditioning-normals", action="store_true",
                     help="Use seam-independent vertex normals for organic character conditioning; default keeps face normals")
@@ -114,6 +146,10 @@ parser.add_argument(
 parser.add_argument(
     "--min-free-gib", type=float, default=21.0,
     help="Refuse to launch below this much free VRAM. Never kills anything.")
+parser.add_argument("--maps-only", action="store_true",
+                    help="Write the OBJ and its PNG maps, not the GLB. The GLB is the same maps packed by "
+                         "Blender's exporter (metal-rough as 255, roughness, metallic); a caller that reads "
+                         "the maps saves that export, about 12 s a job at 8192.")
 parser.add_argument("--release-stages", action="store_true",
                     help="Move diffusion weights off the GPU before the upscale and bake.")
 args = parser.parse_args()
@@ -159,33 +195,63 @@ def preserve_existing_uv(mesh):
     return mesh
 
 
-mesh_path = args.mesh.resolve()
-reference_path = args.reference.resolve()
-output_obj = args.output_obj.resolve()
-if output_obj.suffix.lower() != ".obj":
-    raise RuntimeError("Hunyuan3D-Paint output must use an .obj path")
-if not mesh_path.exists() or not reference_path.exists():
-    raise RuntimeError("Missing input: mesh={0} reference={1}".format(
-        mesh_path, reference_path))
-output_obj.parent.mkdir(parents=True, exist_ok=True)
+def job_list():
+    """What to paint: the one mesh named on the command line, or every entry of --jobs.
 
-source = load_mesh(mesh_path)
-source_vertices = np.asarray(source.vertices, dtype=np.float64).copy()
-source_faces = np.asarray(source.faces, dtype=np.int64).copy()
-source_uv = np.asarray(source.visual.uv, dtype=np.float64).copy()
+    Every job is checked before a model is loaded, so a bad entry stops the
+    batch before the card is touched rather than part way through it.
+    """
+    if args.jobs is not None:
+        if args.mesh or args.reference or args.output_obj:
+            parser.error("give a mesh, a reference and an output, or --jobs, not both")
+        entries = json.loads(args.jobs.read_text(encoding="utf-8-sig"))
+        if not isinstance(entries, list) or not entries:
+            raise RuntimeError("--jobs must hold a list of at least one job: {0}".format(args.jobs))
+        jobs = [{"mesh": Path(entry["mesh"]), "reference": Path(entry["reference"]),
+                 "output_obj": Path(entry["output_obj"]), "bake_size": int(entry.get("bake_size") or 0)}
+                for entry in entries]
+    else:
+        if not (args.mesh and args.reference and args.output_obj):
+            parser.error("give a mesh, a reference and an output, or --jobs")
+        jobs = [{"mesh": args.mesh, "reference": args.reference, "output_obj": args.output_obj,
+                 "bake_size": args.bake_size}]
+    for job in jobs:
+        for key in ("mesh", "reference", "output_obj"):
+            job[key] = job[key].resolve()
+        if job["output_obj"].suffix.lower() != ".obj":
+            raise RuntimeError("Hunyuan3D-Paint output must use an .obj path: {0}".format(job["output_obj"]))
+        if not job["mesh"].exists() or not job["reference"].exists():
+            raise RuntimeError("Missing input: mesh={0} reference={1}".format(job["mesh"], job["reference"]))
+        if not 0 <= job["bake_size"] <= 4096:
+            raise RuntimeError("A bake size runs from 0 to 4096: {0}".format(job["bake_size"]))
+    return jobs
 
-# Hunyuan recomputes vertex normals from the UV-split transport. Share normals
-# at exact positions without collapsing any authored geometry or UV corners.
-normal_proxy = install_seam_normal_repair(trimesh.geometry, source_vertices, source_faces)
-print('HY3D21_SEAM_NORMALS', normal_proxy, flush=True)
+
+JOBS = job_list()
+_original_mean_vertex_normals = trimesh.geometry.mean_vertex_normals
+
+
+def take_source(job):
+    """The mesh as authored, kept for the gate, with its normals shared across UV seams."""
+    job["output_obj"].parent.mkdir(parents=True, exist_ok=True)
+    source = load_mesh(job["mesh"])
+    vertices = np.asarray(source.vertices, dtype=np.float64).copy()
+    faces = np.asarray(source.faces, dtype=np.int64).copy()
+    uv = np.asarray(source.visual.uv, dtype=np.float64).copy()
+    # Hunyuan recomputes vertex normals from the UV-split transport. Share normals
+    # at exact positions without collapsing any authored geometry or UV corners.
+    # Installed on upstream's own function each time, never on the last job's.
+    trimesh.geometry.mean_vertex_normals = _original_mean_vertex_normals
+    normal_proxy = install_seam_normal_repair(trimesh.geometry, vertices, faces)
+    print('HY3D21_SEAM_NORMALS', normal_proxy, flush=True)
+    return vertices, faces, uv
+
 
 if not torch.cuda.is_available():
     raise RuntimeError("CUDA is required for Hunyuan3D-Paint 2.1")
 free_bytes, total_bytes = torch.cuda.mem_get_info()
-print("HY3D21_PREFLIGHT gpu={0} free_gib={1:.2f} total_gib={2:.2f} "
-      "vertices={3} triangles={4}".format(
-          torch.cuda.get_device_name(0), free_bytes / 2 ** 30,
-          total_bytes / 2 ** 30, len(source_vertices), len(source_faces)),
+print("HY3D21_PREFLIGHT gpu={0} free_gib={1:.2f} total_gib={2:.2f} jobs={3}".format(
+          torch.cuda.get_device_name(0), free_bytes / 2 ** 30, total_bytes / 2 ** 30, len(JOBS)),
       flush=True)
 if free_bytes < args.min_free_gib * 2 ** 30:
     raise RuntimeError(
@@ -247,7 +313,36 @@ mesh_utils._save_texture_map = save_texture_map_as_png
 _original_uv_inpaint = MeshRender.uv_inpaint
 
 
+def inpaint_near_the_mesh(render, texture, mask, reach):
+    """Upstream's OpenCV fill within `reach` texels of the mesh (sheet_fill.inpaint_near).
+
+    The mesh's own texels are the ones the texel map found covered. If the
+    paint lies off them, something does not line up, and the whole sheet is
+    filled as upstream does rather than guessing.
+    """
+    texture_np = texture.cpu().numpy() if isinstance(texture, torch.Tensor) else np.asarray(texture)
+    if isinstance(mask, torch.Tensor):
+        mask = (mask.squeeze(-1).cpu().numpy() * 255).astype(np.uint8)
+    image = (texture_np * 255).astype(np.uint8)
+    known = mask == 255
+    footprint = (render.texture_indices >= 0).cpu().numpy()
+    stray = int((known & ~footprint).sum()) if footprint.shape == known.shape else -1
+    if stray < 0 or stray > 0.01 * max(int(known.sum()), 1):
+        # The mesh's texels do not line up with the paint: fill the whole sheet.
+        print("HY3D21_INPAINT whole sheet: the mesh's texels do not match the paint "
+              "(shape {0} vs {1}, {2} painted texels off the mesh)".format(footprint.shape, known.shape, stray),
+              flush=True)
+        return cv2.inpaint(image, 255 - mask, 3, cv2.INPAINT_NS)
+    reach, deepest, unseen = reach_for(mask, footprint, reach)
+    filled, near = inpaint_near(image, mask, footprint, reach)
+    print("HY3D21_INPAINT reach={0} deepest_gap={1:.1f} unseen_face_texels={2} texels_filled_near_mesh={3} "
+          "of_sheet={4}".format(reach, deepest, unseen, near, int((~known).sum())), flush=True)
+    return filled
+
+
 def uv_inpaint_cv_fallback(self, texture, mask, **inpaint_kwargs):
+    if args.inpaint_reach > 0 and not inpaint_kwargs:
+        return inpaint_near_the_mesh(self, texture, mask, args.inpaint_reach)
     return _original_uv_inpaint(self, texture, mask, vertex_inpaint=False,
                                 **inpaint_kwargs)
 
@@ -376,7 +471,7 @@ def inpaint_while_baking(painter):
     view_processor.bake_from_multiview = bake_then_start_inpaint
     view_processor.texture_inpaint = finish_inpaint
 
-def bake_at_texel_scale(painter, size):
+def bake_at_texel_scale(painter, size_of):
     """Bake each view from about one pixel a texel, not from far finer.
 
     The bake gives each texel one bilinear sample of a view. Upstream bakes from
@@ -389,17 +484,21 @@ def bake_at_texel_scale(painter, size):
     Shrinking each view first, with an antialiasing filter, makes the sample an
     average: on the same section the speckle measure halved and the grain ran as
     continuous lines again. At an 8192 sheet it is the painter's own detail.
+
+    `size_of()` is read at each bake, so every job of a batch has its own size;
+    0 bakes the views as upstream sizes them.
     """
     from PIL import Image as PilImage  # noqa: PLC0415
 
     baked = painter.view_processor.bake_from_multiview
 
     def bake_shrunk(images, *bake_args, **bake_kwargs):
-        images = [image.resize((size, size), PilImage.LANCZOS) for image in images]
+        size = size_of()
+        if size:
+            images = [image.resize((size, size), PilImage.LANCZOS) for image in images]
         return baked(images, *bake_args, **bake_kwargs)
 
     painter.view_processor.bake_from_multiview = bake_shrunk
-    print("HY3D21_BAKE_SIZE", size, flush=True)
 
 
 # --- local model snapshots -------------------------------------------------
@@ -541,6 +640,23 @@ def release_between_stages(painter):
     painter.models["multiview_model"] = generate_then_release
     painter.models["super_model"] = upscale_then_trim
 
+    def rearm():
+        """Put the diffusion back on the card as the first job found it, for the next job.
+
+        After a job the diffusion pipeline and DINO wait in host memory. The
+        first job began with both on the card and the never-called text
+        encoder in host memory; so does every job after it.
+        """
+        multiview.pipeline.to(execution_device)
+        if getattr(multiview.pipeline.unet, "use_learned_text_clip", False):
+            multiview.pipeline.text_encoder.to("cpu")
+        if dino is not None:
+            dino.to(execution_device)
+        gc.collect()
+        torch.cuda.empty_cache()
+
+    return rearm
+
 
 config = Hunyuan3DPaintConfig(args.views, args.resolution)
 if args.atlas == 8192:
@@ -557,72 +673,114 @@ previous_cwd = Path.cwd()
 os.chdir(UPSTREAM)
 try:
     painter = Hunyuan3DPaintPipeline(config)
-    torch.cuda.reset_peak_memory_stats()
     inpaint_while_baking(painter)
-    if args.bake_size:
-        bake_at_texel_scale(painter, args.bake_size)
-    if args.release_stages:
-        release_between_stages(painter)
+    current = {"bake_size": 0}
+    bake_at_texel_scale(painter, lambda: current["bake_size"])
+    rearm = release_between_stages(painter) if args.release_stages else None
     if args.smooth_conditioning_normals:
         painter.render.shader_type = 'vertex'
     print('HY3D21_CONDITIONING_NORMALS', painter.render.shader_type, flush=True)
-    result = painter(
-        mesh_path=str(mesh_path),
-        image_path=str(reference_path),
-        output_mesh_path=str(output_obj),
-        use_remesh=False,
-        save_glb=True,
-    )
 finally:
     os.chdir(previous_cwd)
 
-painted_vertices, painted_faces, painted_uv, _ = painter.render.get_mesh(normalize=False)
-painted_vertices = np.asarray(painted_vertices, dtype=np.float64)
-painted_faces = np.asarray(painted_faces, dtype=np.int64)
-painted_uv = np.asarray(painted_uv, dtype=np.float64)
 
-geometry_delta = (
-    float(np.max(np.linalg.norm(painted_vertices - source_vertices, axis=1)))
-    if painted_vertices.shape == source_vertices.shape else float("inf"))
-faces_equal = painted_faces.shape == source_faces.shape and bool(
-    np.array_equal(painted_faces, source_faces))
-uv_delta = (
-    float(np.max(np.linalg.norm(painted_uv - source_uv, axis=1)))
-    if painted_uv.shape == source_uv.shape else float("inf"))
+def paint(job, number):
+    """One mesh through the painter, its gate checked and its report written."""
+    started = time.monotonic()
+    mesh_path, reference_path, output_obj = job["mesh"], job["reference"], job["output_obj"]
+    print("HY3D21_JOB_START number={0} of={1} mesh={2}".format(number + 1, len(JOBS), mesh_path), flush=True)
+    source_vertices, source_faces, source_uv = take_source(job)
+    print("HY3D21_JOB_MESH vertices={0} triangles={1}".format(len(source_vertices), len(source_faces)),
+          flush=True)
+    current["bake_size"] = job["bake_size"]
+    if job["bake_size"]:
+        print("HY3D21_BAKE_SIZE", job["bake_size"], flush=True)
+    if rearm is not None and number > 0:
+        rearm()
+    torch.cuda.reset_peak_memory_stats()
+    os.chdir(UPSTREAM)
+    try:
+        result = painter(
+            mesh_path=str(mesh_path),
+            image_path=str(reference_path),
+            output_mesh_path=str(output_obj),
+            use_remesh=False,
+            save_glb=not args.maps_only,
+        )
+    finally:
+        os.chdir(previous_cwd)
 
-written = sorted(p.name for p in output_obj.parent.glob(output_obj.stem + "*.png"))
-report = {
-    "source_mesh": str(mesh_path),
-    "reference": str(reference_path),
-    "output_obj": str(output_obj),
-    "output_glb": str(output_obj.with_suffix(".glb")),
-    "vertices": int(len(source_vertices)),
-    "triangles": int(len(source_faces)),
-    "painted_vertices": int(len(painted_vertices)),
-    "faces_equal": faces_equal,
-    "geometry_delta": geometry_delta,
-    "uv_delta": uv_delta,
-    "views": args.views,
-    "resolution": args.resolution,
-    "texture_size": int(config.texture_size),
-    "atlas": args.atlas,
-    "bake_size": args.bake_size,
-    "downsample_disabled": args.atlas != 2048,
-    "map_format": "png",
-    "maps": written,
-    "release_stages": args.release_stages,
-    "vram": {"device": torch.cuda.get_device_name(0), "free_bytes_at_start": int(free_bytes),
-             "pool_budget_bytes": pool_budget_bytes,
-             "peak_allocated_bytes": int(torch.cuda.max_memory_allocated()),
-             "peak_reserved_bytes": int(torch.cuda.max_memory_reserved())},
-}
-report_path = output_obj.with_suffix(".validation.json")
-report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    painted_vertices, painted_faces, painted_uv, _ = painter.render.get_mesh(normalize=False)
+    painted_vertices = np.asarray(painted_vertices, dtype=np.float64)
+    painted_faces = np.asarray(painted_faces, dtype=np.int64)
+    painted_uv = np.asarray(painted_uv, dtype=np.float64)
 
-if not faces_equal or geometry_delta > 1.0e-6 or uv_delta > 1.0e-6:
-    raise RuntimeError("Hunyuan topology/UV gate failed: {0}".format(
-        json.dumps(report, sort_keys=True)))
+    geometry_delta = (
+        float(np.max(np.linalg.norm(painted_vertices - source_vertices, axis=1)))
+        if painted_vertices.shape == source_vertices.shape else float("inf"))
+    faces_equal = painted_faces.shape == source_faces.shape and bool(
+        np.array_equal(painted_faces, source_faces))
+    uv_delta = (
+        float(np.max(np.linalg.norm(painted_uv - source_uv, axis=1)))
+        if painted_uv.shape == source_uv.shape else float("inf"))
 
-print("HY3D21_PBR_OK result={0} report={1} geometry_delta={2:.9f} "
-      "uv_delta={3:.9f}".format(result, report_path, geometry_delta, uv_delta),
-      flush=True)
+    written = sorted(p.name for p in output_obj.parent.glob(output_obj.stem + "*.png"))
+    report = {
+        "source_mesh": str(mesh_path),
+        "reference": str(reference_path),
+        "output_obj": str(output_obj),
+        "output_glb": None if args.maps_only else str(output_obj.with_suffix(".glb")),
+        "vertices": int(len(source_vertices)),
+        "triangles": int(len(source_faces)),
+        "painted_vertices": int(len(painted_vertices)),
+        "faces_equal": faces_equal,
+        "geometry_delta": geometry_delta,
+        "uv_delta": uv_delta,
+        "views": args.views,
+        "resolution": args.resolution,
+        "texture_size": int(config.texture_size),
+        "atlas": args.atlas,
+        "bake_size": job["bake_size"],
+        "inpaint_reach": args.inpaint_reach,
+        "downsample_disabled": args.atlas != 2048,
+        "map_format": "png",
+        "maps": written,
+        "release_stages": args.release_stages,
+        "batch": {"jobs": len(JOBS), "number": number + 1} if args.jobs is not None else None,
+        "seconds": round(time.monotonic() - started, 1),
+        "vram": {"device": torch.cuda.get_device_name(0), "free_bytes_at_start": int(free_bytes),
+                 "pool_budget_bytes": pool_budget_bytes,
+                 "peak_allocated_bytes": int(torch.cuda.max_memory_allocated()),
+                 "peak_reserved_bytes": int(torch.cuda.max_memory_reserved())},
+    }
+    report_path = output_obj.with_suffix(".validation.json")
+    report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+
+    if not faces_equal or geometry_delta > 1.0e-6 or uv_delta > 1.0e-6:
+        raise RuntimeError("Hunyuan topology/UV gate failed: {0}".format(
+            json.dumps(report, sort_keys=True)))
+
+    print("HY3D21_PBR_OK result={0} report={1} geometry_delta={2:.9f} "
+          "uv_delta={3:.9f} seconds={4}".format(result, report_path, geometry_delta, uv_delta,
+                                                report["seconds"]),
+          flush=True)
+
+
+if args.jobs is None:
+    paint(JOBS[0], 0)
+else:
+    # A job that fails is recorded beside its output and the batch goes on: it
+    # is not retried here, and the caller sees which jobs have no report.
+    failures = 0
+    for number, job in enumerate(JOBS):
+        try:
+            paint(job, number)
+        except Exception as problem:  # noqa: BLE001 -- recorded, then the next job
+            failures += 1
+            job["output_obj"].with_suffix(".failure.json").write_text(json.dumps({
+                "mesh": str(job["mesh"]), "error": "{0}: {1}".format(type(problem).__name__, problem),
+                "traceback": traceback.format_exc()}, indent=2) + "\n", encoding="utf-8")
+            print("HY3D21_JOB_FAILED number={0} error={1}".format(number + 1, problem), flush=True)
+    print("HY3D21_BATCH_DONE jobs={0} failed={1}".format(len(JOBS), failures), flush=True)
+    if failures:
+        sys.exit(1)
