@@ -26,7 +26,8 @@ sys.path.insert(0, str(ROOT / "scripts"))
 sys.path.insert(0, str(ROOT / "src"))
 
 import paint_sections  # noqa: E402
-from paint_sections import LUMINANCE, composite, masked_blur, masked_blur_at, repad  # noqa: E402
+from paint_sections import (  # noqa: E402
+    LUMINANCE, Stitch, composite, masked_blur, masked_blur_at, repad, sparse_layout)
 
 try:
     import cv2  # noqa: F401
@@ -218,18 +219,63 @@ class SparseCompositeTests(unittest.TestCase):
                                                    atol=2e-3)
 
 
+class StitchTests(unittest.TestCase):
+    """The composite laid one section at a time, as the section pass lays them while the painter paints."""
+
+    def setUp(self):
+        rng = np.random.default_rng(13)
+        size = 120
+        self.base = rng.integers(0, 255, (size, size, 3)).astype(np.float32)
+        self.sections = []
+        for _ in range(3):
+            mask = islands(size, 5, rng)
+            weights = (mask * rng.random((size, size))).astype(np.float32)
+            self.sections.append((rng.integers(0, 255, (size, size, 3)).astype(np.uint8), weights, mask))
+
+    def stitch(self, sigma=6.0, mode="colour"):
+        return Stitch(self.base, [sparse_layout(weights, mask) for _, weights, mask in self.sections], sigma, mode)
+
+    def test_laid_one_at_a_time_it_is_the_whole_sheet_composite(self):
+        for sigma in (0.0, 6.0):
+            for mode in ("light", "colour"):
+                with self.subTest(sigma=sigma, mode=mode):
+                    stitch = self.stitch(sigma, mode)
+                    for number, (paint, _, _) in enumerate(self.sections):
+                        stitch.lay(number, paint)
+                    np.testing.assert_allclose(
+                        stitch.result(), SparseCompositeTests.whole_sheet(self.base, self.sections, sigma, None, mode),
+                        atol=2e-3)
+
+    def test_sections_are_laid_in_order_and_let_go_once_laid(self):
+        stitch = self.stitch()
+        with self.assertRaises(ValueError):
+            stitch.lay(1, self.sections[1][0])
+        stitch.lay(0, self.sections[0][0])
+        self.assertIsNone(stitch.layout[0])
+        with self.assertRaises(ValueError):
+            stitch.result()
+
+
 class FakePainter:
-    """Popen for paint_batch: writes each job's gate as the painter would, or never finishes."""
+    """Popen for paint_batch: writes each job's gate as the painter would, or never finishes.
+
+    With `gradual`, it writes one more job's gate each time it is waited on, as a
+    painter does over a batch, and every job succeeds.
+    """
 
     calls = []
     hang = False
+    gradual = False
 
     def __init__(self, command, **keywords):
         FakePainter.calls.append(command)
         self.pid = 4321
         self.returncode = None
-        if not FakePainter.hang:
-            jobs = json.loads(Path(command[command.index("-Jobs") + 1]).read_text(encoding="utf-8"))
+        self.waiting = []
+        jobs = json.loads(Path(command[command.index("-Jobs") + 1]).read_text(encoding="utf-8"))
+        if FakePainter.gradual:
+            self.waiting = [Path(job["output_obj"]) for job in jobs]
+        elif not FakePainter.hang:
             for job in jobs[:-1]:            # the last job fails, as a crashed section would
                 output = Path(job["output_obj"])
                 output.parent.mkdir(parents=True, exist_ok=True)
@@ -241,6 +287,13 @@ class FakePainter:
             self.returncode = 1
 
     def wait(self, timeout=None):
+        if self.waiting:
+            output = self.waiting.pop(0)
+            output.parent.mkdir(parents=True, exist_ok=True)
+            output.with_suffix(".validation.json").write_text("{}", encoding="utf-8")
+            if not self.waiting:
+                self.returncode = 0
+            raise subprocess.TimeoutExpired("painter", timeout)
         if self.returncode is None:
             raise subprocess.TimeoutExpired("painter", timeout)
         return self.returncode
@@ -268,7 +321,7 @@ class OnePainterRunTests(unittest.TestCase):
         self.jobs = [(self.root / "section-{0:02d}".format(n) / "section.obj",
                       self.root / "section-{0:02d}".format(n) / "reference.png",
                       self.root / "section-{0:02d}".format(n) / "paint", 256 + n) for n in range(3)]
-        FakePainter.calls, FakePainter.hang = [], False
+        FakePainter.calls, FakePainter.hang, FakePainter.gradual = [], False, False
         self.popen, self.kill_tree = paint_sections.subprocess.Popen, paint_sections.kill_tree
         paint_sections.subprocess.Popen = FakePainter
         self.killed = []
@@ -294,6 +347,16 @@ class OnePainterRunTests(unittest.TestCase):
         self.assertIn("CUDA out of memory", paint_sections.why_unpainted(self.jobs[2][2], self.root))
         with self.assertRaises(RuntimeError):
             paint_sections.read_paint(self.jobs[2][2])
+
+    def test_the_pass_is_told_as_each_section_is_painted_while_the_painter_runs(self):
+        FakePainter.gradual = True
+        seen = []
+
+        def on_progress():
+            seen.append(sum((paint_dir / "section.validation.json").is_file() for _, _, paint_dir, _ in self.jobs))
+
+        self.assertEqual(paint_sections.paint_batch(self.args, self.jobs, self.root, on_progress=on_progress), 0)
+        self.assertEqual(seen, [1, 2, 3])
 
     def test_a_painter_that_never_finishes_is_stopped_with_everything_it_started(self):
         FakePainter.hang = True
@@ -382,6 +445,130 @@ class PainterPinTests(unittest.TestCase):
         for needle in ('"--jobs"', '"--inpaint-reach"', '"--maps-only"', "from sheet_fill import inpaint_near", "def rearm",
                        "trimesh.geometry.mean_vertex_normals = _original_mean_vertex_normals"):
             self.assertIn(needle, source)
+
+    def test_the_studio_painter_finishes_a_job_while_the_next_paints_and_reports_it_whole(self):
+        source = (ROOT / "workflows" / "texture" / "hunyuan3d21" / "run_hy3d21_studio.py").read_text(encoding="utf-8")
+        for needle in ("FINISH_BESIDE_NEXT = args.jobs is not None and args.maps_only",
+                       "fill_as_upstream, texture.cpu().numpy(), mask_np, footprint",
+                       "held = host_copy(self)", "os.replace(partial, report_path)", '"seconds_painting": on_card'):
+            self.assertIn(needle, source)
+        # The repository stores it with LF endings, and the launcher pins that file.
+        self.assertNotIn(b"\r\n", (ROOT / "workflows" / "texture" / "hunyuan3d21" / "run_hy3d21_studio.py").read_bytes())
+        actual = hashlib.sha256(
+            (ROOT / "workflows" / "texture" / "hunyuan3d21" / "run_hy3d21_studio.py").read_bytes()).hexdigest().upper()
+        launcher = (ROOT / "scripts" / "run_hy3d21_texture.ps1").read_text(encoding="utf-8")
+        self.assertIn("$expectedStudioRunnerHash = '{0}'".format(actual), launcher)
+        catalog = json.loads((ROOT / "workflows" / "catalog.json").read_text(encoding="utf-8"))
+        entry = next(item for item in catalog["workflows"] if item.get("id") == "hunyuan3d21_studio_runner")
+        self.assertEqual(entry["sha256"], actual)
+
+
+class StreamedPassTests(unittest.TestCase):
+    """The pass lays each section as the painter finishes it; the model is the one laid after painting."""
+
+    class AtOnce:
+        """An executor that runs what it is given at once, so the stitch is planned before painting starts."""
+
+        def __init__(self, *args, **keywords):
+            pass
+
+        def submit(self, function, *args, **keywords):
+            from concurrent.futures import Future  # noqa: PLC0415
+            future = Future()
+            future.set_result(function(*args, **keywords))
+            return future
+
+        def shutdown(self, wait=True):
+            pass
+
+    def setUp(self):
+        from PIL import Image  # noqa: PLC0415
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from compress_textures import read_glb, write_glb  # noqa: PLC0415
+        from test_head_detail import glb_with_mesh  # noqa: PLC0415
+        from test_paint_sections import picture_of, strip  # noqa: PLC0415
+        self.root = Path(tempfile.mkdtemp())
+        self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
+        rng = np.random.default_rng(5)
+        positions, uvs, triangles = strip()
+
+        def png(pixels, mode):
+            import io  # noqa: PLC0415
+            buffer = io.BytesIO()
+            Image.fromarray(pixels, mode).save(buffer, format="PNG")
+            return buffer.getvalue()
+
+        document, binary = read_glb(glb_with_mesh(positions, uvs, triangles, [
+            png(rng.integers(0, 255, (64, 64, 3)).astype(np.uint8), "RGB"),
+            png(rng.integers(0, 255, (64, 64, 3)).astype(np.uint8), "RGB")]))
+        document["materials"][0]["pbrMetallicRoughness"]["metallicRoughnessTexture"] = {"index": 1}
+        self.source = self.root / "painted.glb"
+        self.source.write_bytes(write_glb(document, binary))
+        alpha = picture_of(positions, triangles, paint_sections.GENERATOR_FRAME)
+        picture = np.zeros(alpha.shape + (4,), dtype=np.uint8)
+        picture[..., :3] = 150
+        picture[..., 3] = alpha
+        self.reference = self.root / "reference.png"
+        Image.fromarray(picture, "RGBA").save(self.reference)
+        self.legacy = self.root / "studio"
+        (self.legacy / ".venv-hy3d21" / "Scripts").mkdir(parents=True)
+        (self.legacy / ".venv-hy3d21" / "Scripts" / "python.exe").write_bytes(b"")
+        self.launcher = self.root / "launch.ps1"
+        self.launcher.write_text("", encoding="utf-8")
+        saved = paint_sections.paint_batch, paint_sections.ThreadPoolExecutor
+        self.addCleanup(lambda: (setattr(paint_sections, "paint_batch", saved[0]),
+                                 setattr(paint_sections, "ThreadPoolExecutor", saved[1])))
+
+    @staticmethod
+    def painter(streamed):
+        """paint_batch as the painter does it: each section's maps and gate in turn, the pass told after each."""
+        from PIL import Image  # noqa: PLC0415
+
+        def paint_batch(args, jobs, attempt, minutes_each=10.0, on_progress=None):
+            for _, _, paint_dir, _ in jobs:
+                paint_dir.mkdir(parents=True, exist_ok=True)
+                rng = np.random.default_rng(100 + int(paint_dir.parent.name[-2:]))
+                Image.fromarray(rng.integers(0, 255, (96, 96, 3)).astype(np.uint8), "RGB").save(paint_dir / "section.png")
+                for name in ("section_metallic.png", "section_roughness.png"):
+                    Image.fromarray(rng.integers(0, 255, (96, 96)).astype(np.uint8), "L").save(paint_dir / name)
+                (paint_dir / "section.validation.json").write_text(json.dumps(
+                    {"faces_equal": True, "geometry_delta": 0.0, "uv_delta": 0.0, "seconds": 1.0}), encoding="utf-8")
+                if streamed and on_progress is not None:
+                    on_progress()
+            return 0
+        return paint_batch
+
+    def run_pass(self, name, streamed, *extra):
+        paint_sections.paint_batch = self.painter(streamed)
+        output, report = self.root / (name + ".glb"), self.root / (name + ".json")
+        code = paint_sections.main(["--", str(self.source), str(output), str(report), "--reference", str(self.reference),
+                                    "--legacy-root", str(self.legacy), "--launcher", str(self.launcher),
+                                    "--atlas", "2048", *extra])
+        self.assertEqual(code, 0)
+        return output.read_bytes(), json.loads(report.read_text(encoding="utf-8"))
+
+    def test_sections_laid_as_they_are_painted_make_the_model_laid_after_painting(self):
+        paint_sections.ThreadPoolExecutor = self.AtOnce
+        streamed, receipt = self.run_pass("streamed", True)
+        after, later = self.run_pass("after", False)
+        self.assertEqual(streamed, after)
+        self.assertTrue(receipt["painted"])
+        self.assertEqual(receipt["sections_laid_while_painting"], len(receipt["plan"]["sections"]))
+        self.assertEqual(later["sections_laid_while_painting"], 0)
+        self.assertTrue(receipt["composite"]["metallic_roughness_replaced"])
+        self.assertIn("planning_the_stitch", receipt["seconds_by_step"])
+
+    def test_the_stitch_planned_beside_the_painter_makes_the_same_model(self):
+        planned_beside, _ = self.run_pass("beside", True)
+        paint_sections.ThreadPoolExecutor = self.AtOnce
+        planned_first, _ = self.run_pass("first", True)
+        self.assertEqual(planned_beside, planned_first)
+
+    def test_matching_neighbours_still_lays_every_section(self):
+        matched, receipt = self.run_pass("matched", True, "--keep-colour", "0")
+        self.assertTrue(receipt["painted"])
+        self.assertTrue(all("colour_gain" in section for section in receipt["plan"]["sections"]))
+        self.assertTrue(receipt["composite"]["metallic_roughness_replaced"])
         launcher = (ROOT / "scripts" / "run_hy3d21_texture.ps1").read_text(encoding="utf-8")
         for needle in ("[string] $Jobs", "$InpaintReach", "'--jobs'", "'--inpaint-reach'", "'--maps-only'"):
             self.assertIn(needle, launcher)
