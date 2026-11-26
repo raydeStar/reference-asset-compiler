@@ -489,6 +489,16 @@ class ReuseTests(unittest.TestCase):
         self.record(views=8)
         self.assertIsNone(reusable_paint(self.earlier, self.folder, self.args))
 
+    def test_paint_made_with_another_upscale_is_painted_again(self):
+        # Records from before the option say nothing, which is the 4x upscale.
+        no_upscale = type("Args", (), {"views": 12, "resolution": 768, "atlas": 4096, "no_upscale": True})()
+        self.assertIsNone(reusable_paint(self.earlier, self.folder, no_upscale))
+        record = json.loads((self.paint / "section.execution.json").read_text(encoding="utf-8"))
+        record["no_upscale"] = True
+        (self.paint / "section.execution.json").write_text(json.dumps(record), encoding="utf-8")
+        self.assertEqual(reusable_paint(self.earlier, self.folder, no_upscale), self.paint)
+        self.assertIsNone(reusable_paint(self.earlier, self.folder, self.args))
+
     def test_a_section_the_painter_moved_is_painted_again(self):
         self.gate({"faces_equal": True, "geometry_delta": 0.01, "uv_delta": 0.0})
         self.assertIsNone(reusable_paint(self.earlier, self.folder, self.args))

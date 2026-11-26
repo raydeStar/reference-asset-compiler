@@ -284,6 +284,85 @@ class RunTests(unittest.TestCase):
             self.assertGreater(piece["reference_pixels"], 0)
         self.assertEqual(receipt["settings"]["surface_from"], "first")
 
+    def fake_painter(self, fail_last=False):
+        """The painter, as paint_batch and paint_section drive it: each piece's maps and gate in its folder."""
+        import paint_sections  # noqa: PLC0415
+        calls = {"batch": 0, "single": 0}
+
+        def write(paint_dir, fail=False):
+            paint_dir.mkdir(parents=True, exist_ok=True)
+            if fail:
+                (paint_dir / "section.failure.json").write_text(json.dumps({"error": "CUDA out of memory"}),
+                                                                encoding="utf-8")
+                return
+            rng = np.random.default_rng(len(paint_dir.parent.name) * 7 + int(paint_dir.parent.name[:2]))
+            Image.fromarray(rng.integers(0, 255, (64, 64, 3)).astype(np.uint8), "RGB").save(paint_dir / "section.png")
+            for name in ("section_metallic.png", "section_roughness.png"):
+                Image.fromarray(rng.integers(0, 255, (64, 64)).astype(np.uint8), "L").save(paint_dir / name)
+            (paint_dir / "section.validation.json").write_text(json.dumps(
+                {"faces_equal": True, "geometry_delta": 0.0, "uv_delta": 0.0, "seconds": 2.0,
+                 "seconds_painting": 1.5}), encoding="utf-8")
+
+        def paint_batch(args, jobs, attempt, minutes_each=10.0, on_progress=None):
+            calls["batch"] += 1
+            for number, (_, _, paint_dir, _) in enumerate(jobs):
+                write(paint_dir, fail_last and number == len(jobs) - 1)
+            return 1 if fail_last else 0
+
+        def paint_section(args, mesh_obj, crop_png, paint_dir, bake_size=0):
+            calls["single"] += 1
+            write(paint_dir)
+            glb, gate = paint_sections.read_paint(paint_dir)
+            return glb, gate, 0
+
+        saved = paint_sections.paint_batch, paint_sections.paint_section
+        self.addCleanup(lambda: (setattr(paint_sections, "paint_batch", saved[0]),
+                                 setattr(paint_sections, "paint_section", saved[1])))
+        paint_sections.paint_batch, paint_sections.paint_section = paint_batch, paint_section
+        return calls
+
+    def run_paint(self, name, *extra):
+        legacy = self.root / "studio"
+        (legacy / ".venv-hy3d21" / "Scripts").mkdir(parents=True, exist_ok=True)
+        (legacy / ".venv-hy3d21" / "Scripts" / "python.exe").write_bytes(b"")
+        launcher = self.root / "launch.ps1"
+        launcher.write_text("", encoding="utf-8")
+        output, report = self.root / (name + ".glb"), self.root / (name + ".json")
+        code = paint_parts_main(["--", str(self.source), str(output), str(report), "--parts", str(self.labelling()),
+                                 "--reference", str(self.reference), "--min-piece", "4", "--atlas", "2048",
+                                 "--legacy-root", str(legacy), "--launcher", str(launcher), *extra])
+        receipt = json.loads(report.read_text(encoding="utf-8")) if report.is_file() else None
+        return code, output, receipt
+
+    def test_one_painter_run_paints_every_piece_as_separate_runs_did(self):
+        calls = self.fake_painter()
+        code, together, receipt = self.run_paint("one-run")
+        self.assertEqual(code, 0)
+        self.assertEqual(calls, {"batch": 1, "single": 0})
+        self.assertEqual(receipt["settings"]["painter_runs"], "one for every piece")
+        self.assertEqual(receipt["settings"]["inpaint_reach"], 32)
+        self.assertEqual([piece["paint_seconds"] for piece in receipt["pieces"]], [1.5, 1.5, 1.5])
+        code, apart, receipt = self.run_paint("separate", "--separate-runs")
+        self.assertEqual(code, 0)
+        self.assertEqual(calls, {"batch": 1, "single": 3})
+        self.assertEqual(receipt["settings"]["painter_runs"], "one per piece")
+        self.assertEqual(together.read_bytes(), apart.read_bytes())
+
+    def test_a_piece_the_painter_did_not_finish_fails_the_pass_and_keeps_the_rest(self):
+        self.fake_painter(fail_last=True)
+        code, output, receipt = self.run_paint("broken")
+        self.assertEqual(code, 1)
+        self.assertFalse(output.exists())
+        self.assertIsNone(receipt)
+        attempt = next(self.root.glob("broken-parts-attempt*"))
+        self.assertTrue((attempt / "00-body" / "paint" / "section.validation.json").is_file())
+        self.assertTrue((attempt / "02-end" / "paint" / "section.failure.json").is_file())
+
+    def test_the_reach_is_bounded(self):
+        code, _, receipt = self.run_paint("wide", "--inpaint-reach", "300")
+        self.assertEqual(code, 1)
+        self.assertIsNone(receipt)
+
     def test_parts_named_together_are_planned_as_one_piece(self):
         code, receipt = self.run_plan("--together", "end")
         self.assertEqual(code, 0)
@@ -368,6 +447,23 @@ class StageTests(unittest.TestCase):
         self.assertEqual(arguments[arguments.index("--together") + 1], "fin")
         self.assertEqual(arguments[arguments.index("--surface") + 1], "first")
         self.assertEqual(arguments[arguments.index("--reuse-parts") + 1], str(earlier.resolve()))
+
+    def test_the_section_and_part_passes_are_told_to_skip_the_upscale(self):
+        labelling = self.root / "labels.npz"
+        labelling.write_bytes(b"npz")
+        prepared = prepare_paint_parts({"parts": labelling, "reference": self.reference, "no_upscale": True},
+                                       self.legacy)
+        self.assertIn("--no-upscale", prepared["arguments"])
+        plain = prepare_paint_parts({"parts": labelling, "reference": self.reference}, self.legacy)
+        self.assertNotIn("--no-upscale", plain["arguments"])
+        from reference_asset_compiler.stages import prepare_paint_sections  # noqa: PLC0415
+        sections = prepare_paint_sections({"reference": self.reference, "no_upscale": True}, self.legacy)
+        self.assertIn("--no-upscale", sections["arguments"])
+        from reference_asset_compiler import cli  # noqa: PLC0415
+        args = cli.build_parser().parse_args([
+            "run-stage", "paint-sections", "--source", "p.glb", "--output", "o.glb", "--report", "o.json",
+            "--reference", "r.png", "--no-upscale"])
+        self.assertTrue(args.no_upscale)
 
     def test_the_part_painter_refuses_without_a_labelling(self):
         with self.assertRaises(StageError):

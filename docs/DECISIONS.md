@@ -3518,3 +3518,91 @@ Per-corner weights faded half of a big flat triangle from one grazing corner. Te
 **Occlusion is back on the Pixal route.** The entry that took it off blamed the occlusion bake. The cause was the overlapping UV layout, fixed in `uv-unwrap`. The stair re-baked on the fixed layout with occlusion shows no triangles, and the owner passed it.
 
 **Measured:** the stage on the rebuilt landing ran in 39 s (0.8 M rays). Its result matches the owner-passed prototype within 0.26/255 on average in the elevated view.
+
+## 2026-11-25 · Sections paint in one painter run, fill only near their faces, and are laid only where they weigh
+
+At hero quality a model went from about 10 minutes to about 2 hours. The WK-04.1 stair took 128 minutes; 114 of them were its 33 sections, and the owner asked for the speed back without losing what he had passed. Measured from the stair's GPU trace and its section receipts:
+
+- **Each section, about 3.5 minutes (210 s) at 8192:**
+  - 13 s starting PowerShell and Python;
+  - 12 s loading the models;
+  - 58 s on the GPU, painting the views and upscaling them;
+  - about 90 s with the GPU idle, while OpenCV filled every texel of the 8192 sheet that no view saw, on one core per map;
+  - about 25 s writing the maps and the GLB, then the painter's teardown.
+- **The section only uses its own faces.** A half-metre section is a few percent of an 8192 sheet, and the composite reads only its faces' texels and 2 texels round them. On a test sheet the whole-sheet fill took 147 s a map; filling near the faces alone took 5 s.
+- **The composite, 14.5 minutes after the last section.** For every section and both maps it blurred the whole 8192 sheet (25-30 s each) to take the tone from the first paint, though the section weighs on about 2 % of it.
+
+**What changed, none of it in what the painter paints:**
+- `run_hy3d21_studio.py --inpaint-reach N` fills unseen texels with upstream's OpenCV fill only in a band round the mesh's own texels. The rest of the sheet first takes the nearest paint by a pull-push fill (`sheet_fill.py`, hash-pinned like the normal helper), so the band is edged with paint and not with the empty sheet's black. The texels inside the band start as upstream hands them, because OpenCV's fill reads them.
+  - **The band's width matters.** The first GPU check used 8 texels, and 41 % of the stair's first section moved, by up to 19/255. The old painter, run again, reproduced the passed sections byte for byte, so the painter is deterministic and the band was to blame. At a texel-scale bake a 256-pixel view leaves rims and patches of a section's own faces unpainted; OpenCV marches into them from the nearest paint, and a band edge closer than that paint becomes the source instead.
+  - **The width now comes from the paint** (`reach_for`): twice the deepest unpainted gap in the mesh's texels and the 2 round them, plus 16, between N and 256. On sheets with rims of 2-20 texels and patches up to 15 texels, every texel within 64 of paint came out identical to the whole-sheet fill. `paint-sections` passes 32.
+  - **Faces no view saw do not widen it past 256.** The stair's sections each hold faces 1,000-3,200 texels from any paint. The whole-sheet fill colours them from whatever paint its march reaches first, and no band short of the sheet repeats that; gaps deeper than 120 texels are left out of the width. With the cut at 64, a 3 x 6 cm patch of one such face moved by 32/255 in metal (0.13 to 0.26) in the finished stair; at 120 nothing moved by more than 9/255. Sections painted this way still match the passed ones on 87-96 % of texels, the rest being such faces. Laid into the passed stair in place of its own first three, its finished maps moved on 0.011 % of colour texels (at most 2/255) and 0.05 % of metal-rough texels (at most 9/255), which nobody sees.
+- `run_hy3d21_studio.py --jobs` paints a list of meshes in one process. The painter seeds every run itself (seed 0, a fresh generator), and before each job after the first the diffusion and DINO go back on the card as the first job found them, so each job's maps are those a process of its own would paint. Each job gets its own execution receipt and validation report from `run_hy3d21_texture.ps1 -Jobs`; a job that fails is recorded beside its output and the next goes on. `paint-sections` paints every section in one run; `--separate-runs` keeps one run a section.
+- `composite` sums only where a section weighs and blurs only round those texels (`masked_blur_at`): tile by tile with the Gaussian's full reach for a full-size blur, and read back from the shrunk sheet by the interpolation that grows it otherwise. On random sheets every mode gives the whole-sheet numbers within 0.0002 of 255. The passed stair, re-composited from its own 33 sections, is byte-identical to the one passed.
+- `--maps-only`: the painter's GLB is its PNG maps packed by Blender's exporter (base colour as is; metal-rough as 255, roughness, metallic). The batch writes only the maps and `paint-sections` reads them into the same bytes. Maps painted this way are byte-identical to the batch that wrote the GLB, and the painter's teardown fault went with the export.
+
+**Measured on the stair's first three sections (8192, 12 views at 768):** 99-132 s a section in one run, against 140-197 s each before; reading 33 sections took 1.7 minutes and the composite 4.5, against 14.5 for the composite alone. That puts the stair's section pass near 75 minutes instead of 114, and the model near 90 instead of 128.
+
+**Where the time still goes:** each section has about 45 s of diffusion and 13 s of upscaling on the GPU, then about 50 s with the GPU idle: the fill, writing the maps, and the next section's setup. Running that tail beside the next section's diffusion is the next step. Skipping the 4x upscale, which a texel-scale bake shrinks straight back, would save 13 s more, but it changes the paint and needs the owner's eye.
+
+## 2026-11-26 · A section's maps are finished while the next one paints, and sections are laid as they come
+
+The owner asked for more speed after the one-run section pass (above). Before building, each step of a section was timed on the WK-04.1 stair's first three sections, on an otherwise idle machine:
+
+- **On the card:** diffusion 42-63 s, the 4x upscale 10-13 s, the two bakes about 4 s.
+- **The tail after the bakes, about 12 s with the card idle:** waiting for the metal-rough fill (the colour fill runs beside it, 8.5-9 s each), setting the maps (1.3 s) and writing them (2.4 s).
+- **The next section's setup, about 3 s:** putting the diffusion back on the card (1.1-1.3 s), choosing views (0.8 s), rendering normals and positions (0.7 s).
+- The "about 50 s idle" in the previous entry came from a once-a-second GPU trace and counted short gaps inside the upscale; only the 12 s tail could move.
+
+**A busy CPU costs more than any of that.** The same three sections took 82, 69 and 97 s on an idle machine, through the launcher or run straight, and 99-144 s in four earlier runs of the same code, at least one of which shared the CPU with Codex's composite (the CPU was not traced then; on the idle runs it averaged 7 %). The 99-132 s a section quoted in the previous entry was measured on a busy machine. Nothing CPU-heavy should run beside painting.
+
+**What changed, none of it in what the painter paints:**
+- `run_hy3d21_studio.py` (patch 4d): with `--jobs` and `--maps-only`, everything a job's tail reads (the baked sheets, their masks, the mesh's texels and the mesh itself) is copied off the card and out of the renderer when it is baked. Upstream's own fill, texture-setting and save functions then run on those copies on a thread while the next job paints. At most one job is finishing at a time. Its report is written after its maps, whole (written to a temporary name and renamed), and gives its time on the card as `seconds_painting`. Single-mesh runs are unchanged.
+- `paint_sections.py`: each section's place on the sheet comes from the geometry alone, so it is planned on a thread while the painter loads its models. The first paint's tone under every section is blurred then too. `Stitch` lays each section as soon as its report appears, in section order, with the sums `composite` takes (`composite` is now `Stitch` laid all at once), and lets each section's paint go once laid. Harmonising neighbours (`--keep-colour 0`) reads every section first, so it lays them at the end as before.
+
+**Measured:**
+- **Three sections (8192, 12 views at 768):** the maps, OBJ and MTL are byte-identical to main's. Each section spent 9-13 s less on the card (69, 60 and 88 s), and the batch took 249 s instead of 267.
+- **The whole stair, end to end, on the passed first paint and settings:** 42 minutes instead of 114 (2,525 s against 6,817), with the CPU at 7 % on average. All 33 sections were laid while the painter ran, leaving 26 s of stitching after the last one, where reading and compositing had taken about 6 minutes. Sections spent 60-100 s each on the card, 74 s on average.
+- **Against the stair the owner passed:** this was the first time all 33 sections were painted with the near-mesh fill. Colour moved on 1.6 % of texels, almost all by 4/255 or less (0.0013 % by more than 8, at most 15). Metal-rough moved on 6 % (0.11 % by more than 8, 0.0065 % by more than 16, at most 41). A copy of the stair coloured where it moved was rendered in the four fixed views and, unlit, from below and both low sides. Its marks covered 0-11 pixels of the fixed views and none from below: the texels that moved lie on faces no outside view reaches, or in the atlas padding. The passed and new stairs look the same from every one of those views.
+
+**Next, if more is wanted:** the diffusion itself (42-63 s, varying between sections for reasons not yet found) and the 4x upscale (10-13 s) are what is left. Skipping the upscale changes the paint and needs the owner's eye.
+
+## 2026-11-26 · Parts paint in one painter run; what else was tried for a whole model's time
+
+The owner swapped hard-surface geometry back to Hunyuan3D (it follows the picture more faithfully than Pixal3D) and asked for every easy speed-up left, and for a model's time front to back. The receipts of Codex's run on 25 November gave that time per stage: the PR-04.3 basket (no parts, no sections) took 9 min 22 s front to back, 7 min 07 s of it in stages, the first paint the largest at 3 min 15 s. The PR-02.3 counter (four parts, 30 sections) spent 2 h 14 min in stages, 91 minutes of it in sections. That section pass ran at 182 s a section beside Codex's remeshes and unwraps of other pieces. A remesh run beside it took 20 minutes where its neighbours took 20-35 s.
+
+**Kept:**
+- **`rac time-to-model <folder>`** reads the stage receipts under a model's folder and lays them out in order: each stage's start and seconds, the time in stages, the time between them, pauses over 30 minutes left out. Stage receipts now carry `started_utc` and `finished_utc`; older ones are timed by their file's time.
+- **`paint-parts` in one painter run**, as sections: the painter's models loaded once, each piece's maps finished while the next paints, each piece's unseen texels filled near its own faces (`--inpaint-reach 32`). On the PR-02.3 counter, on Codex's own first paint, labelling and picture: 354 s instead of 686, the pieces 60-91 s each on the card instead of 154-166. Metal-rough is byte-identical (the first paint's, kept). Colour moved on 0.0087 % of texels, up to 47/255, all texels no view saw. On a grey copy marked where it moved, the marks covered 0-2 pixels of the four fixed views and none from below or the low sides. The two counters look the same.
+- **`bake-shape` writes its normal map in bulk** (`foreach_set`, not a 268-million-float Python list): 66.8 s instead of 72.5 on the basket. The map matches within the bake's own noise: two CPU runs of the unchanged script differ on 25 texels by 1/255, the bulk write on 34.
+
+**Tried and dropped:**
+- **The allocator's early cache clean-up** (`garbage_collection_threshold:0.8`) makes the painter's pool swing by about 5 GB a second during diffusion. With it off, diffusion took 78 s against 76, and the maps were byte-identical. It is not what makes diffusion slow.
+- **The near-mesh fill on the first paint** (`texture --inpaint-reach 32`): the painter took 157 s against 154-157 with the whole-sheet fill. On a whole model the reach that fills deep gaps as the whole sheet does covers nearly all the empty sheet anyway.
+- **`bake-shape` on the GPU (OptiX):** 55 s of baking against 52 on the CPU. Blender casts selected-to-active rays on the CPU whatever the device.
+- **`bake-shape`'s closer cages on only the faces that need them** (1,797 of 50,000, with every face touching them): 15 and 14 s against 18 s for the whole mesh. Blender's cost per bake at 8192 is the whole image (setting up and margining 67 million texels), not the rays; 4 s saved was not worth the code.
+
+**Repeatable:** the first paint of the basket, run twice the same morning, gave byte-identical maps, also identical to Codex's paint of the night before. Start-up before the first job was 19 s with the model files cached, about 50 s cold.
+
+**What is left is the diffusion.** It takes 42-76 s a job (76-78 s on the whole basket), and the GPU is busy throughout. The levers left change the paint: fewer views, fewer or larger sections, skipping the 4x upscale. Each needs the owner's eye on an A/B.
+
+## 2026-11-26 · The section pass's own speed levers, A/B on the PR-02.3 counter
+
+The owner asked which speed levers that change the paint are worth it, with a fast version tuned for looks beside them. Every version started from the same first paint, parts paint and picture as the counter in review (12 views, 30 sections of 0.45 m, `--keep-colour 0.001`), changed only the section pass, and was finished the same way. They are revisions 2-7 of its Framewright card; revision 1, in review, stayed current. Times are the section pass on an otherwise idle machine:
+
+| Version | Sections | Time | Up close (fixed views, then three arm's-length close-ups and a full-resolution plank crop) |
+|---|---|---|---|
+| In review: 12 views, 0.45 m, 4x upscale | 30 | about 33-34 min today (C plus about 11 s a section) | the reference |
+| B: 8 views | 30 | 32.8 min, 62 s a section | the same as revision 1 |
+| C: no upscale | 30 | 27.7 min, 52 s a section | the same as revision 1, even in the full-resolution crop |
+| D: 0.6 m sections | 16 | 19.0 min, 65 s a section | faint false board lines on the planks, a spiral painted on the bolt heads |
+| F: 8 views, 0.6 m, upscale kept (fast, tuned) | 16 | 18.7 min, 64 s a section | as D |
+| E: 8 views, 0.6 m, no upscale | 16 | 15.8 min, 53 s a section | slightly softer, no false lines |
+| G: no sections (the parts paint, finished) | 0 | 0 | clean but plainer: the body is painted at 2.8 mm a pixel, against 0.9 with sections, and the fine cracks and grain are gone |
+
+- **Fewer views does not pay:** about 3 s a section.
+- **The upscale** costs about 11 s a section and, at a section's bake size (1,100-1,800 px, to which every view is resized anyway), showed nothing on this wood-and-bread piece. The owner chose `--no-upscale` for pieces like it, the upscale staying available for complex ones.
+- **Bigger sections** are the largest saving and the visible cost: the painter, given more of the counter in one view, paints board lines and bolt spirals of its own.
+- The owner, from the fixed views: "all versions look nearly identical to my eye."
+
+The whole-model first paint keeps its upscale: it bakes the views at the size the upscale leaves them, not at a bake size.

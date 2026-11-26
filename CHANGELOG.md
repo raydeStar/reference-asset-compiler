@@ -5,6 +5,51 @@ and any attached wheel.
 
 ## Unreleased
 
+`paint-sections` and `paint-parts` take `--no-upscale`: the painter skips its 4x
+upscale of each view, which these passes shrink to the bake size anyway. On the
+PR-02.3 counter its sections looked the same up close and took 27.7 minutes
+instead of about 33. The owner chose it for pieces like that one; the upscale
+stays the default, for complex pieces. A section or piece painted with the other
+setting is not reused.
+
+`rac time-to-model <folder>`: how long a model took front to back, from the
+stage receipts under its folder: each stage in order with its start and
+seconds, the time in stages and between them, pauses over 30 minutes left out
+(`--each` for a folder of models, `--json`). Stage receipts now carry
+`started_utc` and `finished_utc`.
+
+`paint-parts` paints as `paint-sections` does: one painter run for every piece,
+each piece's maps finished while the next paints, and each piece's unseen
+texels filled near its own faces. The PR-02.3 counter's four pieces took 5.9
+minutes instead of 11.4; its colour moved on 0.0087 % of texels, on faces no
+outside view reaches, and its metal-rough not at all. `--separate-runs` and
+`--inpaint-reach 0` bring back the old way. `bake-shape` hands Blender its
+normal map in bulk instead of as a Python list (about 6 s of 72).
+
+The playbook has the Hunyuan3D prop route end to end, with times.
+
+`paint-sections` keeps the card busier and lays sections as they come. The
+painter finishes each section's maps (the fills, their conversion and the PNGs)
+on a thread while the next section paints, and the pass lays each section over
+the first paint as soon as it is written, so little is left once the last one is
+painted. The maps are byte for byte the same. The WK-04.1 stair's section pass
+took 42 minutes instead of 114, with 26 s left after the last section where
+reading and compositing took about 6 minutes; against the stair the owner
+passed, the texels that moved lie only on faces no outside view reaches. A
+section is about 35 s slower whenever the CPU is busy with other work, such as
+another model's bakes or composite, so nothing CPU-heavy should run beside
+painting.
+
+`paint-sections` is faster and paints the same. One painter run paints every
+section with its models loaded once and writes only the maps; each section's
+unseen texels are filled near its own faces instead of across the whole 8192
+sheet; and the composite sums and blurs only where a section weighs. On the
+WK-04.1 stair a section took 99-132 s instead of 140-197 s, and the composite
+4.5 minutes instead of 14.5. The passed stair re-composited from its own
+sections is byte-identical; with three sections painted the new way, its
+finished maps moved by at most 9/255, on 0.05 % of texels. `--separate-runs`
+and `--inpaint-reach 0` bring back the old way.
+
 `project-reference`: the reference picture laid onto the faces of a Pixal3D model
 it shows, over the paint. Pixal3D builds its mesh in the picture's camera; the
 stage fits that camera (Pixal3D's logged field of view, refined by the outline)
