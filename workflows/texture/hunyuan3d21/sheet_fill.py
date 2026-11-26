@@ -58,7 +58,7 @@ def fill_from_coarser(image, known):
     return out[..., 0] if flat else out
 
 
-def reach_for(mask, footprint, floor, ceiling=256, grow=2, local=64):
+def reach_for(mask, footprint, floor, ceiling=256, grow=2, local=120):
     """How far round the mesh the fill must reach to fill the mesh's texels as the whole-sheet fill does.
 
     OpenCV's fill marches inward from the painted texels, each texel taken from
@@ -73,10 +73,12 @@ def reach_for(mask, footprint, floor, ceiling=256, grow=2, local=64):
     sections, 1,000 to 3,200 texels. The whole-sheet fill colours it from
     whatever paint its march reaches first, so no band short of the sheet
     repeats it, and nothing about it is the picture's. Gaps deeper than `local`
-    texels are those faces, and do not widen the band. With them laid into the
-    stair, its finished maps moved by at most 2/255 (colour) and 9/255
-    (metal-rough), on 0.05 % of texels. Returns (reach, deepest gap counted,
-    texels in faces no view saw).
+    texels are those faces, and do not widen the band past the ceiling. Laid
+    into the passed stair, sections filled this way moved its finished maps by
+    at most 2/255 (colour) and 9/255 (metal-rough), on 0.05 % of texels. With
+    `local` at 64, a 3 x 6 cm patch on a face no view saw moved by 32/255 in
+    metal, so the band keeps its full reach for gaps up to 120. Returns (reach,
+    deepest gap counted, texels in faces no view saw).
     """
     import cv2  # noqa: PLC0415
 
