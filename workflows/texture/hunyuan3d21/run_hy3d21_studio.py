@@ -82,6 +82,15 @@ rather than editing them in place:
  12. With --maps-only, the GLB is not written: it is the same maps packed by
      Blender's exporter, which the section pass can read as they are.
 
+ 13. With --jobs and --maps-only, a job's maps are finished while the next job
+     paints. Once its views are baked, what is left is host work: the two fills,
+     the maps' conversion and the PNGs, about 12 s of a section's 70-100 s, with
+     the card idle. Everything it reads is copied off the card and out of the
+     renderer first, upstream's own functions then run on those copies on a
+     thread, and the next job starts on the card at once. The maps are byte for
+     byte the same; each job's report is written after its maps, whole, and
+     gives its time on the card as seconds_painting.
+
 The UV lock, the local model snapshots, the validation gate and its 1e-6
 tolerances match the legacy runner exactly, because those parts were right.
 
@@ -294,7 +303,20 @@ _original_save_mesh = MeshRender.save_mesh
 
 
 def save_mesh_at_requested_atlas(self, mesh_path, downsample=False):
-    return _original_save_mesh(self, mesh_path, downsample=(args.atlas == 2048))
+    waiting = self.__dict__.pop("rac_filled_later", None)
+    if not waiting:
+        return _original_save_mesh(self, mesh_path, downsample=(args.atlas == 2048))
+    # Maps still being filled (patch 4d): the mesh is copied now, and the maps
+    # are set and saved, by upstream's own code, once their fills finish.
+    held = host_copy(self)
+
+    def write():
+        for setter, filled, set_args, set_kwargs in waiting:
+            setter(held, filled.future.result(), *set_args, **set_kwargs)
+        _original_save_mesh(held, mesh_path, downsample=(args.atlas == 2048))
+
+    self.rac_write_later = write
+    return None
 
 
 MeshRender.save_mesh = save_mesh_at_requested_atlas
@@ -313,19 +335,24 @@ mesh_utils._save_texture_map = save_texture_map_as_png
 _original_uv_inpaint = MeshRender.uv_inpaint
 
 
-def inpaint_near_the_mesh(render, texture, mask, reach):
-    """Upstream's OpenCV fill within `reach` texels of the mesh (sheet_fill.inpaint_near).
+def covered_texels(render):
+    """The texels the render's mesh covers (bool, the sheet's shape), from its texel map."""
+    return (render.texture_indices >= 0).cpu().numpy()
 
-    The mesh's own texels are the ones the texel map found covered. If the
-    paint lies off them, something does not line up, and the whole sheet is
-    filled as upstream does rather than guessing.
+
+def fill_sheet(texture_np, mask, footprint, reach):
+    """Upstream's OpenCV fill (uv_inpaint without the vertex pass) of host arrays, as uint8.
+
+    With `reach` 0 it is upstream's own line. Otherwise only within `reach`
+    texels of the mesh (sheet_fill.inpaint_near): the mesh's own texels are the
+    `footprint` its texel map found covered. If the paint lies off them,
+    something does not line up, and the whole sheet is filled as upstream does
+    rather than guessing.
     """
-    texture_np = texture.cpu().numpy() if isinstance(texture, torch.Tensor) else np.asarray(texture)
-    if isinstance(mask, torch.Tensor):
-        mask = (mask.squeeze(-1).cpu().numpy() * 255).astype(np.uint8)
     image = (texture_np * 255).astype(np.uint8)
+    if reach <= 0:
+        return cv2.inpaint(image, 255 - mask, 3, cv2.INPAINT_NS)
     known = mask == 255
-    footprint = (render.texture_indices >= 0).cpu().numpy()
     stray = int((known & ~footprint).sum()) if footprint.shape == known.shape else -1
     if stray < 0 or stray > 0.01 * max(int(known.sum()), 1):
         # The mesh's texels do not line up with the paint: fill the whole sheet.
@@ -342,12 +369,69 @@ def inpaint_near_the_mesh(render, texture, mask, reach):
 
 def uv_inpaint_cv_fallback(self, texture, mask, **inpaint_kwargs):
     if args.inpaint_reach > 0 and not inpaint_kwargs:
-        return inpaint_near_the_mesh(self, texture, mask, args.inpaint_reach)
+        texture_np = texture.cpu().numpy() if isinstance(texture, torch.Tensor) else np.asarray(texture)
+        if isinstance(mask, torch.Tensor):
+            mask = (mask.squeeze(-1).cpu().numpy() * 255).astype(np.uint8)
+        return fill_sheet(texture_np, mask, covered_texels(self), args.inpaint_reach)
     return _original_uv_inpaint(self, texture, mask, vertex_inpaint=False,
                                 **inpaint_kwargs)
 
 
 MeshRender.uv_inpaint = uv_inpaint_cv_fallback
+
+
+def fill_as_upstream(texture_np, mask_np, footprint):
+    """Upstream's texture_inpaint on host arrays: the filled sheet as the float tensor it uploads.
+
+    Upstream fills on the host and uploads `torch.tensor(filled / 255).float()`;
+    this stops before the upload, so the card and the renderer are not touched.
+    """
+    return torch.tensor(fill_sheet(texture_np, mask_np, footprint, args.inpaint_reach) / 255).float()
+
+
+# --- patch 4d: finish a job's maps while the next job paints ----------------
+# With --jobs and --maps-only, what is left of a job once its views are baked
+# is host work: the fills, the maps' conversion and the PNGs. It is handed to a
+# thread, with everything it reads copied off the card and out of the renderer
+# (which the next job loads its own mesh into), and the next job starts on the
+# card at once. The same functions run on the same arrays, so the maps are
+# byte for byte those of a job finished before the next began.
+FINISH_BESIDE_NEXT = args.jobs is not None and args.maps_only
+
+
+class FilledLater:
+    """A map whose fill is still running, handed to upstream in place of the filled map."""
+
+    def __init__(self, future):
+        self.future = future
+
+
+def host_copy(render):
+    """The render's mesh as save_mesh reads it, in host memory, for writing after the next job loads its own."""
+    held = object.__new__(MeshRender)
+    held.device = torch.device("cpu")
+    held.texture_size = render.texture_size
+    for name in ("vtx_pos", "pos_idx", "vtx_uv", "uv_idx"):
+        setattr(held, name, getattr(render, name).detach().cpu().clone())
+    held.mesh_normalize_scale_factor = render.mesh_normalize_scale_factor
+    held.mesh_normalize_scale_center = np.array(render.mesh_normalize_scale_center, copy=True)
+    if hasattr(render, "tex_normalMap"):
+        held.tex_normalMap = render.tex_normalMap.detach().cpu().clone()
+    return held
+
+
+def set_when_filled(original):
+    """Upstream's set_texture(_mr), held back for a map still being filled and replayed when it is."""
+    def set_texture(self, tex, *set_args, **set_kwargs):
+        if isinstance(tex, FilledLater):
+            self.__dict__.setdefault("rac_filled_later", []).append((original, tex, set_args, set_kwargs))
+            return None
+        return original(self, tex, *set_args, **set_kwargs)
+    return set_texture
+
+
+MeshRender.set_texture = set_when_filled(MeshRender.set_texture)
+MeshRender.set_texture_mr = set_when_filled(MeshRender.set_texture_mr)
 
 # --- patch 4b: bake one view at a time ---------------------------------------
 from utils.pipeline_utils import ViewProcessor  # noqa: E402
@@ -447,9 +531,12 @@ def inpaint_while_baking(painter):
     Upstream bakes base colour and metal-rough on the GPU, then inpaints them
     one after the other on one CPU core: about 18 s each at a 4096 atlas.
     OpenCV releases the GIL, so the two run side by side here, on the same
-    inputs and the same function. The result is byte-identical.
+    inputs and the same function. The result is byte-identical. Everything a
+    fill reads is copied off the card when its map is baked, so a fill never
+    touches the card or the renderer; when the job is finished beside the next
+    (patch 4d), upstream is handed the fill still running.
     """
-    view_processor = painter.view_processor
+    view_processor, render = painter.view_processor, painter.render
     bake, inpaint = view_processor.bake_from_multiview, view_processor.texture_inpaint
     workers = ThreadPoolExecutor(max_workers=2, thread_name_prefix="rac-inpaint")
     started = {}
@@ -458,7 +545,9 @@ def inpaint_while_baking(painter):
         texture, mask = bake(*bake_args, **bake_kwargs)
         # The exact mask upstream derives before calling texture_inpaint.
         mask_np = (mask.squeeze(-1).cpu().numpy() * 255).astype(np.uint8)
-        started[id(texture)] = (texture, mask_np, workers.submit(inpaint, texture, mask_np))
+        footprint = covered_texels(render) if args.inpaint_reach > 0 else None
+        fill = workers.submit(fill_as_upstream, texture.cpu().numpy(), mask_np, footprint)
+        started[id(texture)] = (texture, mask_np, fill)
         return texture, mask
 
     def finish_inpaint(texture, mask, *inpaint_args, **inpaint_kwargs):
@@ -466,7 +555,9 @@ def inpaint_while_baking(painter):
         if (entry is None or entry[0] is not texture or inpaint_args or inpaint_kwargs
                 or not np.array_equal(entry[1], mask)):
             return inpaint(texture, mask, *inpaint_args, **inpaint_kwargs)
-        return entry[2].result()
+        if FINISH_BESIDE_NEXT:
+            return FilledLater(entry[2])
+        return entry[2].result().to(texture.device)
 
     view_processor.bake_from_multiview = bake_then_start_inpaint
     view_processor.texture_inpaint = finish_inpaint
@@ -685,7 +776,11 @@ finally:
 
 
 def paint(job, number):
-    """One mesh through the painter, its gate checked and its report written."""
+    """One mesh through the painter. Returns its finishing: maps written, gate checked, report written.
+
+    Everything that reads the card or the renderer happens here; the finishing
+    reads neither, so with patch 4d it runs while the next job paints.
+    """
     started = time.monotonic()
     mesh_path, reference_path, output_obj = job["mesh"], job["reference"], job["output_obj"]
     print("HY3D21_JOB_START number={0} of={1} mesh={2}".format(number + 1, len(JOBS), mesh_path), flush=True)
@@ -695,6 +790,9 @@ def paint(job, number):
     current["bake_size"] = job["bake_size"]
     if job["bake_size"]:
         print("HY3D21_BAKE_SIZE", job["bake_size"], flush=True)
+    # Nothing a failed job left waiting is written with this one's maps.
+    painter.render.__dict__.pop("rac_filled_later", None)
+    painter.render.__dict__.pop("rac_write_later", None)
     if rearm is not None and number > 0:
         rearm()
     torch.cuda.reset_peak_memory_stats()
@@ -709,6 +807,7 @@ def paint(job, number):
         )
     finally:
         os.chdir(previous_cwd)
+    write_later = painter.render.__dict__.pop("rac_write_later", None)
 
     painted_vertices, painted_faces, painted_uv, _ = painter.render.get_mesh(normalize=False)
     painted_vertices = np.asarray(painted_vertices, dtype=np.float64)
@@ -723,64 +822,108 @@ def paint(job, number):
     uv_delta = (
         float(np.max(np.linalg.norm(painted_uv - source_uv, axis=1)))
         if painted_uv.shape == source_uv.shape else float("inf"))
+    on_card = round(time.monotonic() - started, 1)
+    vram = {"device": torch.cuda.get_device_name(0), "free_bytes_at_start": int(free_bytes),
+            "pool_budget_bytes": pool_budget_bytes,
+            "peak_allocated_bytes": int(torch.cuda.max_memory_allocated()),
+            "peak_reserved_bytes": int(torch.cuda.max_memory_reserved())}
 
-    written = sorted(p.name for p in output_obj.parent.glob(output_obj.stem + "*.png"))
-    report = {
-        "source_mesh": str(mesh_path),
-        "reference": str(reference_path),
-        "output_obj": str(output_obj),
-        "output_glb": None if args.maps_only else str(output_obj.with_suffix(".glb")),
-        "vertices": int(len(source_vertices)),
-        "triangles": int(len(source_faces)),
-        "painted_vertices": int(len(painted_vertices)),
-        "faces_equal": faces_equal,
-        "geometry_delta": geometry_delta,
-        "uv_delta": uv_delta,
-        "views": args.views,
-        "resolution": args.resolution,
-        "texture_size": int(config.texture_size),
-        "atlas": args.atlas,
-        "bake_size": job["bake_size"],
-        "inpaint_reach": args.inpaint_reach,
-        "downsample_disabled": args.atlas != 2048,
-        "map_format": "png",
-        "maps": written,
-        "release_stages": args.release_stages,
-        "batch": {"jobs": len(JOBS), "number": number + 1} if args.jobs is not None else None,
-        "seconds": round(time.monotonic() - started, 1),
-        "vram": {"device": torch.cuda.get_device_name(0), "free_bytes_at_start": int(free_bytes),
-                 "pool_budget_bytes": pool_budget_bytes,
-                 "peak_allocated_bytes": int(torch.cuda.max_memory_allocated()),
-                 "peak_reserved_bytes": int(torch.cuda.max_memory_reserved())},
-    }
-    report_path = output_obj.with_suffix(".validation.json")
-    report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+    def finish():
+        if write_later is not None:
+            write_later()
+        written = sorted(p.name for p in output_obj.parent.glob(output_obj.stem + "*.png"))
+        report = {
+            "source_mesh": str(mesh_path),
+            "reference": str(reference_path),
+            "output_obj": str(output_obj),
+            "output_glb": None if args.maps_only else str(output_obj.with_suffix(".glb")),
+            "vertices": int(len(source_vertices)),
+            "triangles": int(len(source_faces)),
+            "painted_vertices": int(len(painted_vertices)),
+            "faces_equal": faces_equal,
+            "geometry_delta": geometry_delta,
+            "uv_delta": uv_delta,
+            "views": args.views,
+            "resolution": args.resolution,
+            "texture_size": int(config.texture_size),
+            "atlas": args.atlas,
+            "bake_size": job["bake_size"],
+            "inpaint_reach": args.inpaint_reach,
+            "downsample_disabled": args.atlas != 2048,
+            "map_format": "png",
+            "maps": written,
+            "release_stages": args.release_stages,
+            "batch": {"jobs": len(JOBS), "number": number + 1} if args.jobs is not None else None,
+            # From the job's start to this report. With the maps finished beside
+            # the next job, its time on the card ends at seconds_painting.
+            "seconds": round(time.monotonic() - started, 1),
+            "seconds_painting": on_card,
+            "finished_beside_next": write_later is not None,
+            "vram": vram,
+        }
+        report_path = output_obj.with_suffix(".validation.json")
+        # Whole or not at all: a caller reads it as soon as it appears.
+        partial = report_path.with_name(report_path.name + ".partial")
+        partial.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+        os.replace(partial, report_path)
 
-    if not faces_equal or geometry_delta > 1.0e-6 or uv_delta > 1.0e-6:
-        raise RuntimeError("Hunyuan topology/UV gate failed: {0}".format(
-            json.dumps(report, sort_keys=True)))
+        if not faces_equal or geometry_delta > 1.0e-6 or uv_delta > 1.0e-6:
+            raise RuntimeError("Hunyuan topology/UV gate failed: {0}".format(
+                json.dumps(report, sort_keys=True)))
 
-    print("HY3D21_PBR_OK result={0} report={1} geometry_delta={2:.9f} "
-          "uv_delta={3:.9f} seconds={4}".format(result, report_path, geometry_delta, uv_delta,
-                                                report["seconds"]),
-          flush=True)
+        print("HY3D21_PBR_OK result={0} report={1} geometry_delta={2:.9f} "
+              "uv_delta={3:.9f} seconds={4}".format(result, report_path, geometry_delta, uv_delta,
+                                                    report["seconds"]),
+              flush=True)
+
+    return finish
+
+
+def record_failure(number, job, problem):
+    """A job that failed, recorded beside its output; it is not retried here."""
+    job["output_obj"].with_suffix(".failure.json").write_text(json.dumps({
+        "mesh": str(job["mesh"]), "error": "{0}: {1}".format(type(problem).__name__, problem),
+        "traceback": "".join(traceback.format_exception(type(problem), problem, problem.__traceback__))},
+        indent=2) + "\n", encoding="utf-8")
+    print("HY3D21_JOB_FAILED number={0} error={1}".format(number + 1, problem), flush=True)
 
 
 if args.jobs is None:
-    paint(JOBS[0], 0)
+    paint(JOBS[0], 0)()
 else:
     # A job that fails is recorded beside its output and the batch goes on: it
-    # is not retried here, and the caller sees which jobs have no report.
+    # is not retried here, and the caller sees which jobs have no report. With
+    # patch 4d one job's finishing runs while the next paints, and is waited
+    # for once the next has left the card; at most one is ever in flight.
+    finisher = ThreadPoolExecutor(max_workers=1, thread_name_prefix="rac-finish")
     failures = 0
-    for number, job in enumerate(JOBS):
+    finishing = None
+
+    def settle(number, job, future):
         try:
-            paint(job, number)
+            future.result()
+            return 0
+        except Exception as problem:  # noqa: BLE001 -- recorded, then the next job
+            record_failure(number, job, problem)
+            return 1
+
+    for number, job in enumerate(JOBS):
+        finish = None
+        try:
+            finish = paint(job, number)
         except Exception as problem:  # noqa: BLE001 -- recorded, then the next job
             failures += 1
-            job["output_obj"].with_suffix(".failure.json").write_text(json.dumps({
-                "mesh": str(job["mesh"]), "error": "{0}: {1}".format(type(problem).__name__, problem),
-                "traceback": traceback.format_exc()}, indent=2) + "\n", encoding="utf-8")
-            print("HY3D21_JOB_FAILED number={0} error={1}".format(number + 1, problem), flush=True)
+            record_failure(number, job, problem)
+        if finishing is not None:
+            failures += settle(*finishing)
+            finishing = None
+        if finish is not None:
+            if FINISH_BESIDE_NEXT:
+                finishing = (number, job, finisher.submit(finish))
+            else:
+                failures += settle(number, job, finisher.submit(finish))
+    if finishing is not None:
+        failures += settle(*finishing)
     print("HY3D21_BATCH_DONE jobs={0} failed={1}".format(len(JOBS), failures), flush=True)
     if failures:
         sys.exit(1)
