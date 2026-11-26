@@ -102,7 +102,7 @@
       "topology_contract": "exact_face_order_geometry_and_UV_with_tolerance_1e-6",
       "deployment": "run in place from this repository; scripts/run_hy3d21_texture.ps1 -RunnerKind studio verifies this sha256 before launching",
       "normal_helper": {"path": "texture/hunyuan3d21/seam_normals.py", "sha256": "D6F166BB122DC8F6E0EC47B42644A53C2600FE7AFD3E3F049DFA9AC3BB6AAFDD"},
-      "fill_helper": {"path": "texture/hunyuan3d21/sheet_fill.py", "sha256": "AA57304BC51C9B0183EB6F1AE7F9946CA8F5CF13EDF14D57CDD0761CB5BD486C"}
+      "fill_helper": {"path": "texture/hunyuan3d21/sheet_fill.py", "sha256": "BD551E62013F9ED438B427F5ECE0201FB19DF5E875858FDBDA8D741CE5ECF707"}
     },
     {
       "id": "trellis2_existing_mesh_pbr",

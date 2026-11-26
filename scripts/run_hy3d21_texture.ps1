@@ -66,7 +66,7 @@ if ($RunnerKind -eq 'studio') {
         throw 'Studio normal helper changed; verify it and update its pinned hash before painting.'
     }
     $fillHelper = Join-Path (Split-Path -Parent $runner) 'sheet_fill.py'
-    if ((Get-FileHash -LiteralPath $fillHelper -Algorithm SHA256).Hash -ne 'AA57304BC51C9B0183EB6F1AE7F9946CA8F5CF13EDF14D57CDD0761CB5BD486C') {
+    if ((Get-FileHash -LiteralPath $fillHelper -Algorithm SHA256).Hash -ne 'BD551E62013F9ED438B427F5ECE0201FB19DF5E875858FDBDA8D741CE5ECF707') {
         throw 'Studio sheet-fill helper changed; verify it and update its pinned hash before painting.'
     }
 } elseif ($Atlas -ne 2048) {
