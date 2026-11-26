@@ -58,14 +58,35 @@ def fill_from_coarser(image, known):
     return out[..., 0] if flat else out
 
 
+def reach_for(mask, footprint, floor, ceiling=256, grow=2):
+    """How far round the mesh the fill must reach to fill the mesh's texels as the whole-sheet fill does.
+
+    OpenCV's fill marches inward from the painted texels, each texel taken from
+    neighbours filled before it. Where the views left a rim or a patch of a face
+    unpainted, the march into it starts from the paint, and the band's outer
+    edge must lie further off than that, or the march starts from there instead.
+    Measured on sheets with rims and patches of every size: twice the deepest
+    gap in the mesh's texels (and the 2 texels round them the section pass
+    reads), plus 16, fills them exactly as the whole sheet does. A face no view
+    saw at all is filled from whatever paint is nearest either way; the ceiling
+    bounds the band there.
+    """
+    import cv2  # noqa: PLC0415
+
+    near = cv2.dilate(np.asarray(footprint, dtype=np.uint8), np.ones((2 * grow + 1, 2 * grow + 1), np.uint8)) > 0
+    gap = cv2.distanceTransform((np.asarray(mask) != 255).astype(np.uint8), cv2.DIST_L2, 5)
+    deepest = float(gap[near].max()) if near.any() else 0.0
+    return int(min(max(floor, 2.0 * deepest + 16.0), ceiling)), deepest
+
+
 def inpaint_near(image, mask, footprint, reach, radius=3):
     """Upstream's OpenCV fill within `reach` texels of the mesh; the rest of the sheet from the nearest paint.
 
     `image` is the sheet as upstream converts it (uint8), `mask` upstream's
     (255 where a view painted the texel), `footprint` the texels the mesh itself
     covers. OpenCV fills, as upstream asks it to, every texel that is not 255,
-    but only inside the footprint grown by `reach`. Returns the filled sheet and
-    how many texels OpenCV filled.
+    but only inside the footprint grown by `reach` (see reach_for). Returns the
+    filled sheet and how many texels OpenCV filled.
     """
     import cv2  # noqa: PLC0415 -- the painter's environment has it; tests import it too
 
@@ -73,5 +94,9 @@ def inpaint_near(image, mask, footprint, reach, radius=3):
     kernel = np.ones((2 * reach + 1, 2 * reach + 1), np.uint8)
     near = cv2.dilate(np.asarray(footprint, dtype=np.uint8), kernel) > 0
     holes = near & ~known
-    filled = cv2.inpaint(fill_from_coarser(image, known), holes.astype(np.uint8) * 255, radius, cv2.INPAINT_NS)
+    # OpenCV reads what the texels it fills held to begin with, so inside the
+    # band they hold what upstream hands it; only the sheet beyond is pre-filled.
+    start = fill_from_coarser(image, known)
+    start[holes] = np.asarray(image)[holes]
+    filled = cv2.inpaint(start, holes.astype(np.uint8) * 255, radius, cv2.INPAINT_NS)
     return filled, int(holes.sum())

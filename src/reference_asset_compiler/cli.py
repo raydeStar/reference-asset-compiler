@@ -231,8 +231,9 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Paint in sections: bake each section's views at about this many pixels a "
                             "texel (default: 1; 0 bakes them as upstream does)")
     stage.add_argument("--inpaint-reach", type=int,
-                       help="Paint in sections: fill the texels no view saw only within this many texels "
-                            "of each section's faces (default: 8; 0 fills the whole sheet, as before)")
+                       help="Paint in sections: fill the texels no view saw only within at least this many "
+                            "texels of each section's faces, wider where the views left deeper gaps "
+                            "(default: 32; 0 fills the whole sheet, as before)")
     stage.add_argument("--separate-runs", action="store_true",
                        help="Paint in sections: start the painter once for each section instead of once "
                             "for them all")

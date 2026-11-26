@@ -75,12 +75,37 @@ class SheetFillTests(unittest.TestCase):
     def test_near_the_mesh_it_is_upstreams_fill(self):
         import cv2  # noqa: PLC0415
         whole = cv2.inpaint(self.painted, 255 - self.mask, 3, cv2.INPAINT_NS)
-        near, count = SHEET_FILL.inpaint_near(self.painted, self.mask, self.footprint, 8)
+        reach, _ = SHEET_FILL.reach_for(self.mask, self.footprint, 32)
+        near, count = SHEET_FILL.inpaint_near(self.painted, self.mask, self.footprint, reach)
         read = cv2.dilate(self.footprint.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
-        difference = np.abs(whole.astype(int) - near.astype(int)).max(axis=2)[read]
-        self.assertGreater(float((difference == 0).mean()), 0.995)
-        self.assertLessEqual(int(difference.max()), 32)
+        np.testing.assert_array_equal(near[read], whole[read])
         self.assertGreater(count, int(self.unseen.sum()))
+
+    def test_unpainted_rims_need_the_wider_reach_and_get_it(self):
+        # A 256-pixel view leaves a rim round every island unpainted. Eight
+        # texels of reach filled those rims from the band's edge, not the paint:
+        # on the stair's first section 41 % of its texels moved, by up to 19/255.
+        import cv2  # noqa: PLC0415
+        rng = np.random.default_rng(9)
+        size = 512
+        footprint = np.zeros((size, size), bool)
+        image = np.zeros((size, size, 3), np.uint8)
+        for _ in range(20):
+            top, left = rng.integers(0, size - 90, 2)
+            height, width = rng.integers(20, 90, 2)
+            footprint[top:top + height, left:left + width] = True
+            image[top:top + height, left:left + width] = rng.integers(40, 220, (height, width, 3))
+        rim = footprint & ~cv2.erode(footprint.astype(np.uint8), np.ones((9, 9), np.uint8)).astype(bool)
+        mask = ((footprint & ~rim) * 255).astype(np.uint8)
+        painted = image * (mask[..., None] > 0)
+        whole = cv2.inpaint(painted, 255 - mask, 3, cv2.INPAINT_NS)
+        read = cv2.dilate(footprint.astype(np.uint8), np.ones((5, 5), np.uint8)) > 0
+        narrow, _ = SHEET_FILL.inpaint_near(painted, mask, footprint, 8)
+        self.assertFalse(np.array_equal(narrow[read], whole[read]))
+        reach, deepest = SHEET_FILL.reach_for(mask, footprint, 8)
+        self.assertEqual(reach, int(min(max(8, 2 * deepest + 16), 256)))
+        wide, _ = SHEET_FILL.inpaint_near(painted, mask, footprint, reach)
+        np.testing.assert_array_equal(wide[read], whole[read])
 
     def test_unseen_texels_are_never_filled_from_the_empty_sheets_black(self):
         near, _ = SHEET_FILL.inpaint_near(self.painted, self.mask, self.footprint, 8)
@@ -220,7 +245,7 @@ class OnePainterRunTests(unittest.TestCase):
         self.addCleanup(shutil.rmtree, self.root, ignore_errors=True)
         self.args = type("Args", (), {"launcher": Path("launch.ps1"), "legacy_root": Path("studio"), "views": 12,
                                       "resolution": 768, "atlas": 8192, "min_free_vram": 0,
-                                      "inpaint_reach": 8})()
+                                      "inpaint_reach": 32})()
         self.jobs = [(self.root / "section-{0:02d}".format(n) / "section.obj",
                       self.root / "section-{0:02d}".format(n) / "reference.png",
                       self.root / "section-{0:02d}".format(n) / "paint", 256 + n) for n in range(3)]
@@ -238,7 +263,7 @@ class OnePainterRunTests(unittest.TestCase):
         self.assertEqual(code, 1)
         self.assertEqual(len(FakePainter.calls), 1)
         command = FakePainter.calls[0]
-        self.assertEqual(command[command.index("-InpaintReach") + 1], "8")
+        self.assertEqual(command[command.index("-InpaintReach") + 1], "32")
         self.assertEqual(command[command.index("-Atlas") + 1], "8192")
         listed = json.loads((self.root / "paint-jobs.json").read_text(encoding="utf-8"))
         self.assertEqual([job["bake_size"] for job in listed], [256, 257, 258])
@@ -279,7 +304,7 @@ class StageOptionTests(unittest.TestCase):
         self.assertNotIn("--inpaint-reach", arguments)
         self.assertNotIn("--separate-runs", arguments)
         self.assertEqual(paint_sections.parse_arguments(["a.glb", "b.glb", "c.json", "--reference", "r.png"])
-                         .inpaint_reach, 8)
+                         .inpaint_reach, 32)
 
     def test_the_whole_sheet_fill_and_a_run_per_section_can_still_be_asked_for(self):
         from reference_asset_compiler import cli  # noqa: PLC0415

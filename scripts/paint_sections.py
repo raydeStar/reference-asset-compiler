@@ -140,9 +140,10 @@ def parse_arguments(argv):
                         help="Extra around a section's place in the picture, as a fraction of it")
     parser.add_argument("--min-free-vram", type=int, default=0,
                         help="MiB the painter must find free before it starts; 0 leaves it to the launcher")
-    parser.add_argument("--inpaint-reach", type=int, default=8,
-                        help="Fill the texels no view saw only within this many texels of each section's "
-                             "faces, the rest of its sheet from the nearest paint; 0 fills the whole sheet")
+    parser.add_argument("--inpaint-reach", type=int, default=32,
+                        help="Fill the texels no view saw only within at least this many texels of each "
+                             "section's faces (wider where the views left deeper gaps), the rest of its "
+                             "sheet from the nearest paint; 0 fills the whole sheet")
     parser.add_argument("--separate-runs", action="store_true",
                         help="Start the painter once for each section instead of once for them all")
     parser.add_argument("--plan-only", action="store_true",

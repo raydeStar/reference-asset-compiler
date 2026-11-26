@@ -63,13 +63,14 @@ rather than editing them in place:
      12 GB card as a 4096 sheet. The maps are byte for byte the same.
 
  10. With --inpaint-reach N, the texels no view saw are filled by OpenCV only
-     within N texels of the mesh's own texels; the rest of the sheet takes the
-     mean of the nearest painted texels around it (sheet_fill.py), so that
-     band's outer edge is painted colour and not black. Upstream fills the
-     whole sheet with OpenCV on one core per map: on an 8192 sheet that holds a
-     half-metre section, 99% of it is empty and took 140 s, of a section's
-     210 s, to fill texels the section pass never reads. Within the reach the
-     fill is upstream's; outside it differs, and nothing there is used.
+     within a band round the mesh's own texels, at least N wide and wider where
+     the views left deeper gaps (sheet_fill.reach_for); the rest of the sheet
+     takes the mean of the nearest painted texels around it, so the band's
+     outer edge is painted colour and not black. Upstream fills the whole sheet
+     with OpenCV on one core per map: on an 8192 sheet that holds a half-metre
+     section, 99% of it is empty and took 140 s, of a section's 210 s, to fill
+     texels the section pass never reads. The mesh's own texels come out as the
+     whole-sheet fill leaves them; outside the band they differ, unused.
 
  11. With --jobs FILE, one process paints a list of meshes, loading the models
      once. The painter seeds every run itself (seed 0, a fresh generator) and
@@ -112,7 +113,7 @@ os.environ.setdefault("PYTORCH_CUDA_ALLOC_CONF", "garbage_collection_threshold:0
 import torch  # noqa: E402
 import trimesh
 from seam_normals import install_seam_normal_repair
-from sheet_fill import inpaint_near
+from sheet_fill import inpaint_near, reach_for
 
 parser = argparse.ArgumentParser()
 parser.add_argument("mesh", type=Path, nargs="?")
@@ -324,9 +325,10 @@ def inpaint_near_the_mesh(render, texture, mask, reach):
               "(shape {0} vs {1}, {2} painted texels off the mesh)".format(footprint.shape, known.shape, stray),
               flush=True)
         return cv2.inpaint(image, 255 - mask, 3, cv2.INPAINT_NS)
+    reach, deepest = reach_for(mask, footprint, reach)
     filled, near = inpaint_near(image, mask, footprint, reach)
-    print("HY3D21_INPAINT reach={0} texels_filled_near_mesh={1} of_sheet={2}".format(
-        reach, near, int((~known).sum())), flush=True)
+    print("HY3D21_INPAINT reach={0} deepest_gap={1:.1f} texels_filled_near_mesh={2} of_sheet={3}".format(
+        reach, deepest, near, int((~known).sum())), flush=True)
     return filled
 
 
