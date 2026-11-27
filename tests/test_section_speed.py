@@ -497,7 +497,7 @@ class BackProjectionTests(unittest.TestCase):
             zeros=lambda shape: np.zeros(shape, dtype=np.float32).view(cls.Array),
             clamp=lambda value, *, min: np.maximum(value, min),
         )
-        namespace = {"torch": torch, "Image": Image}
+        namespace = {"torch": torch}
         exec(compile(ast.Module(body=[bake], type_ignores=[]), str(source), "exec"), namespace)
         cls.bake = staticmethod(namespace[bake.name])
 

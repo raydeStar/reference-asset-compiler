@@ -469,7 +469,9 @@ def bake_from_multiview_one_view_at_a_time(self, views, camera_elevs, camera_azi
             # error; a visible render must still report its original error.
             if "input.numel() == 0" not in str(error):
                 raise
-            resolution = (view.height, view.width) if isinstance(view, Image.Image) else view.shape[:2]
+            from PIL.Image import Image  # noqa: PLC0415
+
+            resolution = (view.height, view.width) if isinstance(view, Image) else view.shape[:2]
             alpha = render.render_alpha(camera_elev, camera_azim, resolution=resolution)
             if alpha.any():
                 raise
