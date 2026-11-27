@@ -3606,3 +3606,7 @@ The owner asked which speed levers that change the paint are worth it, with a fa
 - The owner, from the fixed views: "all versions look nearly identical to my eye."
 
 The whole-model first paint keeps its upscale: it bakes the views at the size the upscale leaves them, not at a bake size.
+
+## 2026-11-26 · Empty paint views
+
+An empty back-projection can fail in both isolated and shared painter runs, because both use the same depth reduction. Verify raster coverage at the bake resolution before skipping the view. Preserve the saved sections and resume only the missing ones after fixing the pinned runner.

@@ -59,7 +59,7 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
 }
 $expectedRunnerHash = 'B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B'
-$expectedStudioRunnerHash = '2920318EB594356BA141D157C30B1EF06F914288052DC5192468258AD4DFD1D2'
+$expectedStudioRunnerHash = '3EB301767870270BDEA38B2419CF3E53EADB2C0E7630F902D25A4B582ABD6C32'
 $python = Join-Path $LegacyRoot '.venv-hy3d21\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d21_pbr.py'
 if ($RunnerKind -eq 'studio') {

@@ -13,6 +13,10 @@ and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
 
+### Hunyuan3D-Paint empty camera projections (2026-11-26)
+
+The pinned streaming baker confirms an empty raster before dropping an empty-depth view. A section with no projected UV texels fails explicitly. CPU regression and contract tests passed. Workstation recovery from saved sections is the next gate.
+
 <!-- clanker-sentry-regular-rac-v001:start -->
 ### Sentry: Rodin rig review Pending (2026-11-13)
 
