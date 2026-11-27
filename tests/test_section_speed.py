@@ -8,7 +8,10 @@ numbers of the slow ones on the texels that are used.
 """
 from __future__ import annotations
 
+import ast
+import contextlib
 import hashlib
+import io
 import importlib.util
 import json
 import re
@@ -18,8 +21,10 @@ import sys
 import tempfile
 import unittest
 from pathlib import Path
+from types import SimpleNamespace
 
 import numpy as np
+from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "scripts"))
@@ -446,6 +451,94 @@ class MapsOnlyTests(unittest.TestCase):
         (root / "section.validation.json").write_text("{}", encoding="utf-8")
         with self.assertRaises(RuntimeError):
             paint_sections.read_paint(root)
+
+
+class BackProjectionTests(unittest.TestCase):
+    """An edge-on section must keep the other views without hiding renderer errors."""
+
+    class Array(np.ndarray):
+        def to(self, _device):
+            return self
+
+    class Render:
+        texture_size = (1, 2)
+        device = "cpu"
+
+        def __init__(self, errors=None, visible=()):
+            self.errors = errors or {}
+            self.visible = visible
+            self.alpha_requests = []
+
+        def back_project(self, _view, _elevation, azimuth):
+            if azimuth in self.errors:
+                raise self.errors[azimuth]
+            weight = np.zeros((1, 2, 1), dtype=np.float32)
+            weight[0, azimuth // 180, 0] = 1.0
+            return np.full((1, 2, 3), azimuth / 360 + 0.25, dtype=np.float32), weight, None
+
+        def render_alpha(self, elevation, azimuth, *, resolution):
+            self.alpha_requests.append((elevation, azimuth, tuple(resolution)))
+            return np.array([azimuth in self.visible])
+
+    empty_error = (
+        "max(): Expected reduction dim to be specified for input.numel() == 0. "
+        "Specify the reduction dim with the 'dim' argument."
+    )
+
+    @classmethod
+    def setUpClass(cls):
+        # Load this function without importing the workstation's CUDA runner.
+        source = ROOT / "workflows" / "texture" / "hunyuan3d21" / "run_hy3d21_studio.py"
+        tree = ast.parse(source.read_text(encoding="utf-8"), filename=str(source))
+        bake = next(node for node in tree.body if isinstance(node, ast.FunctionDef)
+                    and node.name == "bake_from_multiview_one_view_at_a_time")
+        bake.decorator_list = []
+        torch = SimpleNamespace(
+            zeros=lambda shape: np.zeros(shape, dtype=np.float32).view(cls.Array),
+            clamp=lambda value, *, min: np.maximum(value, min),
+        )
+        namespace = {"torch": torch, "Image": Image}
+        exec(compile(ast.Module(body=[bake], type_ignores=[]), str(source), "exec"), namespace)
+        cls.bake = staticmethod(namespace[bake.name])
+
+    def project(self, render, azimuths):
+        processor = SimpleNamespace(render=render, config=SimpleNamespace(bake_exp=2))
+        views = [Image.new("RGB", (6, 4)) for _ in azimuths]
+        return self.bake(processor, views, [0] * len(views), azimuths, [1.0] * len(views))
+
+    def test_a_confirmed_empty_view_leaves_the_other_views_byte_identical(self):
+        baseline = self.Render()
+        expected_texture, expected_mask = self.project(baseline, [0, 180])
+        with_empty = self.Render({90: RuntimeError(self.empty_error)})
+        with contextlib.redirect_stdout(io.StringIO()) as log:
+            actual_texture, actual_mask = self.project(with_empty, [90, 0, 180])
+        self.assertEqual(expected_texture.tobytes(), actual_texture.tobytes())
+        self.assertEqual(expected_mask.tobytes(), actual_mask.tobytes())
+        self.assertEqual(baseline.alpha_requests, [])
+        self.assertEqual(with_empty.alpha_requests, [(0, 90, (4, 6))])
+        self.assertIn("HY3D21_EMPTY_BACK_PROJECTION", log.getvalue())
+
+    def test_refuses_when_all_views_are_empty(self):
+        render = self.Render({90: RuntimeError(self.empty_error)})
+        with contextlib.redirect_stdout(io.StringIO()):
+            with self.assertRaisesRegex(RuntimeError, "No paint view projected any texels"):
+                self.project(render, [90])
+
+    def test_visible_raster_preserves_the_original_error(self):
+        error = RuntimeError(self.empty_error)
+        render = self.Render(errors={90: error}, visible=(90,))
+        with self.assertRaises(RuntimeError) as caught:
+            self.project(render, [90])
+        self.assertIs(caught.exception, error)
+        self.assertEqual(render.alpha_requests, [(0, 90, (4, 6))])
+
+    def test_unrelated_renderer_error_is_never_retried_or_swallowed(self):
+        error = RuntimeError("CUDA out of memory")
+        render = self.Render({90: error})
+        with self.assertRaises(RuntimeError) as caught:
+            self.project(render, [90])
+        self.assertIs(caught.exception, error)
+        self.assertEqual(render.alpha_requests, [])
 
 
 class PainterPinTests(unittest.TestCase):
