@@ -120,6 +120,23 @@ from pixal3d.trainers.flow_matching.mixins import image_conditioned_proj as proj
 _original_extractor_forward = proj_module.DinoV3ProjFeatureExtractor.forward
 
 
+def load_naf_from_main(self):
+    """Load the same NAF model without looking up GitHub's default branch."""
+    if self.naf_model is not None:
+        return
+
+    device = next(self.model.parameters()).device
+    # Without :main, Torch Hub probes GitHub before checking its local cache.
+    self.naf_model = torch.hub.load(
+        "valeoai/NAF:main", "naf", pretrained=True, device=device, trust_repo=True
+    )
+    self.naf_model.eval()
+    self.naf_model.requires_grad_(False)
+
+
+proj_module.DinoV3ProjFeatureExtractor._load_naf = load_naf_from_main
+
+
 @torch.no_grad()
 def naf_projected_one_head_at_a_time(naf, image, features, output_size, proj_grid, *proj_args):
     """NAF's upsampling of `features`, sampled at the projection grid, one attention head at a time."""
