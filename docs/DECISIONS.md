@@ -3518,3 +3518,7 @@ Per-corner weights faded half of a big flat triangle from one grazing corner. Te
 **Occlusion is back on the Pixal route.** The entry that took it off blamed the occlusion bake. The cause was the overlapping UV layout, fixed in `uv-unwrap`. The stair re-baked on the fixed layout with occlusion shows no triangles, and the owner passed it.
 
 **Measured:** the stage on the rebuilt landing ran in 39 s (0.8 M rays). Its result matches the owner-passed prototype within 0.26/255 on average in the elevated view.
+
+## 2026-11-27 · Resolve Pixal3D's NAF ref before cache lookup
+
+The Frastown bow failed before generating geometry with `HTTP Error 504: Gateway Time-out`. Torch Hub tries to discover the default branch for `valeoai/NAF` before inspecting its disk cache. A 504 escapes that branch discovery, even with `valeoai_NAF_main` and `naf_release.pth` already cached. The runner names `valeoai/NAF:main` explicitly so Torch Hub uses the existing cache. The NAF model, weights and settings match the prior successful runs. The installed WSL runner loaded and reused the cached model on CPU with Torch Hub's network calls forbidden.

@@ -2,7 +2,7 @@
 
 *Type: reference*
 
-Last updated: 2026-11-23. This file holds the current state only and is
+Last updated: 2026-11-27. This file holds the current state only and is
 rewritten in place. History is in [HANDOFF.md](HANDOFF.md) (append-only,
 dated); failures and retained lessons are in [DECISIONS.md](DECISIONS.md);
 scoped open work is in [AGENT_TASKS.md](AGENT_TASKS.md). The stage names below
@@ -12,6 +12,10 @@ Every `work/`, `out/` and `output/` path here is on the development workstation
 and ignored by Git. Nothing in this repository is production-ready; the
 checked-in cohort snapshot (`docs/evidence/v1-cohort-audit-current.json`)
 truthfully reports 0 of 7 assets ready.
+
+The Pixal3D runner uses the explicit NAF `main` ref. Its installed Torch Hub
+cache loaded in a CPU check that forbids network calls. The Frastown bow still
+needs a successful geometry run and a joint check.
 
 <!-- clanker-sentry-regular-rac-v001:start -->
 ### Sentry: Rodin rig review Pending (2026-11-13)

@@ -9342,3 +9342,7 @@ The owner asked for the materials to be pushed until they hold up beside the sma
 - The skiff is being painted in 45 sections at about 0.7 mm a painted pixel at its real size; its result is recorded when it has been looked at.
 
 Framewright's side is raydeStar/framewright#45 (open): a prop is painted in sections instead of the head pass, and existing models gain a "Paint in sections" action.
+
+## 2026-11-27 · Use the cached NAF ref in Pixal3D
+
+While acquiring the Frastown bow, Torch Hub's default-branch lookup failed with `HTTP Error 504: Gateway Time-out`. The existing `main` cache contains the NAF code and weights. The Pixal3D runner names that ref and the registry pins the updated runner. The Pixal geometry, frame and GPU-reservation tests completed with two environment skips. A WSL CPU check loaded the real cached NAF model with Torch Hub network calls forbidden and reused the same frozen model on a second call. The bow geometry and joint checks are still open.
