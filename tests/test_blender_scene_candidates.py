@@ -406,6 +406,31 @@ bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'low.glb')!r}, export_format=
     assert low['triangles'] < dense['triangles']
 
 
+def test_box_faces_determine_width_and_a_level_base_after_camera_roll(tmp_path):
+    make = tmp_path / 'rolled_box.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add()
+obj = bpy.context.object
+obj.scale = (.28, .24, .22)
+obj.rotation_euler = (.42, .63, .24)
+bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'box.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    source = tmp_path / 'box.glb'
+    report = tmp_path / 'box.json'
+    run(ROOT / 'scripts/blender/level_pair.py', '.55', report, source, tmp_path / 'dense.blend',
+        source, tmp_path / 'game.blend', '--width', '--topology', 'closed')
+    data = json.loads(report.read_text())
+    assert data['alignment'] == 'six opposing planes'
+    assert data['game_mesh_checks'][0]['ok']
+    game = data['files'][1]
+    spans = [b - a for a, b in zip(game['min_m'], game['max_m'])]
+    assert spans == pytest.approx([.55, .55 * .24 / .28, .55 * .22 / .28], abs=.0003)
+
+
 def test_a_game_mesh_is_mended_of_small_holes_specks_and_fins_but_not_a_large_opening(tmp_path):
     # PR-04.2's crate: Pixal3D's own game meshes came with missing triangles,
     # loose specks and fins on edges shared by three faces. The game mesh is
@@ -600,6 +625,30 @@ bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'ramp.blend')!r})
     assert receipt['status'] == 'passed'
     assert overlap['faces_before'] > 20 and overlap['texel_share_before'] > 0.05
     assert overlap['texel_share_after_repack'] <= 0.001
+
+
+def test_recutted_tiny_faces_keep_their_physical_share_of_the_atlas(tmp_path):
+    script = tmp_path / 'uv_density.py'
+    script.write_text(f'''
+import bpy, sys
+sys.path.insert(0, {str(ROOT / 'scripts/blender')!r})
+from prepare_texture_uv_transport import separate_overlaps, uv_metrics
+bpy.ops.wm.read_factory_settings(use_empty=True)
+mesh = bpy.data.meshes.new("panels")
+mesh.from_pydata([(0,0,0),(1,0,0),(0,1,0),(2,0,0),(2.01,0,0),(2,.01,0),
+                  (3,0,0),(3.01,0,0),(3,.01,0)], [], [(0,1,2),(3,4,5),(6,7,8)])
+obj = bpy.data.objects.new("panels", mesh)
+bpy.context.collection.objects.link(obj)
+bpy.context.view_layer.objects.active = obj
+obj.select_set(True)
+uv = mesh.uv_layers.new()
+for loop, xy in zip(uv.data, [(0,0),(.4,0),(0,.4)] + [(.5,.5),(.98,.5),(.5,.98)] * 2):
+    loop.uv = xy
+assert uv_metrics(obj)["densest_one_percent_texel_share"] > .5
+assert separate_overlaps(obj, .003)["faces_before"] == 2
+assert uv_metrics(obj)["densest_one_percent_texel_share"] < .02
+''')
+    run(script)
 
 
 def test_a_picture_lands_on_the_face_its_camera_sees_and_nowhere_else(tmp_path):

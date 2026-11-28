@@ -17,6 +17,8 @@ from __future__ import annotations
 import os
 import signal
 import subprocess
+import sys
+from pathlib import Path
 from typing import Any, Sequence
 
 
@@ -35,11 +37,13 @@ def kill_tree(pid: int) -> None:
 
 
 def run_bounded(command: Sequence[str], *, timeout: float | None = None,
-                capture_output: bool = False, **keywords: Any) -> subprocess.CompletedProcess:
+                capture_output: bool = False, gpu_mib: int | None = None, **keywords: Any) -> subprocess.CompletedProcess:
     """`subprocess.run`, except that a timeout stops the whole process tree."""
     if capture_output:
         keywords["stdout"] = subprocess.PIPE
         keywords["stderr"] = subprocess.PIPE
+    if gpu_mib is not None:
+        command = [sys.executable, str(Path(__file__).with_name("gpu_reservation.py")), str(gpu_mib), *command]
     if os.name != "nt":
         # Its own process group, so one signal reaches every descendant.
         keywords.setdefault("start_new_session", True)

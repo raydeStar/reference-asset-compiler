@@ -37,11 +37,16 @@ from __future__ import annotations
 
 import json
 import sys
+from pathlib import Path
 
 import bmesh
 import bpy
 import numpy as np
 from mathutils import Matrix
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+from frame_seating import measure_seats
+sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "src"))
+from reference_asset_compiler.prop_quality import game_mesh_check
 
 
 def components(bm):
@@ -192,17 +197,67 @@ UP_AXIS = {"shortest": (0, 1, 2), "middle": (0, 2, 1), "longest": (1, 2, 0)}
 """For each choice of up, which principal axes (longest first) become X, Y and Z."""
 
 
-def levelling_transform(points, length, up="shortest", flip=False, by_height=False):
+def box_axes(mesh, points):
+    """Six broad, opposing planes give a box a steadier frame than vertex density."""
+    normals = np.empty((len(mesh.polygons), 3), dtype=np.float32)
+    areas = np.empty(len(normals), dtype=np.float32)
+    mesh.polygons.foreach_get("normal", normals.ravel())
+    mesh.polygons.foreach_get("area", areas)
+    # A small normal histogram supplies candidates. Measure their support
+    # against the original normals so bevels and noisy corners have little say.
+    bins = np.clip(np.rint((normals + 1) * 8).astype(int), 0, 16)
+    weights = np.bincount(bins @ np.array([289, 17, 1]), weights=areas, minlength=17**3)
+    order = np.argsort(weights)[::-1]
+    axes = []
+    for index in order:
+        if weights[index] == 0:
+            break
+        direction = np.array(np.unravel_index(index, (17, 17, 17)), dtype=float) / 8 - 1
+        norm = np.linalg.norm(direction)
+        if norm == 0:
+            continue
+        direction /= norm
+        if any(abs(axis @ direction) > 0.18 for axis in axes):
+            continue
+        dots = normals @ direction
+        near = np.abs(dots) > 0.98
+        refined = (normals[near] * (areas[near] * np.sign(dots[near]))[:, None]).sum(axis=0)
+        if np.linalg.norm(refined) < 1e-8:
+            continue
+        axes.append(refined / np.linalg.norm(refined))
+        if len(axes) == 2:
+            break
+    if len(axes) < 2:
+        return None
+    x, y = axes
+    z = np.cross(x, y)
+    z /= np.linalg.norm(z)
+    frame = np.array([x, np.cross(z, x), z])
+    total = areas.sum()
+    support = 0
+    for axis in frame:
+        projection = normals @ axis
+        front, back = areas[projection > 0.98].sum(), areas[projection < -0.98].sum()
+        if min(front, back) < 0.025 * total:
+            return None
+        support += front + back
+    if support < 0.72 * total:
+        return None
+    return frame[np.argsort(np.ptp(points @ frame.T, axis=0))[::-1]]
+
+
+def levelling_transform(points, length, up="shortest", flip=False, size_is="longest", rows=None):
     """Principal axes to X/Y/Z, open side up, longest axis (or the height) to `length`, centred, on the floor."""
     centre = points.mean(axis=0)
-    _, _, rows = np.linalg.svd(points - centre, full_matrices=False)
+    if rows is None:
+        _, _, rows = np.linalg.svd(points - centre, full_matrices=False)
     axes = rows[list(UP_AXIS[up])].copy()
     if np.linalg.det(axes) < 0:
         axes[2] *= -1
     local = (points - centre) @ axes.T
     height = local[:, 2]
     low, high = np.percentile(height, 5), np.percentile(height, 95)
-    if np.ptp(local[height < low, 1]) > np.ptp(local[height > high, 1]):
+    if np.ptp(local[height <= low, 1]) > np.ptp(local[height >= high, 1]):
         axes[2] *= -1
         axes[1] *= -1
     if flip:
@@ -213,7 +268,11 @@ def levelling_transform(points, length, up="shortest", flip=False, by_height=Fal
     shift = np.eye(4)
     shift[:3, 3] = -centre
     turned = (np.c_[points, np.ones(len(points))] @ (rotate @ shift).T)[:, :3]
-    scale = length / np.ptp(turned[:, 2 if by_height else UP_AXIS[up].index(0)])
+    extents = np.ptp(turned, axis=0)
+    span = {"height": extents[2], "width": extents[0], "longest": max(extents)}[size_is]
+    if not np.isfinite(span) or span <= 0:
+        raise ValueError("The oriented mesh has no measurable " + size_is)
+    scale = length / span
     turned *= scale
     place = np.eye(4)
     place[:3, 3] = [-(turned[:, 0].min() + turned[:, 0].max()) / 2,
@@ -225,7 +284,24 @@ def levelling_transform(points, length, up="shortest", flip=False, by_height=Fal
 
 def main(argv) -> int:
     argv = list(argv)
-    up, flip, by_height, sides = "shortest", False, False, 64
+    up, flip, size_is, sides = "shortest", False, "longest", 64
+    topology = "legacy"
+    mounted = None
+    if "--mount-transform" in argv:
+        at = argv.index("--mount-transform")
+        with open(argv[at + 1], encoding="utf-8") as stream:
+            mounting = json.load(stream)
+            mounted = np.asarray(mounting["transform"], dtype=float)
+        del argv[at:at + 2]
+    weighted_normals = "--weighted-normals" in argv
+    if weighted_normals:
+        argv.remove("--weighted-normals")
+    if "--topology" in argv:
+        at = argv.index("--topology")
+        topology = argv[at + 1]
+        if topology not in ("closed", "open"):
+            raise ValueError("Topology must be closed or open")
+        del argv[at:at + 2]
     if "--fill-holes" in argv:
         at = argv.index("--fill-holes")
         try:
@@ -238,7 +314,12 @@ def main(argv) -> int:
             return 1
     if "--height" in argv:
         argv.remove("--height")
-        by_height = True
+        size_is = "height"
+    if "--width" in argv:
+        if size_is == "height":
+            raise ValueError("Specify one sizing axis")
+        argv.remove("--width")
+        size_is = "width"
     if "--flip" in argv:
         argv.remove("--flip")
         flip = True
@@ -254,16 +335,26 @@ def main(argv) -> int:
     if not pairs:
         print("[LEVEL] FAILED: expected <length> <report.json> <dense.glb> <dense.blend> [...]")
         return 1
-    transform, records = None, []
+    transform, records, alignment = mounted, [], "mounting feet and post" if mounted is not None else "principal axes"
     for source, output in pairs:
         # The first file is the dense mesh: it is only baked from, the bake
         # copes with its holes, and mending a million faces takes minutes.
-        obj, welded, mended = load(source, sides if records else 0)
+        obj, welded, mended = load(source, sides if records and topology != "open" else 0)
         points = np.array([vertex.co for vertex in obj.data.vertices], dtype=np.float64)
         if transform is None:
-            transform = levelling_transform(points, length, up, flip, by_height)
+            rows = box_axes(obj.data, points) if topology == "closed" else None
+            if rows is not None:
+                alignment = "six opposing planes"
+            transform = levelling_transform(points, length, up, flip, size_is, rows)
         obj.data.transform(Matrix(transform.tolist()))
         obj.data.update()
+        if records and weighted_normals:
+            # The long board faces should not borrow their shading from short corner bevels.
+            obj.data.set_sharp_from_angle(angle=np.deg2rad(42.0))
+            modifier = obj.modifiers.new("Weighted corner normals", "WEIGHTED_NORMAL")
+            modifier.mode = "FACE_AREA_WITH_ANGLE"
+            modifier.keep_sharp = True
+            bpy.ops.object.modifier_apply(modifier=modifier.name)
         obj.name = "GEO_" + bpy.path.display_name_from_filepath(output)
         bpy.ops.wm.save_as_mainfile(filepath=output)
         levelled = np.array([vertex.co for vertex in obj.data.vertices])
@@ -273,9 +364,20 @@ def main(argv) -> int:
                         "max_m": levelled.max(axis=0).round(4).tolist()})
         print("[LEVEL] {0}: {1} triangles, {2} seam copies welded, {3} holes filled, {4} open edges left".format(
             output, records[-1]["triangles"], welded, mended["holes_filled"], mended["open_edges_after"]))
+    checks = [game_mesh_check(record, length, size_is, topology) for record in records[1:]] if topology != "legacy" else []
+    if mounted is not None:
+        # The requested width measures socket-to-socket. Flanges extend beyond those sockets.
+        game, reasons = measure_seats(levelled, length, mounting["rise"])
+        checks = [{"ok": not reasons, "topology": topology, "reasons": reasons, "size_is": "mounting run",
+                   "target_m": length, "measured_m": game["run_m"], **game}]
     with open(report_path, "w", encoding="utf-8") as stream:
-        json.dump({"schema": "reference-asset-compiler.level-pair.v1", "length_m": length, "size_is": "height" if by_height else "longest side", "up": up, "flip": flip, "fill_holes_up_to_edges": sides,
-                   "transform": np.round(transform, 8).tolist(), "files": records}, stream, indent=2)
+        json.dump({"schema": "reference-asset-compiler.level-pair.v1", "length_m": length, "size_is": "longest side" if size_is == "longest" else size_is, "topology": topology, "up": up, "flip": flip, "fill_holes_up_to_edges": 0 if topology == "open" else sides,
+                   "transform": np.round(transform, 8).tolist(), "alignment": alignment,
+                   "files": records, "game_mesh_checks": checks}, stream, indent=2)
+    for check in checks:
+        if not check["ok"]:
+            print("[LEVEL] FAILED: " + "; ".join(check["reasons"]))
+            return 1
     return 0
 
 

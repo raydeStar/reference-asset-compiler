@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import shutil
+import json
+from types import SimpleNamespace
 import sys
 import tempfile
 import unittest
@@ -16,6 +18,7 @@ sys.path.insert(0, str(ROOT / "src"))
 
 import run_pixal_geometry as rpg  # noqa: E402
 from reference_asset_compiler.pixal import linux_path, pixal_command  # noqa: E402
+from reference_asset_compiler.prop_quality import game_mesh_check
 from reference_asset_compiler.stages import STAGES, StageError, prepare_pixal_geometry  # noqa: E402
 
 
@@ -70,6 +73,51 @@ class PictureTests(unittest.TestCase):
 
 
 class PreparationTests(unittest.TestCase):
+    def test_closed_retopology_refuses_open_props_or_a_different_acquisition(self):
+        with self.assertRaises(StageError):
+            prepare_pixal_geometry({"size_m": .55, "game_export": "solid", "topology": "open"}, "blender", None)
+        with tempfile.TemporaryDirectory() as folder:
+            root = Path(folder)
+            attempt = root / "new"
+            attempt.mkdir()
+            receipt = root / "pixal.json"
+            mesh = root / "pixal.glb"
+            mesh.write_bytes(b"retained dense mesh")
+            (root / "cutout.png").write_bytes(b"alpha")
+            (root / "pixal.log").write_text("camera_angle_x=0.32", encoding="utf-8")
+            receipt.write_text(json.dumps({"schema": rpg.SCHEMA, "picture_sha256": "original", "seed": 41,
+                "resolution": 1024, "attempt": str(root), "pixal": {"dense_sha256": rpg.sha256(mesh)},
+                "cutout_sha256": rpg.sha256(root / "cutout.png"), "cutout": "removed", "runner_sha256": "runner"}),
+                encoding="utf-8")
+            args = SimpleNamespace(geometry=receipt, seed=41, resolution=1024)
+            with self.assertRaisesRegex(ValueError, "match the picture"):
+                rpg.reuse_dense(args, attempt, {"picture_sha256": "revised"})
+            report = {"picture_sha256": "original"}
+            rpg.reuse_dense(args, attempt, report)
+            self.assertEqual(rpg.sha256(attempt / "pixal.glb"), rpg.sha256(mesh))
+            self.assertEqual(report["pixal"]["source_runner_sha256"], "runner")
+            mesh.write_bytes(b"different mesh")
+            with self.assertRaisesRegex(ValueError, "differs from its geometry receipt"):
+                rpg.reuse_dense(args, attempt, report)
+
+    def test_game_export_is_opt_in_and_reaches_the_native_runner(self):
+        for options, expected in (({}, "remesh"), ({"game_export": "clean"}, "clean")):
+            command = prepare_pixal_geometry({"size_m": 0.55, **options}, "blender", None)["arguments"]
+            args = rpg.parse_arguments(["picture.png", "game.blend", "geometry.json", *command])
+            self.assertEqual(args.game_export, expected)
+        with self.assertRaises(StageError):
+            prepare_pixal_geometry({"size_m": 0.55, "game_export": "other"}, "blender", None)
+
+    def test_game_mesh_bounds_and_shell_are_checked_independently(self):
+        mesh = {"min_m": [0, 0, 0], "max_m": [.55, .61, .65], "open_edges_after": 105}
+        check = game_mesh_check(mesh, .55, "longest", "closed")
+        self.assertEqual(len(check["reasons"]), 2)
+        self.assertFalse(check["ok"])
+        self.assertTrue(game_mesh_check(mesh, .55, "width", "open")["ok"])
+        mesh["open_edges_after"] = 0
+        self.assertTrue(game_mesh_check(mesh, .55, "width", "closed")["ok"])
+        self.assertTrue(game_mesh_check(mesh, .65, "height", "closed")["ok"])
+
     def test_a_landmark_is_a_height_and_metres_are_the_longest_side(self):
         landmark = prepare_pixal_geometry({"size": "knee", "seed": 45, "vertex_target": 100000}, "blender.exe", None)
         arguments = landmark["arguments"]
@@ -86,7 +134,7 @@ class PreparationTests(unittest.TestCase):
 
     def test_it_refuses_a_missing_double_or_implausible_size_and_an_unknown_up(self):
         for options in ({}, {"size": "knee", "size_m": 1.0}, {"size_m": 0.001}, {"size": "giraffe"},
-                        {"size_m": 1.0, "up": "sideways"}, {"size_m": 1.0, "size_is": "width"}):
+                        {"size_m": 1.0, "up": "sideways"}, {"size_m": 1.0, "size_is": "diagonal"}):
             with self.assertRaises(StageError):
                 prepare_pixal_geometry(options, "blender.exe", None)
 

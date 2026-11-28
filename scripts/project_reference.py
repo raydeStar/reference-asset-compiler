@@ -254,7 +254,16 @@ def main(argv=None) -> int:
 
     raw, triangles = load_glb(raw_path)
     alpha = np.asarray(Image.open(cutout_path).convert("RGBA"))[:, :, 3] > 127
-    camera = fit_camera(raw, triangles, alpha, start_fov)
+    if geometry.get("frame_check") is not None or geometry.get("mounts"):
+        from pixal_frame import overlap, pixel_vertices, rasterize
+        checked = geometry.get("frame_check", {})
+        if (not checked.get("ok") or sha256(raw_path) != geometry["pixal"]["game_sha256"]
+                or sha256(cutout_path) != geometry["cutout_sha256"]):
+            return refuse("the mounted frame needs a passing check on these exact meshes and cutout")
+        camera = dict(checked["camera"])
+        camera["iou"] = overlap(alpha, rasterize(pixel_vertices(raw, camera), triangles, alpha.shape))
+    else:
+        camera = fit_camera(raw, triangles, alpha, start_fov)
     camera["logged_fov_degrees"] = round(start_fov, 3) if logged else None
     print("[PROJECT] camera fit {0:.4f}: turn {1}, fov {2:.2f} (Pixal3D logged {3})".format(
         camera["iou"], [round(value, 2) for value in camera["params"][:3]], camera["params"][3],
