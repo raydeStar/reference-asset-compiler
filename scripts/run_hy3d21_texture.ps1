@@ -38,6 +38,7 @@ param(
     # packed by Blender's exporter). The gate then asks for the maps.
     [switch] $MapsOnly,
     [switch] $NoUpscale,
+    [ValidateSet('baseline','atlas','encodes','both')][string] $TransferMode = $(if ($env:RAC_PAINT_TRANSFER_MODE) { $env:RAC_PAINT_TRANSFER_MODE } else { 'baseline' }),
     [string] $DiagnosticsDir,
     [string] $LegacyRoot = $(if ($env:RAC_LEGACY_ROOT) { $env:RAC_LEGACY_ROOT } else { throw 'Set RAC_LEGACY_ROOT to the studio tree that holds the Hunyuan3D-Paint runner, upstream checkout and models.' }),
     # 0 selects the measured floor: 21504 resident, 10752 released (a 12 GB
@@ -59,7 +60,7 @@ function Write-Utf8NoBom {
     [System.IO.File]::WriteAllText($Path, $Text, (New-Object System.Text.UTF8Encoding $false))
 }
 $expectedRunnerHash = 'B039065EA96E0E63EFFECBA4379F63B8228F830B036EF1392790E5BF6B8F8A8B'
-$expectedStudioRunnerHash = '3D983E62EFE3CF154198DB4DD65A155A33A90E2F689BC1F83C723A0F5B923725'
+$expectedStudioRunnerHash = '92A869FCA87F83695E122B6904D8002A07721456E7F13C61F2A77A37D5CA0BA1'
 $python = Join-Path $LegacyRoot '.venv-hy3d21\Scripts\python.exe'
 $runner = Join-Path $LegacyRoot 'scripts\run_hy3d21_pbr.py'
 if ($RunnerKind -eq 'studio') {
@@ -100,6 +101,12 @@ if ($Jobs) {
 }
 # The legacy runner keeps every stage resident and its own 21 GiB check.
 $releaseStages = $RunnerKind -eq 'studio' -and -not $KeepStagesResident
+if ($TransferMode -ne 'baseline' -and $RunnerKind -ne 'studio') {
+    throw 'TransferMode requires the studio painter.'
+}
+if ($TransferMode -in @('encodes','both') -and -not $releaseStages) {
+    throw 'Grouping encodes requires released stages.'
+}
 if ($MinimumFreeVramMiB -le 0) {
     $MinimumFreeVramMiB = if ($releaseStages) { 10752 } else { 21504 }
 }
@@ -195,6 +202,7 @@ if ($Jobs) {
 $runnerArgs += @('--views', $Views, '--resolution', $Resolution)
 if ($RunnerKind -eq 'studio') {
     $runnerArgs += @('--atlas', $Atlas, '--legacy-root', $LegacyRoot)
+    $runnerArgs += @('--transfer-mode', $TransferMode)
     if ($SmoothConditioningNormals) { $runnerArgs += '--smooth-conditioning-normals' }
     if ($releaseStages) { $runnerArgs += '--release-stages' }
     if (-not $Jobs -and $BakeSize -gt 0) { $runnerArgs += @('--bake-size', $BakeSize) }
@@ -237,6 +245,7 @@ for ($number = 0; $number -lt $paintJobs.Count; $number++) {
         views = $Views
         resolution = $Resolution
         runner_kind = $RunnerKind
+        transfer_mode = $TransferMode
         atlas = $Atlas
         bake_size = $job.bake_size
         inpaint_reach = $InpaintReach
