@@ -1,0 +1,45 @@
+{
+  "schema": "rac.surface-assignments.v1",
+  "source_sha256": "0d5a5c4b21ffb0275ea1538948f0acd2892f6dba4c06c12ca17a3b3b0f2574d5",
+  "profile_sha256": "0b25e4ce13f6a7a706d223e5f7c7585d5f49df1e0b714513cd2dc9941d1cc2fb",
+  "materials": {
+    "Human.high-poly": {
+      "keep": true
+    },
+    "FACE_skin": {
+      "keep": true
+    },
+    "FACE_mouth_cavity": {
+      "keep": true
+    },
+    "painted": {
+      "keep": true
+    },
+    "Material.001": {
+      "keep": true
+    },
+    "Raider | restored acquired surface": {
+      "keep": true
+    },
+    "Human.teeth_base": {
+      "keep": true
+    },
+    "Human.tongue01": {
+      "keep": true
+    },
+    "Raider continuous outfit": {
+      "size": 2048,
+      "mask": "outfit-ids.png",
+      "mask_sha256": "d41529166cf4274720fb3ac10556238c73c29234d2997f4fbf712b6c174d649a",
+      "labels": {
+        "1": "canvas",
+        "2": "trouser_cloth",
+        "3": "worn_leather",
+        "5": "worn_steel",
+        "6": "tarnished_metal"
+      }
+    }
+  },
+  "response_target": "framewright-scene",
+  "target_sha256": "e03d29aa03d400bb63da31babbd7342441cc841e2f302ba1249395b20b063d9f"
+}

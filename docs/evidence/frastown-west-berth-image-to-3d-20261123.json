@@ -1,0 +1,788 @@
+{
+  "title": "Frastown West Berth image-to-3D review",
+  "operator_intent": "Generate an isolated asset image, reconstruct on the local GPU, and run the RAC gates before replacing a scene proxy. Preserve dry detail for VR; add rain and wetness at scene level.",
+  "workflow": {
+    "image": "ComfyUI / Z-Image Turbo, immutable PNG, seed, graph, prompt ID and SHA-256",
+    "geometry": "RAC run_hy3d_geometry.ps1 / Hunyuan3D-2, primary reference locked by SHA-256",
+    "paint": "RAC prepare_texture_uv_transport.py, then run_hy3d21_texture.ps1, studio 4096 PNG"
+  },
+  "findings": {
+    "CT-02.1": "The first mesh retained a skirt and opened a false hole through one pier. The separately hashed v02 reference removes the floor shadow. The reconstructed v02 front, side and reverse show a clean base, continuous return and open recess. A 36,000-triangle UV transport passed. Paint and world fit are separate review gates.",
+    "DK-01.1": "The view-conditioned mesh has a continuous hull and visible deck. Confirm the 15 m centreline, 5 m beam, separate gunwale, level deck and gangway lip before using it as the player floor. The inferred wood deck finish still needs the dark steel specified in the brief.",
+    "PR-02.1": "The GPU clay reconstruction has a coherent patch and free edge. Keep the wall mount at local zero. Review woven grain, frame separation and underside seams under close-up light before production approval.",
+    "WK-07.2": "The conditioned mesh has an unintended bend. Compare straight lane, coplanar hinge and bearing ends at a full 3.00 m span before paint.",
+    "CT-05.2": "One-view reconstruction filled key negative spaces. Test the entry opening and open iron lattice before paint.",
+    "DK-03.1": "The launch geometry followed the overall silhouette but retained an extra extension beside the bolted base. Review from both sides before snapping it to the deck.",
+    "AC-04.1": "An empty interior and rim are visible in reconstructed geometry. The first painted bowl showed triangular artifacts around the rim. Review the repainted interior and 0.22 m cover fit before attaching any hand socket.",
+    "CT-03.2": "The door, handle, lintel and sash reconstruct clearly. The candidate is a front panel; use a separate structural wall return and test the opening against the gallery datum.",
+    "CT-05.1": "The first mesh retains open bracing and a readable upper landing. Add the shaft interfaces and check the headhouse enclosure and clearance above the cage.",
+    "CT-09.1": "Dry brick relief and hollow arch are readable. The first revision captures a studio-floor skirt, so retain the staged proxy while revising the image mask.",
+    "PR-01.1": "The workbench silhouette, vise and trestles appear on two sides. Check that the top stays level and the vise clears the mechanic’s hands.",
+    "PR-01.2": "The tools remain distinct on the panel, with extra backdrop geometry behind and below it. Clean the image silhouette and reconstruct before fitting the wall mount.",
+    "PR-01.3": "The 3D mesh retains the two patched wings, tail and thin rigging. Inspect the underside and hanging pivot before paint and placement."
+  },
+  "pipeline_feedback": [
+    "The optional -DiagnosticsDir flag is accepted by the PowerShell wrapper and rejected by the selected hash-pinned studio runner. Status should say which runner supports each option before consuming a GPU slot.",
+    "The studio painter expects topology-locked UVs. The raw geometry GLB correctly has no UVs and caused a ColorVisuals.uv exception. Feed the RAC UV transport OBJ and surface-check receipt into studio paint; fail clearly when a source has no UVs.",
+    "The first awning atlas used 9.44% of UV area. Decimated GLB flat normals had split nearly every triangle into separate vertices. Exporting the connected geometry without split normals gave 13,996 vertices, carried all 28,000 triangles, and used 60.79% of the UV area. Track atlas occupancy plus connectedness and inspect at hand distance before approving even a 4096 map.",
+    "The first three 4K paint jobs wrote GLB, OBJ, lossless base color, roughness and metallic maps, and valid geometry/UV receipts before the subprocess exited with Windows code -1073741819. Record subprocess health separately from the artifact gate and retain both.",
+    "Large architectural modules need a silhouette gate from front, back, side and above. A matching hero-camera still can miss a blocked aperture, a bent connector, or the studio floor leaking into 3D.",
+    "Framewright should distinguish exact steel masters, image authorities, raw clay candidates, painted candidates, and placement proxies. A production status requires physical bounds, pivot evidence and a human-scale review.",
+    "The prior 100× scale correction remains applicable: use metre-authored scene coordinates, apply centimetres to signed render and UCX bounds for Unreal and verify the imported 200 cm control span with its sockets."
+  ],
+  "production_approval": "pending",
+  "repository_revision": "af1e623",
+  "observations": [
+    {
+      "part": "AC-01.1",
+      "reference_sha256": "370dcc30caafd13b130b3ae756fa596a6905afc2a891353b19cb2878cd88381c",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ac-01-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ac-01-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ac-01-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 1187435,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "Awaiting visual review"
+    },
+    {
+      "part": "AC-04.1",
+      "reference_sha256": "7c4039e2db3e7f929a7935809aa5424b994c13c20369ef0e8708ef87a589469a",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ac-04-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ac-04-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ac-04-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 2348352,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "An empty interior and rim are visible in reconstructed geometry. The first painted bowl showed triangular artifacts around the rim. Review the repainted interior and 0.22 m cover fit before attaching any hand socket."
+    },
+    {
+      "part": "CT-02.1",
+      "reference_sha256": "4e43a7d676ce2a981b1fdc65389700e6bfebb247e08b2bb00a7c8eecfa0ce09e",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-02-1-v02",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-02-1-v02\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-02-1-v02\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 2395810,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The first mesh retained a skirt and opened a false hole through one pier. The separately hashed v02 reference removes the floor shadow. The reconstructed v02 front, side and reverse show a clean base, continuous return and open recess. A 36,000-triangle UV transport passed. Paint and world fit are separate review gates."
+    },
+    {
+      "part": "CT-02.1",
+      "reference_sha256": "0d0b9e77edc7733de87f1b6c34ab3f902e8797485e93f96e134567f669451a14",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-02-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-02-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-02-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 2339496,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The first mesh retained a skirt and opened a false hole through one pier. The separately hashed v02 reference removes the floor shadow. The reconstructed v02 front, side and reverse show a clean base, continuous return and open recess. A 36,000-triangle UV transport passed. Paint and world fit are separate review gates."
+    },
+    {
+      "part": "CT-03.2",
+      "reference_sha256": "9e3d340675b4e519269f2ea85cdea0e6a23dd386717d344842e053f5d67e28cb",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 3381364,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The door, handle, lintel and sash reconstruct clearly. The candidate is a front panel; use a separate structural wall return and test the opening against the gallery datum."
+    },
+    {
+      "part": "CT-03.3",
+      "reference_sha256": "7e73bd6183c30b46f778f72a322e27bad39e625d2b97ea10ec072143694bd9c4",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-3-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-3-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-3-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 1580216,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "Awaiting visual review"
+    },
+    {
+      "part": "CT-05.1",
+      "reference_sha256": "377387fb74094a9fffb430da202cf9eb9e4395855cea1b1bfd986c589e75abdc",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-05-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-05-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-05-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 467792,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The first mesh retains open bracing and a readable upper landing. Add the shaft interfaces and check the headhouse enclosure and clearance above the cage."
+    },
+    {
+      "part": "CT-05.2",
+      "reference_sha256": "f2c21cffc1e90a82f75c770973277e5d7dea9a12f1357663b600c8c93be38124",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-05-2-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-05-2-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-05-2-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 5117344,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "One-view reconstruction filled key negative spaces. Test the entry opening and open iron lattice before paint."
+    },
+    {
+      "part": "CT-09.1",
+      "reference_sha256": "c9ba4d95fb2c73ea0d4f15eaac3cbfb736fe729443cec72b0bfe14cf6641c7ee",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-09-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-09-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-09-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 2055620,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "Dry brick relief and hollow arch are readable. The first revision captures a studio-floor skirt, so retain the staged proxy while revising the image mask."
+    },
+    {
+      "part": "DK-01.1",
+      "reference_sha256": "e7d37e8501c9c4947f8f6e516679e2a9bebacd390c023b3e03ce3750775629fe",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-dk-01-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-dk-01-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-dk-01-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 504816,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The view-conditioned mesh has a continuous hull and visible deck. Confirm the 15 m centreline, 5 m beam, separate gunwale, level deck and gangway lip before using it as the player floor. The inferred wood deck finish still needs the dark steel specified in the brief."
+    },
+    {
+      "part": "DK-03.1",
+      "reference_sha256": "c2fb65fd7b8401cf2e75e74c344e2750e3f0b6c6270282e508a21481f06ebe14",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-dk-03-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-dk-03-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-dk-03-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 1491208,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The launch geometry followed the overall silhouette but retained an extra extension beside the bolted base. Review from both sides before snapping it to the deck."
+    },
+    {
+      "part": "DK-04.1",
+      "reference_sha256": "606520b78508157e2cedb52d9a3bdc9de11266ee2aed2a9f65305a30218aaa53",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-dk-04-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-dk-04-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-dk-04-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 2310090,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "Awaiting visual review"
+    },
+    {
+      "part": "PR-01.1",
+      "reference_sha256": "efd30069e6a9db39c3437e2d8c9c34dab98f1875a7494c5bdf8b313e7c8224ee",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-01-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-01-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-01-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 1037166,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The workbench silhouette, vise and trestles appear on two sides. Check that the top stays level and the vise clears the mechanic’s hands."
+    },
+    {
+      "part": "PR-01.2",
+      "reference_sha256": "f010a838f7bcd25c4a1106ce1a7ca1ab62bcf17cb590ba6f824cadbe39ea4eaa",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-01-2-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-01-2-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-01-2-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 2084376,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The tools remain distinct on the panel, with extra backdrop geometry behind and below it. Clean the image silhouette and reconstruct before fitting the wall mount."
+    },
+    {
+      "part": "PR-01.3",
+      "reference_sha256": "ff6c84380c9a589360597a96bec1420e03440615321fce9ec6952597152c28a2",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-01-3-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-01-3-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-01-3-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 405548,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The 3D mesh retains the two patched wings, tail and thin rigging. Inspect the underside and hanging pivot before paint and placement."
+    },
+    {
+      "part": "PR-02.1",
+      "reference_sha256": "1a9e4446cceb3090f2ad668478a409080a78bc093222a9bcd73f9ffdb23f1f7c",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-02-1-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-02-1-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-pr-02-1-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 1276898,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The GPU clay reconstruction has a coherent patch and free edge. Keep the wall mount at local zero. Review woven grain, frame separation and underside seams under close-up light before production approval."
+    },
+    {
+      "part": "WK-07.2",
+      "reference_sha256": "ec7a890efb5f695f25b31f64ed9d3eb690c5e6a1a2b94bdef2c6fa8f9ec47fdb",
+      "workspace": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-wk-07-2-v01",
+      "geometry": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-wk-07-2-v01\\candidates\\single-v01\\candidate.glb",
+      "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-wk-07-2-v01\\candidates\\single-v01\\generation.json",
+      "shape_triangles": 707248,
+      "gpu": {
+        "device": "NVIDIA GeForce RTX 4090",
+        "free_bytes_at_start": 24154996736,
+        "peak_allocated_bytes": 5240945664,
+        "peak_reserved_bytes": 5362417664
+      },
+      "review": "The conditioned mesh has an unintended bend. Compare straight lane, coplanar hinge and bearing ends at a full 3.00 m span before paint."
+    }
+  ],
+  "reference_hold_reasons": {
+    "AC-01.1-v01": "The image has an open wooden boat but omits both projecting fabric fins and the buoyant keel.",
+    "CT-03.3-v01": "The image has two floors. The kit needs exactly one floor with two doors at level.",
+    "DK-04.1-v01": "The canvas hangs as a vertical screen and does not provide an overhead shade."
+  },
+  "paint_receipts": {
+    "AC04": {
+      "validation": {
+        "source_mesh": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\AC04\\transport.obj",
+        "reference": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\AC-04.1-v01_00001_.png",
+        "output_obj": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\AC04\\painted-v03.obj",
+        "output_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\AC04\\painted-v03.glb",
+        "vertices": 83940,
+        "triangles": 28000,
+        "painted_vertices": 83940,
+        "faces_equal": true,
+        "geometry_delta": 1.454343872382303e-07,
+        "uv_delta": 5.358603436557653e-08,
+        "views": 8,
+        "resolution": 768,
+        "texture_size": 4096,
+        "atlas": 4096,
+        "downsample_disabled": true,
+        "map_format": "png",
+        "maps": [
+          "painted-v03.png",
+          "painted-v03_metallic.png",
+          "painted-v03_roughness.png"
+        ],
+        "release_stages": true,
+        "vram": {
+          "device": "NVIDIA GeForce RTX 4090",
+          "free_bytes_at_start": 24154996736,
+          "pool_budget_bytes": 23618125824,
+          "peak_allocated_bytes": 8384561664,
+          "peak_reserved_bytes": 19283312640
+        }
+      },
+      "candidate": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\AC04\\painted-v03.glb"
+    },
+    "AC04-UV2": {
+      "validation": {
+        "source_mesh": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\AC04-UV2\\transport.obj",
+        "reference": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\AC-04.1-v01_00001_.png",
+        "output_obj": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\AC04-UV2\\painted-v03.obj",
+        "output_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\AC04-UV2\\painted-v03.glb",
+        "vertices": 83939,
+        "triangles": 28000,
+        "painted_vertices": 83939,
+        "faces_equal": true,
+        "geometry_delta": 1.454343872382303e-07,
+        "uv_delta": 5.235773333301018e-08,
+        "views": 8,
+        "resolution": 768,
+        "texture_size": 4096,
+        "atlas": 4096,
+        "downsample_disabled": true,
+        "map_format": "png",
+        "maps": [
+          "painted-v03.png",
+          "painted-v03_metallic.png",
+          "painted-v03_roughness.png"
+        ],
+        "release_stages": true,
+        "vram": {
+          "device": "NVIDIA GeForce RTX 4090",
+          "free_bytes_at_start": 24154996736,
+          "pool_budget_bytes": 23618125824,
+          "peak_allocated_bytes": 8486733312,
+          "peak_reserved_bytes": 18910019584
+        }
+      },
+      "candidate": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\AC04-UV2\\painted-v03.glb"
+    },
+    "CT02-REF2": {
+      "validation": {
+        "source_mesh": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\CT02-REF2\\transport.obj",
+        "reference": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-02.1-v02_isolated.png",
+        "output_obj": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\CT02-REF2\\painted-v03.obj",
+        "output_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\CT02-REF2\\painted-v03.glb",
+        "vertices": 107770,
+        "triangles": 36000,
+        "painted_vertices": 107770,
+        "faces_equal": true,
+        "geometry_delta": 1.4954006327824306e-07,
+        "uv_delta": 5.317258337228565e-08,
+        "views": 8,
+        "resolution": 768,
+        "texture_size": 4096,
+        "atlas": 4096,
+        "downsample_disabled": true,
+        "map_format": "png",
+        "maps": [
+          "painted-v03.png",
+          "painted-v03_metallic.png",
+          "painted-v03_roughness.png"
+        ],
+        "release_stages": true,
+        "vram": {
+          "device": "NVIDIA GeForce RTX 4090",
+          "free_bytes_at_start": 24154996736,
+          "pool_budget_bytes": 23618125824,
+          "peak_allocated_bytes": 9739937280,
+          "peak_reserved_bytes": 19386073088
+        }
+      },
+      "candidate": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\CT02-REF2\\painted-v03.glb"
+    },
+    "DK01": {
+      "validation": {
+        "source_mesh": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\DK01\\transport.obj",
+        "reference": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\DK-01.1-v01_00001_.png",
+        "output_obj": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\DK01\\painted-v03.obj",
+        "output_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\DK01\\painted-v03.glb",
+        "vertices": 194848,
+        "triangles": 64998,
+        "painted_vertices": 194848,
+        "faces_equal": true,
+        "geometry_delta": 1.4901373512667066e-07,
+        "uv_delta": 5.3439978584549646e-08,
+        "views": 8,
+        "resolution": 768,
+        "texture_size": 4096,
+        "atlas": 4096,
+        "downsample_disabled": true,
+        "map_format": "png",
+        "maps": [
+          "painted-v03.png",
+          "painted-v03_metallic.png",
+          "painted-v03_roughness.png"
+        ],
+        "release_stages": true,
+        "vram": {
+          "device": "NVIDIA GeForce RTX 4090",
+          "free_bytes_at_start": 24154996736,
+          "pool_budget_bytes": 23618125824,
+          "peak_allocated_bytes": 9388523008,
+          "peak_reserved_bytes": 19281215488
+        }
+      },
+      "candidate": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\DK01\\painted-v03.glb"
+    },
+    "PR02": {
+      "validation": {
+        "source_mesh": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\PR02\\transport.obj",
+        "reference": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\PR-02.1-v01_00001_.png",
+        "output_obj": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\PR02\\painted-v03.obj",
+        "output_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\PR02\\painted-v03.glb",
+        "vertices": 83920,
+        "triangles": 28000,
+        "painted_vertices": 83920,
+        "faces_equal": true,
+        "geometry_delta": 1.509511400193109e-07,
+        "uv_delta": 5.3305203848218014e-08,
+        "views": 8,
+        "resolution": 768,
+        "texture_size": 4096,
+        "atlas": 4096,
+        "downsample_disabled": true,
+        "map_format": "png",
+        "maps": [
+          "painted-v03.png",
+          "painted-v03_metallic.png",
+          "painted-v03_roughness.png"
+        ],
+        "release_stages": true,
+        "vram": {
+          "device": "NVIDIA GeForce RTX 4090",
+          "free_bytes_at_start": 24154996736,
+          "pool_budget_bytes": 23618125824,
+          "peak_allocated_bytes": 9436024832,
+          "peak_reserved_bytes": 19195232256
+        }
+      },
+      "candidate": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\PR02\\painted-v03.glb"
+    },
+    "PR02-UV2": {
+      "validation": {
+        "source_mesh": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\PR02-UV2\\transport.obj",
+        "reference": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\PR-02.1-v01_00001_.png",
+        "output_obj": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\PR02-UV2\\painted-v03.obj",
+        "output_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\PR02-UV2\\painted-v03.glb",
+        "vertices": 83920,
+        "triangles": 28000,
+        "painted_vertices": 83920,
+        "faces_equal": true,
+        "geometry_delta": 1.509511400193109e-07,
+        "uv_delta": 5.315937822476865e-08,
+        "views": 8,
+        "resolution": 768,
+        "texture_size": 4096,
+        "atlas": 4096,
+        "downsample_disabled": true,
+        "map_format": "png",
+        "maps": [
+          "painted-v03.png",
+          "painted-v03_metallic.png",
+          "painted-v03_roughness.png"
+        ],
+        "release_stages": true,
+        "vram": {
+          "device": "NVIDIA GeForce RTX 4090",
+          "free_bytes_at_start": 24154996736,
+          "pool_budget_bytes": 23618125824,
+          "peak_allocated_bytes": 9814323200,
+          "peak_reserved_bytes": 19461570560
+        }
+      },
+      "candidate": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\PR02-UV2\\painted-v03.glb"
+    }
+  },
+  "image_jobs": [
+    {
+      "part": "AC-01.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\AC-01.1-v01_00001_.png",
+      "sha256": "370dcc30caafd13b130b3ae756fa596a6905afc2a891353b19cb2878cd88381c",
+      "comfy_prompt_id": "9994d955-f12c-482d-92b2-6e23abd64f43",
+      "receipt": "AC-01.1-v01.json"
+    },
+    {
+      "part": "AC-04.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\AC-04.1-v01_00001_.png",
+      "sha256": "7c4039e2db3e7f929a7935809aa5424b994c13c20369ef0e8708ef87a589469a",
+      "comfy_prompt_id": "def9e8c6-8be0-4edb-a7eb-b91142de09ac",
+      "receipt": "AC-04.1-v01.json"
+    },
+    {
+      "part": "CT-02.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-02.1-v01_00001_.png",
+      "sha256": "0d0b9e77edc7733de87f1b6c34ab3f902e8797485e93f96e134567f669451a14",
+      "comfy_prompt_id": "7d4d756e-6544-42b4-be3f-8456ba29d297",
+      "receipt": "CT-02.1-v01.json"
+    },
+    {
+      "part": "CT-02.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-02.1-v02_isolated.png",
+      "sha256": "4e43a7d676ce2a981b1fdc65389700e6bfebb247e08b2bb00a7c8eecfa0ce09e",
+      "comfy_prompt_id": "7d4d756e-6544-42b4-be3f-8456ba29d297",
+      "receipt": "CT-02.1-v02.json"
+    },
+    {
+      "part": "CT-03.2",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.2-v01_00001_.png",
+      "sha256": "9e3d340675b4e519269f2ea85cdea0e6a23dd386717d344842e053f5d67e28cb",
+      "comfy_prompt_id": "7c4b96d1-887b-485e-ad52-8c458c8f672e",
+      "receipt": "CT-03.2-v01.json"
+    },
+    {
+      "part": "CT-03.3",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.3-v01_00001_.png",
+      "sha256": "7e73bd6183c30b46f778f72a322e27bad39e625d2b97ea10ec072143694bd9c4",
+      "comfy_prompt_id": "96379f7c-9115-4c12-845c-f283163bffbd",
+      "receipt": "CT-03.3-v01.json"
+    },
+    {
+      "part": "CT-05.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-05.1-v01_00001_.png",
+      "sha256": "377387fb74094a9fffb430da202cf9eb9e4395855cea1b1bfd986c589e75abdc",
+      "comfy_prompt_id": "32ffb978-da1c-442c-b563-468c451bed76",
+      "receipt": "CT-05.1-v01.json"
+    },
+    {
+      "part": "CT-05.2",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-05.2-v01_00001_.png",
+      "sha256": "f2c21cffc1e90a82f75c770973277e5d7dea9a12f1357663b600c8c93be38124",
+      "comfy_prompt_id": "365b2ada-d18e-4221-847f-c3208a22825e",
+      "receipt": "CT-05.2-v01.json"
+    },
+    {
+      "part": "CT-09.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-09.1-v01_00001_.png",
+      "sha256": "c9ba4d95fb2c73ea0d4f15eaac3cbfb736fe729443cec72b0bfe14cf6641c7ee",
+      "comfy_prompt_id": "0780dc36-63d9-477d-b5fa-d482af40900f",
+      "receipt": "CT-09.1-v01.json"
+    },
+    {
+      "part": "DK-01.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\DK-01.1-v01_00001_.png",
+      "sha256": "e7d37e8501c9c4947f8f6e516679e2a9bebacd390c023b3e03ce3750775629fe",
+      "comfy_prompt_id": "bfafb0e7-b995-4bb3-8ae9-175b83c438cb",
+      "receipt": "DK-01.1-v01.json"
+    },
+    {
+      "part": "DK-03.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\DK-03.1-v01_00001_.png",
+      "sha256": "c2fb65fd7b8401cf2e75e74c344e2750e3f0b6c6270282e508a21481f06ebe14",
+      "comfy_prompt_id": "ff8047bd-79d9-4e37-ace6-fbc398d84730",
+      "receipt": "DK-03.1-v01.json"
+    },
+    {
+      "part": "DK-04.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\DK-04.1-v01_00001_.png",
+      "sha256": "606520b78508157e2cedb52d9a3bdc9de11266ee2aed2a9f65305a30218aaa53",
+      "comfy_prompt_id": "5c4f6ab8-24a1-485e-a6c6-130ef31a958b",
+      "receipt": "DK-04.1-v01.json"
+    },
+    {
+      "part": "PR-01.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\PR-01.1-v01_00001_.png",
+      "sha256": "efd30069e6a9db39c3437e2d8c9c34dab98f1875a7494c5bdf8b313e7c8224ee",
+      "comfy_prompt_id": "be718259-7600-4651-870e-ea5e006c5f9c",
+      "receipt": "PR-01.1-v01.json"
+    },
+    {
+      "part": "PR-01.2",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\PR-01.2-v01_00001_.png",
+      "sha256": "f010a838f7bcd25c4a1106ce1a7ca1ab62bcf17cb590ba6f824cadbe39ea4eaa",
+      "comfy_prompt_id": "b5d485ef-44b8-4e54-966a-f6ff618d3f37",
+      "receipt": "PR-01.2-v01.json"
+    },
+    {
+      "part": "PR-01.3",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\PR-01.3-v01_00001_.png",
+      "sha256": "ff6c84380c9a589360597a96bec1420e03440615321fce9ec6952597152c28a2",
+      "comfy_prompt_id": "06697945-054e-4c33-8523-6b91f212ae5d",
+      "receipt": "PR-01.3-v01.json"
+    },
+    {
+      "part": "PR-02.1",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\PR-02.1-v01_00001_.png",
+      "sha256": "1a9e4446cceb3090f2ad668478a409080a78bc093222a9bcd73f9ffdb23f1f7c",
+      "comfy_prompt_id": "4ac671df-3b5d-4a79-93fe-4238725761a7",
+      "receipt": "PR-02.1-v01.json"
+    },
+    {
+      "part": "WK-07.2",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\WK-07.2-v01_00001_.png",
+      "sha256": "ec7a890efb5f695f25b31f64ed9d3eb690c5e6a1a2b94bdef2c6fa8f9ec47fdb",
+      "comfy_prompt_id": "e18353d7-5a83-4d47-8b7d-189674087319",
+      "receipt": "WK-07.2-v01.json"
+    }
+  ],
+  "scene_candidates": {
+    "PR02_PatchedAwning": {
+      "key": "PR-02.1",
+      "scene_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-WestBerth\\Source\\RAC\\PR02_PatchedAwning.v05.glb",
+      "paint_output": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\PR02-UV2\\painted-v03.glb",
+      "textures": [
+        [
+          "painted-v03",
+          [
+            4096,
+            4096
+          ]
+        ],
+        [
+          "painted-v03_metallic-painted-v03_roughness",
+          [
+            4096,
+            4096
+          ]
+        ]
+      ],
+      "triangles": 28000,
+      "vertices_before_weld": 83920,
+      "vertices_after_weld": 13996,
+      "surface_detail": {
+        "fabric_faces": 25565,
+        "yarn_spacing_mm": 1.75,
+        "tile_resolution": [
+          256,
+          256
+        ]
+      },
+      "dimensions_m": [
+        3.0,
+        1.5,
+        0.77
+      ],
+      "pivot": "Top-centre wall mount, cloth extends +Y",
+      "note": "Local reference → pinned RAC Hunyuan3D geometry → 28,000 triangle review mesh → 4K Hunyuan3D-Paint. Mounted to the working bay. Check underside cloth, seams and fasteners in VR."
+    },
+    "AC04_CeramicBowl": {
+      "key": "AC-04.1",
+      "scene_glb": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-WestBerth\\Source\\RAC\\AC04_CeramicBowl.v04.glb",
+      "paint_output": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\paint\\AC04-UV2\\painted-v03.glb",
+      "textures": [
+        [
+          "painted-v03",
+          [
+            4096,
+            4096
+          ]
+        ],
+        [
+          "painted-v03_metallic-painted-v03_roughness",
+          [
+            4096,
+            4096
+          ]
+        ]
+      ],
+      "triangles": 28000,
+      "vertices_before_weld": 83939,
+      "vertices_after_weld": 14002,
+      "surface_detail": null,
+      "dimensions_m": [
+        0.218,
+        0.218,
+        0.071
+      ],
+      "pivot": "Base plane, center of foot",
+      "note": "Local reference → pinned RAC Hunyuan3D geometry → 28,000 triangle review mesh → 4K Hunyuan3D-Paint. Two instances at the saved bowl positions. Check cloth rim and grip contacts before animation. Refit reduced rim artifacts. The interior still needs a glaze-seam review."
+    }
+  },
+  "framewright": {
+    "asset_group": "ab181f08-2554-4ba2-975b-abcbd179d595",
+    "contact_sheet": "0ee133cc-2ea8-4a27-ab23-5f35be11f5ed",
+    "candidates": {
+      "CT-02.1": {
+        "model": "92746cb9-7c4b-4794-9784-c92ad419c996",
+        "reference": "d22b77af-acea-401c-8e2d-3dec66ffc3bf",
+        "stage": "Clay candidate",
+        "note": "The first mesh retained a skirt and opened a false hole through one pier. The separately hashed v02 reference removes the floor shadow. The reconstructed v02 front, side and reverse show a clean base, continuous return and open recess. A 36,000-triangle UV transport passed. Paint and world fit are separate review gates."
+      },
+      "DK-01.1": {
+        "model": "9e8055c8-9a48-404a-b2a2-cb11535f80d7",
+        "reference": "8cb039e0-f2e0-4e31-97d0-cc762bf9fda3",
+        "stage": "4K painted candidate",
+        "note": "The view-conditioned mesh has a continuous hull and visible deck. Confirm the 15 m centreline, 5 m beam, separate gunwale, level deck and gangway lip before using it as the player floor. The inferred wood deck finish still needs the dark steel specified in the brief."
+      },
+      "PR-02.1": {
+        "model": "3d6cc8fe-ce14-466a-8c74-80202b50e396",
+        "reference": "ad8788e0-d8c3-4a8f-a3db-4f4c4f279ced",
+        "stage": "4K painted candidate",
+        "note": "The GPU clay reconstruction has a coherent patch and free edge. Keep the wall mount at local zero. Review woven grain, frame separation and underside seams under close-up light before production approval."
+      },
+      "WK-07.2": {
+        "model": "dbf921aa-f68e-4462-9e29-5abf53e6f7a6",
+        "reference": "bb3f566b-fbf1-4c55-a080-89ba58de6a25",
+        "stage": "Clay candidate",
+        "note": "The conditioned mesh has an unintended bend. Compare straight lane, coplanar hinge and bearing ends at a full 3.00 m span before paint."
+      },
+      "CT-05.2": {
+        "model": "3b7af016-b37e-46cd-94ae-61d943cb2906",
+        "reference": "873bc0ad-c067-4dcc-85a0-3c1c6dfcee91",
+        "stage": "Clay candidate",
+        "note": "One-view reconstruction filled key negative spaces. Test the entry opening and open iron lattice before paint."
+      },
+      "DK-03.1": {
+        "model": "282935f8-481c-490c-bc17-1209992f21ec",
+        "reference": "749b6eb6-cc7b-4334-a7cd-e82103e6416b",
+        "stage": "Clay candidate",
+        "note": "The launch geometry followed the overall silhouette but retained an extra extension beside the bolted base. Review from both sides before snapping it to the deck."
+      },
+      "AC-04.1": {
+        "model": "9882556d-0d52-49bc-8769-d1542f88fc95",
+        "reference": "6e62b7cc-a92f-42ea-aa3a-0072ccaf6288",
+        "stage": "4K painted candidate",
+        "note": "An empty interior and rim are visible in reconstructed geometry. The first painted bowl showed triangular artifacts around the rim. Review the repainted interior and 0.22 m cover fit before attaching any hand socket."
+      },
+      "CT-03.2": {
+        "model": "d5522d38-ca26-43dd-820d-9ee57d9d8990",
+        "reference": "ea99b254-fdff-4cac-ae39-523de5ee21b1",
+        "stage": "Clay candidate",
+        "note": "The door, handle, lintel and sash reconstruct clearly. The candidate is a front panel; use a separate structural wall return and test the opening against the gallery datum."
+      },
+      "CT-05.1": {
+        "model": "40de834b-8e58-4388-8997-44beb41551bd",
+        "reference": "75f7061f-1e05-46e1-aa1c-b4a6e2680ef6",
+        "stage": "Clay candidate",
+        "note": "The first mesh retains open bracing and a readable upper landing. Add the shaft interfaces and check the headhouse enclosure and clearance above the cage."
+      },
+      "CT-09.1": {
+        "model": "9cb1d1c2-17f0-422e-9a4c-dffeff4081af",
+        "reference": "6278082e-ff9c-455a-906f-fea9df2432b8",
+        "stage": "Clay candidate",
+        "note": "Dry brick relief and hollow arch are readable. The first revision captures a studio-floor skirt, so retain the staged proxy while revising the image mask."
+      },
+      "PR-01.1": {
+        "model": "54542a76-b73a-4393-ab56-9eff37f6b3a7",
+        "reference": "109c0c1f-b987-402e-a0a0-498899a86009",
+        "stage": "Clay candidate",
+        "note": "The workbench silhouette, vise and trestles appear on two sides. Check that the top stays level and the vise clears the mechanic’s hands."
+      },
+      "PR-01.2": {
+        "model": "641e4337-b2b6-4c19-b404-cbfd27187b2f",
+        "reference": "7d6293da-8ec7-4af8-a90d-3572393fc604",
+        "stage": "Clay candidate",
+        "note": "The tools remain distinct on the panel, with extra backdrop geometry behind and below it. Clean the image silhouette and reconstruct before fitting the wall mount."
+      },
+      "PR-01.3": {
+        "model": "a9b07c07-cbd7-4997-9837-8284f922ef8d",
+        "reference": "120689ed-1bff-42d1-94fb-e55d0d7e5fa6",
+        "stage": "Clay candidate",
+        "note": "The 3D mesh retains the two patched wings, tail and thin rigging. Inspect the underside and hanging pivot before paint and placement."
+      },
+      "CT-02.1-v02": {
+        "model": "73ab8853-bbe1-482d-81fc-fe3460bd48fc",
+        "reference": "c33a8147-3775-4dae-bcff-6581ca8245bd",
+        "stage": "4K painted candidate",
+        "note": "The first mesh retained a skirt and opened a false hole through one pier. The separately hashed v02 reference removes the floor shadow. The reconstructed v02 front, side and reverse show a clean base, continuous return and open recess. A 36,000-triangle UV transport passed. Paint and world fit are separate review gates."
+      }
+    }
+  },
+  "receipt": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\docs\\evidence\\frastown-west-berth-image-to-3d-20261123.json"
+}

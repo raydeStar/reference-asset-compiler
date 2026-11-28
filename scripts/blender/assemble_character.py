@@ -161,7 +161,9 @@ def main():
     scene.collection.objects.link(camera)
     scene.camera = camera
     camera.data.type = "ORTHO"
-    camera.data.ortho_scale = width / px_per_m
+    # AUTO sensor fit uses the longer image dimension. Portrait reviews must
+    # give the camera their height, or the boots and head miss the appointment.
+    camera.data.ortho_scale = max(width, height) / px_per_m
     for name, angle in (("front", 0), ("three-quarter", 35), ("side", 90), ("back", 180)):
         ang = math.radians(angle)
         direction = Vector((math.sin(ang), -math.cos(ang), 0))

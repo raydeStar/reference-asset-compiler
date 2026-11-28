@@ -1,0 +1,97 @@
+{
+  "schema": "reference-asset-compiler.character-finish.v1",
+  "note": "The material finishing pass for painted characters (scripts/blender/finish_materials.py). The painter gives every surface one kind of paint; this pass gives each material class the surface it is made of: grain, weave, hammering and scratches as relief in a normal map, roughness and metalness that vary the way the material does, worn edges on metal and grime in crevices. Scales are in millimetres on the real-scale character. Detail finer than about 2 mm aliases at a 4096 atlas on a 1.8 m character, so nothing here is finer.",
+  "part_classes": {
+    "plate": "metal",
+    "buckle": "metal",
+    "kneepad": "metal",
+    "strap": "leather",
+    "belt": "leather",
+    "pouch": "leather",
+    "thigh_pouch": "leather",
+    "boot_strap": "leather",
+    "boot": "leather",
+    "glove": "leather",
+    "jacket": "cloth",
+    "trousers": "cloth",
+    "shirt": "cloth",
+    "sleeve_roll": "cloth",
+    "skin": "skin",
+    "face": "skin"
+  },
+  "classes": {
+    "metal": {
+      "why": "Worn iron: hammered faces, fine scratches that catch the light, bright bare metal where edges rub, dark grime where the plate meets what it sits on.",
+      "hammer_mm": 16,
+      "scratch_mm": 28,
+      "scratches": 0.07,
+      "edge_wear": 0.45,
+      "edge_colour": [
+        0.56,
+        0.54,
+        0.5
+      ],
+      "cavity": 0.5,
+      "roughness": [
+        0.3,
+        0.62
+      ],
+      "metallic": [
+        0.7,
+        1.0
+      ],
+      "relief": 0.45,
+      "scratch_threshold": 0.72
+    },
+    "leather": {
+      "why": "Pebbled grain and creases; rubbed areas lighter and smoother, the pores and folds darker and rougher. Leather is never metallic.",
+      "grain_mm": 3.2,
+      "crease_mm": 22,
+      "wear_mm": 70,
+      "wear": 0.12,
+      "pores": 0.1,
+      "cavity": 0.45,
+      "roughness": [
+        0.48,
+        0.78
+      ],
+      "metallic": [
+        0.0,
+        0.0
+      ],
+      "relief": 0.35,
+      "crease_detail": 2.0
+    },
+    "cloth": {
+      "why": "A woven surface: threads in two directions, slubs and fuzz, almost no specular. The weave is what tells cloth from painted plastic up close.",
+      "weave_mm": 2.4,
+      "fuzz_mm": 9,
+      "variation": 0.07,
+      "cavity": 0.35,
+      "roughness": [
+        0.84,
+        0.96
+      ],
+      "metallic": [
+        0.0,
+        0.0
+      ],
+      "relief": 0.14,
+      "fuzz": 0.12
+    },
+    "skin": {
+      "why": "Pores and a soft sheen; skin is dielectric and only a little glossy.",
+      "pore_mm": 2.0,
+      "cavity": 0.15,
+      "roughness": [
+        0.5,
+        0.66
+      ],
+      "metallic": [
+        0.0,
+        0.0
+      ],
+      "relief": 0.12
+    }
+  }
+}

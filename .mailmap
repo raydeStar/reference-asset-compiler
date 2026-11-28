@@ -1,0 +1,5 @@
+# Map every identity Mark Hall has committed under to one canonical name.
+# git log, shortlog and blame use this; GitHub's web UI does not.
+Mark Hall <mark.b.hall.1117@gmail.com> Mark <mark.b.hall.1117@gmail.com>
+Mark Hall <mark.b.hall.1117@gmail.com> Ayric <raydeStar@users.noreply.github.com>
+Mark Hall <mark.b.hall.1117@gmail.com> raydeStar <216967621+raydeStar@users.noreply.github.com>

@@ -19,12 +19,21 @@ roughness map, deliberately: a later stage that gives a part a new surface
 releases the roughness map it was bound to, and occlusion living in that map
 would go with it. In its own slot it survives.
 
+`--no-occlusion` leaves occlusion out. Pixal3D's game meshes carry enclosed
+interior shells and stacked sheets, and an occlusion map baked on them darkens
+visible triangles: the WK-04.1 stair's treads came out shattered into dark
+triangles in Framewright, and would have in Unreal, which reads the same glTF
+occlusion slot. Blender ignores that slot, which is why no Blender render
+showed it. Without the map both viewers light the model the same way, and
+Unreal adds its own occlusion at runtime; the dense mesh's real shape is in
+the normal map `bake-shape` adds.
+
 Nothing here moves a vertex or changes a UV.
 
 Usage:
   blender -b --factory-startup --python scripts/blender/bake_derived_maps.py \
       -- <painted.glb> <output.glb> <report.json> \
-         [--resolution 1024] [--samples 64] [--distance 0.08] [--edge-wear 0.25]
+         [--resolution 1024] [--samples 64] [--distance 0.08] [--edge-wear 0.25] [--no-occlusion]
 """
 
 from __future__ import annotations
@@ -265,6 +274,11 @@ def main() -> int:
     distance = float(read_option(argv, "--distance", "0.08"))
     edge_wear = float(read_option(argv, "--edge-wear", "0"))
     relief = float(read_option(argv, "--relief-from-paint", "0"))
+    # A steepness to reach rather than a strength to apply: one texel in ten
+    # tilts this far. Naming it turns relief on.
+    relief_tilt = read_option(argv, "--relief-tilt")
+    relief_tilt = float(relief_tilt) if relief_tilt is not None else None
+    with_occlusion = "--no-occlusion" not in argv
 
     if resolution not in (512, 1024, 2048):
         print("[BAKE] FAILED: resolution is 512, 1024 or 2048. Got {0}".format(resolution))
@@ -275,6 +289,11 @@ def main() -> int:
     if not 0.0 <= relief <= 2.0:
         print("[BAKE] FAILED: relief from paint runs from 0 to 2. Got {0}".format(relief))
         return 1
+    if relief_tilt is not None and not 0.5 <= relief_tilt <= 30.0:
+        print("[BAKE] FAILED: relief tilt runs from 0.5 to 30 degrees. Got {0}".format(relief_tilt))
+        return 1
+    if relief_tilt is not None and relief == 0:
+        relief = 1.0
     if not source.is_file():
         print("[BAKE] FAILED: source does not exist: {0}".format(source))
         return 1
@@ -312,7 +331,8 @@ def main() -> int:
     bake_coverage(mesh_object, coverage)
     reached = settle(coverage)[..., 0] > 0.5
 
-    bake_occlusion(mesh_object, occlusion, samples, distance)
+    if with_occlusion:
+        bake_occlusion(mesh_object, occlusion, samples, distance)
     occluded = settle(occlusion)[..., 0]
     bake_curvature(mesh_object, curvature, samples)
     curved = settle(curvature)[..., 0]
@@ -331,14 +351,15 @@ def main() -> int:
 
     # A bake that came back uniform found nothing, and delivering it would put
     # a map on the asset that costs bytes and says nothing.
-    if float(occluded[touched].std()) < 0.002:
+    if with_occlusion and float(occluded[touched].std()) < 0.002:
         print("[BAKE] FAILED: the occlusion bake came back flat ({0:.4f} spread), so there is "
               "nothing in it. Check the mesh has thickness and the UVs do not overlap.".format(
                   float(occluded[touched].std())))
         return 1
 
     painted = mesh_object.data.materials[0]
-    wire_occlusion(painted, occlusion)
+    if with_occlusion:
+        wire_occlusion(painted, occlusion)
 
     worn = None
     if edge_wear > 0:
@@ -371,6 +392,7 @@ def main() -> int:
 
     normal_image = None
     relief_mean = None
+    relief_stats = {}
     if relief > 0:
         albedo = base_colour_image(painted)
         if albedo is None:
@@ -380,7 +402,8 @@ def main() -> int:
         # With coverage, so the atlas's own island edges are not read as
         # cliffs: on a generated character that outlined every one of six
         # hundred islands, and the face looked drawn on triangles.
-        encoded, relief_mean = normal_from_paint(source_pixels, relief, coverage=reached)
+        encoded, relief_mean = normal_from_paint(source_pixels, relief, coverage=reached,
+                                                 target_tilt=relief_tilt, stats=relief_stats)
         if relief_mean < 1e-5:
             # Nothing local in the paint means nothing to raise. Delivering a
             # flat normal map would cost bytes and change nothing.
@@ -401,7 +424,7 @@ def main() -> int:
     # numbers measured off the buffer said it was full of detail.
     beside = output.parent / (output.stem + "-maps")
     beside.mkdir(parents=True, exist_ok=True)
-    made = [(occlusion, "occlusion"), (curvature, "curvature")]
+    made = ([(occlusion, "occlusion")] if with_occlusion else []) + [(curvature, "curvature")]
     if normal_image is not None:
         made.append((normal_image, "normal"))
     if recoded is not None:
@@ -427,7 +450,9 @@ def main() -> int:
         "output_sha256": hashlib.sha256(output.read_bytes()).hexdigest(),
         "resolution": resolution,
         "samples": samples,
-        "occlusion": {
+        "occlusion": {"left_out": "--no-occlusion: an occlusion map baked on a layered game mesh "
+                                    "darkens visible triangles in every viewer that reads it"}
+        if not with_occlusion else {
             "distance_m": distance,
             # Measured where the bake actually landed, not across the whole
             # sheet. Only about a quarter of a sheet is reachable by geometry,
@@ -458,7 +483,9 @@ def main() -> int:
             "used_for": "keeping the relief derivation off the atlas's own island edges",
         },
         "relief_from_paint": None if normal_image is None else {
-            "strength": relief,
+            "strength": None if relief_tilt is not None else relief,
+            "target_tilt_degrees": relief_tilt,
+            "measured": relief_stats,
             "local_detail": round(relief_mean, 6),
             "derived_from": "the base colour's local luminance, after its own blurred self "
                             "is subtracted, so a step between two materials is not read as a cliff",
@@ -479,11 +506,14 @@ def main() -> int:
     if normal_image is not None:
         print("[BAKE] relief from paint at {0}: local detail {1:.5f} raised into a normal map".format(
             relief, relief_mean))
-    print("[BAKE] occlusion {0:.3f} where baked, {1:.1%} of the model shaded, {2:.0%} of the "
-          "sheet reached; curvature spread {3:.3f}{4}".format(
-        report["occlusion"]["mean_where_baked"], report["occlusion"]["shaded_share_of_model"],
-        report["occlusion"]["sheet_reached"], report["curvature"]["spread"],
-        "" if worn is None else "; edge wear {0} at {1:.2f}".format(worn, edge_wear)))
+    if with_occlusion:
+        print("[BAKE] occlusion {0:.3f} where baked, {1:.1%} of the model shaded, {2:.0%} of the "
+              "sheet reached; curvature spread {3:.3f}{4}".format(
+            report["occlusion"]["mean_where_baked"], report["occlusion"]["shaded_share_of_model"],
+            report["occlusion"]["sheet_reached"], report["curvature"]["spread"],
+            "" if worn is None else "; edge wear {0} at {1:.2f}".format(worn, edge_wear)))
+    else:
+        print("[BAKE] occlusion left out; curvature spread {0:.3f}".format(report["curvature"]["spread"]))
     return 0
 
 

@@ -55,12 +55,14 @@ def main() -> int:
     if output.exists():
         raise RuntimeError(f"Refusing to overwrite immutable evidence: {output}")
     stem = args.stem
+    # The legacy runner writes JPEG maps; the studio runner writes PNG.
+    ext = "jpg" if (source / f"{stem}_roughness.jpg").is_file() else "png"
     names = {
         "mesh": f"{stem}.obj",
         "mtl": f"{stem}.mtl",
-        "base_color": f"{stem}.jpg",
-        "metallic": f"{stem}_metallic.jpg",
-        "roughness": f"{stem}_roughness.jpg",
+        "base_color": f"{stem}.{ext}",
+        "metallic": f"{stem}_metallic.{ext}",
+        "roughness": f"{stem}_roughness.{ext}",
     }
     for name in names.values():
         if not (source / name).is_file():

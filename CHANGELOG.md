@@ -3,6 +3,120 @@
 Release notes live under `docs/releases/`; GitHub releases carry the same text
 and any attached wheel.
 
+## Unreleased
+
+`paint-sections` and `paint-parts` take `--no-upscale`: the painter skips its 4x
+upscale of each view, which these passes shrink to the bake size anyway. On the
+PR-02.3 counter its sections looked the same up close and took 27.7 minutes
+instead of about 33. The owner chose it for pieces like that one; the upscale
+stays the default, for complex pieces. A section or piece painted with the other
+setting is not reused.
+
+`rac time-to-model <folder>`: how long a model took front to back, from the
+stage receipts under its folder: each stage in order with its start and
+seconds, the time in stages and between them, pauses over 30 minutes left out
+(`--each` for a folder of models, `--json`). Stage receipts now carry
+`started_utc` and `finished_utc`.
+
+`paint-parts` paints as `paint-sections` does: one painter run for every piece,
+each piece's maps finished while the next paints, and each piece's unseen
+texels filled near its own faces. The PR-02.3 counter's four pieces took 5.9
+minutes instead of 11.4; its colour moved on 0.0087 % of texels, on faces no
+outside view reaches, and its metal-rough not at all. `--separate-runs` and
+`--inpaint-reach 0` bring back the old way. `bake-shape` hands Blender its
+normal map in bulk instead of as a Python list (about 6 s of 72).
+
+The playbook has the Hunyuan3D prop route end to end, with times.
+
+`paint-sections` keeps the card busier and lays sections as they come. The
+painter finishes each section's maps (the fills, their conversion and the PNGs)
+on a thread while the next section paints, and the pass lays each section over
+the first paint as soon as it is written, so little is left once the last one is
+painted. The maps are byte for byte the same. The WK-04.1 stair's section pass
+took 42 minutes instead of 114, with 26 s left after the last section where
+reading and compositing took about 6 minutes; against the stair the owner
+passed, the texels that moved lie only on faces no outside view reaches. A
+section is about 35 s slower whenever the CPU is busy with other work, such as
+another model's bakes or composite, so nothing CPU-heavy should run beside
+painting.
+
+`paint-sections` is faster and paints the same. One painter run paints every
+section with its models loaded once and writes only the maps; each section's
+unseen texels are filled near its own faces instead of across the whole 8192
+sheet; and the composite sums and blurs only where a section weighs. On the
+WK-04.1 stair a section took 99-132 s instead of 140-197 s, and the composite
+4.5 minutes instead of 14.5. The passed stair re-composited from its own
+sections is byte-identical; with three sections painted the new way, its
+finished maps moved by at most 9/255, on 0.05 % of texels. `--separate-runs`
+and `--inpaint-reach 0` bring back the old way.
+
+`project-reference`: the reference picture laid onto the faces of a Pixal3D model
+it shows, over the paint. Pixal3D builds its mesh in the picture's camera; the
+stage fits that camera (Pixal3D's logged field of view, refined by the outline)
+and blends the picture in per texel by facing, line of sight and the cutout, so
+the WK-04.3 landing carries its reference's own scratches and dark steel, which
+painting in sections had lost. Geometry and picture must be the same image; a
+revised picture is refused until the geometry is made again. The Pixal route
+bakes occlusion again (the overlapping UVs that broke it are fixed) and, after a
+projection, no relief from the paint.
+
+`uv-unwrap` no longer lets two faces share a texel. Smart Project laid the
+WK-04.1 stair's folded treads on top of themselves (8.9 % of its texels shared),
+which put hidden faces' occlusion and roughness onto visible ones as triangles.
+Overlapping faces are now projected again, tighter, until none overlap, and a
+layout that still overlaps is refused. The stair's sheet also gained about 55 %
+more painted texels.
+
+Pixal3D props look the same in Framewright and Unreal. `bake-detail --no-occlusion`
+leaves out the occlusion map, which on Pixal3D's layered game meshes darkened
+visible triangles in every viewer that reads it (the stair's treads), and the
+browser copy now carries the tangents its normal map was baked against.
+
+Pixal3D meshes the route can use as they come. `level_pair.py` mends each game
+mesh: specks, fins on edges shared by three faces, slivers and small holes (the
+crate's 9 to 58 open edges went to 0 on four seeds of six). `bake-shape` bakes
+again from closer cages where the first bakes a normal facing into the surface,
+which removed the stair's black crescent. Notes: [docs/DECISIONS.md](docs/DECISIONS.md).
+
+`pixal-geometry`: one picture to a levelled game mesh and dense mesh with Pixal3D,
+in one stage, so Framewright can drive the prop route. `level_pair.py` gains
+`--up` (tall and edge-standing pieces), `--flip` and `--height`.
+
+Every GPU stage of the prop route within a 12 GB card, with the same results.
+The studio painter at an 8192 sheet peaked at 13.2 to 18 GiB and now at the
+diffusion's own 9.1 GiB, maps byte for byte the same (the bake adds one view at
+a time; the texel map keeps only covered texels). Pixal3D at 1024 peaked at
+14.2 GiB and now at 7.7 GiB, its conditioning exactly the same (NAF upsamples
+one attention head at a time). Notes: [docs/DECISIONS.md](docs/DECISIONS.md).
+
+## v0.5.0 — 2026-11-24
+
+Paint by parts. `label-parts` finds a painted model's parts face by face, and in
+its reference (Grounding DINO and SAM on 24 renders, votes onto faces, review
+views in part colours). `paint-parts` paints each part alone from the reference
+with the other parts masked out and lays it on its own faces, so one part's
+colour no longer bleeds onto another. `paint-sections` goes over it with its
+sections reused. Notes: [docs/releases/v0.5.0.md](docs/releases/v0.5.0.md).
+
+## v0.4.0 — 2026-11-24
+
+Props that hold up at arm's length. A Pixal3D route end to end: Pixal's own
+simplification of the same generation as the game mesh (`run_pixal3d.py
+--extra-targets`), `level_pair.py`, and a new `bake-shape` stage that bakes the
+dense mesh into the normal map. Section paint is baked at texel scale (no more
+specks), can be painted on an 8192 sheet, cross-fades between sections, and
+keeps the first paint's colour as painted. Notes: [docs/releases/v0.4.0.md](docs/releases/v0.4.0.md).
+
+## v0.3.0 — 2026-11-24
+
+Large models as sharp as small ones. `paint-sections` paints a large model again
+in sections at small-prop scale: a 2.2 m skiff went from about 3 mm to about
+0.7 mm of surface per painted pixel. It keeps the first paint's colour by default.
+`bake-detail --relief-tilt` sets relief from paint to a measured steepness.
+New hard-surface finishing stages, an automatic part map, and fixes for the
+painter's doubled specular and for seam-cut meshes in the voxel reductions.
+Notes: [docs/releases/v0.3.0.md](docs/releases/v0.3.0.md).
+
 ## v0.2.1 — 2026-10-31
 
 Faster AI stages: geometry generation is about 3× faster (three views 63 → 21 s,

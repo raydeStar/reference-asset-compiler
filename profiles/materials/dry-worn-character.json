@@ -1,0 +1,162 @@
+{
+  "schema": "rac.surface-response.v1",
+  "note": "Dry worn-character starting points derived from the reviewed Raider finish. Art-direction controls, not measured material constants; inspect under the intended consumer lighting. Class assignment remains explicit.",
+  "classes": {
+    "worn_steel": {
+      "roughness": [
+        0.5,
+        0.66
+      ],
+      "metallic": 0.67,
+      "specular": 1.0,
+      "pattern": "metal",
+      "pitch_mm": 3.8,
+      "slope": 0.028,
+      "retain_normal": 0.95
+    },
+    "tarnished_metal": {
+      "roughness": [
+        0.6,
+        0.75
+      ],
+      "metallic": 0.35,
+      "specular": 1.0,
+      "pattern": "metal",
+      "pitch_mm": 4.2,
+      "slope": 0.026,
+      "retain_normal": 0.95
+    },
+    "canvas": {
+      "roughness": [
+        0.82,
+        0.93
+      ],
+      "metallic": 0.0,
+      "specular": 0.42,
+      "pattern": "weave",
+      "pitch_mm": 1.1,
+      "slope": 0.055,
+      "retain_normal": 0.95
+    },
+    "trouser_cloth": {
+      "roughness": [
+        0.8,
+        0.9
+      ],
+      "metallic": 0.0,
+      "specular": 0.42,
+      "pattern": "weave",
+      "pitch_mm": 1.0,
+      "slope": 0.04,
+      "retain_normal": 0.95
+    },
+    "worn_leather": {
+      "roughness": [
+        0.65,
+        0.78
+      ],
+      "metallic": 0.0,
+      "specular": 0.52,
+      "pattern": "pebble",
+      "pitch_mm": 0.85,
+      "slope": 0.045,
+      "retain_normal": 0.95
+    },
+    "glove_leather": {
+      "roughness": [
+        0.6,
+        0.73
+      ],
+      "metallic": 0.0,
+      "specular": 0.5,
+      "pattern": "pebble",
+      "pitch_mm": 0.8,
+      "slope": 0.035,
+      "retain_normal": 0.95
+    },
+    "skin": {
+      "roughness": [
+        0.48,
+        0.62
+      ],
+      "metallic": 0.0,
+      "specular": 0.45,
+      "pattern": "pores",
+      "pitch_mm": 0.6,
+      "slope": 0.025,
+      "retain_normal": 0.95
+    },
+    "skin_tzone": {
+      "roughness": [
+        0.42,
+        0.54
+      ],
+      "metallic": 0.0,
+      "specular": 0.52,
+      "pattern": "pores",
+      "pitch_mm": 0.6,
+      "slope": 0.02,
+      "retain_normal": 0.95
+    },
+    "lips": {
+      "roughness": [
+        0.42,
+        0.55
+      ],
+      "metallic": 0.0,
+      "specular": 0.5,
+      "pattern": "pores",
+      "pitch_mm": 0.75,
+      "slope": 0.02,
+      "retain_normal": 0.95
+    },
+    "hair": {
+      "roughness": [
+        0.69,
+        0.83
+      ],
+      "metallic": 0.0,
+      "specular": 0.29,
+      "pattern": "fibres",
+      "pitch_mm": 1.4,
+      "slope": 0.012,
+      "retain_normal": 0.98
+    },
+    "eye": {
+      "roughness": [
+        0.12,
+        0.12
+      ],
+      "metallic": 0.0,
+      "specular": 1.0,
+      "pattern": "smooth",
+      "pitch_mm": 1.0,
+      "slope": 0.0,
+      "retain_normal": 1.0
+    },
+    "enamel": {
+      "roughness": [
+        0.29,
+        0.29
+      ],
+      "metallic": 0.0,
+      "specular": 0.94,
+      "pattern": "smooth",
+      "pitch_mm": 1.0,
+      "slope": 0.0,
+      "retain_normal": 1.0
+    },
+    "wet_tissue": {
+      "roughness": [
+        0.31,
+        0.31
+      ],
+      "metallic": 0.0,
+      "specular": 0.92,
+      "pattern": "smooth",
+      "pitch_mm": 1.0,
+      "slope": 0.0,
+      "retain_normal": 1.0
+    }
+  }
+}

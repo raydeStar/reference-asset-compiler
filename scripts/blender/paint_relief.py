@@ -93,7 +93,7 @@ def luminance_of(albedo):
     return 0.2126 * albedo[..., 0] + 0.7152 * albedo[..., 1] + 0.0722 * albedo[..., 2]
 
 
-def normal_from_paint(albedo, strength, coverage=None, radius=6):
+def normal_from_paint(albedo, strength, coverage=None, radius=6, target_tilt=None, stats=None):
     """A surface normal derived from the relief somebody painted.
 
     Only the local part of the paint is read: the luminance has its own blurred
@@ -107,6 +107,16 @@ def normal_from_paint(albedo, strength, coverage=None, radius=6):
 
     The blur radius and the gain both scale with the sheet, so "0.3" means the
     same relief on a 4096 sheet as on the 2048 it was chosen on.
+
+    With `target_tilt` (degrees), `strength` is not used: the gain is chosen so
+    that one texel in ten the geometry reaches tilts at least that far. The
+    same strength reads as a calm surface on one paint and as orange peel on a
+    busier one (a section-painted mast at strength 1 tilted 41 degrees at that
+    mark where a finished claw tilted 4.5), so a measured target is the setting
+    that means the same thing on every model.
+
+    `stats`, when given a dict, is filled with the gain used and the tilt the
+    result has, in degrees, at the median, the 90th and the 99th percentile.
 
     Returns the encoded RGBA normal in [0, 1] and the mean absolute relief where
     the paint is, which is what "there is nothing here to raise" is judged by.
@@ -126,6 +136,11 @@ def normal_from_paint(albedo, strength, coverage=None, radius=6):
     # Gradients along the map, which is the direction the surface tilts.
     dy, dx = np.gradient(relief)
     gain = strength * 32.0 * scale
+    if target_tilt is not None:
+        slope = np.hypot(dx, dy)
+        inside = slope[coverage] if coverage is not None else slope.reshape(-1)
+        mark = float(np.percentile(inside, 90)) if inside.size else 0.0
+        gain = float(np.tan(np.radians(target_tilt))) / mark if mark > 0 else 0.0
     normal = np.dstack([-dx * gain, -dy * gain, np.ones_like(relief)])
     if coverage is not None:
         normal[~coverage] = (0.0, 0.0, 1.0)
@@ -133,4 +148,13 @@ def normal_from_paint(albedo, strength, coverage=None, radius=6):
     encoded = np.clip(normal * 0.5 + 0.5, 0.0, 1.0)
     measured = relief[coverage] if coverage is not None else relief
     local = float(np.abs(measured).mean()) if measured.size else 0.0
+    if stats is not None:
+        tilt = np.degrees(np.arccos(np.clip(normal[..., 2], -1.0, 1.0)))
+        held = tilt[coverage] if coverage is not None else tilt.reshape(-1)
+        stats["gain"] = round(float(gain), 4)
+        stats["equivalent_strength"] = round(float(gain) / (32.0 * scale), 4)
+        if held.size:
+            p50, p90, p99 = np.percentile(held, [50, 90, 99])
+            stats["tilt_degrees"] = {"p50": round(float(p50), 2), "p90": round(float(p90), 2),
+                                     "p99": round(float(p99), 2)}
     return np.dstack([encoded, np.ones_like(relief)]), local

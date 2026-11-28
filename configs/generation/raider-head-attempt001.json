@@ -1,0 +1,24 @@
+{
+  "schema": "reference-asset-compiler.hy3d-geometry-request.v1",
+  "mode": "single_view",
+  "asset_id": "raider-head",
+  "workspace": "${RAC_REPO_ROOT}/work/raider-head",
+  "source_authority": {
+    "path": "${RAC_REPO_ROOT}/work/raider-head/references/primary.png",
+    "sha256": "fea3ae345ab8541978e3dc950cd8239b27a50642a9e2695fa83b5f034f5e449d"
+  },
+  "inputs": [
+    {
+      "view": "primary",
+      "path": "${RAC_REPO_ROOT}/work/raider-head/references/primary.png",
+      "sha256": "fea3ae345ab8541978e3dc950cd8239b27a50642a9e2695fa83b5f034f5e449d"
+    }
+  ],
+  "parameters": {
+    "seed": 42,
+    "steps": 50,
+    "octree_resolution": 512,
+    "chunks": 20000
+  },
+  "output_directory": "${RAC_REPO_ROOT}/work/raider-head/candidates/hy3d-single-seed42-attempt001"
+}

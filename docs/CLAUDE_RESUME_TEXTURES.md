@@ -2,6 +2,19 @@
 
 *Type: reference*
 
+For current work, read [CHARACTER_SURFACE_WORKFLOW.md](CHARACTER_SURFACE_WORKFLOW.md)
+first, then Stage 4 of [WORKFLOW_PLAYBOOK.md](WORKFLOW_PLAYBOOK.md). Scoped repairs
+use registered AI references and `rac polish`; fresh whole-mesh PBR generation
+uses the Hunyuan3D-Paint launcher. Diagnose paint versus geometry before choosing.
+Do not apply the old female-only experiment restrictions to unrelated character
+polish or to an explicitly authorized RAC implementation task.
+
+## Historical female escalation instruction (2026-08)
+
+The instruction below is retained verbatim as context for that failed experiment,
+not as the current global texture router. Its failures remain in
+[ESCALATE-textures.md](ESCALATE-textures.md).
+
 Paste or point Claude Code to this file:
 
 > Work in your clone of this repository. Read

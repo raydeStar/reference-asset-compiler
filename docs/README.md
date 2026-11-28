@@ -28,6 +28,13 @@ escalations are retained verbatim so nobody repeats them. Start with
 - [ANIMATION_WORKFLOW.md](ANIMATION_WORKFLOW.md) — open-source motion recipes, bounded edits, calibrated retargeting, round-trip exports, measurements and human review.
 - [ANIMATION_REUSE.md](ANIMATION_REUSE.md) — portable profiles, complete Blender runs, clean-checkout verification and the independent Unreal contact plugin.
 - [REGIONAL_CHARACTER_TEXTURES.md](REGIONAL_CHARACTER_TEXTURES.md) — rig-preserving regional UVs, independent head/clothing paint and seam-normal repair.
+- [CHARACTER_SURFACE_WORKFLOW.md](CHARACTER_SURFACE_WORKFLOW.md) - canonical character finishing standard: diagnosis, registered AI paint, semantic PBR, exposed-surface checks, consumer review and replay.
+- [POLISH_WORKFLOW.md](POLISH_WORKFLOW.md) - retained finishing recipes, AI handoffs, UV/map transport and packed review.
+- [HARD_SURFACE_FINISH.md](HARD_SURFACE_FINISH.md) - static hard-surface parts: maps baked off the geometry, then layered paint, rust and wear.
+- [EYE_DETAIL.md](EYE_DETAIL.md) - lid-margin lashes (pronounced/subtle/none presets) and eye occlusion that follow face morphs; append-only.
+- [RAIDER_POLISH_REPLAY.md](RAIDER_POLISH_REPLAY.md) - exact Raider replay and the boundary between shared stages and artistic decisions.
+- [GAME_REVIEW.md](GAME_REVIEW.md) — the paved road from a polished character GLB to a playable, closeup-checked review in the game: one recipe, one command, Remora's fixes as defaults.
+- [REFERENCE_PATCH.md](REFERENCE_PATCH.md) — registered concept-conditioned surface repairs, UV coverage, payload cleanup and the Raider quality checkpoint.
 - [CHARACTER_SHOWCASE.md](CHARACTER_SHOWCASE.md) — how the README captures and GIF are reproduced with provenance.
 - [ADAPTERS.md](ADAPTERS.md) — adapter registry policy: capabilities, not quality rankings.
 - [SKELETON-COMPATIBILITY.md](SKELETON-COMPATIBILITY.md) — measured compatibility of compiled skeletons with Epic's Manny.
@@ -68,6 +75,10 @@ escalations are retained verbatim so nobody repeats them. Start with
 - [releases/v0.1.2.md](releases/v0.1.2.md) — stronger evidence, safer reruns and the first compile example.
 - [releases/v0.2.0.md](releases/v0.2.0.md) — the full pipeline on a 12 GB GPU.
 - [releases/v0.2.1.md](releases/v0.2.1.md) — geometry about 3× faster, paint about 40 s faster, same output.
+- [releases/v0.3.0.md](releases/v0.3.0.md) — large models as sharp as small ones: paint in sections, calibrated relief, hard-surface finishing.
+- [releases/v0.4.0.md](releases/v0.4.0.md) — props that hold up at arm's length: Pixal3D end to end, texel-scale section bakes, 8192 sheets, the first paint's colour kept.
+- [releases/v0.5.0.md](releases/v0.5.0.md) — paint by parts: label-parts and paint-parts, so one part's colour no longer bleeds onto another.
+- [RAIDER_REVAMP.md](RAIDER_REVAMP.md) — rebuilding CH-03 Raider as a modular, speaking, open-source character; plan, diagnosis and progress.
 - [MAINTENANCE_REVIEW_2026-09-11.md](MAINTENANCE_REVIEW_2026-09-11.md) — the accepted review mapped to implementation and verification.
 
 ## Evidence and media

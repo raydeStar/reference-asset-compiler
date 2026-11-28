@@ -280,6 +280,17 @@ def test_a_recipe_with_measured_landmarks_rigs_from_them(tmp_path, monkeypatch):
     assert not (out / "rig-input/derived").exists() and "rig_landmarks" not in receipt
 
 
+def test_assembly_checkpoint_stops_before_rigging_and_keeps_review_pending(tmp_path, monkeypatch):
+    out = stub_build(tmp_path, monkeypatch, RECIPE, "--device", "CPU", "--stop-after", "assembly")
+    receipt = receipt_of(out)
+    assert receipt["commands"][-1]["script"] == "blender/assemble_character.py"
+    assert not any("rig" in c["script"] for c in receipt["commands"])
+    assert receipt["completed"] is False and receipt["production_ready"] is False
+    assert receipt["next_gate"] == "texture_approval"
+    assert receipt["stopped_after"] == "assembly"
+    assert not (out / "rig-input").exists()
+
+
 @pytest.mark.parametrize(("device", "overlays"), [("CPU", ["--no-overlays"]), ("GPU", [])])
 def test_a_recipe_without_rig_landmarks_derives_them_from_its_proxy(tmp_path, monkeypatch, device, overlays):
     recipe = copy.deepcopy(RECIPE)

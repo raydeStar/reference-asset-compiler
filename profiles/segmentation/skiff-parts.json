@@ -1,0 +1,11 @@
+{
+  "schema": "reference-asset-compiler.model-part-vocabulary.v1",
+  "note": "The parts a skiff (AC-01.1) is painted in by scripts/paint_parts.py, found by scripts/label_parts.py. base: the part every unclaimed face belongs to; here the hull, which keeps the struts and iron straps (the detector finds those unreliably, and they paint well with the hull). prompts: the phrases the detector is asked for that part. max_box: the largest share of the model's own box in a picture that part's box may take (a small part's phrase also matches the whole boat). threshold: the detector's score floor. together: paint every piece of the part as one, from a picture of all of them (the two fins; painted apart, one came back pale and one marked). colour: the part's colour in the review views.",
+  "parts": [
+    {"name": "hull", "base": true, "colour": [200, 150, 90]},
+    {"name": "seat", "prompts": ["wooden seat", "wooden chair"], "threshold": 0.3, "max_box": 0.25,
+     "colour": [120, 200, 80]},
+    {"name": "fin", "prompts": ["red fin", "red paddle", "red and cream fin on a pole"], "threshold": 0.3,
+     "max_box": 0.3, "together": true, "colour": [230, 50, 50]}
+  ]
+}

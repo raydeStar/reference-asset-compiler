@@ -1,0 +1,245 @@
+{
+  "schema": "reference-asset-compiler.polish-recipe.v1",
+  "acquisition_provenance": "Raider concept-conditioned acquired character; 4mm-bounded ear-interior fairing retained with source/recipe; built-in image_gen edits directly conditioned on current clay geometry (primary) and earlier color palette and original Raider concept. Additional bounded fairing of the identified upper-fold inversion; regenerated visibility guides, same retained clay-conditioned references.",
+  "source": {
+    "path": "../../work/raider-polish-20261105/ear-alignment-20261106/geometry04/Raider.glb",
+    "sha256": "8f534dc5f65aa9d736dda807f0d966ba71810cefda1de4ce2983cbb07877bf19"
+  },
+  "steps": [
+    {
+      "id": "ear-paint",
+      "stage": "reference-patch",
+      "config": {
+        "schema": "reference-asset-compiler.reference-patch-recipe.v1",
+        "patches": [
+          {
+            "material": "FACE_skin",
+            "size": 3072,
+            "bounds": [
+              [
+                -0.12,
+                1.625,
+                -0.063
+              ],
+              [
+                -0.052,
+                1.742,
+                0.045
+              ]
+            ],
+            "feather_m": 0.009,
+            "retain_normal": 0.05,
+            "views": [
+              {
+                "center": [
+                  -0.075,
+                  1.683,
+                  -0.014
+                ],
+                "axis": [
+                  -1,
+                  0,
+                  0
+                ],
+                "width": 0.135,
+                "image": {
+                  "path": "../../work/raider-polish-20261105/ear-alignment-20261106/references02/negative-side.png",
+                  "sha256": "c12935a41a3faa177c643b6f658d5898509aff5b05edf9109afbd02164426133"
+                },
+                "guide": {
+                  "path": "../../work/raider-polish-20261105/ear-alignment-20261106/geometry04/captured/views/negative-side.npz",
+                  "sha256": "d4e7d75b252f4de6fb5095097ecc376597f20939e83eac79100187ccce5deae2"
+                },
+                "relief_m": 3e-06,
+                "visibility_tolerance_m": 0.004
+              }
+            ]
+          },
+          {
+            "material": "FACE_skin",
+            "size": 3072,
+            "bounds": [
+              [
+                0.052,
+                1.625,
+                -0.063
+              ],
+              [
+                0.125,
+                1.742,
+                0.045
+              ]
+            ],
+            "feather_m": 0.009,
+            "retain_normal": 0.05,
+            "views": [
+              {
+                "center": [
+                  0.075,
+                  1.683,
+                  -0.014
+                ],
+                "axis": [
+                  1,
+                  0,
+                  0
+                ],
+                "width": 0.135,
+                "image": {
+                  "path": "../../work/raider-polish-20261105/ear-alignment-20261106/references02/positive-side.png",
+                  "sha256": "e743d5d43da028ce3a3f5baec152c9c803ac65813cb35e3b9c67efe6970c01ce"
+                },
+                "guide": {
+                  "path": "../../work/raider-polish-20261105/ear-alignment-20261106/geometry04/captured/views/positive-side.npz",
+                  "sha256": "a9eb696732e0751ce292698b1c9f67a376592c34a788928ebb28796d8ed7f782"
+                },
+                "relief_m": 3e-06,
+                "visibility_tolerance_m": 0.004
+              }
+            ]
+          },
+          {
+            "material": "Raider repaired ear",
+            "size": 1024,
+            "retain_normal": 0.03,
+            "two_sided": true,
+            "views": [
+              {
+                "center": [
+                  0.075,
+                  1.683,
+                  -0.014
+                ],
+                "axis": [
+                  1,
+                  0,
+                  0
+                ],
+                "width": 0.135,
+                "image": {
+                  "path": "../../work/raider-polish-20261105/ear-alignment-20261106/references02/positive-side.png",
+                  "sha256": "e743d5d43da028ce3a3f5baec152c9c803ac65813cb35e3b9c67efe6970c01ce"
+                },
+                "guide": {
+                  "path": "../../work/raider-polish-20261105/ear-alignment-20261106/geometry04/captured/views/positive-side.npz",
+                  "sha256": "a9eb696732e0751ce292698b1c9f67a376592c34a788928ebb28796d8ed7f782"
+                },
+                "relief_m": 3e-06,
+                "visibility_tolerance_m": 0.004
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "prune",
+      "stage": "prune-payload"
+    },
+    {
+      "id": "bounds",
+      "stage": "repair-bounds"
+    },
+    {
+      "id": "inspect",
+      "stage": "inspect-surface"
+    },
+    {
+      "id": "review",
+      "stage": "polish-review",
+      "config": {
+        "schema": "reference-asset-compiler.polish-review-recipe.v1",
+        "clip": "Raider_Relaxed_Held",
+        "resolution": 768,
+        "samples": 24,
+        "moving_light": true,
+        "closeups": [
+          {
+            "name": "positive-side",
+            "center": [
+              0.075,
+              1.683,
+              -0.014
+            ],
+            "axis": [
+              1,
+              0,
+              0
+            ],
+            "width": 0.135
+          },
+          {
+            "name": "positive-front",
+            "center": [
+              0.075,
+              1.683,
+              -0.014
+            ],
+            "axis": [
+              1,
+              0,
+              0.5
+            ],
+            "width": 0.135
+          },
+          {
+            "name": "positive-back",
+            "center": [
+              0.075,
+              1.683,
+              -0.014
+            ],
+            "axis": [
+              1,
+              0,
+              -0.5
+            ],
+            "width": 0.135
+          },
+          {
+            "name": "negative-side",
+            "center": [
+              -0.075,
+              1.683,
+              -0.014
+            ],
+            "axis": [
+              -1,
+              0,
+              0
+            ],
+            "width": 0.135
+          },
+          {
+            "name": "negative-front",
+            "center": [
+              -0.075,
+              1.683,
+              -0.014
+            ],
+            "axis": [
+              -1,
+              0,
+              0.5
+            ],
+            "width": 0.135
+          },
+          {
+            "name": "negative-back",
+            "center": [
+              -0.075,
+              1.683,
+              -0.014
+            ],
+            "axis": [
+              -1,
+              0,
+              -0.5
+            ],
+            "width": 0.135
+          }
+        ]
+      }
+    }
+  ]
+}

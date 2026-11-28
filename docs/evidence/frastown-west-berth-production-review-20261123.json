@@ -1,0 +1,298 @@
+{
+  "project": "Frastown",
+  "framewright_review": {
+    "before": 160,
+    "current_assets": 18,
+    "pending": 17,
+    "archive": 142,
+    "scene_instance_links_preserved": 124
+  },
+  "actual_glb_checks": {
+    "models": 125,
+    "without_any_linked_image_map": 80,
+    "example": {
+      "id": "a1830b13-79a7-430a-a6f5-bb8585dcf8b4",
+      "name": "Staging group · Bracchus upper homes",
+      "material": {
+        "primitives": 41,
+        "materials_used": 21,
+        "textured_primitives": 0,
+        "embedded": [],
+        "channels": [],
+        "missing_texture_uv_bindings": 0
+      }
+    },
+    "repeated_card_display_names": {
+      "AC-04.1 · Glazed ceramic bowl · 4K painted candidate": 2,
+      "PR-02.1 · Patched shop awning · 4K painted candidate": 2,
+      "Staging group · Inland frontage 03": 2,
+      "Staging group · Inland frontage 02": 2,
+      "Staging group · Inland frontage 01": 2,
+      "Layout proxy · CT02_BracchusShell": 2
+    },
+    "workshop_v02_material": {
+      "primitives": 1,
+      "materials_used": 1,
+      "textured_primitives": 1,
+      "embedded": [
+        {
+          "mime": "image/png",
+          "size": [
+            4096,
+            4096
+          ],
+          "status": "embedded header valid"
+        },
+        {
+          "mime": "image/png",
+          "size": [
+            4096,
+            4096
+          ],
+          "status": "embedded header valid"
+        }
+      ],
+      "channels": [
+        "baseColor",
+        "metallicRoughness"
+      ],
+      "missing_texture_uv_bindings": 0
+    }
+  },
+  "user_decisions": [
+    {
+      "asset": "73ab8853-bbe1-482d-81fc-fe3460bd48fc",
+      "name": "CT-02.1 · Bracchus bay v02 · 4K painted candidate",
+      "decision": "ChangesRequested",
+      "feedback": "texture is low quality -- no normal map, and the inside of the room, texture is broken.",
+      "sha256": "e6b78323986aaa993e8d158e348ebc1321d1fe13e6eea1c2c7c72d23e0d2b1ce"
+    },
+    {
+      "asset": "9882556d-0d52-49bc-8769-d1542f88fc95",
+      "name": "AC-04.1 · Glazed ceramic bowl · 4K painted candidate",
+      "decision": "ChangesRequested",
+      "feedback": "dupe",
+      "sha256": "3bc5c2b5c88d14b95992af0101bccfe6c4311673b6ee65d7411ee78b723f5117"
+    },
+    {
+      "asset": "180250c1-e4bd-4020-9311-2a431bbf7d4c",
+      "name": "AC-04.1 · AC04_CeramicBowl · RAC review",
+      "decision": "Approved",
+      "feedback": "",
+      "sha256": "7cc91486cd93c393341f33a1e5b17058782c95854cdf6d93ecbf86a7c9012460"
+    },
+    {
+      "asset": "603533fa-9f79-4e3d-94aa-1753c0de449a",
+      "name": "AC-01.1 · Child-sized skiff with seat, buoyant keel and patched fins as one assembly · image authority v01",
+      "decision": "Approved",
+      "feedback": "",
+      "sha256": "370dcc30caafd13b130b3ae756fa596a6905afc2a891353b19cb2878cd88381c"
+    },
+    {
+      "asset": "22cf00da-f4ec-462a-815c-9d7c4ed41d55",
+      "name": "AC-04.1 · Glazed ceramic bowl · 4K painted candidate",
+      "decision": "ChangesRequested",
+      "feedback": "dupe",
+      "sha256": "d18f373b350c0b4f9a60d5861e73398ce89a47ddd149112361cc4ce3dc56c859"
+    },
+    {
+      "asset": "6e62b7cc-a92f-42ea-aa3a-0072ccaf6288",
+      "name": "AC-04.1 · Glazed ceramic bowl · image authority v01",
+      "decision": "Approved",
+      "feedback": "",
+      "sha256": "7c4039e2db3e7f929a7935809aa5424b994c13c20369ef0e8708ef87a589469a"
+    }
+  ],
+  "image_rejections": {
+    "CT-03.3-v01": "The image has two floors. The kit needs exactly one floor with two doors at level.",
+    "CT-03.1-v03": "The proposed shopfront wraps around a second side and reads as a freestanding kiosk.",
+    "CT-03.2-v03": "The doorway and window occupy different walls, so the image cannot establish the required flat worker-house frontage.",
+    "CT-03.3-v03": "A tall separate window band reads as a second storey rather than two transoms.",
+    "CT-03.4-v03": "The door is below half the nominal wall height. Normalizing the bay to three metres would leave a door under 1.5 metres.",
+    "CT-03.3-v04": "Two doors and one floor now read correctly. The slots are integral to the door and there is no separate glazed transom.",
+    "CT-03.4-v04": "The window and door share one wall, the return is blank and the threshold floats above the modular datum."
+  },
+  "developing_ct03_variants": [
+    {
+      "part": "CT-03.1",
+      "revision": "04",
+      "sha256": "c7f9737e1bfab7e1032945571807f7f593f3ac701761af04a540fb8162b3e2c9",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.1-v04_00001_.png",
+      "image_sha256": "5fe39e644ec09c2067a9b8b3efbf18c2e509d44baa58ccf7b3bf9bf1fdd92e8b",
+      "mesh": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-1-v04\\candidates\\single-v01\\candidate.glb",
+      "ledger": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-1-v04\\ledger.json",
+      "audit": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-WestBerth\\Checks\\CT-03.1-v04-RAC-audit.json",
+      "measured_shape": {
+        "source": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-1-v04\\candidates\\single-v01\\candidate.glb",
+        "bounds_min": [
+          -0.9989521503448486,
+          -0.521256148815155,
+          -0.6330957412719727
+        ],
+        "bounds_max": [
+          0.9951870441436768,
+          0.5260030627250671,
+          0.6312226057052612
+        ],
+        "size_unscaled": [
+          1.9941391944885254,
+          1.0472592115402222,
+          1.2643183469772339
+        ],
+        "mesh_count": 1,
+        "triangles": 2076698,
+        "materials": []
+      },
+      "assessment": {
+        "status": "hold",
+        "summary": "The doorway reads as open. Stray geometry behind the display window and a 2.10 m normalized shell depth need fit review."
+      },
+      "production_review": false
+    },
+    {
+      "part": "CT-03.2",
+      "revision": "05",
+      "sha256": "ce89df490512fbdd7dbba5c6dad79d8c64cf9cb47d03f6d926bbd3973f73522c",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.2-v05_isolated.png",
+      "image_sha256": "e9722d5b5aa467731a6aa8f34326d7d9e4c2f0457a88f4fa693f4d8ff2efa7a7",
+      "mesh": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v05\\candidates\\single-v01\\candidate.glb",
+      "ledger": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v05\\ledger.json",
+      "audit": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-WestBerth\\Checks\\CT-03.2-v05-RAC-audit.json",
+      "measured_shape": {
+        "source": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v05\\candidates\\single-v01\\candidate.glb",
+        "bounds_min": [
+          -0.9989671111106873,
+          -0.6604571342468262,
+          -0.64426189661026
+        ],
+        "bounds_max": [
+          0.995296061038971,
+          0.664614200592041,
+          0.6395644545555115
+        ],
+        "size_unscaled": [
+          1.9942631721496582,
+          1.3250713348388672,
+          1.2838263511657715
+        ],
+        "mesh_count": 1,
+        "triangles": 3036728,
+        "materials": []
+      },
+      "assessment": {
+        "status": "rejected_shape",
+        "summary": "The front-only source produced a closed box. At 4 m width its 2.66 m depth fails the facade intent."
+      },
+      "production_review": false
+    },
+    {
+      "part": "CT-03.2",
+      "revision": "07",
+      "sha256": "d0791af9e4796b2b29690200fc1ace1d72f3451285c2d0f15bf647a97841ac79",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.2-v07_isolated.png",
+      "image_sha256": "4c9604eb87da19012be113e364ecb8e270dccc8da956b89a17919d7ec53bc7ba",
+      "mesh": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v07\\candidates\\single-v01\\candidate.glb",
+      "ledger": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v07\\ledger.json",
+      "audit": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-WestBerth\\Checks\\CT-03.2-v07-RAC-audit.json",
+      "measured_shape": {
+        "source": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-2-v07\\candidates\\single-v01\\candidate.glb",
+        "bounds_min": [
+          -0.9989345669746399,
+          -0.19484150409698486,
+          -0.6926077604293823
+        ],
+        "bounds_max": [
+          0.995092511177063,
+          0.20942625403404236,
+          0.6926592588424683
+        ],
+        "size_unscaled": [
+          1.9940271377563477,
+          0.4042677581310272,
+          1.3852670192718506
+        ],
+        "mesh_count": 1,
+        "triangles": 1040136,
+        "materials": []
+      },
+      "assessment": {
+        "status": "modeling_review",
+        "summary": "The new image shows the edge, and RAC recovered the door, window and a 0.81 m deep envelope at 4 m width. Snap fit is open."
+      },
+      "production_review": false
+    },
+    {
+      "part": "CT-03.3",
+      "revision": "07",
+      "sha256": "946298f4da4f701d3068b445823c19d0987c62fe0da229516a1d081ffcaacc53",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.3-v07_isolated.png",
+      "image_sha256": "1a897ba6fd18e6176cd3c4bae62ed399432d1007e24a0df5ee060a0ab317be3d",
+      "mesh": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-3-v07\\candidates\\single-v01\\candidate.glb",
+      "ledger": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-3-v07\\ledger.json",
+      "audit": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-WestBerth\\Checks\\CT-03.3-v07-RAC-audit.json",
+      "measured_shape": {
+        "source": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-3-v07\\candidates\\single-v01\\candidate.glb",
+        "bounds_min": [
+          -0.999101459980011,
+          -0.2675873935222626,
+          -0.6781008839607239
+        ],
+        "bounds_max": [
+          0.9952368140220642,
+          0.27462711930274963,
+          0.6787769794464111
+        ],
+        "size_unscaled": [
+          1.9943382740020752,
+          0.5422145128250122,
+          1.3568778038024902
+        ],
+        "mesh_count": 1,
+        "triangles": 1580776,
+        "materials": []
+      },
+      "assessment": {
+        "status": "modeling_review",
+        "summary": "Two doors and a single storey read clearly. Check transom separation and both thresholds against a real gallery datum."
+      },
+      "production_review": false
+    },
+    {
+      "part": "CT-03.4",
+      "revision": "07",
+      "sha256": "0e7753977027d590aeae188f35d9ddb2b98bed1ac67972da4e7d6d592257b973",
+      "image": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\work\\FrastownScene\\ai\\references\\CT-03.4-v07_isolated.png",
+      "image_sha256": "2d4a72f8c15e7aa347e8701d6d8c16e9e94ac0ed19f36417997eef826ca18ba3",
+      "mesh": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-4-v07\\candidates\\single-v01\\candidate.glb",
+      "ledger": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-4-v07\\ledger.json",
+      "audit": "C:\\Users\\Ayric\\Documents\\Codex\\2026-11-23\\https-drive-google-com-file-d\\outputs\\Frastown-WestBerth\\Checks\\CT-03.4-v07-RAC-audit.json",
+      "measured_shape": {
+        "source": "C:\\Users\\Ayric\\Source\\Repos\\reference-asset-compiler\\work\\frastown-west-berth-ct-03-4-v07\\candidates\\single-v01\\candidate.glb",
+        "bounds_min": [
+          -0.999086856842041,
+          -0.9052890539169312,
+          -0.6408451795578003
+        ],
+        "bounds_max": [
+          0.9948523640632629,
+          0.8940191268920898,
+          0.6376305818557739
+        ],
+        "size_unscaled": [
+          1.9939391613006592,
+          1.799308180809021,
+          1.2784757614135742
+        ],
+        "mesh_count": 1,
+        "triangles": 2459736,
+        "materials": []
+      },
+      "assessment": {
+        "status": "hold",
+        "summary": "Front and shuttered return read clearly. An extra block behind the corner prevents fit approval."
+      },
+      "production_review": false
+    }
+  ],
+  "publication_requirement": "Only unique production-intended current models go to Framewright Quick Review. Preserve staging, reference drafts, clay, rejected paint and older exports in local evidence or in archive. Check actual GLB textures and UV bindings ahead of upload. When an asset has a prior card, add a revision."
+}

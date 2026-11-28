@@ -1,0 +1,183 @@
+{
+  "schema": "rac.raider-ear-review.v1",
+  "date": "2026-11-06",
+  "path_base": "repository root",
+  "requested_gate": "Correct the stamped ear appearance; review derivative in Framewright",
+  "candidate_sha256": "490a543d835c5e6cca9f8fc131abf1b339f291fb0f289a038ebf6da0f6b8fd28",
+  "native_sha256": "79e8c3d4964a0b33b0065f446933c255842ff74f202b9050c6144470a270a09e",
+  "replay_byte_identical": true,
+  "replay_note": "replay05 repeats all model-producing stages; unchanged review rendering is omitted.",
+  "max_rendered_vertex_displacement_mm": 4.000047687441111,
+  "unused_vertex_note": "The all-accessor audit includes unused FACE_skin vertices with up to 8mm accumulated displacement. Referenced/rendered vertices remain within 4.001mm.",
+  "original_candidate05_glb_native_and_field_pouch_unchanged": true,
+  "framewright": {
+    "asset_id": "a9fce590-a126-478f-b19b-dcfb51a18c56",
+    "served_sha256": "490a543d835c5e6cca9f8fc131abf1b339f291fb0f289a038ebf6da0f6b8fd28",
+    "observed": "Assets Director Mode, held clip, orbit/zoom and both profile views; left open on head quarter view",
+    "saved_scene_replaced": false
+  },
+  "verification": {
+    "passed": 992,
+    "skipped": 39,
+    "subtests": 198,
+    "parsed": 343,
+    "lint": true,
+    "installed_wheel": true,
+    "packed_images": 24,
+    "bones": 88,
+    "facial_controls": 34
+  },
+  "agent_visual_review": "Improved and ready for artist review",
+  "human_visual_acceptance": "pending",
+  "production_ready": false,
+  "files": [
+    {
+      "path": "work/raider-polish-20261105/review-candidate06/Raider.glb",
+      "sha256": "490a543d835c5e6cca9f8fc131abf1b339f291fb0f289a038ebf6da0f6b8fd28"
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate06/Raider_Native.blend",
+      "sha256": "79e8c3d4964a0b33b0065f446933c255842ff74f202b9050c6144470a270a09e"
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate06/native-receipt02.json",
+      "sha256": "436edbd5e41efcd962d4e039b8de4bb7b7542430e781e3361217af7e26885223"
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate06/reopen.json",
+      "sha256": "4638bf9ee4ad48b2f1e16bc0aaf9acb6a7de0a586da9b53e4d3a7c94e1a75b5a"
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate06/pose-check.json",
+      "sha256": "f63ba088ba4a3a063a5c44ff6821bfa951a81010d1c37fed4a2eb2400d9cc5f0"
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate06/framewright-import.json",
+      "sha256": "984241d5a0a37493566e706bcbbae3ac81ff1847ffba54479b870d13e774ba58"
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate06/raider06-positive-ear.png",
+      "sha256": "9db4f5ed73dfb4dd3daf70218e94b8ea6f9e673ec4880994886a15077f5a293d"
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate06/raider06-negative-ear.png",
+      "sha256": "69e6c33a157015bcbd081b54d2ef39f56360766540347fb3d4fedff678057354"
+    },
+    {
+      "path": "work/raider-polish-20261105/review-candidate06/raider06-framewright.png",
+      "sha256": "3660195e75c286daa67e11505516ec2d1957f773fd6ae37b875c817a9cb587a1"
+    },
+    {
+      "path": "examples/polish/raider-ears.json",
+      "sha256": "6879e5e2583cf772450cb2525e6e1b1518ac2348c31a8f64c033c7d7756303d9"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/scope-audit.json",
+      "sha256": "e5c30cca2ca20421f06ed3ef3486014946a65a5de4b7a5d8173f107bb4ed5a45"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/selection.json",
+      "sha256": "c33fc4df49178aa718fee2211031a50a81e86447db98e144121c58baf4e95c04"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/reference-provenance-final.json",
+      "sha256": "7452dccf7268047dcf7531798c16e198e5e725cff859bee9295aa05997419193"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/state.json",
+      "sha256": "8aee281051216d5a7e1574ba4f7e93ae0ae1cbdc606246745143da1dcc0db327"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/replay05/state.json",
+      "sha256": "319de6cc4177c00970f615e0cd2caf0a8df2c61a30ae693fd2e5efdd2394c71d"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/verify-final.log",
+      "sha256": "1267d5600f5a21eafcd9efa725e5acb802101c0513a8aed551c7e52a26992e76"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/fair_acquired_ears03.py",
+      "sha256": "edaf9d761d26c917a4125588f7417ccf96da5e99fc656e1fdd1112b65ccd33b8"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/fair_acquired_ears04.py",
+      "sha256": "741b3a89338886ede6ed6a707c67a44fcb2c2d0991b28195816070eae9da8976"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/geometry03/receipt.json",
+      "sha256": "25a58a278c03506facc00227e41d0d6579c29f8822094acfba6aea14871e805d"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/geometry04/receipt.json",
+      "sha256": "f243ceef6785f8419a92059330b3e52adf0c20fb674910486ed6f844aa1f00b6"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/references02/positive-side.png",
+      "sha256": "e743d5d43da028ce3a3f5baec152c9c803ac65813cb35e3b9c67efe6970c01ce"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/references02/negative-side.png",
+      "sha256": "c12935a41a3faa177c643b6f658d5898509aff5b05edf9109afbd02164426133"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/positive-side02.prompt.txt",
+      "sha256": "e0d56c17e151b7602a2f5c189e01f1bfbf2d852a0843ce11c7c46d52c198ae73"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/negative-side02.prompt.txt",
+      "sha256": "e0d56c17e151b7602a2f5c189e01f1bfbf2d852a0843ce11c7c46d52c198ae73"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/back.png",
+      "sha256": "b6d9db3823d1350a74d00d502547ad8ec367a99ac782c40163e15af843d34bfa"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/front.png",
+      "sha256": "9382f04c91be07a6df16d3aac9496f74db9a15b07f4ec070eedab264af38dd9d"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/light-center-quarter.png",
+      "sha256": "faa13d7431778af930422a196344ae1cd074bb14b1f5a2dc2eb1e3532d2e5b32"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/light-left-quarter.png",
+      "sha256": "03999b2e310d8c998de61801ba8bd8bec84ab39802a8d7c7b8f4d9d68038ae45"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/light-right-quarter.png",
+      "sha256": "49360fd2517996620b551aeba1877861e4742048331bd941162f9f9d389bdb14"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/negative-back.png",
+      "sha256": "66b7ade88a3ab8e66800bad4be09e0d6d7416907f56ba7a437bbed30b683ce54"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/negative-front.png",
+      "sha256": "0befb2b5b6eaa251000e314186702e8b9c7b403136318d09b686a6732855d72f"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/negative-side.png",
+      "sha256": "e629ee45be1db3f051e18c494eb5753303372617662edd3090eab4be46092069"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/positive-back.png",
+      "sha256": "e56bc16dfc904384c1fbe73262c277665f02061157011a36625fa7400c6be0c1"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/positive-front.png",
+      "sha256": "f893806c47bdc9ed72515a882fa0b8e57f696041b0d4d023fa3766986e74be01"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/positive-side.png",
+      "sha256": "cb8d2e4854e1da2f8cd2dc296b623f0c86eea1629562afefb74caf8bde69bb52"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/quarter.png",
+      "sha256": "a1b495c1d8a4ed9b10cd74005e504820a17f43f261dd2a737034f7a56cd0db6c"
+    },
+    {
+      "path": "work/raider-polish-20261105/ear-alignment-20261106/finish04/steps/review/views/side.png",
+      "sha256": "dbbdaceb01289c31ef7c5711d3aec617ca8c0bcd8f8a89d4ad6d1a20a65d1198"
+    }
+  ]
+}

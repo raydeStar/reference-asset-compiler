@@ -11,6 +11,7 @@ from .cohort import audit_cohort
 from .cleanup import record_cleanup_receipt, validate_cleanup_input
 from .animation_export import select_animations
 from . import animation_workflow
+from . import polish_workflow
 from .budgets import decide as decide_budget
 from .contracts import ARTICULATION_MODES, ASSET_KINDS
 from .geometry_request import validate_geometry_request
@@ -18,6 +19,7 @@ from .io import read_json, write_json
 from .planner import plan
 from .retopology import record_retopology_receipt
 from .resources import checkout_root, load_registry
+from .run_times import models_under, render as render_times, summarise as summarise_times
 from .stages import STAGES, describe_stages, run_stage
 from .workspace import audit_workspace, create_workspace, promote_stage
 
@@ -39,6 +41,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(prog="rac", description="Reference-image to 3D gate ledger")
     subcommands = parser.add_subparsers(dest="command", required=True)
     animation_workflow.add_cli(subcommands)
+    polish_workflow.add_cli(subcommands)
 
     animation_export = subcommands.add_parser(
         "export-animations", help="Export selected named GLB clips without changing model data"
@@ -91,6 +94,19 @@ def build_parser() -> argparse.ArgumentParser:
     cohort_audit.add_argument("manifest", type=Path)
     cohort_audit.add_argument("--workspace-root", type=Path, default=Path("work"))
     cohort_audit.add_argument("--output", type=Path)
+
+    times = subcommands.add_parser(
+        "time-to-model",
+        help="How long a model took front to back, from the stage receipts under its folder")
+    times.add_argument("folders", type=Path, nargs="+",
+                       help="A model's folder; every stage-run receipt under it counts")
+    times.add_argument("--each", action="store_true",
+                       help="Each folder holds models: report every folder directly under it")
+    times.add_argument("--pause-minutes", type=float, default=30.0,
+                       help="A wait between stages longer than this is a pause and left out (default: 30)")
+    times.add_argument("--json", action="store_true", help="Print the JSON instead of text")
+    times.add_argument("--brief", action="store_true", help="With several models, only the table")
+    times.add_argument("--output", type=Path, help="Also write the JSON here")
 
     geometry_preflight = subcommands.add_parser(
         "geometry-preflight", help="Validate a one-attempt Hunyuan multiview request"
@@ -158,6 +174,12 @@ def build_parser() -> argparse.ArgumentParser:
                             "through glass, so this deletes what is behind it.")
     stage.add_argument("--relief-from-paint", type=float,
                        help="Raise the relief somebody painted into a normal map, 0..2")
+    stage.add_argument("--no-occlusion", action="store_true",
+                       help="Bake detail: leave the occlusion map out (Pixal3D game meshes, whose "
+                            "interior shells darken visible triangles in an occlusion bake)")
+    stage.add_argument("--relief-tilt", type=float,
+                       help="Relief from paint, calibrated: the steepness in degrees one texel in ten "
+                            "reaches, whatever the paint's contrast (try 6)")
     stage.add_argument("--assign", action="append",
                        help="A part and the surface it should be, as colour[:tone]=surface. "
                             "Repeatable, for example --assign blue:dark=crystal")
@@ -166,6 +188,10 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--allow-triangulated-glb", action="store_true",
                        help="Accept an approved static triangle mesh for UV unwrapping as it stands")
     stage.add_argument("--reference", type=Path, help="The image a paint stage paints from")
+    stage.add_argument("--geometry", type=Path,
+                       help="Project reference: the pixal-geometry report of the mesh the model was painted on")
+    stage.add_argument("--minimum-fit", type=float,
+                       help="Project reference: the least outline overlap the fitted camera must reach (default 0.97)")
     stage.add_argument("--views", type=int, help="Paint views, 6..12 (default: 6)")
     stage.add_argument("--resolution", type=int,
                        help="Paint resolution, 512 or 768; or fixed-view render size")
@@ -181,16 +207,76 @@ def build_parser() -> argparse.ArgumentParser:
                        help="The least rough the head paint may leave a texel (default: 0.55)")
     stage.add_argument("--metallic", type=float,
                        help="What the head's metallic channel is set to (default: 0; negative keeps the paint's)")
-    stage.add_argument("--atlas", type=int, choices=(2048, 4096),
+    stage.add_argument("--section", type=float,
+                       help="Paint in sections: how far across a section may be, in metres (default: 0.6)")
+    stage.add_argument("--overlap", type=float,
+                       help="Paint in sections: overlap between neighbours, as a fraction of a section "
+                            "(default: 0.25)")
+    stage.add_argument("--context", type=float,
+                       help="Paint in sections: how much more of the model each section's painter "
+                            "sees past the overlap, as a fraction of a section (default: 0.1)")
+    stage.add_argument("--cage", type=float,
+                       help="Bake shape: how far out the rays start, in metres (default: 0.008)")
+    stage.add_argument("--fallback-cages",
+                       help="Bake shape: closer cages, comma-separated metres, for texels the first cage "
+                            "bakes facing in, or 'none' (default: 0.003,0.001)")
+    stage.add_argument("--max-ray", type=float,
+                       help="Bake shape: how far a ray may travel, in metres (default: 0.02)")
+    stage.add_argument("--reuse-sections", type=Path,
+                       help="Paint in sections: an earlier attempt directory whose finished sections "
+                            "are reused where the mesh and crop are the same")
+    stage.add_argument("--keep-colour", type=float,
+                       help="Paint in sections: keep the first paint's colour as painted and add the "
+                            "sections' light and dark finer than this many metres (default: 0.01; 0 "
+                            "takes the sections' own colour)")
+    stage.add_argument("--keep-tone", type=float,
+                       help="Paint in sections: tone coarser than this many metres stays the first "
+                            "paint's (default: 0, the sections' own colour, matched to each other)")
+    stage.add_argument("--min-length", type=float,
+                       help="Paint in sections: a model shorter than this is passed through (default: 1.2)")
+    stage.add_argument("--max-sections", type=int,
+                       help="Paint in sections: the most sections a model is cut into (default: 12)")
+    stage.add_argument("--min-free-vram", type=int,
+                       help="MiB of GPU memory the painter must find free before it starts")
+    stage.add_argument("--atlas", type=int, choices=(2048, 4096, 8192),
                        help="Paint atlas size. Naming one selects the studio runner, which "
                             "writes lossless maps; unnamed, the legacy runner writes 2048 JPEG")
+    stage.add_argument("--bake-scale", type=float,
+                       help="Paint in sections: bake each section's views at about this many pixels a "
+                            "texel (default: 1; 0 bakes them as upstream does)")
+    stage.add_argument("--inpaint-reach", type=int,
+                       help="Paint in sections or by parts: fill the texels no view saw only within at "
+                            "least this many texels of each section's or piece's faces, wider where the "
+                            "views left deeper gaps (default: 32; 0 fills the whole sheet, as before)")
+    stage.add_argument("--separate-runs", action="store_true",
+                       help="Paint in sections or by parts: start the painter once for each section or "
+                            "piece instead of once for them all")
+    stage.add_argument("--no-upscale", action="store_true",
+                       help="Paint in sections or by parts: skip the painter's 4x upscale of each view "
+                            "(each is resized to its bake size anyway; about 10 s a section saved)")
+    stage.add_argument("--vocab",
+                       help="Label parts: the part vocabulary, a JSON file or a name under "
+                            "profiles/segmentation (e.g. skiff-parts)")
+    stage.add_argument("--torch-python",
+                       help="Label parts: a Python with torch, transformers and segment_anything "
+                            "(default: $RAC_TORCH_PYTHON, then ComfyUI's portable Python)")
+    stage.add_argument("--detector", help="Label parts: the grounding-dino-base folder (default: $RAC_GROUNDING_DINO)")
+    stage.add_argument("--sam", help="Label parts: sam_vit_b_01ec64.pth (default: $RAC_SAM_CHECKPOINT)")
+    stage.add_argument("--parts", type=Path, help="Paint by parts: the labelling label-parts made (.npz)")
+    stage.add_argument("--together", nargs="+",
+                       help="Paint by parts: parts painted as one piece however far apart (default: the "
+                            "vocabulary's own 'together' parts)")
+    stage.add_argument("--surface", choices=("first", "parts"),
+                       help="Paint by parts: roughness and metal from the first paint (default) or the part paints")
+    stage.add_argument("--reuse-parts", type=Path,
+                       help="Paint by parts: an earlier attempt whose pieces are reused where mesh and crop match")
     stage.add_argument("--target-triangles", type=int, help="Remesh target before the budget check")
     stage.add_argument("--voxel-resolution", type=int, help="Remesh grid resolution (default: 420)")
     stage.add_argument("--smooth-iterations", type=int, help="Remesh smoothing passes (default: 5)")
     stage.add_argument("--preserve-components", action="store_true", help="Keep separate substantive parts during remeshing")
     stage.add_argument("--smooth-lambda", type=float, help="Remesh smoothing strength (default: 0.28)")
     stage.add_argument("--dense", type=Path,
-                       help="The dense, painted original a reduced mesh is re-baked from")
+                       help="The dense original: the painted mesh a reduction is re-baked from, or the dense shape bake-shape bakes from")
     stage.add_argument("--reduction-report", type=Path,
                        help="The reduction's receipt: proves the re-bake pairs the right files "
                             "and offers the budget ladder to climb")
@@ -213,11 +299,26 @@ def build_parser() -> argparse.ArgumentParser:
     stage.add_argument("--transmission", type=float, help="How much the glass transmits, 0..1 (default: 0.85)")
     stage.add_argument("--minimum-share", type=float,
                        help="Refuse if the colour covers less of the model than this (default: 0.005)")
+    stage.add_argument("--size-m", type=float,
+                       help="Pixal3D geometry: the real size in metres, the longest side unless --size-is height")
+    stage.add_argument("--size-is", choices=("height", "longest"),
+                       help="Pixal3D geometry: whether --size-m is the height or the longest side (default: longest)")
+    stage.add_argument("--pixal-resolution", type=int, choices=(512, 1024, 1536),
+                       help="Pixal3D geometry: the generation's resolution (default: 1024)")
+    stage.add_argument("--vertex-target", type=int,
+                       help="Pixal3D geometry: the game mesh's vertices, from Pixal's own simplifier "
+                            "(default: 100000)")
+    stage.add_argument("--up", choices=("shortest", "middle", "longest"),
+                       help="Pixal3D geometry: which principal axis stands up (default: shortest, a boat; "
+                            "longest for a lantern or column; middle for a panel on its edge)")
+    stage.add_argument("--flip", action="store_true",
+                       help="Pixal3D geometry: turn the levelled piece upside down")
     stage.add_argument("--repo-root", type=Path,
                        help="Pipeline checkout; required outside a source installation")
     stage.add_argument("--blender", help="Blender executable; defaults to $RAC_BLENDER")
-    stage.add_argument("--timeout", type=int, default=3600,
-                       help="Seconds before the stage is abandoned (default: 3600)")
+    stage.add_argument("--timeout", type=int,
+                       help="Seconds before the stage is abandoned (default: the stage's own; "
+                            "3600 for most, 14400 for paint-sections, 7200 for label-parts and paint-parts)")
     stage.add_argument("--list", action="store_true",
                        help="Report the runnable stages and what is missing, and run nothing")
 
@@ -275,6 +376,13 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
     try:
+        if args.command == "polish-init":
+            print_payload(polish_workflow.initialize(args))
+            return 0
+        if args.command == "polish":
+            payload = polish_workflow.dispatch(args)
+            print_payload(payload)
+            return 3 if payload['status'] == 'awaiting_reference' else 0
         if args.command == "animation":
             payload = animation_workflow.dispatch(args)
             print_payload(payload)
@@ -332,6 +440,21 @@ def main(argv: list[str] | None = None) -> int:
                 write_json(args.output, payload)
             print_payload(payload)
             return 0 if payload["ok"] else 1
+        if args.command == "time-to-model":
+            folders: list[Path] = []
+            for folder in args.folders:
+                if not folder.is_dir():
+                    raise ValueError("There is no folder at {0}".format(folder))
+                folders += models_under(folder) if args.each else [folder]
+            summaries = [summarise_times(folder, args.pause_minutes * 60.0) for folder in folders]
+            payload = {"schema": "reference-asset-compiler.time-to-model-set.v1", "models": summaries}
+            if args.output:
+                write_json(args.output, payload)
+            if args.json:
+                print_payload(payload)
+            else:
+                print(render_times(summaries, detail=not args.brief), end="")
+            return 0
         if args.command == "cohort-audit":
             payload = audit_cohort(args.manifest, args.workspace_root)
             if args.output:
@@ -384,6 +507,10 @@ def main(argv: list[str] | None = None) -> int:
                     "distance": args.distance,
                     "edge_wear": args.edge_wear,
                     "relief_from_paint": args.relief_from_paint,
+                    "relief_tilt": args.relief_tilt,
+                    "geometry": args.geometry,
+                    "minimum_fit": args.minimum_fit,
+                    "no_occlusion": args.no_occlusion,
                     "directions": args.directions,
                     "most": args.most,
                     "largest_part": args.largest_part,
@@ -402,6 +529,19 @@ def main(argv: list[str] | None = None) -> int:
                     "feather": args.feather,
                     "roughness_floor": args.roughness_floor,
                     "metallic": args.metallic,
+                    "section": args.section,
+                    "overlap": args.overlap,
+                    "context": args.context,
+                    "bake_scale": args.bake_scale,
+                    "inpaint_reach": args.inpaint_reach,
+                    "separate_runs": args.separate_runs or None,
+                    "no_upscale": args.no_upscale or None,
+                    "reuse_sections": args.reuse_sections,
+                    "keep_colour": args.keep_colour,
+                    "keep_tone": args.keep_tone,
+                    "min_length": args.min_length,
+                    "max_sections": args.max_sections,
+                    "min_free_vram": args.min_free_vram,
                     "target_triangles": args.target_triangles,
                     "voxel_resolution": args.voxel_resolution,
                     "smooth_iterations": args.smooth_iterations,
@@ -411,6 +551,9 @@ def main(argv: list[str] | None = None) -> int:
                     "transmission": args.transmission,
                     "minimum_share": args.minimum_share,
                     "dense": args.dense,
+                    "cage": args.cage,
+                    "fallback_cages": args.fallback_cages,
+                    "max_ray": args.max_ray,
                     "reduction_report": args.reduction_report,
                     "appearance_reference": args.appearance_reference,
                     "reference_views": args.reference_views,
@@ -418,6 +561,20 @@ def main(argv: list[str] | None = None) -> int:
                     "normal_resolution": args.normal_resolution,
                     "threads": args.threads,
                     "no_climb": args.no_climb or None,
+                    "vocab": args.vocab,
+                    "torch_python": args.torch_python,
+                    "detector": args.detector,
+                    "sam": args.sam,
+                    "parts": args.parts,
+                    "together": args.together,
+                    "surface": args.surface,
+                    "reuse_parts": args.reuse_parts,
+                    "size_m": args.size_m,
+                    "size_is": args.size_is,
+                    "pixal_resolution": args.pixal_resolution,
+                    "vertex_target": args.vertex_target,
+                    "up": args.up,
+                    "flip": args.flip or None,
                 })
             print_payload(payload)
             return 0 if payload["ok"] else 1

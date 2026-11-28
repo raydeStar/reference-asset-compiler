@@ -1,0 +1,98 @@
+{
+  "baseline_sha256": "bf45fb64b02ed4365c5343d89c61f76636e92e7124b37dbbae64a4eb98ca4274",
+  "candidate_sha256": "f6b27e3f74b53ad3353af0c671033ba973e6b36ee4f6fd9517d66111925a2441",
+  "native_sha256": "eac2288c8526346028b227f0d5992231827480187bd941a6e717414567242c1b",
+  "repeat_identical": true,
+  "unchanged_binary_prefix_bytes": 12605672,
+  "protected_meshes_accessors_skins_nodes_and_animations_identical": true,
+  "unchanged_basecolor_and_occlusion_bindings": true,
+  "triangles": 76154,
+  "joints": 88,
+  "facial_shapes": 34,
+  "readback_per_class_roughness_ranges": {
+    "FACE_skin": {
+      "canvas": [
+        0.824,
+        0.902
+      ],
+      "skin": [
+        0.49,
+        0.565
+      ],
+      "skin_tzone": [
+        0.404,
+        0.459
+      ],
+      "lips": [
+        0.451,
+        0.475
+      ],
+      "hair": [
+        0.525,
+        0.604
+      ]
+    },
+    "painted": {
+      "canvas": [
+        0.812,
+        0.914
+      ],
+      "trouser_cloth": [
+        0.796,
+        0.875
+      ],
+      "worn_leather": [
+        0.471,
+        0.616
+      ],
+      "worn_steel": [
+        0.341,
+        0.467
+      ],
+      "tarnished_metal": [
+        0.494,
+        0.631
+      ],
+      "skin": [
+        0.478,
+        0.553
+      ]
+    },
+    "Material.001": {
+      "glove_leather": [
+        0.471,
+        0.569
+      ],
+      "skin": [
+        0.478,
+        0.565
+      ]
+    },
+    "Raider | restored acquired surface": {
+      "canvas": [
+        0.804,
+        0.914
+      ],
+      "trouser_cloth": [
+        0.839,
+        0.851
+      ],
+      "worn_leather": [
+        0.471,
+        0.62
+      ],
+      "worn_steel": [
+        0.349,
+        0.463
+      ],
+      "tarnished_metal": [
+        0.502,
+        0.631
+      ]
+    }
+  },
+  "class_alpha_and_metal_verified": true,
+  "unit_tangent_normals_within": 0.008,
+  "second_asset": "8539382b3e2fc9bfad39ac9d0d534c9fb1e172a7bce8917df406c8071f79bccd",
+  "visual_approval": "pending"
+}

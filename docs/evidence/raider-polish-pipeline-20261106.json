@@ -1,0 +1,140 @@
+{
+  "schema": "reference-asset-compiler.polish-port-evidence.v1",
+  "date": "2026-11-06",
+  "code_toolchain": {
+    "python": "3.12.7",
+    "versions": {
+      "numpy": "2.1.3",
+      "scipy": "1.15.1",
+      "Pillow": "10.4.0",
+      "opencv-python-headless": "4.11.0.86",
+      "opencv-python": "4.11.0.86",
+      "xatlas": "0.0.9",
+      "xatlas_binary_sha256": "7b2ecd0e6625e7c5caf140cc809364c3364e0005fe6796bde445f51fa3528d7c"
+    },
+    "code": {
+      "review_polished_asset.py": "0a78f1f8a0180ea361efb77b0331469ef93d94685a7ea7888358256c0ee90c6f",
+      "capture_reference_guides.py": "c63e803740a5ea8dab167db670bcb72b19e42b17b6dd7b305665259979ca8e56",
+      "compress_textures.py": "42bdfb6ccd7e09c269242c78ea8e02c05179548a1f496066aeef4c2dbaa09d67",
+      "inspect_surface.py": "3a153468fe93919e4e4596b0b6782f907852dfc842d30ec8619be68c4e8fbf14",
+      "project_reference_patch.py": "a82b66f4ad21da13d68552fb1d41b80d093524b8746ac02a4d560f321a0ac2e1",
+      "prune_glb_payload.py": "bb73f72ac937c21fbc144c4cd778630da0357019a5dfbfa3e2459b5ba45dcf4c",
+      "repair_position_bounds.py": "3f46cffa2cc2bcc875d23a574ccedea9063fda090a18125ce1af9d35081df5ca",
+      "restore_acquired_surface.py": "51728221ca43903e012b5ef0c1c6f1695518d0a8928f012104ff75f1b3d51477",
+      "surface_atlas.py": "b4d01d3f32c1e8ff33e33e82a269f310100cc814cff314385fe2cf4681fa2ce8",
+      "surface_stage.py": "6a2e27f7c10d1dce842c771ed0148494fc53adb6cb39ca4b49a710195aafd42b",
+      "io.py": "577083aea0049c9151b2733a9f4a821a5c42b0ba89657f031749d83c805ea089",
+      "polish_glb.py": "626c2c967dc1daaace5e1693cee64ebaa2fc6b236c7de1928932db3dc877ddd9",
+      "polish_workflow.py": "0777786b80b7714c663dcd1ce9b30dce19f4bcf22a0558f7369751eb1d948f25",
+      "reference_guides.py": "72d13d590dc7576c98e5ea87847455116606862fed1e7a5fcce5fbfa6ec25121",
+      "stages.py": "b12ed98f971ad2b6406cca093bb9086bc29455670a48e9134da3eb62e24805d4",
+      "surface_finish.py": "aa19e332970012c74722f05985c4e7d392b57a1f3a4c2e7c864f7a4e33ed1c12"
+    },
+    "blender": {
+      "path": "C:\\Program Files (x86)\\Steam\\steamapps\\common\\Blender\\blender.exe",
+      "sha256": "e546b2a0d81ae19bd5b306b668733102d91d23db2e2be02d68b7ecbe548af0a1"
+    }
+  },
+  "model_sha256": "5136a551e09b2f94a498895b22b9c7fb5cd576767e80dc7640857539d8dea36f",
+  "two_fresh_replays_byte_identical": true,
+  "resume_reuses_every_completed_file": true,
+  "cuff": {
+    "source_sha256": "9bdfba5928d1ffb71f2f981af1766454df3b9a972de53fc0ff7ab515e14c6f4b",
+    "output_sha256": "17c2cd9f1e20a3be98b5aabecbfcac3de5c50ead5812450629439d410220b6ad",
+    "triangles": 917,
+    "used_vertices_before_after": [
+      586,
+      887
+    ],
+    "attributes_checked_per_triangle": [
+      "POSITION",
+      "NORMAL",
+      "JOINTS_0",
+      "WEIGHTS_0"
+    ],
+    "morphs_checked": 0,
+    "other_primitives_materials_rig_animation_and_original_binary_preserved": true
+  },
+  "authorities_unchanged": {
+    "work/raider-polish-20261105/review-candidate05/Raider.glb": "5136a551e09b2f94a498895b22b9c7fb5cd576767e80dc7640857539d8dea36f",
+    "work/raider-polish-20261105/review-candidate05/Raider_Native.blend": "53ab90405d15d444b6f8b0334ef89638cac49f8538dcf833453acf06ff893fe8",
+    "work/raider-pouch-20261103/delivery/Raider_Field_Pouch.glb": "b3a88ad98fcf2b279c0612ca3b18a32d4204ab00e425b4aa3fed9845c6b9cbee"
+  },
+  "ai_handoff": {
+    "status": "awaiting_reference",
+    "exit_code": 3,
+    "dispatched": false,
+    "request": "work/raider-polish-20261105/rac-ai-handoff02/steps/references/request.json"
+  },
+  "verification": {
+    "tests_passed": 991,
+    "tests_skipped": 39,
+    "subtests_passed": 198,
+    "lint": true,
+    "syntax": true,
+    "wheel_isolated_cli_replay_resume": true
+  },
+  "visual_review": {
+    "collar": "Coverage retained in fixed and declared diagnostic views; native copy reopens packed.",
+    "cuff": "Matched posed front/back renders retain the source stitching, wear and highlight direction. Existing source geometry defects remain; this is map transport, not a new approved cuff."
+  },
+  "retained_rejections": [
+    {
+      "path": "work/raider-polish-20261105/rac-cuff-replay01",
+      "reason": "xatlas collapsed thirteen tiny positive-area faces; retained, then bounded chart isolation implemented."
+    },
+    {
+      "path": "work/raider-polish-20261105/rac-replay01",
+      "reason": "Model hash correct; full-body camera included hidden custom bone display geometry. Framing fixed in later reviews."
+    }
+  ],
+  "artifacts": {
+    "examples/polish/raider-collar.json": "587d584b6a6af16bd910d14bd34b307fa71aea2dab3b5cfafc97899abb02a87a",
+    "examples/polish/raider-cuff-repack.json": "268e2af8fe2e1698d43c97b1fcb4ac2f1ff85597ad482ec1817e6ba496f8be35",
+    "profiles/materials/dry-worn-character.json": "532c4dc8f529727bfbb71d3340a83767c10ce6035992f0b417a01b2a2099d5a0",
+    "work/raider-polish-20261105/rac-port-final-verify.log": "1bc33b6a69952da2a8f2aa6a367975bef00ba51982c0741ebb0dbf7051ab8cde",
+    "work/raider-polish-20261105/rac-replay03/state.json": "3d69abf95b8728bc5c5dffe5649653d05c742d5445aa85e4237f403597bbe91f",
+    "work/raider-polish-20261105/rac-replay03/steps/bounds/receipt.json": "9cbede4335a4af99986ab30fdd752f351c7cbdfef56911bb973362119690154b",
+    "work/raider-polish-20261105/rac-replay03/steps/guides/receipt.json": "3734d6d5c28c723b884ee03543150ea6b904169fca9353662d1c567bd198543c",
+    "work/raider-polish-20261105/rac-replay03/steps/inspect-after/receipt.json": "2f537f384a316e5c0edebf05da8b69d4273e0064801bfd5ed5eaaaf8904af48f",
+    "work/raider-polish-20261105/rac-replay03/steps/inspect-before/receipt.json": "d1114790e6ca6415ba4b8af43d84981a031469c22dde5a82d1d5f9456d7b2005",
+    "work/raider-polish-20261105/rac-replay03/steps/paint/receipt.json": "a871c4bfb68147475194134332ea957af813e4087ce0f81acc94f627ef3ff700",
+    "work/raider-polish-20261105/rac-replay03/steps/prune/receipt.json": "a1e6d6c4bd7c3d35fec98926de1e99cf3e544916c3f16ce63437aa339bf63360",
+    "work/raider-polish-20261105/rac-replay03/steps/restore/receipt.json": "12ca7c4317b94eb7702fa779f4c22985a5f82c106c98cfbf84ef4ad04e255438",
+    "work/raider-polish-20261105/rac-replay03/steps/review/receipt.json": "778f6d12c8bcc0539f465b32a18a61d326fc9272c25dcc9b2e9fd6a0878066c4",
+    "work/raider-polish-20261105/rac-replay03/steps/review/Review.html": "46ba361a4de60489651693ea3aa2d21878f5b891bf8b8858963c93bb14b681c3",
+    "work/raider-polish-20261105/rac-replay04/state.json": "2d2494a076a317bb7a46644323de52b00fd8014bf676cf9c83c8ff144e0ceff1",
+    "work/raider-polish-20261105/rac-replay04/steps/bounds/receipt.json": "9cbede4335a4af99986ab30fdd752f351c7cbdfef56911bb973362119690154b",
+    "work/raider-polish-20261105/rac-replay04/steps/guides/receipt.json": "3734d6d5c28c723b884ee03543150ea6b904169fca9353662d1c567bd198543c",
+    "work/raider-polish-20261105/rac-replay04/steps/inspect-after/receipt.json": "2f537f384a316e5c0edebf05da8b69d4273e0064801bfd5ed5eaaaf8904af48f",
+    "work/raider-polish-20261105/rac-replay04/steps/inspect-before/receipt.json": "d1114790e6ca6415ba4b8af43d84981a031469c22dde5a82d1d5f9456d7b2005",
+    "work/raider-polish-20261105/rac-replay04/steps/paint/receipt.json": "62effb8b65aa7883a256e9fe6c14be0f1bfbd62b68c8cbb4e440053527e8483b",
+    "work/raider-polish-20261105/rac-replay04/steps/prune/receipt.json": "a1e6d6c4bd7c3d35fec98926de1e99cf3e544916c3f16ce63437aa339bf63360",
+    "work/raider-polish-20261105/rac-replay04/steps/restore/receipt.json": "da261553a35c65b7abe3040befce677b8c7b483ef337b733a8ae9316b022668f",
+    "work/raider-polish-20261105/rac-replay04/steps/review/receipt.json": "c41f7a9f29caff59e1df7c92b6324a271826a6d9cf8087d01358fe02a48bffb8",
+    "work/raider-polish-20261105/rac-replay04/steps/review/Review.html": "46ba361a4de60489651693ea3aa2d21878f5b891bf8b8858963c93bb14b681c3",
+    "work/raider-polish-20261105/rac-cuff-replay03/state.json": "7e61f30529a56e365247ca0687929ae244cd3719562ac95f30e3d178b8155889",
+    "work/raider-polish-20261105/rac-cuff-replay03/steps/bounds/receipt.json": "f34664f1f6d6d9120c162df5f5f89b795075a26483608eb7412e1da0db0fda7f",
+    "work/raider-polish-20261105/rac-cuff-replay03/steps/inspect-after/receipt.json": "6e5d98bb45f0da58f1bdff78dd566c3f07fa1d520ae2b798c82cb5d67213baee",
+    "work/raider-polish-20261105/rac-cuff-replay03/steps/inspect-before/receipt.json": "503a69b92ec7ab0cee8fb7a8446d359d4e0a99bf85458ad60a670baf6a6a1ba0",
+    "work/raider-polish-20261105/rac-cuff-replay03/steps/repack/receipt.json": "ee0a0c85592a9f3d74e00f7209b09d14960aa0f7f57dddf6be10200c656e6f3a",
+    "work/raider-polish-20261105/rac-ai-handoff02/state.json": "7822b4ed32b30953a02735b86da10afd13dc9a5c49e76d5dff442da8a28c607d",
+    "work/raider-polish-20261105/rac-ai-handoff02/steps/bounds/receipt.json": "9cbede4335a4af99986ab30fdd752f351c7cbdfef56911bb973362119690154b",
+    "work/raider-polish-20261105/rac-ai-handoff02/steps/guides/receipt.json": "e1da985c1b54418e0a397b611021aaa4666721618d77dc2ea71804273221c74c",
+    "work/raider-polish-20261105/rac-ai-handoff02/steps/inspect-before/receipt.json": "2f537f384a316e5c0edebf05da8b69d4273e0064801bfd5ed5eaaaf8904af48f",
+    "work/raider-polish-20261105/rac-ai-handoff02/steps/references/request.json": "58fc009121461a1e831443926ae80bf5fc04a6ac68bc800e37a5922174fc61d0",
+    "work/raider-polish-20261105/rac-cuff-replay03-before/cuff-back.png": "17f25b95906363837b41e312faa4a8cefd96b01edb191d85457e78bc6486a1c7",
+    "work/raider-polish-20261105/rac-cuff-replay03-before/cuff-front.png": "fe62bc142e303c4b2777150f33c7dd2fed6b2a9401d03d5293c5ec336bb4bf95",
+    "work/raider-polish-20261105/rac-cuff-replay03-after/cuff-back.png": "83bfbabd98261e9e0f25a0d2f237bffa462c9f2d1ccd7254765dbcf00b6593ca",
+    "work/raider-polish-20261105/rac-cuff-replay03-after/cuff-front.png": "5a7a6fbafb3bd4d9dd3f96911e324ce9474fce2d181362f75b91fa5c33bf435a"
+  },
+  "production_ready": false,
+  "ledger_promoted": false,
+  "remaining": [
+    "AI reference generation and selection",
+    "semantic material and donor-face choices",
+    "asset-specific anatomy and skin-weight edits",
+    "human scene-lighting review",
+    "natural motion and cooked UE gates"
+  ]
+}

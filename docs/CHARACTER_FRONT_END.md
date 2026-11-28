@@ -218,6 +218,15 @@ python scripts/clean_skin_paint.py --template $Ref/template/hm08-male.npz `
   --texture $W/head/finish/paint/head_basecolor.png --out $W/head/finish/paint/head_basecolor_clean.png --mask $W/head/skin-blots.png
 ```
 
+For a different template, measure its throat height in template coordinates
+and pass `finish_template_head.py --collar THROAT_Z SIDE_RISE BACK_RISE`.
+The default is the original male template's collar. The female template used
+for Remora, for example, needs a throat near 1.225 m rather than 1.475 m;
+reusing the old value cuts through her face. The manifest records the override.
+For scars or asymmetric brows, add `--preserve-asymmetry`. This disables brow
+mirroring and protects the source paint around each brow during hair removal.
+Review the actual painted face: preserving a region is not an alignment test.
+
 **Why the scan's own landmarks.** Without `--acquisition-landmarks` the
 similarity alignment starts from the scan's frontmost point, which is the nose
 only on a bare face. On character-02 a fringe spike stood in front of it: the

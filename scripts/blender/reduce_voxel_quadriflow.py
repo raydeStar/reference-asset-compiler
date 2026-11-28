@@ -55,6 +55,31 @@ def topology(obj: bpy.types.Object) -> dict[str, int | float | bool]:
     }
 
 
+def weld_coincident(obj: bpy.types.Object) -> dict[str, int | float]:
+    """Join vertices that sit at the same point before anything counts pieces.
+
+    Some generators write a mesh already cut along its texture seams. Pixal3D's
+    skiff came as 984,000 triangles with 778,000 vertices where 482,000 would do,
+    so every UV island was a separate piece. The tiny-piece cleanup then took
+    110,000 triangles of real hull, 11% of the surface, for loose debris and
+    deleted it. Joined first, the same mesh had 902 open edges, not 515,000.
+
+    The distance is a millionth of the longest side: it joins seam copies,
+    which are exactly coincident, and nothing a modeller placed apart.
+    """
+    distance = max(obj.dimensions) * 1e-6 if max(obj.dimensions) > 0 else 0.0
+    bm = bmesh.new()
+    bm.from_mesh(obj.data)
+    before = len(bm.verts)
+    if distance > 0:
+        bmesh.ops.remove_doubles(bm, verts=list(bm.verts), dist=distance)
+    merged = before - len(bm.verts)
+    bm.to_mesh(obj.data)
+    bm.free()
+    obj.data.update()
+    return {"merged_vertices": merged, "distance_m": distance}
+
+
 def remove_tiny_components(obj: bpy.types.Object, minimum_faces: int) -> dict[str, int]:
     bm = bmesh.new()
     bm.from_mesh(obj.data)
@@ -202,7 +227,8 @@ def main() -> int:
     candidate.name = "GEO_RAC_VoxelQuadriFlowCandidate"
     bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
     source_topology = topology(candidate)
-    cleanup = remove_tiny_components(candidate, args.minimum_component_faces)
+    weld = weld_coincident(candidate)
+    cleanup = {**remove_tiny_components(candidate, args.minimum_component_faces), "weld": weld}
 
     voxel_size = max(candidate.dimensions) / args.voxel_resolution
     candidate.data.remesh_voxel_size = voxel_size

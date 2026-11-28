@@ -225,3 +225,415 @@ assert sum(len(p.vertices)-2 for o in bpy.context.scene.objects if o.type=='MESH
     assert refused.returncode != 0
     assert 'Preserve the existing candidate' in refused.stdout + refused.stderr
     assert output.read_bytes() == retained
+
+
+def test_seam_cut_mesh_is_welded_before_tiny_pieces_are_removed(tmp_path):
+    # Pixal3D writes its mesh cut along every texture seam. Counted as it came,
+    # each island was a "tiny piece" and the cleanup deleted 11% of a hull.
+    script = tmp_path / 'seams.py'
+    script.write_text(f'''
+import bpy, bmesh, sys
+sys.path.insert(0, {str(ROOT / 'scripts/blender')!r})
+from reduce_voxel_quadriflow import remove_tiny_components, weld_coincident
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=1.1)
+obj = bpy.context.object
+faces = len(obj.data.polygons)
+bm = bmesh.new(); bm.from_mesh(obj.data)
+bmesh.ops.split_edges(bm, edges=list(bm.edges))
+bm.to_mesh(obj.data); bm.free()
+assert len(obj.data.vertices) == len(obj.data.loops)  # every face its own piece
+weld = weld_coincident(obj)
+assert weld['merged_vertices'] > 0
+assert remove_tiny_components(obj, 24)['faces'] == 0
+assert len(obj.data.polygons) == faces
+''')
+    run(script)
+
+
+def test_a_dense_shape_is_baked_onto_a_painted_mesh_and_lands_in_its_normal_map(tmp_path):
+    # A bumpy dense sphere and a smooth painted one in the same place: the bake
+    # must give the smooth one a normal map that tilts where the bumps are.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, math
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=96, ring_count=48, radius=0.5)
+dense = bpy.context.object
+for v in dense.data.vertices:
+    bump = 1.0 + 0.03 * math.sin(14 * v.co.x) * math.sin(14 * v.co.y)
+    v.co *= bump
+bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'dense.blend')!r})
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=24, ring_count=12, radius=0.5)
+low = bpy.context.object
+bpy.ops.object.shade_smooth()
+image = bpy.data.images.new('paint', 256, 256)
+image.pixels = [0.6, 0.4, 0.2, 1.0] * (256 * 256)
+image.filepath_raw = {str(tmp_path / 'paint.png')!r}
+image.file_format = 'PNG'
+image.save()
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+texture = material.node_tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+material.node_tree.links.new(texture.outputs['Color'], material.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+low.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    report = tmp_path / 'shape.json'
+    run(ROOT / 'scripts/blender/bake_dense_shape.py', tmp_path / 'painted.glb', tmp_path / 'shaped.glb', report,
+        '--dense', tmp_path / 'dense.blend', '--cage', '0.04', '--max-ray', '0.1')
+    receipt = json.loads(report.read_text())
+    assert receipt['size'] == [256, 256]
+    assert receipt['centre_offset_m'] < 0.01
+    assert 'alone' in receipt['normal']
+    assert receipt['tilt_degrees_p50_p90'][1] > 3.0
+    assert (tmp_path / 'shaped.glb').stat().st_size > 0
+
+
+def test_a_stray_sheet_inside_the_cage_is_baked_from_a_closer_cage_not_black(tmp_path):
+    # WK-04.1's stair: Pixal3D's dense mesh had a thin stray sheet a few
+    # millimetres off the real surface. A ray starting on the 8 mm cage met the
+    # sheet's back first and baked a normal pointing in, a black crescent. The
+    # closer cage starts under the sheet and meets the real surface.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, math
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_plane_add(size=1.0)
+bpy.ops.mesh.primitive_plane_add(size=0.4, location=(0, 0, 0.004), rotation=(math.pi, 0, 0))
+bpy.ops.object.select_all(action='SELECT')
+bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
+bpy.ops.object.join()
+bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'dense.blend')!r})
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_plane_add(size=1.0)
+low = bpy.context.object
+image = bpy.data.images.new('paint', 128, 128)
+image.pixels = [0.6, 0.4, 0.2, 1.0] * (128 * 128)
+image.filepath_raw = {str(tmp_path / 'paint.png')!r}
+image.file_format = 'PNG'
+image.save()
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+texture = material.node_tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+material.node_tree.links.new(texture.outputs['Color'], material.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+low.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    check = tmp_path / 'inward.py'
+    check.write_text('''
+import bpy, sys, numpy as np
+image = bpy.data.images.load(sys.argv[sys.argv.index("--") + 1])
+pixels = np.asarray(image.pixels[:], dtype=np.float32).reshape(-1, 4)[:, :3] * 2 - 1
+print("INWARD", int((pixels[:, 2] < 0.05).sum()))
+''')
+
+    def inward(maps):
+        result = subprocess.run([BLENDER, '-b', '--factory-startup', '--python', str(check), '--',
+                                 str(maps / 'dense_shape.png')], capture_output=True, text=True, timeout=90)
+        return int(next(line for line in result.stdout.splitlines() if line.startswith('INWARD')).split()[1])
+
+    # One cage: the sheet's 0.4 m square (about 2600 of 128x128 texels) faces
+    # in. Those texels are left flat rather than black, and counted.
+    run(ROOT / 'scripts/blender/bake_dense_shape.py', tmp_path / 'painted.glb', tmp_path / 'one.glb',
+        tmp_path / 'one.json', '--dense', tmp_path / 'dense.blend', '--fallback-cages', 'none')
+    one = json.loads((tmp_path / 'one.json').read_text())
+    assert one['texels_flat'] > 2000
+    assert inward(tmp_path / 'one-maps') == 0
+    report = tmp_path / 'shaped.json'
+    run(ROOT / 'scripts/blender/bake_dense_shape.py', tmp_path / 'painted.glb', tmp_path / 'shaped.glb', report,
+        '--dense', tmp_path / 'dense.blend')
+    receipt = json.loads(report.read_text())
+    assert receipt['cages_m'] == [0.008, 0.003, 0.001]
+    assert receipt['texels_by_cage']['0.003'] > 2000
+    assert receipt['texels_flat_share'] < 0.01
+    assert inward(tmp_path / 'shaped-maps') == 0
+
+
+def test_a_dense_mesh_in_another_place_is_refused(tmp_path):
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add(location=(3, 0, 0))
+bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'dense.blend')!r})
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add()
+image = bpy.data.images.new('paint', 64, 64)
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+texture = material.node_tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+material.node_tree.links.new(texture.outputs['Color'], material.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+bpy.context.object.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    result = subprocess.run([BLENDER, '-b', '--factory-startup', '--python-exit-code', '1', '--python',
+                             str(ROOT / 'scripts/blender/bake_dense_shape.py'), '--', str(tmp_path / 'painted.glb'),
+                             str(tmp_path / 'o.glb'), str(tmp_path / 'o.json'), '--dense', str(tmp_path / 'dense.blend')],
+                            capture_output=True, text=True, timeout=90)
+    assert 'not the same model in the same place' in result.stdout
+    assert not (tmp_path / 'o.glb').exists()
+
+
+def test_a_dense_mesh_and_its_simplified_copy_are_levelled_by_one_transform(tmp_path):
+    # A tilted boat-like box and a coarser copy of it: both must come out with
+    # the same length along X, on the floor, and matching each other closely.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, math
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=64, ring_count=32, radius=1.0)
+obj = bpy.context.object
+obj.scale = (2.0, 0.7, 0.4)
+obj.rotation_euler = (0.3, 0.2, 0.9)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'dense.glb')!r}, export_format='GLB')
+mod = obj.modifiers.new('fewer', 'DECIMATE'); mod.ratio = 0.2
+bpy.ops.object.modifier_apply(modifier=mod.name)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'low.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    report = tmp_path / 'level.json'
+    run(ROOT / 'scripts/blender/level_pair.py', '2.2', report, tmp_path / 'dense.glb', tmp_path / 'dense.blend',
+        tmp_path / 'low.glb', tmp_path / 'low.blend')
+    files = json.loads(report.read_text())['files']
+    dense, low = files[0], files[1]
+    assert abs((dense['max_m'][0] - dense['min_m'][0]) - 2.2) < 1e-3
+    assert abs(dense['min_m'][2]) < 1e-4
+    for axis in range(3):
+        assert abs(dense['min_m'][axis] - low['min_m'][axis]) < 0.03
+        assert abs(dense['max_m'][axis] - low['max_m'][axis]) < 0.03
+    assert low['triangles'] < dense['triangles']
+
+
+def test_a_game_mesh_is_mended_of_small_holes_specks_and_fins_but_not_a_large_opening(tmp_path):
+    # PR-04.2's crate: Pixal3D's own game meshes came with missing triangles,
+    # loose specks and fins on edges shared by three faces. The game mesh is
+    # closed; a bowl's mouth, a large opening that may be meant, stays open;
+    # and the dense mesh is left as it came.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, bmesh
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=0.5)
+obj = bpy.context.object
+bm = bmesh.new(); bm.from_mesh(obj.data); bm.faces.ensure_lookup_table()
+bmesh.ops.delete(bm, geom=[bm.faces[200], bm.faces[300]], context='FACES')
+# a fin: a third face on one edge
+bm.faces.ensure_lookup_table()
+edge = bm.faces[100].edges[0]
+tip = bm.verts.new((edge.verts[0].co + edge.verts[1].co) / 2 * 1.02)
+bm.faces.new((edge.verts[0], edge.verts[1], tip))
+# a speck: one tiny loose triangle
+a = bm.verts.new((0.3, 0.3, 0.3)); b = bm.verts.new((0.3001, 0.3, 0.3)); c = bm.verts.new((0.3, 0.3001, 0.3))
+bm.faces.new((a, b, c))
+bm.to_mesh(obj.data); bm.free()
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'holed.glb')!r}, export_format='GLB')
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=32, ring_count=16, radius=0.5)
+obj = bpy.context.object
+bm = bmesh.new(); bm.from_mesh(obj.data)
+bmesh.ops.delete(bm, geom=[f for f in bm.faces if f.calc_center_median().z > 0.25], context='FACES')
+bm.to_mesh(obj.data); bm.free()
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'bowl.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    report = tmp_path / 'level.json'
+    run(ROOT / 'scripts/blender/level_pair.py', '1.0', report, tmp_path / 'holed.glb', tmp_path / 'dense.blend',
+        tmp_path / 'holed.glb', tmp_path / 'low.blend', tmp_path / 'bowl.glb', tmp_path / 'bowl.blend')
+    dense, low, bowl = json.loads(report.read_text())['files']
+    assert dense['holes_filled'] == 0 and dense['open_edges_after'] == dense['open_edges_before'] > 0
+    assert low['open_edges_before'] > 0 and low['nonmanifold_edges_before'] > 0
+    assert low['specks_dropped'] >= 1 and low['fins_dropped'] >= 1 and low['holes_filled'] >= 2
+    assert low['open_edges_after'] == 0 and low['nonmanifold_edges_after'] == 0
+    assert bowl['holes_filled'] == 0 and bowl['open_edges_after'] == bowl['open_edges_before'] >= 32
+
+
+def test_a_tall_piece_stands_up_when_its_longest_axis_is_up(tmp_path):
+    # A lantern-like column: two metres tall, tilted the way Pixal3D keeps the
+    # picture's camera. Levelled with the default it would lie down; with
+    # --up longest it stands, two metres tall, on the floor.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=1.0)
+obj = bpy.context.object
+obj.scale = (0.25, 0.35, 1.0)
+obj.rotation_euler = (0.35, 0.1, 0.6)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'tall.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    for up, standing in (('shortest', False), ('longest', True)):
+        report = tmp_path / 'level-{0}.json'.format(up)
+        run(ROOT / 'scripts/blender/level_pair.py', '2.0', report, tmp_path / 'tall.glb',
+            tmp_path / 'tall-{0}.blend'.format(up), '--up', up)
+        levelled = json.loads(report.read_text())
+        size = [hi - lo for lo, hi in zip(levelled['files'][0]['min_m'], levelled['files'][0]['max_m'])]
+        assert levelled['up'] == up
+        assert abs(max(size) - 2.0) < 1e-3
+        assert abs(levelled['files'][0]['min_m'][2]) < 1e-4
+        assert (size[2] == max(size)) is standing
+
+
+def test_a_size_given_as_a_height_sets_the_height(tmp_path):
+    # Framewright gives a size as a landmark on a person, which is a height: a
+    # long, low boat of knee height must come out knee high, not knee long.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=1.0)
+obj = bpy.context.object
+obj.scale = (2.0, 0.7, 0.4)
+obj.rotation_euler = (0.3, 0.2, 0.9)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'boat.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    report = tmp_path / 'level.json'
+    run(ROOT / 'scripts/blender/level_pair.py', '0.5', report, tmp_path / 'boat.glb', tmp_path / 'boat.blend',
+        '--height')
+    levelled = json.loads(report.read_text())
+    low, high = levelled['files'][0]['min_m'], levelled['files'][0]['max_m']
+    assert levelled['size_is'] == 'height'
+    assert abs((high[2] - low[2]) - 0.5) < 1e-3
+    assert (high[0] - low[0]) > 1.5
+
+
+def _glb_json(path):
+    import struct
+    data = Path(path).read_bytes()
+    length = struct.unpack('<I', data[12:16])[0]
+    return json.loads(data[20:20 + length])
+
+
+def _painted_sphere(tmp_path, with_normal_map):
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, math, random
+random.seed(3)
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_uv_sphere_add(segments=48, ring_count=24, radius=0.5)
+obj = bpy.context.object
+for v in obj.data.vertices:
+    v.co *= 1.0 + 0.04 * math.sin(9 * v.co.x) * math.sin(9 * v.co.z)
+bpy.ops.object.shade_smooth()
+image = bpy.data.images.new('paint', 256, 256)
+image.pixels = [c for _ in range(256 * 256) for c in (random.random() * 0.5 + 0.2, 0.4, 0.3, 1.0)]
+image.filepath_raw = {str(tmp_path / 'paint.png')!r}
+image.file_format = 'PNG'
+image.save()
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+tree = material.node_tree
+texture = tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+tree.links.new(texture.outputs['Color'], tree.nodes['Principled BSDF'].inputs['Base Color'])
+if {with_normal_map!r}:
+    bump = bpy.data.images.new('nrm', 64, 64)
+    bump.pixels = [0.5, 0.5, 1.0, 1.0] * (64 * 64)
+    bump.filepath_raw = {str(tmp_path / 'nrm.png')!r}
+    bump.file_format = 'PNG'
+    bump.save()
+    node = tree.nodes.new('ShaderNodeTexImage'); node.image = bump
+    node.image.colorspace_settings.name = 'Non-Color'
+    normal = tree.nodes.new('ShaderNodeNormalMap')
+    tree.links.new(node.outputs['Color'], normal.inputs['Color'])
+    tree.links.new(normal.outputs['Normal'], tree.nodes['Principled BSDF'].inputs['Normal'])
+obj.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    return tmp_path / 'painted.glb'
+
+
+def test_a_normal_mapped_model_reaches_the_browser_with_its_tangents(tmp_path):
+    # The normal map was baked against Blender's tangents; a viewer given none
+    # estimates its own per triangle, and Unreal computes its own. Shipping
+    # Blender's keeps every viewer on the same frame.
+    painted = _painted_sphere(tmp_path, with_normal_map=True)
+    report = tmp_path / 'payload.json'
+    run(ROOT / 'scripts/blender/export_browser_payload.py', painted, tmp_path / 'payload.glb', report)
+    assert json.loads(report.read_text())['tangents_exported'] is True
+    attributes = _glb_json(tmp_path / 'payload.glb')['meshes'][0]['primitives'][0]['attributes']
+    assert 'TANGENT' in attributes
+
+
+def test_detail_baked_without_occlusion_leaves_the_occlusion_slot_empty(tmp_path):
+    # Pixal3D's layered game meshes bake occlusion that darkens visible
+    # triangles in every viewer that reads the slot; --no-occlusion leaves it out.
+    painted = _painted_sphere(tmp_path, with_normal_map=False)
+    report = tmp_path / 'detail.json'
+    run(ROOT / 'scripts/blender/bake_derived_maps.py', painted, tmp_path / 'detail.glb', report,
+        '--resolution', '512', '--samples', '8', '--no-occlusion')
+    assert 'left_out' in json.loads(report.read_text())['occlusion']
+    assert 'occlusionTexture' not in _glb_json(tmp_path / 'detail.glb')['materials'][0]
+    assert (tmp_path / 'detail-maps' / 'curvature.png').is_file()
+    assert not (tmp_path / 'detail-maps' / 'occlusion.png').exists()
+
+
+def test_a_surface_that_passes_over_itself_is_unwrapped_without_sharing_a_texel(tmp_path):
+    # A helical ramp: every face looks up and all are joined, so Smart Project
+    # makes one island of it and projects it flat, and after one turn it lands
+    # on itself. The WK-04.1 stair's folded treads did the same: 8.9 % of their
+    # texels were shared, and a hidden face's occlusion showed on a visible one.
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy, bmesh, math
+bpy.ops.wm.read_factory_settings(use_empty=True)
+mesh = bpy.data.meshes.new('ramp'); obj = bpy.data.objects.new('ramp', mesh)
+bpy.context.scene.collection.objects.link(obj)
+bm = bmesh.new(); rows = []
+for i in range(73):
+    t = i / 72 * 2.5 * math.pi
+    rows.append([bm.verts.new((r * math.cos(t), r * math.sin(t), 0.05 * t / (2 * math.pi))) for r in (0.5, 0.75, 1.0)])
+for a, b in zip(rows, rows[1:]):
+    for j in range(2):
+        bm.faces.new((a[j], b[j], b[j + 1], a[j + 1]))
+bm.to_mesh(mesh); bm.free()
+bpy.ops.wm.save_as_mainfile(filepath={str(tmp_path / 'ramp.blend')!r})
+''')
+    run(make)
+    report = tmp_path / 'uv.json'
+    run(ROOT / 'scripts/blender/prepare_texture_uv_transport.py', tmp_path / 'ramp.blend', tmp_path / 'uv.blend',
+        tmp_path / 'uv.obj', report)
+    receipt = json.loads(report.read_text())
+    overlap = receipt['settings']['overlap']
+    assert receipt['status'] == 'passed'
+    assert overlap['faces_before'] > 20 and overlap['texel_share_before'] > 0.05
+    assert overlap['texel_share_after_repack'] <= 0.001
+
+
+def test_a_picture_lands_on_the_face_its_camera_sees_and_nowhere_else(tmp_path):
+    # A painted cube, a red picture, and a camera on the cube's depth axis:
+    # only the face looking at the camera takes the picture; the four faces
+    # edge-on to it and the one facing away keep the paint.
+    from PIL import Image
+    make = tmp_path / 'make.py'
+    make.write_text(f'''
+import bpy
+bpy.ops.wm.read_factory_settings(use_empty=True)
+bpy.ops.mesh.primitive_cube_add(size=0.5)
+cube = bpy.context.object
+image = bpy.data.images.new('paint', 128, 128)
+image.pixels = [0.1, 0.6, 0.2, 1.0] * (128 * 128)
+image.filepath_raw = {str(tmp_path / 'paint.png')!r}
+image.file_format = 'PNG'
+image.save()
+material = bpy.data.materials.new('paint'); material.use_nodes = True
+texture = material.node_tree.nodes.new('ShaderNodeTexImage'); texture.image = image
+material.node_tree.links.new(texture.outputs['Color'], material.node_tree.nodes['Principled BSDF'].inputs['Base Color'])
+cube.data.materials.append(material)
+bpy.ops.export_scene.gltf(filepath={str(tmp_path / 'painted.glb')!r}, export_format='GLB')
+''')
+    run(make)
+    Image.new('RGB', (100, 100), (220, 30, 30)).save(tmp_path / 'picture.png')
+    Image.new('RGBA', (100, 100), (220, 30, 30, 255)).save(tmp_path / 'cutout.png')
+    (tmp_path / 'camera.json').write_text(json.dumps({'params': [0, 0, 0, 15], 'scale': 600, 'offset': [50, 50]}))
+    (tmp_path / 'affine.json').write_text(json.dumps({'matrix': [[1, 0, 0], [0, 1, 0], [0, 0, 1]],
+                                                      'translation': [0, 0, 0]}))
+    report = tmp_path / 'bake.json'
+    run(ROOT / 'scripts/blender/project_reference_bake.py', tmp_path / 'painted.glb', tmp_path / 'projected.glb', report,
+        tmp_path / 'picture.png', tmp_path / 'cutout.png', tmp_path / 'camera.json', tmp_path / 'affine.json')
+    receipt = json.loads(report.read_text())
+    assert 0.05 < receipt['share_of_model_from_picture'] < 0.35
+    assert receipt['rays'] > 0
+    assert (tmp_path / 'projected.glb').stat().st_size > 0

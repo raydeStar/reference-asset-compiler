@@ -1,0 +1,276 @@
+{
+ "schema": "reference-asset-compiler.evidence.v1",
+ "date": "2026-11-24",
+ "what": "paint-sections on DK-04.2 (Frastown mast and pulley, 2.2 m), the hero model as Framewright generated it",
+ "why": "The owner found a seam where the hero route's head pass stopped: above it crisp and the picture's dark iron, below it flat light putty.",
+ "painter_detail_by_size": {
+  "basis": "approximate surface per painted pixel: longest side x 1.1 / 768, twelve views at 768",
+  "DK-03.2 dock claw, 0.45 m": "0.6 mm",
+  "DK-04.4 seat, 0.83 m": "1.2 mm",
+  "AC-01.1 skiff, 2.2 m": "3.2 mm",
+  "WK-07.2 gangway, 3 m": "4.3 mm",
+  "DK-01.1 hull, 15 m": "21 mm"
+ },
+ "source_sha256": "ad6243b2ddd9ea670f9424a016c2bcd2dbbdea98ac1feb8df2ecdb5c80f080ef",
+ "output_sha256": "0ed06af5739dd76ae305ae67e9bec7bd340a38675308418fd8209dbc122bfcd0",
+ "reference_sha256": "a311d10f975abbe364c89f2ce14a4fa3148c7f4c49ab45a9d6cefcaa39b188e0",
+ "extent_m": [
+  0.6555,
+  2.1995,
+  0.437
+ ],
+ "orientation": {
+  "chosen": "+X right, +Y up",
+  "chosen_score": 0.7062,
+  "generator_frame_score": 0.7062,
+  "best": [
+   [
+    "+X right, +Y up",
+    0.7062
+   ],
+   [
+    "+X right, -Y up",
+    0.5346
+   ],
+   [
+    "+Z right, +X up",
+    0.1324
+   ]
+  ]
+ },
+ "grid": [
+  2,
+  4,
+  1
+ ],
+ "section_m": 0.6,
+ "whole_model_mm_per_pixel": 3.15,
+ "sections": [
+  {
+   "number": 0,
+   "grid_index": [
+    0,
+    0,
+    0
+   ],
+   "faces_painted": 15335,
+   "painted_mm_per_pixel": 1.05,
+   "colour_gain": [
+    1.1313,
+    1.1317,
+    1.1446
+   ],
+   "launcher_exit_code": 0,
+   "gate": {
+    "faces_equal": true,
+    "geometry_delta": 6.507261350261704e-08,
+    "uv_delta": 5.27102721200733e-08,
+    "atlas": 4096
+   }
+  },
+  {
+   "number": 1,
+   "grid_index": [
+    0,
+    1,
+    0
+   ],
+   "faces_painted": 6004,
+   "painted_mm_per_pixel": 1.25,
+   "colour_gain": [
+    0.7768,
+    0.744,
+    0.7
+   ],
+   "launcher_exit_code": 0,
+   "gate": {
+    "faces_equal": true,
+    "geometry_delta": 8.74166909406827e-08,
+    "uv_delta": 5.30442494001436e-08,
+    "atlas": 4096
+   }
+  },
+  {
+   "number": 2,
+   "grid_index": [
+    0,
+    2,
+    0
+   ],
+   "faces_painted": 3553,
+   "painted_mm_per_pixel": 1.28,
+   "colour_gain": [
+    1.0162,
+    0.9944,
+    0.9525
+   ],
+   "launcher_exit_code": 0,
+   "gate": {
+    "faces_equal": true,
+    "geometry_delta": 8.746398508853468e-08,
+    "uv_delta": 5.30442494001436e-08,
+    "atlas": 4096
+   }
+  },
+  {
+   "number": 3,
+   "grid_index": [
+    0,
+    3,
+    0
+   ],
+   "faces_painted": 7645,
+   "painted_mm_per_pixel": 1.03,
+   "colour_gain": [
+    0.9485,
+    0.9753,
+    1.0115
+   ],
+   "launcher_exit_code": 0,
+   "gate": {
+    "faces_equal": true,
+    "geometry_delta": 6.161659081785982e-08,
+    "uv_delta": 5.247656010112567e-08,
+    "atlas": 4096
+   }
+  },
+  {
+   "number": 4,
+   "grid_index": [
+    1,
+    0,
+    0
+   ],
+   "faces_painted": 2872,
+   "painted_mm_per_pixel": 0.7,
+   "colour_gain": [
+    1.2322,
+    1.2874,
+    1.4
+   ],
+   "launcher_exit_code": 0,
+   "gate": {
+    "faces_equal": true,
+    "geometry_delta": 5.992277981415033e-08,
+    "uv_delta": 5.27102721200733e-08,
+    "atlas": 4096
+   }
+  },
+  {
+   "number": 5,
+   "grid_index": [
+    1,
+    3,
+    0
+   ],
+   "faces_painted": 9844,
+   "painted_mm_per_pixel": 0.59,
+   "colour_gain": [
+    0.9581,
+    0.9513,
+    0.9137
+   ],
+   "launcher_exit_code": 0,
+   "gate": {
+    "faces_equal": true,
+    "geometry_delta": 6.005357937084164e-08,
+    "uv_delta": 5.312205020250884e-08,
+    "atlas": 4096
+   }
+  }
+ ],
+ "skipped_cells_folded_into_neighbours": 2,
+ "neighbour_pairs": [
+  {
+   "sections": [
+    0,
+    1
+   ],
+   "shared_texels": 936712,
+   "difference": [
+    35.93,
+    30.37,
+    27.49
+   ]
+  },
+  {
+   "sections": [
+    0,
+    4
+   ],
+   "shared_texels": 627282,
+   "difference": [
+    -9.17,
+    -8.04,
+    -7.28
+   ]
+  },
+  {
+   "sections": [
+    1,
+    2
+   ],
+   "shared_texels": 693755,
+   "difference": [
+    -26.49,
+    -22.55,
+    -19.99
+   ]
+  },
+  {
+   "sections": [
+    1,
+    4
+   ],
+   "shared_texels": 54922,
+   "difference": [
+    -5.74,
+    -26.43,
+    -50.87
+   ]
+  },
+  {
+   "sections": [
+    2,
+    3
+   ],
+   "shared_texels": 739608,
+   "difference": [
+    5.85,
+    1.29,
+    -3.3
+   ]
+  },
+  {
+   "sections": [
+    3,
+    5
+   ],
+   "shared_texels": 234297,
+   "difference": [
+    -0.87,
+    1.62,
+    5.01
+   ]
+  }
+ ],
+ "tone_from": "the sections, matched to each other",
+ "seconds": 695.5,
+ "painter_note": "Every section's painter process faulted on exit (0xC0000005) after writing a validated paint, as the texture stage already records; each gate passed (faces equal, geometry and UV delta under 1e-6).",
+ "review": {
+  "renders": "Cycles on the CPU, same light and cameras before and after: whole, the head-pass line, lower pole, top and pulley, the three section joins from behind, the base. Kept with the owner's project, not in this repository.",
+  "observed": [
+   "The head-pass seam is gone; the pole is dark iron with rust and pitting where it was flat putty.",
+   "No join is visible between sections from front or back.",
+   "The base went from copper-coloured to dark iron with copper bolt heads, as in the picture.",
+   "The arm and pulley are a little softer than the head pass left them; their copper edge wear is lighter.",
+   "Neighbouring sections came out of the painter up to 36 levels apart; matching held two gains at their limits (0.7 and 1.4 on blue)."
+  ],
+  "human_visual_review": false
+ },
+ "not_done": [
+  "the detail bake after it",
+  "import into Framewright",
+  "a headset"
+ ]
+}

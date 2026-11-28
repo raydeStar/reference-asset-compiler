@@ -7,6 +7,12 @@ the way out, so the payload arrives in browser convention without anything
 downstream converting it -- which is exactly what the browser studio contract
 requires, because an import that converts is an import that can convert wrongly.
 
+A model whose material has a normal map is exported with its tangents. The
+normal map was baked in Blender against Blender's own (MikkTSpace) tangents; a
+browser given none estimates them per triangle from the screen, and where the
+map tilts steeply the two disagree triangle by triangle. The WK-04.1 stair's
+treads showed dark triangles in Framewright that no Blender render had.
+
 Nothing is judged here and the source is not modified. The stage exports, counts
 what it exported, and stops; the skeleton fingerprint is taken from the written
 file afterwards by the compiler, never from this scene's memory.
@@ -251,6 +257,52 @@ def scene_counts() -> dict:
     }
 
 
+def uses_normal_map() -> bool:
+    """Whether any material on a mesh with UVs reads a normal map."""
+    for obj in bpy.data.objects:
+        if obj.type != "MESH" or not obj.data.uv_layers:
+            continue
+        for slot in obj.material_slots:
+            tree = slot.material.node_tree if slot.material and slot.material.use_nodes else None
+            if tree and any(node.type == "NORMAL_MAP" and node.inputs["Color"].links for node in tree.nodes):
+                return True
+    return False
+
+
+def reset_doubled_specular():
+    """Put the painter's doubled specular back to the real-world default.
+
+    Hunyuan's GLB carries KHR_materials_specular with a colour factor of 2.0,
+    which Blender's glTF importer reads as a Specular Tint of (2, 2, 2); its OBJ
+    importer sets Specular IOR Level to 1.0 instead. Either way a surface
+    reflects twice what a dielectric does (F0 0.08 for 0.04). The review renders
+    have always reset it before judging (render_turnaround.normalize_pbr_inputs),
+    but this export passed it on, so every generated model reached Framewright
+    with a milky film across its wood and paint that nobody had reviewed. Only
+    those exact doubled values, unlinked, are reset; a specular someone set on
+    purpose, or one a map drives, is left alone. Returns the materials reset.
+    """
+    reset = []
+    for material in bpy.data.materials:
+        if not material.use_nodes or material.node_tree is None:
+            continue
+        for node in material.node_tree.nodes:
+            if node.type != "BSDF_PRINCIPLED":
+                continue
+            changed = False
+            level = node.inputs.get("Specular IOR Level")
+            if level is not None and not level.is_linked and abs(level.default_value - 1.0) < 1e-4:
+                level.default_value = 0.5
+                changed = True
+            tint = node.inputs.get("Specular Tint")
+            if tint is not None and not tint.is_linked and all(abs(v - 2.0) < 1e-4 for v in tint.default_value[:3]):
+                tint.default_value = (1.0, 1.0, 1.0, tint.default_value[3])
+                changed = True
+            if changed:
+                reset.append(material.name)
+    return reset
+
+
 def main() -> int:
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     named_manifest = None
@@ -293,6 +345,9 @@ def main() -> int:
         except RuntimeError as problem:
             textures["pack_error"] = str(problem)
 
+    textures["specular_reset"] = reset_doubled_specular()
+
+    tangents = uses_normal_map()
     payload.parent.mkdir(parents=True, exist_ok=True)
     # A self-contained GLB: one file, textures inside it, no external URIs, and
     # the exporter's own Z-up to Y-up conversion rather than a hand-rolled one.
@@ -303,6 +358,7 @@ def main() -> int:
         export_apply=True,
         export_texture_dir="",
         export_skins=before["armatures"] > 0,
+        export_tangents=tangents,
         export_animations=False,
         export_cameras=False,
         export_lights=False,
@@ -322,6 +378,7 @@ def main() -> int:
         "convention": {"up": "+Y", "units": "metres", "self_contained": True},
         "exported": before,
         "textures": textures,
+        "tangents_exported": tangents,
     }
     report_path.parent.mkdir(parents=True, exist_ok=True)
     report_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")

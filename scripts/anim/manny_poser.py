@@ -156,7 +156,7 @@ class Manny:
     def _palm_normal(self, side):
         """Out of the palm: the side curled fingertips travel toward (measured, so mirrored axes don't matter)."""
         pose = Pose(self)
-        pose.grip(side, 60.0, thumb=0.0)
+        pose.grip(side, 38.0, thumb=0.0)
         G, P = pose.fk()
         hand, tip = f"hand_{side}", f"middle_03_{side}"
         fwd = unit(self.P[f"middle_01_{side}"] - self.P[hand])
@@ -280,16 +280,20 @@ class Pose:
         return short
 
     def grip(self, side, curl, thumb=None, spread=0.0):
-        """Curl the fingers (degrees per joint; the first knuckle takes 70%) and the thumb."""
+        """Curl the fingers (degrees per joint; anatomical MCP/PIP/DIP ratios + Manny refpose curl equalization)
+        and adduct/curl the thumb."""
         m = self.m
-        thumb = curl * 0.5 if thumb is None else thumb
+        thumb = curl * 0.7 if thumb is None else thumb
+        u = min(1.0, max(0.0, curl / 65.0))
+        extra_01 = {"index": 6.0, "middle": 0.0, "ring": 2.0, "pinky": 24.0}
         for f in FINGERS:
-            for j, k in (("01", 0.7), ("02", 1.0), ("03", 0.8)):
+            for j, k in (("01", 1.12), ("02", 1.32), ("03", 1.08)):
                 n = f"{f}_{j}_{side}"
-                self.local[n] = m.L[n] @ rot([0, 0, -1], curl * k)
-        for j, k in (("02", 0.8), ("03", 1.0)):
-            n = f"thumb_{j}_{side}"
-            self.local[n] = m.L[n] @ rot([0, 0, -1], thumb * k)
+                deg = curl * k + (extra_01[f] * u if j == "01" else 0.0)
+                self.local[n] = m.L[n] @ rot([0, 0, -1], deg)
+        self.local[f"thumb_01_{side}"] = m.L[f"thumb_01_{side}"] @ rot([0, 0, -1], 18.0 * u)
+        self.local[f"thumb_02_{side}"] = m.L[f"thumb_02_{side}"] @ rot([0, 1, 0], -18.0 * u) @ rot([0, 0, -1], thumb * 0.95)
+        self.local[f"thumb_03_{side}"] = m.L[f"thumb_03_{side}"] @ rot([0, 0, -1], thumb * 1.15)
 
     # ---- output
     def frame_dict(self):

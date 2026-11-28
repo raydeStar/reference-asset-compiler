@@ -93,6 +93,41 @@ class ScaleTests(unittest.TestCase):
         self.assertAlmostEqual(small, large, delta=0.2 * max(small, large))
 
 
+class CalibratedReliefTests(unittest.TestCase):
+    """A steepness to reach, not a strength to apply.
+
+    A section-painted mast at strength 1 tilted 41 degrees at the 90th
+    percentile, where a finished claw tilted 4.5: the same number means a calm
+    surface on one paint and orange peel on a busier one.
+    """
+
+    def speckled(self, contrast, size=512, seed=3):
+        rng = np.random.default_rng(seed)
+        albedo = np.clip(0.5 + contrast * rng.standard_normal((size, size, 1)), 0, 1)
+        return np.repeat(albedo, 3, axis=2).astype(np.float32)
+
+    def test_a_busy_paint_and_a_calm_one_reach_the_same_steepness(self):
+        for contrast in (0.02, 0.2):
+            stats = {}
+            normal_from_paint(self.speckled(contrast), 1.0, target_tilt=6.0, stats=stats)
+            self.assertAlmostEqual(stats["tilt_degrees"]["p90"], 6.0, delta=0.6)
+
+    def test_a_fixed_strength_does_not(self):
+        calm, busy = {}, {}
+        normal_from_paint(self.speckled(0.02), 1.0, stats=calm)
+        normal_from_paint(self.speckled(0.2), 1.0, stats=busy)
+        self.assertGreater(busy["tilt_degrees"]["p90"], 3 * calm["tilt_degrees"]["p90"])
+
+    def test_the_target_is_measured_where_geometry_reaches_only(self):
+        albedo = self.speckled(0.1)
+        coverage = np.zeros(albedo.shape[:2], dtype=bool)
+        coverage[100:400, 100:400] = True
+        stats = {}
+        encoded, _ = normal_from_paint(albedo, 1.0, coverage=coverage, target_tilt=5.0, stats=stats)
+        self.assertAlmostEqual(stats["tilt_degrees"]["p90"], 5.0, delta=0.6)
+        np.testing.assert_allclose(encoded[0, 0, :3], FLAT, atol=1e-6)
+
+
 class HelperTests(unittest.TestCase):
     def test_coverage_is_resampled_by_nearest_texel(self):
         mask = np.zeros((4, 4), dtype=bool)

@@ -1,0 +1,507 @@
+{
+  "schema": "rac.evidence.frastown-surface-pass.v1",
+  "date": "2026-11-23",
+  "approval": "pending",
+  "summary": "Seventeen West Berth pieces resurfaced: UVs relaid in metres, maps baked from the mesh, layered paint, rust and wear. Construction, pivots, sockets and collision are batch 01's.",
+  "kit": "outputs/Frastown-Surface-Pass in the Codex workspace of 2026-11-23, beside the batch 01 package",
+  "geometry_origin": "Authored by script from scene measurements (batch 01), plus modelled rivets. Not an image-conditioned acquisition.",
+  "port_check": {
+    "part": "WK06_Ladder",
+    "stages": [
+      "bake-surface-maps",
+      "hard-surface-finish"
+    ],
+    "result": "BaseColor, Normal and ORM identical to the published textures in every texel",
+    "resolution": 2048,
+    "sampler": "torch"
+  },
+  "checks": {
+    "kit": "envelope within 1.7 mm of batch 01, sockets identical, no stretched UVs, Framewright bytes equal to the files",
+    "fbx": "17 meshes read back in Blender 5.3: in place, two UV channels, collision hulls identical to batch 01",
+    "failures": []
+  },
+  "not_done": [
+    "Unreal import (script written, not run)",
+    "headset review",
+    "tiling detail-normal layer for arm's-length sharpness",
+    "rain and wetness"
+  ],
+  "parts": {
+    "DK02_StraightGunwale": {
+      "stretched_over_2x_area": {
+        "batch01": 0.535,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 2082,
+        "surface_pass": 1508
+      },
+      "triangles": {
+        "batch01": 5524,
+        "surface_pass": 18324
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 31.7,
+      "framewright": {
+        "revision": 4,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 1,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "DK02_BowReturn": {
+      "stretched_over_2x_area": {
+        "batch01": 0.901,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 2460,
+        "surface_pass": 1465
+      },
+      "triangles": {
+        "batch01": 10720,
+        "surface_pass": 23720
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 36.6,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 2e-06,
+        "convex_hulls": 12,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "DK02_EndStanchion": {
+      "stretched_over_2x_area": {
+        "batch01": 0.73,
+        "surface_pass": 0.005
+      },
+      "texels_per_metre_median": {
+        "batch01": 5975,
+        "surface_pass": 2398
+      },
+      "triangles": {
+        "batch01": 1424,
+        "surface_pass": 1424
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 9.7,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 1,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK01_FullPlate": {
+      "stretched_over_2x_area": {
+        "batch01": 0.43,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 509,
+        "surface_pass": 564
+      },
+      "triangles": {
+        "batch01": 984,
+        "surface_pass": 2344
+      },
+      "envelope_moved_m": 0.0017,
+      "sockets_equal": true,
+      "glb_mb": 27.9,
+      "framewright": {
+        "revision": 5,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 1,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK01_HalfPlate": {
+      "stretched_over_2x_area": {
+        "batch01": 0.999,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 509,
+        "surface_pass": 777
+      },
+      "triangles": {
+        "batch01": 984,
+        "surface_pass": 1864
+      },
+      "envelope_moved_m": 0.0017,
+      "sockets_equal": true,
+      "glb_mb": 29.8,
+      "framewright": {
+        "revision": 4,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 1,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK01_OuterFascia": {
+      "stretched_over_2x_area": {
+        "batch01": 0.993,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 508,
+        "surface_pass": 1022
+      },
+      "triangles": {
+        "batch01": 1424,
+        "surface_pass": 2288
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 10.2,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 1,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK02_Straight": {
+      "stretched_over_2x_area": {
+        "batch01": 0.985,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 716,
+        "surface_pass": 1243
+      },
+      "triangles": {
+        "batch01": 1676,
+        "surface_pass": 1676
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 31.3,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 2,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK02_Corner": {
+      "stretched_over_2x_area": {
+        "batch01": 0.979,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 716,
+        "surface_pass": 1132
+      },
+      "triangles": {
+        "batch01": 2760,
+        "surface_pass": 2760
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 35.8,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 4,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK02_Landing": {
+      "stretched_over_2x_area": {
+        "batch01": 0.984,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 530,
+        "surface_pass": 1066
+      },
+      "triangles": {
+        "batch01": 2468,
+        "surface_pass": 2588
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 33.0,
+      "framewright": {
+        "revision": 4,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 3,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK03_LowGirder": {
+      "stretched_over_2x_area": {
+        "batch01": 0.608,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 719,
+        "surface_pass": 490
+      },
+      "triangles": {
+        "batch01": 7308,
+        "surface_pass": 16696
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 31.3,
+      "framewright": {
+        "revision": 4,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 2e-06,
+        "convex_hulls": 3,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK03_EastTruss": {
+      "stretched_over_2x_area": {
+        "batch01": 0.917,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 669,
+        "surface_pass": 401
+      },
+      "triangles": {
+        "batch01": 17948,
+        "surface_pass": 26972
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 34.6,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 4e-06,
+        "convex_hulls": 3,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK05_Cantilever": {
+      "stretched_over_2x_area": {
+        "batch01": 0.974,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 546,
+        "surface_pass": 695
+      },
+      "triangles": {
+        "batch01": 1864,
+        "surface_pass": 2728
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 13.7,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 3,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK05_Column": {
+      "stretched_over_2x_area": {
+        "batch01": 0.637,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 2578,
+        "surface_pass": 738
+      },
+      "triangles": {
+        "batch01": 5100,
+        "surface_pass": 5700
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 14.0,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 1,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK05_Diagonal": {
+      "stretched_over_2x_area": {
+        "batch01": 0.606,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 489,
+        "surface_pass": 1244
+      },
+      "triangles": {
+        "batch01": 876,
+        "surface_pass": 1020
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 13.8,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 1e-06,
+        "convex_hulls": 1,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK06_ServiceWalk": {
+      "stretched_over_2x_area": {
+        "batch01": 0.977,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 1070,
+        "surface_pass": 751
+      },
+      "triangles": {
+        "batch01": 1948,
+        "surface_pass": 2188
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 14.6,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 2,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK06_HingedHatch": {
+      "stretched_over_2x_area": {
+        "batch01": 0.969,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 1260,
+        "surface_pass": 1825
+      },
+      "triangles": {
+        "batch01": 924,
+        "surface_pass": 1212
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 13.6,
+      "framewright": {
+        "revision": 4,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 1,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    },
+    "WK06_Ladder": {
+      "stretched_over_2x_area": {
+        "batch01": 0.887,
+        "surface_pass": 0.0
+      },
+      "texels_per_metre_median": {
+        "batch01": 2171,
+        "surface_pass": 1506
+      },
+      "triangles": {
+        "batch01": 2468,
+        "surface_pass": 2636
+      },
+      "envelope_moved_m": 0.0,
+      "sockets_equal": true,
+      "glb_mb": 14.8,
+      "framewright": {
+        "revision": 3,
+        "review": "Pending",
+        "stored_bytes_equal": true
+      },
+      "fbx": {
+        "uv_channels": 2,
+        "placement_error_m": 0.0,
+        "convex_hulls": 1,
+        "hull_bounds_max_difference_from_batch01_m": 0.0
+      }
+    }
+  }
+}

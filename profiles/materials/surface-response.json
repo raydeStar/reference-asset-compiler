@@ -1,0 +1,19 @@
+{
+  "schema": "rac.surface-response.v1",
+  "note": "Art-direction starting points for a dry, worn character in metres, not measured constants. roughness is perceptual; specular is dielectric strength at IOR 1.5. pitch_mm is a resolvable surface feature, slope is dimensionless.",
+  "classes": {
+    "worn_steel": {"roughness":[0.29,0.49],"metallic":0.94,"specular":1.0,"pattern":"metal","pitch_mm":3.8,"slope":0.038,"retain_normal":0.80},
+    "tarnished_metal": {"roughness":[0.43,0.66],"metallic":0.67,"specular":1.0,"pattern":"metal","pitch_mm":4.2,"slope":0.052,"retain_normal":0.80},
+    "canvas": {"roughness":[0.76,0.93],"metallic":0.0,"specular":0.48,"pattern":"weave","pitch_mm":2.7,"slope":0.145,"retain_normal":0.85},
+    "trouser_cloth": {"roughness":[0.73,0.89],"metallic":0.0,"specular":0.52,"pattern":"weave","pitch_mm":2.2,"slope":0.10,"retain_normal":0.80},
+    "worn_leather": {"roughness":[0.41,0.64],"metallic":0.0,"specular":0.89,"pattern":"pebble","pitch_mm":2.35,"slope":0.155,"retain_normal":0.83},
+    "glove_leather": {"roughness":[0.39,0.59],"metallic":0.0,"specular":0.88,"pattern":"pebble","pitch_mm":1.85,"slope":0.12,"retain_normal":0.83},
+    "skin": {"roughness":[0.43,0.59],"metallic":0.0,"specular":0.72,"pattern":"pores","pitch_mm":0.82,"slope":0.058,"retain_normal":0.90},
+    "skin_tzone": {"roughness":[0.35,0.49],"metallic":0.0,"specular":0.80,"pattern":"pores","pitch_mm":0.78,"slope":0.044,"retain_normal":0.90},
+    "lips": {"roughness":[0.38,0.52],"metallic":0.0,"specular":0.85,"pattern":"pores","pitch_mm":0.75,"slope":0.031,"retain_normal":0.9},
+    "hair": {"roughness":[0.46,0.63],"metallic":0.0,"specular":0.70,"pattern":"fibres","pitch_mm":1.40,"slope":0.040,"retain_normal":0.95},
+    "eye": {"roughness":[0.12,0.12],"metallic":0.0,"specular":1.0,"pattern":"smooth","pitch_mm":1.0,"slope":0.0,"retain_normal":1.0},
+    "enamel": {"roughness":[0.29,0.29],"metallic":0.0,"specular":0.94,"pattern":"smooth","pitch_mm":1.0,"slope":0.0,"retain_normal":1.0},
+    "wet_tissue": {"roughness":[0.31,0.31],"metallic":0.0,"specular":0.92,"pattern":"smooth","pitch_mm":1.0,"slope":0.0,"retain_normal":1.0}
+  }
+}

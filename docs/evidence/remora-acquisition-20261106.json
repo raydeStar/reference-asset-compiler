@@ -1,0 +1,80 @@
+{
+  "schema": "reference-asset-compiler.remora-acquisition-review.v1",
+  "date": "2026-11-06",
+  "stage": "generate_candidates/modeling review, no human promotion",
+  "files": [
+    {
+      "path": "work/remora-airship-20261106/brief.json",
+      "sha256": "1694141b39c8b40f3a42e5e0a5a3b0809b5a31e6244a6ecc1a035d042cf0b7be"
+    },
+    {
+      "path": "work/remora-airship-20261106/style-correction.json",
+      "sha256": "e740441a1bd6e35a8731c6a6286e277427e557794828236fc6141aa9e05b6a23"
+    },
+    {
+      "path": "work/remora-airship-20261106/face-authority03.json",
+      "sha256": "aedbc07543ce3bd52276e0f0b1222deb51f74ee0eef4f67db121fd039458dd5e"
+    },
+    {
+      "path": "work/remora-airship-20261106/references/body-lineage02.json",
+      "sha256": "4b2c1ddf2443db8d4b2edb87e5c82950a834102fab23dfb51eaeb45f4bb986af"
+    },
+    {
+      "path": "work/remora-airship-20261106/references/head-lineage03.json",
+      "sha256": "0511f30be5cf70d9de19798fc94a61493c91c20d0b9611729a962ebfc3adfd43"
+    },
+    {
+      "path": "work/remora-airship-20261106/body-mv02.request.json",
+      "sha256": "d6bd8380f2cdb1711833fd6385e44caf5f28863d21b3f5cdf8eb31e11eee97d4"
+    },
+    {
+      "path": "work/remora-airship-20261106/head-mv03.request.json",
+      "sha256": "6dbcbff0b8367a98e2de9acc17d88bfbe20bb2a5a3d11c562b7b5d19968a61eb"
+    },
+    {
+      "path": "work/remora-airship-20261106/modeling/body02/review.json",
+      "sha256": "dbb134f2a8785c98386a3d4141cd16380faab90fc682151671cbe480374150e3"
+    },
+    {
+      "path": "work/remora-airship-20261106/modeling/head03/review.json",
+      "sha256": "c528a446c7dc9f262de9e1649831d3784300102236a2526e5e5e6ae5d448bff0"
+    },
+    {
+      "path": "work/remora-airship-20261106/modeling/body02/agent-review.json",
+      "sha256": "15d7695f54ce601f3f4505ce3e535df087935681c570e6e0f9a3bc6886d2f543"
+    },
+    {
+      "path": "work/remora-airship-20261106/modeling/head03/agent-review.json",
+      "sha256": "22eadc608d3f75094c025f06191c03e67103e4be346f066fa24709295f572629"
+    },
+    {
+      "path": "work/remora-airship-20261106/head/dw-front03.json",
+      "sha256": "e320866b6135dc9f4a518e66ace5844132342426e7bebd703133f0a8e1ebb8a8"
+    },
+    {
+      "path": "work/remora-airship-20261106/source-frame02.json",
+      "sha256": "120b8e6db7747ecb66dca686ceae6f65c5e48ac9d6130d1adc20595abd0140fe"
+    },
+    {
+      "path": "work/remora-airship-20261106/baseline-verify.log",
+      "sha256": "8659012941dc76aea638dc584667757de3a83fd04c8d0fbb3a211f49e70e7bef"
+    },
+    {
+      "path": "work/remora-airship-20261106/head-pixal04.log",
+      "sha256": "5800bde220ef5b67d0dc041d2aed78e25d8c99e3180d98949bf3dabaabe4203c"
+    }
+  ],
+  "face_requirement": "Anatomical left eyebrow scar, blue-grey eyes and graphic painterly identity from the newly supplied close-up.",
+  "rejected": [
+    "Photoreal reference set01",
+    "Hunyuan head03 hair holes and inflated braid lobes"
+  ],
+  "open": [
+    "Separate fingers",
+    "Clean detailed head/hair acquisition",
+    "Modeling approval before finished surface/rig work"
+  ],
+  "pixal04": "First preflight refused at 19873 MiB versus 20000 minimum; no inference launched. Unloading the prior Raider inspection preview freed memory; actual attempt began at 20703 MiB, with no floor override.",
+  "human_visual_review": false,
+  "production_ready": false
+}

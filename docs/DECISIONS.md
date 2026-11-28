@@ -1300,6 +1300,1078 @@ the solid. Treat any envelope fallback as a failure.
   mesh and imported FBX. Reapplying the packet is safe; dumping corrected clips
   as a new baseline would double-apply the posture and must be rejected.
 
+
+## 2026-10-16 — A database-backed HTML ledger is not its requisition export
+
+The supplied Artiss Tomb HTML contains the UI, an empty `rows` array and a
+Claude shared-database subscription. It embeds no requisition records. Its
+brief exporter includes only rows whose status is `Approved to build`, so an
+empty Markdown table does not identify an asset collection. Preserve the HTML
+by hash, request actual rows or access to the live ledger, and do not reconstruct
+IDs, measurements, priorities or approvals from nearby design prose. The new
+Framewright project may be prepared while this intake dependency is pending.
+
+### 2026-10-16 — Review bronze at its intended specular response
+
+The Artiss lens's matte finish concealed UV-seam normal and uneven annular surface
+artifacts. Raising metallic to 1 and reducing roughness exposed them. Preserve the
+metal response and repair the acquired surface/normals as a new derivative; do
+not treat a flattering matte render as proof of smooth geometry. Pin measured
+apertures, restrain decorative plates, retain UV correspondence, and inspect the
+actual viewer while orbiting. The lens retained its 60 cm glass and 11,764 total
+triangles through this cleanup. Also inspect generated metallic maps: the pillar
+and emitter maps barely identified their bronze. A semantically bounded data mask
+can correct those regions, but colour alone is not a universal material classifier.
+
+## 2026-10-16 — Audit isolated scraps and judge surface cleanup visually
+
+The painted rope GLB contained three tiny disconnected single-triangle scraps,
+not three holes in its main surface. A boundary-edge count alone cannot tell
+those apart: inspect connected faces before filling. Removing those exact scraps
+left the hemp mesh closed; rejected CPU attempts were retained. Similar scraps
+were removed from scaffold/case normal-transfer experiments. Audit the actual
+interchange geometry, not only an upstream native reduction report.
+
+Generic bounded Taubin fairing and dense-source normal transfer were not enough
+to clean the archive cabinet and gauge case's broad planar surfaces. Passing
+closed-surface and coordinate-preservation checks did not make those experiments
+visually suitable for polished metal. Keep them as comparisons and use
+feature-specific cleanup before paint. The successful annular lens cleanup
+should not be treated as a universal smoothing recipe for every prop.
+
+## 2026-10-16 — Preserve grooves and verify physical attachment, not just closedness
+
+Repeated cross-section averaging can collapse a grooved ring while every
+manifold test still passes. HC-01 v2 lost substantial ring volume and visibly
+thinned the lips. Keep the rejected views and prefer a restrained derivative;
+measure the band separately from axle bosses before claiming its diameter.
+A negative partition may also extract disconnected slivers from a neighbouring
+part; inspect components and all four views after the cut.
+
+For rope attachment, a closed positive-volume mesh does not prove a valid knot.
+Check nonadjacent self-intersections and rope/hardware triangle intersections,
+then inspect whether it actually reads as a tie-off. Nearest-surface projection
+of a dense centreline produced discontinuous folds and excessive path length;
+zero hardware intersections in a loose loop was still a visual rejection.
+The staged hanging rope's physical gauge was too large for small cleats, so
+family-wide gauge and contact need explicit review before replacing it.
+
+## 2026-10-16 — Refine before bending instead of smoothing away rope detail
+
+A nonlinear coil bend can make coarse triangles cross even when the source
+surface is closed and has no self-intersections. Radial clamping worsened the
+crossings; local smoothing moved small features excessively without clearing
+them. HC-02's successful compact coil instead split only affected source
+triangles with UV interpolation, then applied the same bend. Two refinement
+passes removed all detected crossings with only 276 additional triangles.
+Re-import both GLB and FBX and check self-contact again. A floor coil also
+requires top, underside and elevated views: four horizontal views alone show
+only its shallow profile and cannot verify turn spacing.
+
+## 2026-10-16 — Audit the emitter orientation and internal cut cost
+
+Imported glTF objects may retain quaternion rotation mode after transforms are
+applied. Writing Euler angles alone then leaves a wall variant vertical. Set
+the intended rotation mode explicitly and assert actual world bounds; re-import
+GLB and FBX to verify the consumer sees the correct long axis and socket pivot.
+For an internal core partition, a 96-sided cutter created unnecessary hidden
+triangles. A 32-sided cut retained the visible source silhouette and reduced
+the assembly from 21,884 to 18,788 triangles. Radial normals on the acquired
+glass core improved its highlights without smoothing away its geometry.
+
+
+## 2026-10-16 — Architectural normals, paint masks and complete map packages
+
+Boundary loops are not necessarily holes: TW-01's arch had nine tiny detached
+triangles, not missing surface. Remove measured debris instead of bridging it.
+For dense architectural voxel cleanup, optional Laplacian smoothing consumed
+over thirteen minutes on one attempt; that owned CPU process was cancelled
+and recorded. A distinct zero-smoothing cleanup completed in about fifty
+seconds. Apply transforms and clear imported custom split normals before
+assigning flat cut caps; face flags alone did not remove the old shading.
+
+Warm limestone fools an HSV bronze mask. On the ceiling, use measured material
+regions from acquired mesh/paint to build the technical metallic mask; keep
+AI colour unchanged. Four horizontal views cannot validate a flat floor or
+ceiling: inspect top, underside and lighting from the visible side as well.
+For portable companions, extract packed image bytes even when lazy images
+report no pixel data, then reopen Blender/FBX and verify every map path inside
+the package. Successful geometry export alone does not prove texture closure.
+
+
+## 2026-10-16 — Rubble support, canonical fragments and collision checks
+
+A stable rigid-body solve can still be visually wrong when temporary walls
+support pieces above ground. HC-05's second settle had zero drift but retained
+that support. Remove the temporary walls for the final distinct settle, then
+inspect the actual exported pile, including side/elevated views.
+
+Do not assume Blender-generated hull triangles form trustworthy convex
+planes. HC-05's first hulls violated containment; 38-direction support planes
+and verified halfspace intersections produced conservative enclosing hulls.
+After canonicalizing a standalone stone, recompute its hull in those axes:
+rotating an already conservative hull can create a needlessly large AABB.
+Export fragments in canonical orientation with explicit assembly matrices.
+
+Canonical companion creation can reintroduce old texture paths even when
+the assembled package is portable. Reopen every Blender/FBX companion and
+verify paths after the final derivative. Bind by exact map hash, retain old
+companions, and rerun only the affected export/map checks.
+
+
+## 2026-10-16 — Swivel band measurement, small motion and painted scores
+
+Measure a circular ring's requested diameter on the band, excluding axle
+bosses. An overall bounding box silently undersizes the band. Keep source
+grooves through restrained fairing; wider profile reconstruction can smooth
+away the functional channel even when ray coverage succeeds. Select from
+actual fixed views, not a displacement or watertightness number alone.
+
+Small exported motions require actual action-range checks. Blender's FBX
+import may offset the starting frame, and default simplification can attenuate
+fractional rotations. Sample the imported action range and disable curve
+simplification when the exported travel fails the intended amplitude.
+
+When an AI paint pass omits tiny requested scores, use a separate AI-acquired
+surface source and downstream UV projection/baking. Bind that source and
+prompt explicitly. Preserve geometry and painted wear; keep metal response
+separate from limestone. Validated artifacts from a crashed child process do
+not make the execution successful: preserve both the validation and failure,
+and never silently retry the inference.
+
+
+## 2026-10-16 — Rope contact needs both path and painted-triangle checks
+
+A clearance-safe centreline does not guarantee its coarse mapped surface
+clears hardware. HC-02's v12 cleared self contact but retained 24 hardware
+triangle pairs; source-face splitting around both classes of contact removed
+them without changing the acquired surface or painting a replacement rope.
+Refining distant strand crossings only multiplies the failure: diagnose arc-
+length separation first and correct the path before local face refinement.
+
+Uniform gravity on a pinned rope path can buckle its lower endpoint while
+the band contact looks better. Retain the failure. For the static threaded
+state, a measured cross-section and offset convex upper envelope give a
+bounded, inspectable drape; do not call it a dynamic rope solve.
+
+Blender glTF images can be packed but lazily undecoded. has_data false is not
+proof of an absent texture. Access pixels before materializing local maps,
+then re-import every FBX and reopen every Blender companion to check paths.
+An embedded GLB render alone cannot prove companion portability. Vertex-tint
+burning needs a direct baked-albedo companion when FBX cannot carry its node
+graph; retain the original GLB, colour data and pre-bake companions.
+
+Repackaging an exact current asset can create a second import receipt with
+the same Framewright id. Count unique asset ids, not receipt files. Preserve
+all receipts and prefer the latest metadata for the current manifest.
+
+## 2026-10-16 — Small reflective rings need source cleanup before paint
+
+GV-01's fused clay needed separate part cuts and re-centering, but preserving
+the acquired joint stumps made adjacent rings overlap. Tighter negative cuts
+and uniform per-ring fitting removed crossings without replacement artwork.
+Bounded fairing on the original irregular triangles still exposed wavy
+highlights. A median cross-section normal attempt made dark discontinuities;
+retain it as rejected. Uniform CPU remeshing of each acquired part, bounded
+smoothing and a measured 7.6k total prop budget produced the selected result.
+
+When copying a packed Blender file to a delivery directory, assigning `//map`
+before Save As with its default relative remapping can silently point FBX back
+at the previous directory. The GV-01 actual FBX map-locality audit caught this.
+Save the newly local paths with `relative_remap=False`, then export FBX and
+reimport it. The selected GLB bytes remained unchanged during this repair.
+
+## 2026-10-16 — Chain clearance must retain the link and its interlock
+
+GV-02's first field partition separated the acquired fused links, but contact
+caps still crossed. Subtracting clearance volumes could pass closure checks
+while cutting away nearly all of one link. Compare part volume and silhouette,
+then inspect the actual export; a watertight scrap is still a rejection.
+
+A later thin-link fit had zero intersections but placed the loops too far
+apart to interlock. Reuse the clean acquired link, fit its cross-section from
+measured source medial samples, and constrain spacing to the interlinked range.
+Verify actual adjacent-loop linking as well as surface clearance. GV-02 v8's
+fixed views and the full assembly's Gauss linking checks confirmed the result.
+Small boolean/decimation slivers can disappear during GLB serialization; use
+scale-appropriate cleanup and re-import the actual file before claiming closure.
+
+## 2026-10-16 — Inspect separated hardware close up and bake metal albedo explicitly
+
+GV-02's full assembly hid jagged acquired contact cuts in the ceiling eye.
+Standalone fixed views exposed them even though closure and clearance passed.
+Positive smoothing collapsed the thin lower eye; Taubin smoothing retained the
+bad notch. Reusing an intact acquired chain-link surface to repair the acquired
+plate, followed by a source-paint rebake, produced a clean separate fitting.
+Preserve failed derivatives; geometry checks do not replace close-up review.
+
+A diffuse-only COLOR bake from fully metallic sources can produce black.
+Temporarily make source material copies nonmetallic for albedo transfer, keep
+the target texture disconnected during bake, and restore the delivered metallic
+response separately. The source AI albedo remains the authority. For mixed
+limestone/bronze, prefer its validated AI material mask over coarse coordinate
+slabs that can falsely turn entire stone side faces into reflective metal.
+
+
+## 2026-10-16 — A repaint must preserve surface exceptions as well as geometry
+
+TW-02's selected old throne had a separate plain inner-arm material. Applying
+one new atlas indiscriminately restored stretched decoration that the source
+had deliberately suppressed. Retain that material boundary and map a plain
+AI-conditioned stone swatch there. Inspect backs as well as fronts: an AI paint
+job can invent a rear motif even when every geometry/UV gate passes.
+
+AI metallic maps can miss bronze entirely. Albedo-based calibration helps, but
+warm stone may share bronze colours; constrain the mask to the intended acquired
+regions and inspect its ends. A hard coordinate threshold clipped the throne's
+vertical inlay, despite unchanged geometry. The actual browser also revealed
+that the first plinth was too ochre beside the pale throne; a separate pale-ivory
+reference/mapping revision resolved the mismatch. Preserve rejected candidates.
+
+For material-only GLB delivery, append maps and replace material metadata while
+retaining the original binary payload, geometry accessors and local nodes. A
+new rigid parent can correct old front-axis conventions without remodeling.
+Existing usable UVs need no new unwrap: reversible OBJ transport preserved all
+120,000 triangle corners on each of the first three meshes. Different sized
+old guardian variants have different reduced topology/UVs; direct atlas copying
+needs proof and cannot be assumed from their matching silhouettes.
+
+
+## 2026-10-16 - TW-02 metallic masks, small texture details and banner opacity
+
+- Warm ivory/amber paint can satisfy a bronze color mask. The guardian v1 masks
+  metallized cloak and plinth highlights; preserve AI albedo and constrain PBR
+  metal response to measured source fitting regions. Four-view v2 and actual
+  Framewright verified matte stone and localized bronze.
+- A full-body 512px review can hide lost small texture details. The actual
+  Framewright sword statue exposed a missing helmet slit. Restore only that
+  acquired feature from the exact original atlas/UV authority; do not redraw
+  it or remodel the helmet. Sword v3 retains the source slit within a bounded
+  frontal helmet mask. Record the rejected v2 and the source-image lineage.
+- The old banner torn variants use alpha masks, not different mesh silhouettes:
+  normalized OBJ hashes equal their intact counterparts per size. Reusing mapped
+  RGB is valid for those exact UV authorities, but replacing RGBA with opaque
+  paint would erase the tears. Keep each original 4096 alpha mask and MASK/
+  cutoff/double-sided settings. This is an inspected invariant, not yet a banner
+  repaint completion. Evidence: TW-02/source-group-03/material-invariants.json.
+
+
+## 2026-10-16 - Banner heraldry and portable cutout materials
+
+- An AI repaint can preserve topology while squashing a graphic emblem. Inspect
+  actual banner views. After image-conditioned AI mapping, transfer the intact
+  AI reference through existing UVs; keep source geometry immutable. A bounded
+  upper-cloth patch showed a lighting transition, so selected v3 extends the
+  same reference cloth within mapped borders. Retain both rejected derivatives.
+- glTF MASK imports to Blender through alpha math nodes that FBX does not carry
+  reliably. Export a direct cutoff opacity texture for FBX and verify actual
+  reopened FBX renders. Retain exact original RGBA alpha in the GLB and maps;
+  quantify edge-filter differences instead of claiming image-byte equivalence.
+- A GLB may have one mesh but multiple instances. The 6m railing/curb sources
+  share one 78k mesh between two nodes. Do not flatten or reduce a material-only
+  repaint: transport one shared UV authority and retain every original target
+  node/transform. Record the generic one-object guard rejection separately.
+
+
+## 2026-10-16 TW-02 reference aliases and shared-mesh FBX warnings
+
+- Do not infer a 6m reference alias from endswith("6m"): it also matches
+  stair-panel-3.16m. The initial CLI refused the nonexistent 3.13m reference
+  before inference (empty executions). Use explicit stem mappings and verify
+  every input before launch; retain the rejected invocation.
+- A shared-mesh FBX material-slot warning is neither proof of success nor proof
+  of loss. Group04's two-node curb/rail exported with the warning, but actual
+  FBX renders matched both original GLB sections (<.000180 mean sRGB-byte delta).
+  Reopen and render actual companions before deciding whether to repair export.
+- A view labelled front is a camera convention, not a mounting-normal guarantee.
+  Group05 wall-torch plate is edge-on at old -Y and normal to X; measured faces
+  establish physical -X front. Use an explicit rigid 180 Z orientation and keep
+  source nodes/pivots; do not apply the usual +90 Z without checking.
+
+## 2026-10-16 - Metallic lantern exposes acquired mesh shading defects
+
+Strong metal response revealed facets and uneven edges that the earlier rough
+material hid. Weighted normal recomputation alone barely helped; blindly projecting
+normals from a denser source produced local artifacts. Compare fixed views and the
+actual consumer before selecting either approach. For Mark's explicit smoothing
+request, bounded acquired-geometry fairing plus filtered normals worked, with UVs,
+triangle indices, glass positions and pivots protected. A visually better candidate
+still rotated26small faces: enforce per-face orientation/area guards and backtrack
+local displacement before delivery. Never call normal-only changes sufficient from
+metrics alone, or expand a per-asset cleanup exception across a material-only batch.
+
+Single-material glass/metal glTF can look opaque or sort incorrectly in Framewright.
+Retain the original transmission mask and split original face indices into opaque
+and thin-glass draws without changing topology. Mask-border sampling matters. FBX
+cannot carry this glTF transmission through the current exporter: supply an explicit
+opacity fallback and inspect actual exported views, documenting the appearance delta.
+
+## 2026-10-16 - Selective density increases for reflective acquired surfaces
+
+Mark explicitly broadened cleanup authorization to lighting props and allowed
+more faces where curves and highlights benefit. Subdivision alone preserves the
+same facets; combine selective edge subdivision with bounded surface fairing and
+normal cleanup. Interpolate UVs within the original triangles, retain original UV
+vertices/maps and per-face ancestry, freeze bases/mounts, and guard orientation
+and area after smoothing. Floor/standing braziers and wall torch improved at
+24,733/24,900/16,600 triangles while preserving the preferred black-and-brass
+design. This is selective cleanup authorization, not a universal triangle target
+or human asset approval. Some acquired handmade waviness remains.
+
+## 2026-10-16 - Repaint preservation can preserve a source assembly flaw
+
+The TW-02 single-link and 1/3/6 m chain sources share exact geometry, UVs and
+material bytes, so one AI-mapped link legitimately supplies all four repaints.
+However, identical link instances do not prove physical assembly: all source
+nodes had translation only, placing overlapping links in one plane. Four-view
+and Framewright inspection exposed this. Preserve the explicitly material-only
+scope, but flag the inherited layout issue in the asset notes and inventory;
+never imply a successful paint/export check validates interlocking or collision.
+
+## 2026-10-16 - Inspect existing feedback before repainting; brass is selective
+
+Mark corrected the assumption that liking one black-and-brass design calls for
+repainting every mechanical fitting. All 13 mechanical and four lighting inputs
+already matched current models in the older Framewright project. Reuse useful
+models and existing material divisions, changing only identified mismatches with
+the new brief. Preserve metallic treatment on actual bronze; keep iron and other
+materials distinct. A source-path/hash check alone missed the winch's prior SEND
+BACK note. Read live review feedback and revision status before acquisition or
+mapping. A previously rejected source cannot become suitable merely by repainting
+it. Reuse also does not waive new canon, orientation, budget or production checks.
+
+
+### 2026-10-16 - Locked mapping can still spill a material across inner sidewalls
+
+The Artiss cog reference deliberately kept brass on the central hub, yet all
+three v2 locked-mesh paint outputs placed gold on some recessed iron spoke
+sidewalls. Exact geometry and UV validation passed. Four-view beauty inspection
+caught it; an unlit diagnostic confirmed colour in the albedo rather than a
+physical reflection. Do not treat a topology/UV pass as material-region proof.
+
+Retain those v2 outputs as unselected evidence. The v3 correction used a CPU
+material-node bake on the same acquired mesh and UVs: preserve the central hub,
+remove warm spill outside its boundary, and preserve the mapped broad wear.
+No new geometry or inference was used for the correction. The final GLBs retain
+every original geometry, normal, UV, pivot and socket byte. Four corrected views
+and the actual Framewright models were inspected. Source and editable node
+recipes are in work/artiss-tomb-2026-10-16/bake_cog_material_boundary_v3.py and
+assets/TW-02/cog-{2m,4m,6m}-material-boundary-v3/ beneath that work folder.
+The paint processes failed at teardown after validated output, as recorded;
+the correction is not a silent inference retry or a human approval.
+
+
+## 2026-10-17 - Validate scalar glass and actual FBX material graphs
+
+An untextured constant glass window legitimately has no UV layer. Do not invent
+UVs or fail a material-only reuse solely for that absence: verify every assigned
+material contains no image-texture node, record the scalar part, and preserve
+source geometry. Textured parts still require finite UVs.
+
+The condenser GLB/Blender looked correct while FBX lost all housing colours.
+Its imported base colour passed through a vertex-colour multiply node that the
+FBX exporter did not support. Reopening an FBX and finding some textures was
+insufficient; metallic/roughness maps were present but albedo was omitted.
+Four-view appearance inspection caught the failure. All effective colour
+attributes were verified RGBA1, so the export-only repair removed that identity
+multiplication and wired the existing texture/constant directly. Preserve the
+rejected export and exact GLB/Blender. Nonconstant colour multiplication needs
+a real bake, not this shortcut. FBX glass remains an explicit opacity approximation.
+
+## 2026-10-17 - Door material boundaries, lossless GLB packing and FBX time
+
+Crypt door AI paint made limestone panels gold and partly metallic. Rectangular
+position masks crossed iron rails or left gold strips. A CPU bake using the
+original albedo's material boundaries separated the surfaces reliably; preserve
+mapped luminance while correcting stone chroma and metallic response. Four
+distinct mapping jobs produced validated output then failed teardown; retain
+those receipts and do not call the processes clean successes or retry inference.
+
+Appending textures left unreachable old maps in the animated door GLBs and
+exceeded Framewright's upload limit. Remove unreachable images and deduplicate
+identical payloads in a versioned derivative. Verify every accessor buffer and
+visible image byte, meshes, original nodes and animation definitions. A compacted
+file cannot claim its entire original binary prefix is unchanged, although all
+geometry and animation data can remain exact. Do not raise service limits for
+avoidable dead payloads.
+
+Blender's default FBX anim_offset=1 adds one frame on import. The door export
+check initially measured a 0.04269 hinge matrix mismatch; anim_offset=0 restored
+the stored frames 1-168 at 24 fps with 2.4e-7 maximum matrix error. Inspect stored
+timestamps before changing animation curves. Preserve explicit animation baking
+for animated assemblies; a static export check does not prove retained motion.
+
+One CPU crypt-right bake crashed inside NumPy with EXCEPTION_ILLEGAL_INSTRUCTION.
+Preserve its crash log; the underlying cause is unproven. A separate CPU v2 with
+NPY_DISABLE_CPU_FEATURES=AVX2,FMA3 completed. This is a bounded CPU recovery,
+not a repeated AI acquisition or a reason to alter the global workstation.
+
+
+## 2026-10-17 - Descriptive GLB extras can collide with loader semantics
+
+Blender fixed views and exports passed, yet four TW-02 linear trim GLBs loaded
+with NaN bounds and a blank Framewright viewport. The installed Three.js
+GLTFLoader reads extras.pivot as a numeric vector and adjusts node/child
+translation. A descriptive string in that key poisoned transforms. This is a
+loader compatibility failure, not insufficient GPU memory or broken geometry.
+
+Use pivot_description for prose. V4 renamed only that JSON key, preserving
+full binary data, material fields and numeric transforms. An actual-loader CPU
+check reproduced NaNs for all four v3 files and finite bounds for their v4
+replacements; actual Framewright screenshots proved visible recovery. Retain
+rejected blank screenshots. Blender-only proof cannot establish viewer compatibility.
+Evidence: work/artiss-tomb-2026-10-16/assets/TW-02/group09-three-bounds-v4.json
+and group09-pivot-metadata-repair-v4.json. Do not patch the app to mask malformed
+asset metadata when a versioned metadata-only asset repair suffices.
+
+For repaint-only reuse, compare exported extents to the verified source. An
+absolute 1mm base check rejected inherited cornice geometry extending 1.0886mm
+below its nominal pivot. Preserve the source and record that deviation rather
+than flattening it to satisfy an overly strict new assertion.
+
+
+## 2026-10-17 — Reused driftglass source selection and material export
+
+- Refresh the current old-project revision before trusting the initial inventory.
+  Twelve hero/wall source records had newer geometry cleanup already completed.
+  Retain exact current target bytes; do not reconstruct or rescale a shared donor
+  to replace them merely because UV/index layouts match. Small tangent, normal
+  and scaling-roundoff differences are real source differences.
+- For glass on a rough foot, keep optical roughness/transmission masks separate
+  from colour masks. A height-based grey albedo mix produced a visible horizontal
+  stripe; v3 restored the image-conditioned albedo and confined height grading
+  to optical properties.
+- Blender's FBX export lost Base Color through a MULTIPLY node combining the
+  texture and white vertex colour. Bypass only after proving every used vertex
+  colour is RGBA1. Keep the exact GLB and packed Blender graph unchanged. Inspect
+  the actual FBX, and label opacity conversion as a transmission approximation.
+
+
+## 2026-10-17 — Repaint reuse does not excuse visible acquisition debris
+
+The older fallen head's source notes said its shape was acceptable, but Mark
+identified a floating fragment in the new material viewer. A strict repaint-only
+copy carried that defect forward. Treat the later user correction as the
+narrow cleanup authorization: keep the acquired connected sculpture, remove
+unsupported fragments, preserve UV/normal/tangent values and original pose,
+and retain the rejected source/revision. Do not keep claiming exact topology
+once faces have been removed. Connectivity analysis may weld seam positions
+for classification; it must not weld or rewrite the surviving attribute data.
+Head v2 removed134triangles across8islands and retained14,866triangles.
+
+For face-up fallen or downward-facing ceiling assets, four ordinary orbit views
+can emphasize the wrong surface. Add a face/underside view. A temporary rigid
+mapping frame can improve image conditioning while original UVs transport the
+paint back to the untouched source pose. Verify the mapping round trip and
+inspect the actual delivered orientation separately.
+
+## 2026-10-17 — Reuse geometry without inheriting the wrong material economy
+
+Mark clarified that cheap objects should not default to wood. The local Artiss
+redesign quotes the World Bible's scarcity/wealth rule, and HC-07 explicitly
+requires metal, canvas and salvage. The old wooden weapon rack was therefore
+the wrong material reference even though its acquired geometry was reusable.
+Reject that reference before mapping; replace its surfaces with utilitarian
+iron. Reserve timber for explicitly prestigious Archive/royal/relic use, and
+evaluate common-chest interiors as well as the outside. Reuse preserves geometry
+and evidence, not every old material decision. Do not infer new buoyancy canon
+from older seed documents; DH-03 remains held.
+
+## 2026-10-17 — Inspect unlit side paint before accepting a metallic finish
+
+An iron reference did not prevent the painter from smearing tan horizontal
+bands over the weapon-rack sidewalls. A beauty view could confuse that with a
+reflection. The unlit close view exposed the map defect. Reject the mapped
+candidate, then project an AI-generated neutral iron swatch onto the affected
+acquired surfaces through the existing UVs. Retain front/rear detail and original
+mesh attributes, and inspect the revised beauty/unlit views plus actual FBX and
+Framewright. Increasing metallic response alone does not correct wrong albedo.
+
+
+### 2026-10-17 — Chest atlas transfer must respect the material's UV set
+
+The common chest assembly's panel material samples TEXCOORD_1, while the
+retained mesh also has UV0. The first CPU panel bake treated it as an unsupported
+slot and failed. Use a temporary UV0 texture carrier only on the isolated bake
+target, and bind the resulting maps to the exact original assembly. Preserve both
+UV accessors, animation and hinge nodes. Do not misdiagnose this as a scalar-only
+oak material, or rerun an already-successful hardware bake.
+
+A warm-colour mask across irregular acquired material regions created teeth in
+iron lid straps. Continuous object-space sampling of the same AI iron swatch
+across both original materials, with smooth measured strap bands, removed that
+surface defect without changing geometry or UVs. Inspect the unlit result too.
+
+### 2026-10-17 — Preserve alternate UVs and equivalent specular when reusing GLB in FBX
+
+Source wooden chests sample their lid-interior material from TEXCOORD_1. Blender
+imports that choice, but FBX reimport lost the material-specific UV node and
+sampled UV0, visibly rotating the grain. For the FBX export copy only, transport
+the affected polygon-loop coordinates into UV0 and remove that material's UV-node
+override. Retain canonical GLB/Blend geometry, both UV sets and source maps.
+
+The source also stores neutral glTF specular tint (2,2,2). FBX loses that tint;
+carry its neutral multiplier into scalar specular strength. Appearance comparison
+must preserve the authored strength: the calibrated helper resets scalar strength
+to .5 but leaves the glTF tint intact, so applying it during this comparison
+creates an artificial mismatch. Selected authored-material paired views differed
+by at most .222015 mean RGB byte value after UV transport, versus 4.53 earlier.
+Keep earlier comparisons and state that the selected check preserves authored
+specular. This is export verification, not a reason to silently change sources.
+
+Read asset bounds before interpreting dimensional filenames: the old grab-ledge
+150/250/400 cm variants all span 150 cm and instead encode top elevation relative
+to the original floor/wall datum. Preserve those pivots and label the elevations.
+
+### 2026-10-17 — Chest interiors need measured masks and continuous sampling
+
+Prestige chest mapping stretched the interiors. Dominant-face-axis projection
+of a generated swatch introduced grain changes across corner triangles; smooth
+triplanar weights from the existing normals corrected that without changing
+mesh geometry or UVs. A symmetric bounding-box cavity mask then leaked onto
+the relic chest's rear crest. Its acquired cavity is offset: measure the actual
+interior wall planes and use those bounds. Always inspect the rear and unlit
+interior before selecting the repair. Earlier failed derivatives remain evidence.
+
+The reduced royal lid panel and dense assembly panel are not identical enough
+for the CPU bake guard (size ratio .968). Do not widen that guard just to finish
+the batch. Here the original analytic UV1 frame is shared and provides a direct
+texture reuse route; verify the UV formula against both sources and record its
+residual. Preserve the exact final assembly geometry and animation. Propagate
+the material's UV link to split metallic/roughness textures before saving the
+canonical Blend; only the FBX export copy needs per-loop UV1-to-UV0 transport.
+
+Four paint jobs again wrote validated outputs and failed during teardown with
+exit -1073741819. Independent output inspection can select a review derivative,
+but it does not convert failed process receipts into successful executions.
+No automatic inference retries were made. Source OpenClose playback likewise
+does not resolve an inherited visible lid-to-hinge gap; record that separately.
+
+### 2026-10-17 — Preserve clay interiors and fracture correspondence
+
+An urn exterior mapping duplicated its emblem onto the rear and painted the
+inside lip. Inspect rear and elevated interior before accepting a surface.
+A generated motif-free swatch can repair the rear through unchanged UVs; use
+measured height/angular masks and original inward-facing normals for the clay
+lip. Preserve original unglazed interior and fracture materials where they are
+already correct. Do not paint degenerate scalar-material UVs as if they were
+an exterior atlas.
+
+The unlit helper handled textured materials but skipped scalar ones, making
+clay appear black in the diagnostic. Optional scalar base-colour emission fixes
+the diagnostic; it is not a reason to alter the actual ceramic material.
+
+For shared intact/broken paint, bake onto the original assembled exterior only,
+excluding internal caps in a temporary bake target. Before sharing that atlas
+with scattered fragments, verify every fragment's vertices, normals, UVs and
+indices are identical. Keep final cap materials and fragment transforms exact.
+A successful material transfer does not approve the old high triangle count or
+make the original scattered arrangement into a physically settled simulation.
+
+### 2026-10-17 — Ledge height variants do not imply shared reduced atlases
+
+The 150/250/400 cm ledges share source shape and dimensions but were reduced
+independently. Neither direct index-byte equality nor per-triangle geometry/UV
+correspondence supported sharing one map blindly. Align only temporary bake
+copies by the measured elevation offset, retain the CPU bake placement guard,
+and bake into each original UV set. Here both transfers passed with centre
+offset zero and size ratio 1.0. Bind only the resulting maps back to unchanged
+source GLBs so their floor/wall datums and mounting elevations survive.
+
+A material-only reuse pass also cannot prove swing mechanics: the original
+ring and upper mount are a single mesh. Keep that mechanical separation gate
+explicitly open even when the smooth metallic surface and portable exports pass.
+
+### 2026-10-17 — Flat textile motifs need overhead and reverse inspection
+
+Standard four-view cameras can show a thin rug almost entirely edge-on. Add
+an overhead beauty/unlit pair and an underside view. A rigid temporary upright
+paint frame exposes the top to AI mapping without changing final geometry, but
+mapping can still erase an emblem or distort a narrow border. Do not accept
+that from a distant side view. After image-conditioned acquisition, CPU-bake
+the generated design into the existing top UVs; keep rejected evidence. Inspect
+the reverse independently and use a quiet generated field there when an ornate
+AI border fails. Final GLB geometry/UV bytes must remain exact, and paired FBX
+views must include both faces of the textile.
+
+### 2026-10-17 — Inspect RGBA decals through compositing, not hidden RGB
+
+Image previews can expose colored RGB beneath zero-alpha pixels and make a
+clean decal appear to have a glow or colored fringe. Inspect alpha statistics,
+then composite diagnostically against both a pale limestone color and dark
+teal, and inspect the actual consumer. Preserve generated RGBA bytes as the
+deliverable; diagnostic composites are evidence only. Conversely, a cobweb
+can contain real opaque fabric-like membranes despite having an alpha channel.
+That requires an image-conditioned visual correction, not merely relabeling it
+transparent. Retain the rejected candidate and verify the corrected gaps.
+
+### 2026-10-17 — Audit exported components after QEM, before paint
+
+The corrected Artiss ceiling's feature-QEM Blender report showed 20,000 triangles
+and zero boundary/nonmanifold edges, but the exported GLB contained 19,997 faces:
+one closed main component plus three isolated single triangles. Reopening the
+actual GLB exposed nine boundary edges and component sizes [9997,3,3,3]. The
+three remnants measured 4.318, 0.941 and 0.719 cm across; removing those alone
+left one closed 19,994-triangle mesh. Restore declared bounds and pivot before
+fresh UV transport, and audit the painted GLB and FBX again. A topology pass on
+an intermediate Blender object does not establish the exported file's closure.
+
+
+## 2026-10-17 — Preserve shading through local topology cleanup and verify chain fit
+
+TW-02's new winch painted GLB carried flat imported custom normals despite smooth polygon flags. Welding geometric UV splits and restoring a smooth normal field removed the visible triangular reflections without changing face positions or UVs. A later localized 2–6 mm fold cleanup disturbed that field again; exact UV-corner normal transfer from the reviewed smooth derivative restored it while keeping the repaired geometry. Do not treat smooth flags alone as proof of smooth exported shading. The selected actual GLB and FBX pass self/interpart-intersection and visual checks.
+
+A chain wrapped along a convincing helix can still intersect every neighbour. Reject by actual triangle intersections, then also measure the Gauss linking number: zero intersections alone can mean disconnected links. The selected winch uses .315 m radius, 34 steps across two wraps and .13 m tail spacing; all 40 adjacent pairs are linked and no surfaces cross at rest. Retain failed searches instead of mistaking them for simulation.
+
+For reduced painted instances, flatten the original parent transforms into vertices before reduction and rebake; a parented link produced a rejected 0.1001 m frame mismatch. The flattened derivative preserves original world geometry, UVs and maps. For FBX only, single-user mesh copies avoid ambiguous material bindings on repeated links; keep GLB/native instances shared and compare actual exported appearance.
+
+## 2026-10-17 — Coin contact, visual stability and aggregate instance budgets
+
+An acquired coin can be instanced into a mechanically nonintersecting arrangement that still looks unsupported. TW-02's freefall experiment was not settled after six simulated seconds (.19585 m maximum motion during the last second); preserve that failure instead of labeling a snapshot a rest pose. Loose vertical-contact placement formed cantilevered voids even with a centre-support heuristic. The selected review alternative uses explicitly curated touching treasury stacks, with no dynamics claim. Inspect all sides and state the chosen layout honestly.
+
+Full acquired-mesh collision setup was expensive at 600 bodies. Temporary conservative contact proxies improved the CPU experiment, but did not establish physical or artistic acceptance. They were never exported. Account for evaluated triangles as well as shared geometry: the selected pile has one 1k-triangle mesh but 614k scene triangles. An attempted 200-triangle reduction was refused by the pipeline's 1k minimum. The 1k derivative required rebaking its painted maps and passed the fixed-view appearance gate; retaining a 3.1 MiB instanced GLB does not prove a game-ready LOD budget.
+
+
+## 2026-10-17 — Tiny cut faces, UV serialization and evaluated pose proof
+
+A closed Blender polygon mesh can acquire zero-area triangles during GLB triangulation. Audit the actual exported triangles before UV/paint. For the Artiss cabinet, a coarse 50 micrometre collapse introduced a nonmanifold edge; the selected 0.1 micrometre collapse plus coplanar dissolution kept the inspected surface within 13.2 micrometres. Preserve valid microscopic faces rather than relaxing geometry checks.
+
+The stock OBJ writer rounded coordinates to six decimals, collapsing distinct tiny cut vertices even though the UV authority itself passed. The painter correctly refused that input before inference. Serialize sufficient precision and test the exact exported OBJ with the actual loader/normal-proxy validation before launching the distinct corrected attempt. Tiny zero-area UV projections can receive separate minimum-sized charts without moving geometry; visible surfaces must not be hidden behind that exception. Greedy nearest-face UV matching can consume the wrong neighbour in microscopic clusters: use bijective vertex permutations and globally ordered one-to-one triangle matching, with a measured maximum correspondence error.
+
+For articulated previews, verify the evaluated world pose. Imported quaternion-mode objects ignore direct Euler assignment unless the mode/transform is made explicit. glTF export with animation disabled can still export the default frame unless export_current_frame is set. An "open" filename and successful export do not establish open doors. Inspect the actual pose, then audit the exported motion. Continue applying the earlier descriptive-pivot lesson before import: string extras.pivot must be renamed to pivot_description, especially on parented moving parts.
+
+## 2026-10-17 — Interior UV repair must remain within one atlas chart
+
+A mesh can have valid finite UVs and still show bright striped or triangular interior artifacts. On the map chest, sampling corners from different floor triangles and interpolating a new wall chart crossed unrelated atlas islands, including bronze handle paint. Reject that result. Select one clean contiguous region inside a single source triangle, verify its sampled colors, and remap only the affected interior faces. This retained the original AI image bytes and all exterior UVs while repairing the projection; no repaint or geometry inference retry was needed.
+
+Centroid-only face classification can stop short across large shelf triangles and leave jagged bands. Classify complete horizontal faces with their normal and geometric extent, preserve vertical front trim, and inspect elevated unlit as well as PBR views. v3 fixed trays but not whole frame floors; v4 fixed complete interior faces. Retain both negative examples. Actual Framewright playback and an open pose reveal surfaces that closed beauty views conceal.
+
+### 2026-10-17 — A rear-flash cut can expose overlapping acquired skins
+
+The generated label plaque had a paper-thin front plus a backdrop-like rear flange. Cutting the flange and independently capping every loop produced two overlapping closed shells; closure alone passed but actual exported self-contact/component checks failed, and the rear render turned black. Inspect connected-component bounds, retain the acquired front relief shell, and remove the redundant inner/rear skin. Recheck all four views and actual exported topology before UV preparation. Thickness normalization must describe the intended plaque, not the spurious backdrop extent.
+
+### 2026-10-17 — Astrolabe separation must clear more than the rest pose
+
+Subtracting an exactly coincident extracted arm created overlapping dial caps;
+using the same clipping volume for intersection and difference avoided that
+failure. Tiny cut faces and a detached sight-tab stump still needed explicit
+cleanup. V4's actual exported GLB is closed and clear at rest, yet every sampled
+nonzero dial tilt collides with the cradle. Static topology is insufficient
+evidence of fitted rotating parts. Test the intended axes before paint, preserve
+the failed poses, and repair the source-derived separation. For metallic
+diagnostics, explicitly assign the diagnostic material to every mesh: changing
+an unused material can silently produce a white clay render.
+
+The selected astrolabe v6 clears these sampled poses after a 22.2 cm cradle
+clearance cut and fitting the acquired sighting arm within a 21.2 cm radial
+extent. The geometry and painted surface remain separate evidence gates.
+The stock OBJ export and later paint GLB each collapsed a microscopic UV
+triangle despite broad UV metrics passing. Twelve-digit OBJ serialization fixed
+the former; restoring the exact pre-paint face UV fixed the latter. Recheck
+every actual delivered UV triangle, not only the aggregate validation fraction.
+
+The scroll rack repeated the map-chest interior projection problem: front beauty views looked sound while elevated unlit views revealed bronze stripes in the lower troughs. Include interior angles for open furniture; map repair must stay inside one contiguous clean atlas region while retaining original image bytes and exterior UVs.
+
+
+### 2026-10-17 — Clearance must follow the acquired part; interiors need planar normals
+
+A simple bar/cylinder cutting volume did not fully clear the sextant's irregular acquired lower shoe. Subtracting a slightly expanded copy of the actual extracted arm resolved the remaining static overlap while preserving the selected silhouette. Widening a separation can expose disconnected slivers: check connected components again. Blender dimension edits made sequentially on a live object can use stale evaluated scale; assign the full dimension vector, update and apply it before the next boolean. Test the actual exported mesh, not only native copies.
+
+Ground-skirt geometry can dominate normalization bounds. Remove it before final dimension fitting. A hollowed crate can be closed and intersection-free while its new interior still shows diagonal shading under interpolated normals. Inspect from above and retain planar normals on those cut surfaces; keep smoothing on the acquired exterior. Preserve the earlier shaded version as negative evidence.
+
+
+## 2026-10-17 — Hollow acquired props expose unobserved cut surfaces
+
+A closed packing crate painted well, but its newly cut top rim inherited stripes
+from exterior projection. The separately inspected cavity uses a quiet scalar
+iron material on new cut faces; exterior AI paint/geometry/UVs stay unchanged.
+Always inspect an open/interior view before declaring a container review-ready.
+
+A tightly curved swept ellipse used as a cargo-ring separation cutter crossed
+itself because tube radius exceeded local curvature radius. Replacing the
+throwaway cutter with a closed extruded annulus removed these Boolean artifacts.
+The delivered plate/ring remain derived from acquired geometry. Validate the
+cutter as well as the resulting parts; preserve the failed candidate.
+
+
+## 2026-10-17 — Reuse sound source paint before another inference pass
+
+Cargo-tag AI paint doubled the front feather while the reverse carried a clean
+single feather. A CPU selected-to-active diffuse-color bake from a temporary
+mirrored copy of the acquired reverse face onto the existing front UVs fixed
+it. Final geometry, UVs and normals remained exact; other atlas regions were
+retained. Four GLB/FBX views and the live consumer confirmed the result. This
+is source-paint transport, not a new manually reconstructed model; keep the
+rejected paint and hash-bound transfer recipe with the delivery.
+
+## 2026-10-17 — Verify actual motion and constrain reduced-mesh fairing
+
+A Blender object imported with quaternion rotation mode ignored Euler assignments.
+A nominal multi-angle collision audit therefore tested the closed gate repeatedly.
+The exported open-view render exposed it. Set the intended rotation mode or apply
+world matrices explicitly, record measured rotations, then re-import the actual
+export and repeat clearance checks. A pass over requested angles alone is weak.
+
+Global angle beveling over irregular acquired triangles created nonmanifold edges
+and self intersections. Preserve original bevels and dress only necessary cuts.
+For thick double doors, front seam clearance alone is insufficient: the rear
+meeting corners can cross during initial swing. Source-derived circular relief
+along the real hinge sweep clears this without widening the visible front seam.
+
+Implicit Laplacian smoothing on a roughly 544k-vertex gate dominated CPU time.
+Zero dense smoothing followed by explicit fairing on the reduced mesh was fast.
+Bounded displacement alone did not prevent skinny triangles inverting: detect
+flipped faces/self contacts and locally backtrack affected vertex displacement.
+Keep rejected candidates, cancellation evidence and the final actual-export proof.
+
+## 2026-10-17 — Inspect metallic predictions by material, not just file validity
+
+AR-03's AI metallic image was numerically valid but semantically inverted: bronze
+samples were near zero while limestone samples were higher. The initial threshold
+made the entire derived map zero. A gold albedo alone hid the mistake in some
+lighting. Keep raw maps; check known material samples and inspect the actual PBR
+consumer. A calibrated mask from the unchanged warm saturated bronze albedo
+restored metal response while retaining nonmetallic limestone. Geometry, UVs,
+normals and albedo remained unchanged; the earlier matte previews are retained.
+
+GV-03's source wheel removal exposed a thin-wall hole. A transported adjacent
+acquired pedestal slab repaired it, but transporting its back wall too introduced
+self contacts. Restrict the patch to the front wall and recheck after remesh/QEM.
+Increasing the budget alone did not fix the crossing surfaces. Keep close-up
+evidence: a whole-prop render can hide small open cuts and isolated dark triangles.
+
+## 2026-10-17 — Camp tools: attached backdrop and budget-sensitive structure
+
+HC-07's acquired shovel included a thin floor-shadow spur connected to its tip;
+component-size cleanup could not remove it because the whole shovel was one
+component. The first bounded oblique cut left a visible lip. A second recorded
+cut removed the spur while retaining a cupped blade, and the actual 8,000-triangle
+result passed manifold/self-contact checks and four-view inspection before paint.
+Request no ground plane/cast shadow in new isolated geometry references. This
+reduces a known acquisition risk; it does not substitute for side/back review.
+
+The ledger table passed numerical reduction at 10,000 triangles but lost too much
+frame clarity. Mark's higher-count permission supports a deliberate 18,000-triangle
+revision, chosen for appearance rather than the profile ceiling. Increased count
+still left 21 local crossing pairs; bounded local repair and another actual mesh
+audit were necessary. Keep the lower-detail and rejected normal experiments.
+
+## 2026-10-17 — Imported rotations and parent transforms require actual motion proof
+
+HC-08's case lid appeared to pass a sweep while remaining closed: imported glTF
+objects used quaternion rotation, so assignments to `rotation_euler` had no effect.
+Set the rotation mode explicitly, verify the resulting pose, and check the actual
+exported GLB and FBX. Once the hinge moved, two clasps needed a recorded 3.5 mm
+forward fit before all 106 one-degree samples cleared. Preserve the rejected
+static sweep and intermediate candidates rather than relabeling their evidence.
+
+Before parenting acquired clasp parts while preserving world transforms, update
+the dependency graph after changing their locations. Reading a stale
+`matrix_world` teleported the first clasp derivative to the origin. Visual open
+and closed views, bounding checks and actual motion all matter independently.
+
+The Spark disc's bounded smoothing left its separate cap intersecting the body
+on rotation. Clamping vertices back to cut planes cleared the cap but introduced
+three body self-contacts. The selected derivative instead retains the manifold
+smoothed geometry, raises the cap rigidly, and applies a shared positive vertical
+scale to retain 2 cm total height. Recheck topology and the full cap sweep after
+each repair; a clean gap alone does not prove a clean mesh.
+
+## 2026-10-17 — Ferrule fitting must preserve radial ordering
+
+HC-08 hero sword collar fit v2 projected several acquired folds to the same
+rounded rectangular surface and introduced 25 nonadjacent contacts. It is
+retained and rejected. V3 keeps positive radial dependence (exponent 0.35),
+preserving layer order while reducing wobble; its topology passes. Axial lip
+compression v4 cleaned the scalloped silhouette but introduced two contacts.
+V5 resolves those in one bounded local iteration (0.9535 mm maximum), with
+13,998 triangles unchanged and zero holes, degenerates or self-contacts.
+Close-up front/side and all four fixed views were inspected before paint.
+Do not treat a mathematical surface fit or a cleaner silhouette as topology
+proof; retain both visual and contact evidence after each local repair.
+
+## 2026-10-17 — Revision attachment inherits metadata; refresh after linking
+
+Framewright's asset revision endpoint copied the earlier sword's display name
+and notes onto the new current model. The new GLB was correct but its notes
+still described a brass crossguard and 5,000 triangles. Retain the import
+receipt, attach the family, then reapply and read-verify the intended current
+label/tags/notes. Verify the served GLB hash independently. HC-08 sword, pair,
+layout and image reference are corrected with retained refresh receipts.
+
+For the canvas material, broad five-pixel shading blur erased useful painted
+wrap boundaries. One-pixel blur with a 4.5 cm AI weave repeat retains readable
+overlap edges at close range. Inspect the hilt separately, including the live
+viewer, rather than accepting the whole-sword thumbnail as material proof.
+
+DH-02's touching canvas folds did not separate under local smoothing applied
+around both sides (3 mm and 6 mm bounds). A one-sided, weighted two-ring offset
+of at most 2 mm cleared the specific contact without replacing acquired
+geometry. Topology and four-view inspection, rather than displacement size,
+determine the selected candidate.
+
+## 2026-10-17 — Lowest-vertex grounding is necessary but not sufficient
+
+DH-02's first rigid arrangements passed contact and minimum-height checks, yet
+the pack's static straps supported its body like stilts. Operator views rejected
+those poses. Rotating the intact pack onto its side gives the body a plausible
+resting surface without changing painted geometry. Keep the rejected poses,
+inspect the full composition from above as well as profile views, and keep
+physics/cloth certification separate from visual grounding.
+
+## 2026-10-17 — Measure acquired openings before fitting separate parts
+
+DN-01's five vent openings are not uniformly spaced, and the outer two are
+narrower. Equal-spacing guesses placed canvas inside stone or bronze. A ray
+survey of the actual acquired vent located each gap, lintel and lower ledge;
+individual cloth placements then preserved painted geometry and cleared the
+hanging bodies. Include the cloth mesh's offset from its top-pin pivot when
+centering it. Allow only the declared concealed pin band to contact the lintel;
+an arbitrary overlap allowance can conceal a bad fit.
+
+The acquired cloth was closed but contained 16 handles/pinholes. Closed-edge
+checks alone did not establish a usable ribbon. Source-guided voxel repair
+introduced three fully enclosed negative-volume cavities; removal preserved the
+exterior exactly. Reduction passed its numerical surface gate but transported
+dense voxel normals produced visible ripples. Smooth vertex normals and a
+bounded contact repair passed the selected four-view gate. Preserve each failure
+and distinguish topology, distance, normal-field and visual evidence.
+
+Vertical shear, rather than rigid rotation, gave sloped passage modules the
+requested 4 m vertical clearance while preserving vertical connector planes.
+Verify actual exported floor/ceiling rays and connector samples; transformed
+bounding boxes alone cannot prove a walkable passage.
+
+Explicit UTF-8 is required when reading JSON labels on this Windows host.
+Default text decoding silently produced mojibake in otherwise valid receipts
+and live asset labels. Repair metadata from exact intended labels and read it
+back; do not regenerate or replace correct model bytes to fix text.
+
+## 2026-10-17 — Imported rig display helpers are not production geometry
+
+Blender's glTF import created an 80-triangle icosphere used as a bone custom
+shape. DN-01's first breeze package accidentally included it in FBX export and
+render bounds: the FBX appeared as a large white ball and the intended model
+was framed too small. Retain the rejected package. Clear actual pose-bone
+custom-shape references, remove only those identified helper objects, then
+verify the expected mesh set before packaging or computing render bounds.
+Selected package has six meshes and 39,930 triangles, with source/FBX appearance
+and all 193 actual cloth deformation frames checked. Animation equality alone
+cannot detect unrelated extra geometry.
+
+Imported UV seams duplicate coincident vertices. A raw-index adjacency test
+reported cloth self-contacts at rest despite unchanged geometry. Weld positions
+within 1e-6 m in an evaluation-only mesh before testing nonadjacent contacts;
+preserve production vertices, UVs and weights. Check the whole animation,
+the pinned band and the hanging-body clearance separately.
+
+The shared mechanical packager's inherited Hinge_Left/Hinge_Right defaults
+failed for a sliding slab and floor ring. Bind explicit object names per model
+and preserve the failed first package, rather than treating successful geometry
+export as proof that the intended animation target was packaged.
+
+## 2026-10-17 - RC-01 thin metal and inherited emitter checks
+
+Automatic QEM alone left thin door/cuff folds despite preserving apparent
+silhouettes. The selected door and cuff use actual voxel/QEM derivatives with
+20k and 6k triangles, then four-view inspection before paint; increasing the
+budget without correcting topology was insufficient. Keep the rejected QEM
+and bounded-fairing attempts. Texture transport expects GLB, not Blend; CPU
+format/name failures must not be mislabeled inference crashes or trigger an AI
+retry. Successful paint validation and a later process teardown crash are
+separate facts, recorded separately.
+
+An inherited emitter frame had 15 self-contacts despite a prior closed-face
+check. Repaired copies passed the stricter test after bounded local fairing
+plus two measured one-sided offsets, retaining face/UV arrays and maps. A
+per-mesh self-contact pass does not establish clearance between separate frame
+and glass meshes; the 504 inherited cross-mesh contacts remain explicitly
+pending classification. Do not silently certify or alter the original.
+
+## 2026-10-17 - RC-01 exported motion, precision and glass clearance
+
+Imported glTF objects may retain quaternion rotation mode. Keying Euler
+properties alone produced plausible recorded angles but no real exported door
+motion. Set the intended rotation mode and audit evaluated world transforms in
+the actual GLB/FBX over all 193 frames, including contacts. Retain the failed
+Euler-on-quaternion version; property values are not movement proof.
+
+Native surface checks do not guarantee export precision. One fitted wall
+triangle became degenerate after GLB quantization and evaluation-only welding.
+A local merge/dissolve with normal transfer fixed it with a 3.815-micrometre
+maximum vertex shift. Audit the final bytes, not only the source Blender scene.
+
+The inherited emitter contacts were mostly boundary coincidence with a small
+real overlap. Expanding a complex frame as a Boolean cutter destroyed almost
+all glass, caught by a volume-ratio gate. The unexpanded cutter, tiny inset,
+bounded local fairing and 0.995 radial fit retained 98.6582% of glass volume
+and passed actual GLB/FBX self/interpart checks. Fairing can reintroduce contact
+with a neighbouring mesh; recheck both. Do not blame the rejected expanded
+cutter result on dependency-graph timing without evidence.
+
+A projected tally decal crossed a stone joint and visually broke the strokes.
+Move the mapped image onto a continuous panel and retain its wall in a cutaway;
+removing that wall leaves floating marks. Compare exact exported interior views
+as well as exterior fixed views. FBX glass opacity is a documented approximation,
+not proof of identical transmission optics.
+
+
+## 2026-10-17 — CH-03 rig axes, glove weights, scale and review helpers
+
+Manny FBX bone local X can follow the limb, so a generic local-X deformation
+suite may twist elbows/knees rather than bend them. A mechanical pass is not
+visual bending proof. Derive world hinge axes through current bone matrices,
+inspect actual exported skin and retain the misleading exploratory receipt.
+
+Measured finger joints do not make automatic weights sufficient. The raider's
+coarse gloves needed local linear subdivision and source-bound digit weights;
+limit wrist influence anatomically. Distance fading along the entire finger
+left distal spikes; the proximal-only wrist guard worked. Preserve source UVs
+and images, audit the refined surface and stay under the NPC ceiling. A compact
+curl is still not a verified weapon grip.
+
+Blender glTF import creates an Icosphere in glTF_not_exported for bone display.
+It is not in the delivered GLB mesh list. Exclude this helper from geometry
+counts, surface audits and camera fitting; otherwise audits find an imaginary
+80 triangles and a one-metre surface discrepancy. Do not delete source geometry
+to fix an importer helper.
+
+A .01 armature scale can render correctly through skin matrices but give static
+consumers two-centimetre bounds. transform_apply on this bound pair shifted skin
+by .923 mm; explicit world-space data normalization preserved joints and stayed
+within 6.9 micrometres. Check both skin and consumer dimensions. A real root bone
+is appropriate for Manny; the base gate currently omits its own declared root
+from the allowed-name union, requiring a scoped explicit-root allowlist here.
+Do not misreport that as a new skeletal contract or human approval.
+
+FBX bakes object transform channels. Apply comparison-axis transport AFTER each
+frame_set, or the animation restores the old orientation and creates a false
+large pose discrepancy. Packed GLB metallic/roughness need separate scalar
+textures for a portable FBX; decoded channel comparison was exact. Keep failed
+checks and their corrections rather than silently changing success criteria.
+
+## 2026-10-18 — CH-03 targeted face mapping and incomplete native paint
+
+At a whole-body paint scale, small eye regions can become black masks. A separate
+image-conditioned head pass improves features, but a broad head mask can paint
+skin onto hair and collar. A source-geometry face mask limits atlas replacement
+to the actual face. Verify unchanged geometry/UVs and byte-identical texels
+outside that mask; inspect front and side as well as full-body views. Retain the
+rejected full-head result. This does not add face geometry or certify hero-level
+close-up quality.
+
+Distinguish a native paint crash after validated artifacts from a crash before
+output. The carbine attempt produced no maps or validation and is failed, even
+though its input mesh/UV CPU checks pass. Do not infer a root cause from generic
+Qt warnings, label an unpainted mesh finished, or retry the same attempt
+automatically. Body output validation is separate evidence from native process
+exit status; keep both. Subsequent face-only mapping is a distinct scoped task,
+not an identical crash retry.
+
+## 2026-10-18 — Judge translucent states from pixels, not file lengths
+
+Equal native PNG lengths and a subtle visual change were mistaken for a missing
+steady field. Per-pixel comparisons, particle data and shader-channel probes
+showed correct controls and desaturation. Retain the correction receipt and
+state captures; measure representative colored regions before declaring an
+unresponsive effect. Native resource teardown also needs time to drain: preserve
+crashes and avoid immediate manual render-target release plus editor shutdown.
+
+
+## 2026-10-18 — SaveMap copy is not a live world rename
+
+The native FX-02 sequence saved before a SaveMap-as operation retained references to the old map. Both runtime-player and editor-scrub checks resolved zero actors. Saving the destination map, explicitly loading it, then binding and saving the sequence/current level corrected the issue. Fresh packaged editor scrub proved 45-degree cap yaw at 0.2 seconds. Successful file loads alone do not prove sequencer binding. Original package retained.
+
+
+## 2026-10-18 — Native Sequencer parameter keys use tick resolution
+
+MovieSceneParameterSection.add_scalar_parameter_key takes native tick-resolution
+frame numbers, unlike scripting-channel add_key display-frame behavior. Using
+display frames advanced the eight-second FX-03 clock by 0.02 seconds. Convert
+seconds using the sequence tick rate (192000 ticks for eight seconds at 24000 Hz).
+Fresh packaged scrub at 0.5 seconds then returned exactly 0.5. Retain the failed
+zero-frame capture and verify a representative intermediate value, not merely
+that keys exist. Source GLB/FBX geometry and UV comparisons matched within
+rounding; the rejected UV-flip experiment was not evidence of broken source UVs.
+
+## 2026-10-18 — Manual scene captures need persistent post-process state
+
+SceneCapture2D.always_persist_rendering_state=True was necessary for manual
+post-process comparison captures. Without it, OFF and ON images were identical.
+Negative Tomb Grade exposure values are EV100 only with extended luminance range
+enabled; read the actual game's configuration and reproduce it in the isolated
+review project. Otherwise the same values can produce white captures. Use
+repeated disabled controls to bound dithering/temporal variation; do not call a
+two-level difference an effect when the control varies by three levels.
+
+The TA-01 multi-mode capture wrote all requested outputs but exited 3221225477
+during teardown. Preserve that execution as failed. Separate packaged reopening
+exited 0 and proved load/capture, without erasing the earlier failure or claiming
+cooked runtime/GPU performance certification.
+
+## 2026-10-18 — Door-open static audits do not prove the animated opening
+
+Drift Well's route audit disables intentional gate collision. It reported clear
+while the actual fully-open vault leaves still blocked the player because the
+pivots were 54 cm from centre instead of the authored outer hinges at about
+183 cm. Inspect source bounds, use the real outer hinge and confirm a pawn can
+walk through the animated opening. Keep failed traversal evidence alongside
+the corrected pass; actor state `open=true` is not traversal proof.
+
+Background editor throttling also reduced automated PIE to about 3 FPS. The
+native setting is accessible as `bThrottleCPUWhenNotForeground` on
+`/Script/UnrealEd.Default__EditorPerformanceSettings`; the Python snake-case
+property name was unavailable. Temporarily change it in memory for input-driven
+probes, then restore it and Slate throttling without saving user configuration.
+The jump harness must accelerate and settle with ordinary movement inputs:
+overly slow steering and unbraked landing velocities caused misses despite
+reachable platform spacing. Preserve those misses, not just the later pass.
+
+Final material audits must include newly added actor tags and reused parts,
+not just the original builder tag. A wooden chest lid's interior still sampled
+DefaultTexture; its original GLB embeds the image on UV1. Restore that exact
+binding through a map-local override and retain source hashes. A clean direct
+material scan is not a claim about recursively unresolved material instances.
+
+## 2026-10-18 — Loading Bay: verify the combat space in motion
+
+A clear static walk audit did not catch a missing floor underneath a raised
+gallery. A real knockback carried the player underneath it and out of the map.
+Give accessible undercrofts recovery floors, then verify ordinary movement and
+an isolated below-room restart. Keep the failed run as evidence.
+
+The shared enemy StateTree uses a 100 cm centre-distance melee condition.
+Scaling a heavy's capsule can make that condition geometrically unreachable,
+even with valid navigation, animations and attack tokens. In this isolated
+prototype, 1.25x body scale (versus .85x lights) restored attacking; leave shared
+assets intact. Verify repeated pushing against a heavy that actually attacks.
+
+Explosion visibility traces target the actor pivot. A wall pivot buried below
+a sloped ramp can be occluded despite a bomb visibly landing nearby. Place the
+partition on a flat landing above the floor, and verify an actual thrown bomb.
+Runtime navigation must be built, and a bombable route needs dynamic updates;
+RebuildNavigation alone did not make the initial static Recast data usable.
+
+Interaction owners with an existing OnInteract handler must not be implicitly
+signalled first: opening one double-door leaf before Operate runs makes the
+stay-open guard skip the linked leaf. Preserve explicit signal targets and let
+the native owner callback perform its operation once.
+
+## 2026-10-19 — Blade UI evidence must track real events and operator ownership
+
+A cancelled throw, destroyed projectile or room reset must not produce a catch
+pulse. Record catches at successful arrival, and damage confirmation only after
+hostile ApplyAttack.Landed; preserve the projectile's existing per-pass hit set.
+Behind-camera blade bearings must use camera-space lateral direction, not the
+mirrored screen projection. Test portrait, ultrawide and normal viewports.
+
+Use keyword Rotator fields or kit.rot(yaw,pitch,roll) in UE Python probes.
+Positional Rotator(-12,90,0) rotated the review camera incorrectly. A completed
+probe is not a passed probe: check accepted throws, blade counts and recall.
+When owner input starts during review, stop driving the camera and hand control
+back; preserve the contaminated captures rather than claiming visual acceptance.
+
+
 ## 2026-10-22 — Animation export correctness and quality need separate receipts
 
 A fresh Character02 packet can pass 19-clip GLB/FBX pose round trips and actual
@@ -1510,3 +2582,1031 @@ not inherit the source game's runtime acceptance or prove the imported mesh free
 of warnings. The contact implementation still costs up to 192 terrain traces per
 character and targets human-scale bipeds; destination performance and gameplay
 need their own evidence.
+
+## 2026-10-23 — Bind frames, saved blend-space structs and stateful test isolation
+
+Bone names and a shared Skeleton asset do not prove equivalent bind frames.
+Ennix's native Blender axes and Unreal axes differ, and the Skeleton reference
+pose differs from the installed SkeletalMesh pose. Read mesh-bound GetRefBonePose
+using optional_skeletal_mesh, and export the installed mesh for probes. Preserve
+the skin operator with animated * inverse(source_bind) * target_bind, rebuild
+locals, and set the new sequence's retarget-source asset to the actual mesh.
+Verify evaluated keys with retargeting enabled after a fresh-process reload.
+Wrong-frame probe and import attempts remain rejected, not silently overwritten.
+
+Python mutations to structs yielded by Unreal reflected-array iteration can fail
+to persist even when save succeeds. Copy to a list, assign each changed struct
+back into it, set the full property, rebuild BlendSpace triangles, save and reload.
+Verify exact clip references and speed rows, then check live support curves during
+walking. Ennix V2-V7 had new sequences but stale walk references; V8 corrects this.
+Do not publish their after-recordings as proof of the new walk.
+
+Independent runtime cases that teleport to spawn must replace their animation
+instance, not merely reinitialize it. World-space foot locks survived the latter
+and contaminated the next case. Clear/restore the class, assert object identity
+changed, and record resets only between cases. Actual within-case turns remain
+uninterrupted and must retain their own state. Ground trace misses are separate
+coverage data; never count them as cleared contact or silently fail every panel
+without distinguishing partial coverage from a wholly unobserved foot.
+
+No-penetration is not no-sliding. Ennix's final straight support intervals lock,
+but a sharp turn yields up to 10.445 cm at 30 Hz under the existing bounded contact
+solver. Keep that result visible beside positive sole clearance and pending human
+acceptance. Do not alter Character02's shared solver merely to improve a second
+character's score; changes to turning contracts need their own scoped acceptance.
+
+
+## 2026-10-23 — Plant reach is character-specific; plugin isolation must be explicit
+
+A fixed horizontal contact limit cannot fit every gait and body. Ennix's sharp
+turn exceeded the 15 cm plant envelope while its support leg approached full
+extension. Enlarging the envelope alone cannot create physical reach. Use a
+bounded, opt-in pelvis lowering solve for both supporting legs, keep original
+segment lengths, retain ground correction and expose actual body displacement in
+the receipt. Defaults remain 15 cm offset and zero pelvis compensation. Ennix's
+separate profile uses 35/6 cm limits but needs only 1.937/3.031 cm pelvis lowering
+in the tested 30/60 Hz paths. Compare positional slide, rotation, ground clearance,
+body motion and skin clearance separately; no single score grants artistic approval.
+
+Preserve an accepted game solver by adding a separate plugin/class and derivative
+AnimBlueprint rather than overwriting its implementation. Unreal project plugins
+with unspecified EnabledByDefault auto-enable: absence of a project-file edit is
+not proof of opt-in behavior. Set the descriptor false and verify ordinary startup
+has neither class loaded; explicitly enable only the intended review launch. The
+Ennix descriptor-only rebuild retained identical runtime DLL bytes. Keep cooked
+and performance acceptance separate from these fixed-rate game correctness runs.
+
+## 2026-10-23 — Inspection speed is not the manual gameplay default
+
+The user rejected the perceived slowness of the 105 cm/s Ennix inspection
+session. Preserve normal travel at the game's 500 cm/s and make deliberate
+walking selectable (Left Alt in the temporary manual review), rather than
+globally capping all movement at the authored walk speed. Keep the existing
+speed-driven blend graph and contact solver; this change does not certify the
+unpolished jog/run clips or higher-speed contact quality.
+
+In this UE runtime, FKey's name is not exposed as a Python property and its
+constructor accepts no positional arguments. Use its native text importer and
+verify the exported value, as confirmed by InputCoreTypes.cpp and
+PyWrapperStruct.cpp. Retain failed launch receipts before a corrected launch.
+
+## 2026-10-29 — Character parts, reference occlusion and native packaging
+
+On a character built with separate wardrobe surfaces, they avoided
+projected garment seams and skin contamination. Keep body-to-garment triangle
+barycentrics through edge fairing so skin weights follow the same acquired
+surface. Anatomical region masks are necessary: a height-only shorts cut also
+selects forearms in an A-pose. Preserve the already accepted body.
+
+A multiview facial bake can pass broad coverage checks while duplicating an
+eye corner or painting loose hair onto skin. Inspect an actual close-up with
+hair temporarily hidden. Front identity projection and harmonic surface fill
+over hair-occluded areas removed these defects without changing geometry.
+Retain both the defective render and the correction's source registration.
+
+An acquired hair shell can define a useful envelope while remaining a poor
+render surface. The existing envelope-based groom improved that character visibly,
+but its swept-back ponytail still differs from the reference. Keep native
+strands separate from the FBX mesh-hair fallback and state both triangle/curve
+counts; neither a nicer groom nor a valid skeleton proves production readiness.
+
+Blender image.has_data is false for some lazy-loaded textures even after a
+scene has rendered. Do not use it as the sole packing predicate. Pack all
+external files, reopen the saved blend, and check every file image's packed
+state. Save the camera after setting the intended delivery view. These checks
+catch a scene that renders correctly in-session but opens with missing maps
+or a camera at the origin.
+
+## 2026-10-29 — Read the Basis when registering a shape-key character
+
+In one shape-key rig, the original mesh vertex array remained in acquisition
+coordinates while the Basis and all expression keys had been grounded by
+-9.9033 mm. A face projection that applied inverse grounding to the raw mesh
+vertices doubled that correction and displaced eyes/lips. Use the Basis rest
+coordinates, record the frame conversion, and inspect a close-up before accepting
+material work. Preserve the failed render; do not confuse the failure with a
+bad camera or attempt to compensate by moving the head.
+
+An open-eye photograph stretches across a closing lid even when the morph itself
+is valid. Review actual closed-lid renders; a driven skin blend can remove the
+photographic streaks, but it does not prove likeness or expression quality.
+
+## 2026-11-01 — Acquire heads and hands alone; weight layered characters by limb region
+
+CH-03 Raider's whole-body acquisition gave the head and the hands too little of the generator's resolution:
+lumpy hair, shallow eyes and a generic face that no MakeHuman fit, projection or paint rescued (three face
+options were all rejected), and gloves fused to the fingertips. A close crop of the same reference, upscaled
+4x and acquired alone, gave modeled eyelids, lips and hair, and fingers separate to the knuckles. Detail
+acquisition is now part of Stage 2 for every humanoid (`WORKFLOW_PLAYBOOK.md`, `scripts/detail_crop.py`).
+
+Rigging the assembled character exposed three faults in `derive_humanoid_landmarks.py`, now fixed: a strict
+empty-centre crotch test ran down to the knees on a stray seam (now a sustained, hip-relative gap); ordering
+the arm by sideways reach ended the chain at the thumb (now distance from the shoulder); one-sided gear
+dragged the hip-median midline 3.7 cm (now midway between the feet). Template fingers missed modeled
+fingers and a fist crumpled them; `measure_finger_landmarks.py` measures each chain from the mesh.
+
+Blender heat weighting failed on the layered mesh, on a welded copy and on a voxel-remeshed copy, so the
+rig fell back to envelope weights and the belt pouches flew with the arms. Plain nearest-bone weights fail
+the same way in an A-pose (the forearms hang beside the belt), weights spread along the surface carried
+shoulder weight down the long straps, and a limb radius cannot separate a baggy sleeve from the jacket side
+8 cm away. `rebind_layered.py` labels arm, leg and torso regions by spreading along the welded surface from
+sure seeds, lets limb bones weigh only their own region, and puts small rigid gear on one bone. Do not
+retry heat on this kind of mesh or tune radii.
+
+Mark rejected those weights too (stiff segments, hard creases, stretching). Clothing is skinned from a
+properly weighted body underneath it: `skin_from_makehuman.py` poses MPFB's MakeHuman body and
+`game_engine` rig onto the character's joints and copies its hand-made weights onto every garment vertex
+from the body surface below. Pose only the limbs, fingers and head onto the target; turning MakeHuman's trunk
+bones to match Manny's swings the hips and shoulders. Keep the hand weights on the measured fingers. The face
+rig is still open.
+
+## 2026-11-03 — Layered characters: cut parts smooth, reduce once, make armour solid, cut UVs like a pattern
+
+Mark found CH-03 Raider "uggo" up close in Framewright: saw-toothed straps and plate edges, spikes, seams across
+the plates, and holes in the back. A clay render showed most of it was in the geometry, not the paint; the dense
+acquisition itself is smooth. `build_parts.py` cut each part along the dense mesh's triangle edges (per-face
+labels), thickened the overlays partly inward, and `prep_production.py` then collapsed the joined closed shells a
+second time, spiking their rims. `recut_labels.py` now diffuses each part's share over the surface and splits
+triangles where the leading shares are equal, so outlines cross triangles and neighbours share one cut; hair and
+beard pieces cut off from the head and islands under 1 cm^2 take the label around them (a 478-triangle hair patch
+on the jacket's back became a hole once the head was swapped in). `build_parts.py --clean-edges` grows shells
+outward only and without even thickness (it divides by the fold angle and threw vertices metres away), dissolves
+slivers, splits bow-tie vertices, pulls each overlay's outline in 0.5 mm, sinks the cloth under each shell 3 mm, and
+reports each shell's furthest vertex and collapsed faces. `--budget-scale` with `prep_production.py
+--body-budget` reduces once, straight to the production density. Rejected and retained: protecting the open edge
+in the collapse (interiors became fans; a pouch tore open) and relaxing the reduced outline (it folded a triangle at
+a tooth and the shell flung that vertex away).
+
+Holes in closed shells came from three places, each found by checking the shells after every stage, not by
+looking from outside: zero-area triangles dropped on export after the second collapse; `prep_production.py`'s weld,
+which fused neighbouring shells along a shared re-cut outline into one piece (fixed by the outline pull-in);
+and `attach_face.py`'s neck clean-up, whose "bright warm paint near the neck is skin" rule cut copper highlights out
+of the chest plate. That clean-up now never deletes from a closed shell. Viewers like Framewright cull back faces,
+so review with culling on and check shells closed (`plate_check.py` counts each shell's open edges).
+
+The armour overlays are closed shells, but their weights came from the cloth below vertex by vertex, so in Manny's
+frames the shoulder plate bent 96 mm and the belt 85 mm. `rigid_parts.py` gives each shell one weight set (the
+area-weighted mean, twist bones folded into their limb; a shell over a ball joint rides the limb by at least 0.7;
+one straddling a hinge is left alone) and locks the surface under it. Three lock rules failed first: the nearest
+piece wins (a strap 5 mm between the chest plate and a belt pouch tore 24-fold), a weight-overlap gate (the cloth
+under the shoulder plate's inner edge went free), an even blend where pieces meet (cloth lagged under a pouch).
+The kept rule gates by body region, blends by pull and lets the covering piece count ten times. Measure poke with a
+ray along the bind normal turned with the piece: the posed vertex normal tilts with the cloth around it and finds
+the piece's far side. On v7 every shell is closed, torso pieces bend under 3 mm, the shoulder plate squashes evenly
+by up to 19 mm instead of folding, and the thigh pouch's poke fell from 34 mm to 1.5 mm.
+
+The body atlas from one Smart UV Project had about 10,000 saw-edged islands, and the painter's views disagree at
+every island edge. `body_paint_prep.py --part-uv` (`part_uv.py`) cuts each part like a pattern: at folds over 75°
+on shells and only at fold-backs (130°) on cloth, since at 75° the jacket's wrinkles cut it to patches, plus the
+cheapest paths joining a tube's open loops, weighted to run down the back and the undersides. About 3,000
+islands remain, most of them hidden rims and skirts. Re-baking old paint into a new layout carries its smears
+across, so the body was repainted. A paint run was refused before inference when 98 triangles of the acquired face
+had two corners at one point (the painter's exact-position normal proxy rejects the mesh); `--clean-edges` now
+dissolves those. The painter's smears on surfaces the reference does not show (the shoulder plate's outer face)
+remain; better UVs do not fix them.
+
+`build_raider.ps1 -From parts` now runs all of this inside the run folder, then `manny` (Manny axes with the torso on
+Manny's exact frames, shoulder re-split, solid armour). The rig gate counts the stand-in acquired head in the
+intermediate mesh and the speaking face, eyes and teeth in the final one against the 80k hero ceiling: v7 used
+`-BodyBudget 60000 -HeadBudget 17000 -HandBudget 5700` (79,602 triangles).
+
+## 2026-11-03 — Every character gets a material pass after the paint
+
+Mark judged the repainted Raider "A quality, not AAA": metal, leather and cloth all read as the same paint. Better
+UVs and a cleaner mesh do not change that; the painter has no notion of a material. `finish_materials.py` bakes one
+from a per-face part map and `profiles/materials/character-finish.json`, using procedural patterns in object
+space (no UV seams) and Cycles' occlusion and pointiness for grime and worn edges, into a new base colour,
+occlusion/roughness/metal map and normal map. Tuned on the Raider: scratches in one direction read as brushing
+(they now cross and are sparse); on grey-painted straps, fine leather grain with deep creases read as fur (calmer
+grain and creases); a 64-sample bake looked the same as 16, so the fur was the pattern, not noise. On the GPU the
+whole pass takes under a minute after Cycles' first kernel compile. In the Unreal import a normal map must get its
+own texture asset; sharing the `_MR` name replaced the roughness/metal map and made the body fully metallic.
+`build_raider.ps1` runs it as the `finish` stage.
+
+## 2026-11-03 — The part map comes from grounded detection, not clicks
+
+The Raider's 2D part map was clicked by hand on SAM's automatic masks, so the next character could not reuse it.
+`scripts/auto_part_map.py` finds the parts of `profiles/segmentation/humanoid-gear.json` with Grounding DINO
+(boxes from text) and Segment Anything (a mask per box). Every rule below was measured against the hand map's pixel
+agreement and then checked by eye on the CH-03 Guard, Scout and Bulwark looks, which were never used for tuning.
+
+- One query per part: 0.548. "Holster" took the knee pads, "shirt" the whole torso, and a box round the whole
+  figure passed every size limit. Comparing box size with the whole picture let the jacket through or killed it;
+  each part's `max_box` is now a share of the figure's own bounding box.
+- One joint query with every phrase (parts compete for each box): 0.782. It never named the chest plate. Adding
+  each part's own prompts gets it, and "a shoulder pad" finds shoulder plates; "a bare forearm" finds the bare skin
+  between glove and sleeve, where the joint "forearm" drew round the whole arm.
+- SAM spills past a small box into its neighbours: masks are clipped to their box.
+- A harness box's mask is the whole chest with the plate in it, and straps outrank plates. Two fixes: a smaller
+  part nested in a bigger mask at most one layer above it wins inside it (the Raider's plate, 0 to 0.41), and a
+  thin part keeps only the parts of its mask no wider than `max_width` (on the Guard and Bulwark the plate's mask
+  was within 17% of the harness mask's size, so nesting alone could not tell them apart).
+- Dropping boxes under 0.6 of the part's best score removed junk belts and jackets but also every shoulder
+  plate when the chest plate scored high. Now a box is compared only with overlapping boxes of its part, and parts
+  a character has one of (belt, face, hair, beard, jacket, trousers) keep their best box.
+- Height zones (0 at the crown, 1 at the soles) keep belt pouches out of "thigh holster": pouch IoU 0.47 to 0.97.
+- Bare skin by colour: the neck and forearms came out as jacket. Cloth pixels within ΔE 18 of the face's colour
+  that touch the face or a skin detection become face or skin (face 0.70 to 0.94, skin 0.21 to 0.89). Taking the
+  colour from a detected "forearm" as well turned the Guard's grey sleeves to skin: that box was a cloth wrap.
+- The Bulwark's second pauldron was never detected. A paired part found on one side is looked for in its mirrored
+  box and kept when the mask there matches in size (0.5 to 2 times) and colour (ΔE 12). The Raider's single
+  shoulder plate has teal cloth opposite, so it gets no twin.
+- Rejected: labelling SAM's automatic segments with CLIP (0.79 at best, and the beard and face fell to 0.14 and 0);
+  CLIP on whole masks calls most large regions "belt". A colour clean-up that hands overlay pixels resembling the
+  cloth around them back to the cloth lowered agreement (0.89 to 0.79-0.84): leather, boots and cloth are too close.
+
+Result: 0.889 pixel agreement. Straps (0.34) and plates (0.60) remain the weak parts. The map is a gate; the
+`labels` stage of `build_raider.ps1` writes `review.jpg` and project_parts.py's four-view part renders for it.
+
+## 2026-11-03 — A segmentation boundary is not necessarily a part boundary
+
+On the Raider, a SAM mask ended halfway across a single armoured plate and
+the middle of one leather pouch. Thickening these masks put real rim faces
+there. Pattern UVs and a new material finish left the tear visible in clay.
+Compare identical close-ups in clay, unlit albedo and component IDs before
+repainting. Restore continuous acquired geometry across an invented cut;
+keep an independent shell where the article really separates or where the
+backing is absent. Inspect the reverse angle before removing that shell:
+the first whole-piece trial uncovered an actual hole in a front pouch.
+`scripts/blender/compare_surface_crops.py` detects the resulting loss in
+depth even when both foreground silhouettes remain occupied. A grazing rim
+can legitimately move after removing a thick overlay; check it against the
+original acquisition instead of changing the alarm threshold.
+
+### 2026-11-03 — after paint, assign surfaces inside the atlas
+
+On the Raider, one named face slot also contains painted hair, beard and a
+collar; one hand slot contains bare forearm and a leather gauntlet. One
+roughness or specular factor per slot cannot represent these boundaries.
+Project existing part labels onto the accepted UVs, review those masks on
+the model, then bake the independent surface controls. Use the same painted
+geometry, camera and exposure for both images and move a studio light: the
+steel highlight should stop at a leather rim. A flat-colour check establishes
+paint preservation, not this distinction. See [material sweep](MATERIAL_SWEEP.md).
+
+### 2026-11-03 — evaluate worn steel in Framewright Scene as well as Assets
+
+The live asset inspector supplied room reflections. The Scene viewport used
+an ambient light and one directional key. In Scene, the original 0.94
+metalness shoulder produced a bright glint surrounded by near-black steel.
+On this painted, weathered plate the `framewright-scene` target uses 0.67
+effective metal coverage and a broader roughness range. The shaded plate
+became readable while the highlight still stopped at the leather rim. Check
+the actual scene and asset inspector before selecting this finish for another
+asset. [Matched measurements and settings](evidence/raider-framewright-20261103.json).
+
+### 2026-11-03 — distinguish a projected material line from an equipment edge
+
+A SAM-derived face label can split a single buckle halfway across its face.
+Insetting its backing and extruding the cut creates a real, jagged wall;
+roughness, padding and UV painting cannot remove it. On the Raider the original
+acquisition already had enough relief. Preserve the shared face indices across
+fitted regions, and keep the IDs for paint and material response. The first
+continuous bake still showed a false edge when part of a metal frame was
+labelled cloth. Check the material IDs against the actual painted trim. For
+an independently removable item, reconstruct and inspect its hidden side and
+backing separately. [Matched Framewright result](evidence/raider-continuous-20261103.json).
+
+### 2026-11-03 — give the narrow gusset its own reference
+
+Projecting a sharp pouch face across its thin end merely turned blur into
+streaks. An edge-on reference aligned to the actual gusset supplied a coherent
+fold. Both donor views showed part of the same flange: using both gave a
+double sewn edge under a grazing light. Assign the flange to one donor and
+use the other for the return. Likewise remove a donor's dark silhouette
+shadow before painting the real bottom turn. [Raider pouch comparison](evidence/raider-pouch-20261103.json).
+
+### 2026-11-06 — diagnose the seam in separate surface and geometry views
+
+The Raider's dark knee bands were incorrect metalness on brown fabric, not dark
+base color. The last horizontal neckline band was a reference crop boundary;
+clamping its last pixel row removed the band but stretched skin grain into
+vertical streaks, so that candidate was rejected. Continue registered coverage
+beyond the visible garment opening and inspect the resulting normal and response
+maps as well as color. The isolated cuffs needed both four-sided coverage and a
+larger useful UV footprint; an atlas's nominal dimensions are not texel density.
+
+An intact-looking still also hid inherited face/torso weights: the lower face
+followed the neck, and chest straps followed the arms. Static head turns and arm
+raises exposed both. A glTF importer's display-bone tail is not a reliable
+anatomical aim axis; use actual shoulder/elbow/wrist joint positions. A passed
+held-pose or rig check does not establish natural motion quality.
+
+### 2026-11-06 — a closed patch can still be a poor repair
+
+Local smoothing of a folded acquired ear left pinches or damaged its frontal
+outline. Copying the intact opposite ear improved the shape, but the first root
+bridge overlapped the head despite adding no open mesh border. A subsequent
+direct weld had two four-incidence edges and was rejected before writing a GLB.
+Fit the root with a manifold boundary correspondence, then inspect front, side,
+clay and albedo. Boundary edge counts alone cannot establish visual continuity.
+
+The replacement needed independent UVs: reusing the donor's pixels would couple
+future edits to the intact ear. Its old paint still depicted a larger ear behind
+the new one. A registered color-plus-clay AI edit removed that false outline.
+Repainted hair then inherited skin roughness/specular and appeared as a gray
+patch; semantic response classification had to follow the changed paint.
+
+For native delivery, retain the original rig's rest frames and explicitly compare
+posed vertex positions to the transport. Filter imported character meshes by
+their armature modifier: the glTF importer's helper Icosphere is not a character
+part and fails the skin gate if accidentally retained. Pack, save and reopen all
+file images. These checks do not replace Framewright or cooked runtime review.
+
+
+### 2026-11-06 - Validate repaired GLB bounds before consumer import
+
+Blender rendering and rig gates did not detect missing min/max metadata on the
+new POSITION accessor 277 in candidate04. Framewright correctly refused import.
+The bounds-only derivative computes real extrema without changing binary data;
+retain its rejected source and before/after hashes. Add POSITION-bound checks to
+the shared export path before claiming repeatable browser delivery. Temporary
+app folders also lose static web files: verify index.html and dependency files,
+not just the executable or API. Sandbox process inventory is not host inventory.
+
+
+### 2026-11-06 - Skin-coloured paint is not sufficient evidence to remove a face
+
+Raider neck cleanup classified a garment region as skin and removed 12 acquired
+triangles, leaving a ten-edge hole below the intended neckline. Layer raycasts
+confirmed missing cloth, not penetration through an intact shirt. Restore the
+exact upstream faces with current normals and weights, then repaint isolated UVs
+from the registered reference. Do not inflate the whole garment or shrink the
+body. Future semantic face removal needs boundary-component review: new closed
+loops below the intended opening are defects to inspect, not automatic acceptance.
+
+
+### 2026-11-06 - Preserve tiny acquired faces when UV packing collapses them
+
+The generic xatlas 0.0.9 cuff replay collapsed thirteen positive-area triangles
+to zero-area UVs, although their total surface area was only about 0.001255%.
+The first run was retained as a failure. Do not delete faces or keep undefined
+tangent frames to force a pass. Repack now isolates at most 128 such faces, totaling
+at most 0.01% of surface area, into a reserved narrow atlas strip with exact source
+corners. Significant collapse and zero-area geometry still stop for inspection.
+Normal maps are transported between old/new frames; weights and morphs are checked
+per triangle. Tangent morphs are refused until their deformation-aware transport
+exists. Real evidence: rac-cuff-replay03 and the paired cuff front/back renders.
+
+### 2026-11-06 - Review framing must exclude imported bone display meshes
+
+Blender's GLB importer added a hidden Icosphere used as a bone custom shape. Its
+hide_render flag alone did not identify it, and including its bounds made the
+first automated full-body image too small/off-center. Frame from visible model
+meshes, explicitly excluding rig custom shapes. Keep closeup cameras explicit.
+The first model output remained byte-correct; the presentation was rejected and
+the later fixed reviews retained. A packed GLB-import review copy also does not
+replace the authored native skeleton/rest-frame authority.
+
+
+## 2026-11-06 - An intact-looking donor ear can still carry a displaced painted outline
+
+Compare color, clay and lit closeups before repairing the atlas. The initial
+ear reference looked plausible flat but projected hair onto the physical rim.
+Using current clay as the primary immutable contour, with color only as a
+palette, removed the doubled outline. A separate upper-fold inversion required
+a tightly located geometry pass; broad upper-rim smoothing distorted the helix
+and was rejected. Both sides and oblique views must survive the mapping review.
+For mixed transparent/opaque face meshes, capture an explicit material subset
+and retain omitted-material names. Omitted surfaces do not occlude guides.
+Do not call an ear donor clean merely because it looks better than its partner.
+See `evidence/raider-ear-alignment-20261106.json` and the retained rejected runs.
+
+
+## 2026-11-06 - Remora: diagnose UV occupancy before repainting
+
+The same skin-on-shirt patches survived replacing the projection with a raw
+native-paint rebake. At 2048 sampling, the Smart Project atlas occupied 388,875
+texels and 2,273 were multiply covered. A fresh xatlas layout preserved exact
+triangle correspondence and occupied 1,643,715 texels with 93 multiply covered
+samples; those tiny residuals still require inspection. Rebinding the raw
+acquisition paint to that layout removed the large visible bleed. Do not keep
+repainting onto an atlas whose islands share pixels. Receipts: Remora body/
+unique13 and native13. Earlier attempts remain retained.
+
+The extended template neck had collapsed inherited UVs. Remapping its rim to
+nearby old UVs still produced a pale border; separate UV coverage is needed
+before independent painting. Portrait assembly reviews also need max(width,
+height)/pixels_per_m for Blender AUTO orthographic sensor fit. Finally, a
+Blender Multiply tint node did not survive GLB export: the hair image was byte
+equivalent and no baseColorFactor appeared. Encode the intended scalar in glTF
+and inspect that exported result, not just the native shader graph.
+
+
+## 2026-11-06 - Dark texels do not identify acquired hair safely
+
+Remora detail21 used dark texels plus a front/height ROI to classify leftover
+hair. It also selected collar shadows and made conspicuous black triangles,
+while leaving the white strand artifact. Retain and reject this attempt;
+isolate geometry/connectivity and inspect the selection before assigning its
+material. A bounded nose projection also shifted nostril shading, so narrow
+bounds alone do not prove facial registration. The selected predecessor is
+review20, with these defects still recorded as unresolved.
+
+
+### 2026-11-06 - Hair silhouette and eye helpers need separate conditioning
+
+Remora's inflated braid lobes are visible in the original Pixal04 acquisition,
+before SDF cleanup. Repeated smoothing cannot recover the approved smaller
+braided knot. User approved redesign B; acquire hair separately with consistent
+views, preserve the liked body, and review actual silhouette before texturing.
+The generic strand groom previously read as fur and is not a braid solver.
+Remora's original helper eyes use the whole portrait as planar base colour and
+only 144 vertices: painted eyelids/catchlights plus live glare make them read as
+stamped facets. Dedicated diffuse irises and smooth helper geometry remove that
+confound, but are insufficient for acceptance: align centres to actual bound
+eyelid corners and review eyelid paint/exposure separately. Do not label an eye
+repair accepted merely because preservation assertions and exports pass.
+
+
+### 2026-11-06 - Isolated hair extraction and eyelid patch scope
+
+A conform-based scalp mask can reject the real donor crown if the fitted skull
+crosses it, while retaining black eyebrows. On Remora's isolated black-hair
+head donor, largest connected neutral-colored component removes disconnected
+facial marks and preserves the crown. Connectivity is required; color alone
+is not semantic segmentation. Thin acquired surfaces still collapse badly
+under reduction; UV preservation alone does not repair geometry.
+Removing painted sclera exposes a second problem: subdivided helper globes
+can protrude through lids. Check actual recessed geometry before adjusting
+iris size. Full rectangular skin patches can remove valid lashes and create
+color edges; preserve existing facial paint where replacement is unnecessary.
+
+
+### 2026-11-06 - Diagnose visible fragments and hidden expression state separately
+
+Remora's floating white ribbons were detached remnants in the old body mesh,
+not the new hair. Object colors plus component colors prove exact selection;
+do not repeat the failed dark-texel classifier. All retained body triangles
+and attributes can be checked exactly after selected face removal.
+The chin slit was internal teeth exposed by all 34 expression weights being
+simultaneously 1. An object-ID pass found the cause without patching a false
+skin hole. Reset only the explicitly intended neutral helpers; keep morph
+targets and do not zero a deliberately posed character indiscriminately.
+
+### 2026-11-06 - Registered paint still needs strict foreground and view scope
+
+Skin63 demonstrates that mildly warm AI background fringe can pass a chroma24
+test and create pale UV-edge streaks. Chroma80, narrower cheek bounds and
+leaving the jaw outside the patch remove that regression in skin64. Front and
+below-nose references disagree slightly at nostrils, so separate underside
+and bridge scopes. An unchanged silhouette or successful projection receipt
+does not establish visual success. Keep rejected maps and inspect the actual
+consumer. Frozen mapping/material inputs replay exactly; artistic mask choice
+and AI reference authoring remain explicit review work.
+
+### 2026-11-06 - Geometry removal must be followed by an exposed-paint check
+
+Removing Remora's old hair remnants left two pale S shapes and a dark dab in the
+body atlas. Clay was continuous; remeshing would damage sound cloth. A registered
+concept-conditioned AI cloth patch removes the paint and obsolete normal relief.
+This inspection is now mandatory in CHARACTER_SURFACE_WORKFLOW after component
+removal/replacement. Retain the original and check the consumer, not only the
+edited guide. Do not apply a warm-skin chroma filter to ivory cloth.
+
+The first bounded projection69 missed the upper ghost because the shoulder slopes
+behind z=.055. Guide depths measured z=.006-.05 there. Correcting only the z bound
+to -.04 in70 removes the complete mark; fixed/angled consumer views and exact
+replay71 verify the result. Derive bounds from the registered surface depths;
+an adequate 2D rectangle does not prove the 3D volume covers that surface.
+
+## 2026-11-06 - Eye detail: root lashes on the forward-facing lid margin
+
+Remora's acquired lids are ~4 mm-deep tubes. Lashes rooted on the aperture edge
+were hidden; the most-forward vertex in a radial band was the lid crease. Root on
+the nearest vertex beyond the aperture whose normal faces forward. Detect eyelid
+holes before welding: a coincident duplicate lid layer closes them otherwise.
+Strand widths must survive viewing distance; real-width strands vanished. Lashes
+are a per-character taste call: keep `subtle` and `none` presets, never force
+`pronounced`. Python stage scripts must strip the runner's leading `--`.
+
+## 2026-11-06 - Remora skin: hard response zones show in Framewright
+
+A hard skin_tzone mask edge with a different specular/roughness range read as a
+bright stripe down the nose bridge under Framewright's environment light, though
+invisible in Blender studio renders. Keep facial response in one class with its
+own spatial variation unless the zone edge falls on a real feature boundary; check
+the consumer. Default lips class read wet there. An emissiveTexture without an
+emissiveFactor contributes nothing; it is not a glow.
+
+## 2026-11-06 - Pixal3D heads are thin double shells; hair over the jaw keeps the template's face
+
+Pixal3D GLBs are unwelded closed thin shells: about half the face triangles face
+inward. The template conform then matches few points (conform04, conform05 failed
+at 4.5 mm median). Weld, recalculate outside and strip the inner skin with an
+interior ray test (face78/orient_acquisition.py) and the fit converges (0.88 mm).
+A converged fit still reads generic when hair locks cover the cheeks and jaw or the
+lids are fused: those regions keep the template's shape. Acquire the face shape
+from a reference with the hair pulled back before conforming; do not sculpt it.
+
+## 2026-11-06 - Remora face width: hold the picture's jaw harder, not a new scan
+
+Measured on identical clay fronts, the delivered head is ~7% wider than head-front04
+(jaw/cheek per face height); its jaw points stayed 2-7 mm outside the picture at the
+default jaw weight 1.5. A hair-masked Pixal scan made the face wider, not narrower.
+`--jaw-weight 6` on the existing scan03 holds the jaw within 0.4 mm and cuts the
+proportion error to 4.5%; weight 3 is in between; adding cheekbone points 1/15
+dents the temples. Pulling the jaw creases it; use the bounded underjaw relaxation.
+
+## 2026-11-07 - Game review: heat weights need a clean outer stand-in
+
+The landmark rig's heat bind failed on Remora (hair shell, eyes and mouth inside the head, outfit over body) and on
+its welded copy, and silently fell back to envelope capsules; every clip folded the arms and flung the trousers and
+tunic. Heat on a voxel-remeshed stand-in still found no solution (0% coverage) until the stand-in was reduced to its
+largest connected surface: the remesh also seals pockets between outfit and body whose walls see no bone. Decimating
+the stand-in, or scaling it 10x, did not help. Check `bind.method` in a rig receipt before judging animation.
+
+## 2026-11-07 - Hair that reads plastic is a shading model, not a roughness value
+
+Remora's hair is a shell with a flat normal map and one roughness value. Raising roughness and lowering specular only
+traded the broad plastic sheen for a dull mass; scaling specular by base brightness made wet patches. Unreal's hair
+shading along a flow map (worked out on the mesh, since the UV atlas is hundreds of small charts) is what changed it.
+A cloth (fuzz) look cannot be built from Unreal Python: its Cloth amount input (CustomData0) is not exposed.
+
+## 2026-11-07 - Animations with no Manny source: retarget from their owner, then repair the montages
+
+The Aether Wars' player uses three Character02-only montages (push, left push, recall); the Manny route lists them as
+cut and those powers played nothing on Remora. Character02's skeleton follows Manny's layout, so a second
+retargeter built exactly as the installer builds Manny's (auto chains, one-to-one, IK bones pinned, target pose
+offset to the source's reference rotations) carries them over. The batch still empties copied montage segments; the
+installer's `repair_montages` must run after it, and the motion pass flags any empty segment that slips through.
+
+## 2026-11-07 - Faces in game: check every morph name, and judge the blink
+
+The game's face component drives morphs by name and skips any the mesh lacks, so a misspelt name fails silently:
+Remora's and Character02's lip-sync gains scale `mouth-parting`, but MakeHuman's unit is `mouth-parling`, and the
+"less parting" those gains were tuned for never happened. The road's face pass reports every name the component or
+the recipe uses that the mesh does not carry.
+
+A face painted from reference views can look right open and smear when it blinks. Remora's dark lid paint (the
+reference's lashes and liner) lay on lid skin folded away while the eye is open; the closure morphs unfold it. Lash
+cards and the occlusion shell were ruled out by rendering the shut eye with each layer removed: the smear stayed with
+skin and eyeballs alone. The repaint (`clear_closed_lids.py`) picks the skin from the mesh (area growth or facing
+gained on closing), not from a hand mask. Two dead ends: a lid margin taken from the skin boundary (the skin runs on
+into the socket; there is none) and the eye-occlusion shell (it does not touch the skin). Lash-card roots locate the
+margin; the area and facing tests then keep everything visible open, so the open eye barely changes.
+
+Teeth and tongue: brightening the teeth (the game's own 1.6x) was not the mouth's problem. With them white, the open
+shapes still showed only a lower row, a dark gap and a jagged pink shape; hiding layers one at a time showed the pink
+was the tongue, left up by every morph, and the upper teeth were hidden 4.5 mm above the lip line. The fit is measured
+from the jaw morph (which teeth move, where the lips split), not set by hand per face. Its first visibility check
+counted teeth "in front of" the nearest skin and flagged 971 vertices before any change: inner lip skin faces the
+teeth. Rays from the camera positions past the lips are the right test.
+
+## 2026-11-09 - An exact Manny copy is not a calibrated retarget
+
+The game's Manny-first installer verifies its retarget by bone rotation error against Manny (< 0.01 degrees) and
+calls that correct. It is exact, and that is the flaw: bodies built differently need their own rest where Manny's
+angles misplace them. Character02's collarbones rode about 10 degrees above his modelled rest (a shrug); Remora's
+torso leaned 10 degrees in the idle against Manny's 5, with her head jutting. Calibrate the retargeter per character
+(`unreal.retarget_pose`: collarbones at their own rest with the arms re-aimed, spine/neck pitch) and judge the result
+in fixed views against Manny's own proportions (shoulder height below neck_01 as a share of height; torso lean), not
+by rotation error. Do not chase feminine motion by borrowing another character's polished set: copying Character02's
+library clips onto Remora (Character02 -> Remora, two hops) produced a 36-degree hunch and flung arms. Style her own
+first-generation clips instead (`unreal.gait_style`), subtly; strong hip sway reads as parody in third person.
+
+## 2026-11-10 - A joint in the wrong place looks like a weight problem
+
+Remora's "stringy" arms (V13) were patched with `bind.shoulder_release`, which moved collarbone weight onto the top
+of the upper arm. The cause was upstream: the template shoulder joint sat 2 cm low and 2-5 cm too far out, so the top
+of the arm really was above the joint and heat gave it to the collarbone. The patch hid part of it, and the shoulder
+still "bent wrong" (Mark, V24). Before reshaping weights around a joint, draw the joint on the mesh and measure where
+it sits (how far under the surface on each side, how the bone lengths compare with each other); a bone that points
+away from the limb it drives, or an upper arm shorter than the forearm, is a placement fault. Fix placement first
+(`arm_joints`), then weights.
+
+A fused mesh needs to be told whose surface is whose. Smooth weights cannot keep a sleeveless outfit's armhole on the
+torso while the bare arm beside it moves, and geometry cannot tell them apart (the rim sits on the skin). Colour
+can: `bind.armhole_hold`. A hard boundary tears; so does a soft one measured along the surface when a groove lies at
+the boundary. Soften through space, on the skin side.
+## 2026-11-12 - Judge tiny prop reductions at their actual screen size
+
+Clanker bolt macro matcaps exposed real valley facets, but native1280x720 renders
+at12cm and4.5m/1.5m showed their practical impact. The earlier v0016120tri pair was
+not reliably distinguishable at those distances. The v0021800tri reduction had
+scattered close-distance highlights but preserved its small gameplay-pickup role.
+Retain macro findings; do not convert them into an unrequested hero-close-up gate.
+Use the same physical scale, camera, material and lighting for dense/reduced
+comparisons, then inspect the actual production FBX with its real maps. These CPU
+checks do not substitute for the actual engine view. All rejected candidates and
+failed painter executions remain retained, even when later evidence qualifies a
+prior review criterion.
+
+
+## 2026-11-13 - Clanker retopology: absolute tolerances and rigid part regions
+
+At one-metre scale, QuadriFlow rejected otherwise closed surfaces for edges <=1e-4. Read the strict audit: reversible 1000x solver scaling preserved the dense source without voxel smoothing. AutoRemesher edge_scaling is clamped to [1,4]; requested 0.45 was actually 1.0. retopo_bake.try_remesh can report success after CANCELLED when its input is already quads; verify the operator result and actual counts. Whole-body reduction softened narrow details; user authorized separate regions. Paired caps assigned to the same mitten region must be removed before welding. Reopen the final mesh: bounded projection produced one zero-area head face, caught and removed at 1e-7 tolerance. Native quads and GLB triangles remain separate evidence. No human gate is implied by these technical checks.
+
+
+## 2026-11-13 - Clanker texture checks and lifetime wear
+
+A pixel-only UV overlap repair exposed new subpixel folds after repacking; exact triangle intersections resolved them without geometry edits. Shared 2K density was 170 texels/cm2; separate head/body 2K atlases reached 378/248 with a fresh dense normal bake. Hunyuan studio runner rejected the wrapper diagnostics flag before inference; the next attempt produced validated outputs then crashed at shutdown. Retain failed execution and independently verified artifacts separately. Warm shadow hue alone misclassified ivory edges as brass; require original metallic-map evidence. Remove fixed paint chips and their tiny residual borders before authoring seeded wear. Keep clean enamel and eligibility separate; choose wear once per body, never each frame. Optical gate rectangle sampling crossed adjacent colours; unchanged thresholds passed with semantic-interior rectangles, with initial diagnostics retained.
+
+
+## 2026-11-13 - Robot materials need geometry-aware surface response
+
+Flattening AI paint into constant colours and scattering round brown marks made the knight read as a figurine. Keep material identity but remove painted construction lines and fake hardware dots; put brass grain in normals/roughness and chip depth in normals with matching exposed-metal channels. Edge-only wear selection can hide most chips under the jaw or near the crest: constrain representative front visor/toe/cuff regions while varying each part. Regular high-amplitude grain looks ribbed; retain subtle broadband response. Filling a removed black border entirely with ivory makes a new pale border; use nearest surface material across the fitting boundary. GL/DX neutral green 0.5 quantizes to 128 in both, so complementary 8-bit checks need one-code tolerance rather than demanding an impossible exact neutral complement. A finer rasterizer covered samples left as semantic ID zero in earlier masks; these made dark UV-edge lines. Require a nonzero material ID at every occupied texel and inspect the back view. Tiny optical albedo variation can correlate strongly with normals despite little amplitude; optical pigment is now constant and highlights are fully live. Distinct wear bitmap hashes did not guarantee visibly different placement: A/D clustered similarly. Replaced D with seed 314159 and checked pairwise physical-mask overlap before delivery. Framewright software rendering permits actual-consumer review without borrowing the GPU.
+
+
+## 2026-11-13 - Explicit rigid part rigs need a separate binding contract
+
+Do not join an approved multi-part production payload merely to satisfy the landmark runner, and do not heat-bind rigid armour. The opt-in hash-bound rigid_part_binding profile accepts exact existing part names and deform owners, preserving all geometry/UVs and assigning one weight each. Native use_deform flags do not reliably survive FBX; verify forbidden bones have no weights and retain the native rig/landmarks. Whole shin-and-foot boot shells follow calf, not foot, unless separately approved ankle splitting occurs. Numerical rigidity does not prevent visible gaps at butt joints; require stress-pose close-ups. Blender Save As remaps relative image paths against the previous file unless relative_remap=False; validate reloaded pixels and package paths, not just an FBX write.
+
+
+## 2026-11-13 - Sentry rigid parts
+
+Surface caps plus Boolean sockets failed; source-derived volume CSG plus Blender collapse preserved closed surfaces. Fast simplification introduced duplicate/nonmanifold faces. A global antenna-height label incorrectly assigned carapace crown geometry to Helm: constrain by depth/width and inspect side/back. Static geometry checks do not imply motion or human visual approval. User promoted this important character to elite tier; regular-tier receipts retained. Status contains pre-existing mixed encoding; byte insertion preserves unrelated content.
+
+
+<!-- frastown-west-berth-b01-20261123 -->
+## 2026-11-23 · Modular FBX needs a consumer-space scale and pivot check
+
+The West Berth control rail imported as 2 cm from a metre-coordinate FBX although its source length was 2 m. Write actual centimetres to both evaluated render vertices and named collision meshes, using unit transforms, then import at 1.0. This follows the existing character exporter’s centimetre bake. Compare signed bounds against the local pivot after the axis conversion and read back native snap locations. Keep connection span and elevation as separate fields. The grating shadow render and per-revision material notes are part of the review evidence. See [the measured record](evidence/frastown-west-berth-b01-20261123.json).
+
+
+<!-- frastown-close-range-dry-20261123 -->
+## 2026-11-23 · Frastown dry close-range first articles
+
+The first batch used a custom atlas. The subsequent RAC paint acquisitions passed the mesh and UV gate but copied fixed orange/blue lighting into both looks. Reject the raw paint if a light or rain highlight persists in isolated base color. The deck then measured about 7 mm/texel from automatic projection. The close-range candidates use dedicated contact-surface UVs, dry authored surface color and relief, and the RAC material-response sweep. Review matched 32–46 cm views for millimetre wear and soft transitions at contact zones. Scene rain stays independent. Both Framewright revisions are Pending. See [the dry close-range evidence](evidence/frastown-close-range-dry-20261123.json).
+
+
+<!-- frastown-surface-pass-b02-20261123 -->
+## 2026-11-23 · A kit built by script is not an acquisition
+
+Frastown West Berth batch 01 was built entirely by Blender scripts from the scene's metre coordinates: boxes, tubes and prisms, no image generation and no image-conditioned geometry. The owner reviewed the resurfaced kit and said the normal pipeline had been skipped. The rule at the top of this file applies to environment kits as it does to characters. Surface pass B02 improved what the kit looks like; it did not change where its geometry came from. Treat the kit as a blockout that proves dimensions, snapping and surfacing, and acquire the pieces a viewer stands next to through the image route before calling them final.
+
+## 2026-11-23 · UVs for a hard-surface kit: metres, and nothing shared between neighbours
+
+Batch 01 scaled every face to fill one atlas tile whatever its shape. A 2 m × 5 cm flange and a 3 mm rivet each got 1024 px, so most of the surface was stretched and read as streaks. Lay each face or tube out in metres at one scale and pack per part.
+
+Sharing one island between identical members to save texture space fails the same review from the other side: both ladder stringers and every third rung carried the same rust in the same places, and the owner saw it at once. Share texture space only between fasteners, in several scattered variants. Give buried faces almost nothing and cut long members into several islands instead.
+
+## 2026-11-23 · Procedural wear: band-limit the noise, give rust height, keep marks short
+
+Three things made generated wear read as generated. Noise finer than a texel aliases into grain on any face painted at low density; sample a coarser copy there. Rust painted as colour alone is a stain; it needs height, in scabs no smaller than three texels, so the normal map can carry it. Scratches and polish drawn along a member's whole length are uniform; a real mark is a few centimetres long, lies at its own angle and gathers where the part gets knocked. Also: review JPEG with subsampled chroma turns rust on dark iron into visible squares, so keep full chroma.
+
+
+<!-- frastown-west-berth-production-review-20261123 -->
+## Keep proxy geometry out of production review
+
+A Framewright model card and a large paint atlas do not establish production admission. Inspect resolved GLB image channels and their UV bindings. Archive layout meshes and superseded exports. Create revisions for an established asset. Check physical proportions and all model faces before paint. The archive and map audit is retained in [the Frastown evidence](evidence/frastown-west-berth-production-review-20261123.json).
+
+
+<!-- frastown-ct03-metric-and-material-review-20261123 -->
+## Check acquired building apertures and rear faces before paint
+
+A square-on source may show an open door or window while the reconstructed candidate fills both with solid faces. Probe the intended clear volume after reduction and metric fitting. Test the actual exported file at human eye height and inspect its rear faces. A closed-manifold check can pass on solid infill and fused door hardware. Verify that normal strength changes lighting response before assessing a painted asset. See [CT-03 measured evidence](evidence/frastown-ct03-metric-and-material-review-20261123.json).
+
+
+<!-- frastown-production-direction-20261123 -->
+## 2026-11-23 · An agent started outside the repository loads none of its rules
+
+The Frastown thread began in an empty workspace folder. The rulebook here is read only by an agent that starts in this checkout, so nothing told it that Blender begins after acquisition. It built by script. When corrected, it built a private image and geometry route beside the real one. Put the operating instructions in the folder the agent starts in, and have them point here. Do not rely on a correction typed into a long thread: this one was compacted twice in a day.
+
+## 2026-11-23 · A gate the owner cannot see is a stall
+
+Meshes held at `modeling_approval` were reported in chat while the owner looked at Framewright, which showed nothing new. Each side waited for the other. A candidate that needs a human decision goes where the human reviews, beside its reference picture, and the report names it. The same holds for the picture: the approved image is the contract, so a picture the owner has not seen cannot start an acquisition.
+
+
+<!-- paint-sections-20261124 -->
+## 2026-11-24 · The painter's detail falls with a model's size
+
+The painter sees a whole model through twelve 768-pixel views whatever its size. Measured on the Frastown pieces: a 45 cm dock claw got about 0.6 mm of surface a painted pixel and read as immaculate; a 2.2 m skiff about 3 mm and read as smeared and grainy up close; a 15 m hull about 2 cm. The 4096 sheet and the upscaler only stretch what the painter saw, so a bigger atlas is not the fix. Paint a large model again in sections (`paint-sections`), and split a piece over about 4 m into modules at acquisition: one 4096 sheet over a 15 m hull is about 4 mm a texel however well it is painted.
+
+## 2026-11-24 · The head pass leaves a seam on a prop, and the first paint is not the tone to keep
+
+The hero route repaints the top 22% of every model at close range, for faces. On a 2.2 m mast (DK-04.2) the owner found a hard line: above it crisp, and the picture's dark iron; below it flat light putty, the whole-model paint. Two lessons. A face left with the first paint beside a closer paint is a seam, so a section pass paints every face. And the whole-model paint is the less trustworthy colour on a large or thin model, so sections keep their own colour and are matched to each other where they overlap, not to the first paint. Run the head pass on figures only.
+
+
+<!-- relief-tilt-20261124 -->
+## 2026-11-24 · A relief strength means nothing across paints; a steepness does
+
+Relief from paint raises the paint's local contrast into a normal map, so the same strength gives a calm surface on a smooth paint and orange peel on a busy one. On the section-painted Frastown mast, strength 1 tilted the normals 41 degrees at the 90th percentile where the finished dock claw tilts 4.5. Ask for a steepness instead (`--relief-tilt`) and measure the result against a model the owner has accepted.
+
+
+<!-- pixal-reduction-20261124 -->
+## 2026-11-24 · Reduce a Pixal3D mesh with Pixal's own simplifier, and weld before counting pieces
+
+Pixal3D (TencentARC) beat Hunyuan3D-2 on hard-surface crispness for the Frastown skiff (AC-01.1), and the owner called it a landslide. Three lessons came from getting it to a game budget.
+
+- **Weld seam copies before counting pieces.** Pixal writes its mesh cut along every texture seam: 984,000 triangles on 778,000 vertices where 482,000 would do. Read as imported, it had 515,000 open edges. The voxel reduction's tiny-piece cleanup then deleted 110,000 triangles of real hull, 11% of the surface. Welded first, the mesh had 902 open edges. `reduce_voxel_qem.py` and `reduce_voxel_quadriflow.py` now weld exactly coincident vertices before cleanup. `reduce_feature_qem.py` already did.
+- **Neither RAC reduction keeps Pixal's crispness.** The voxel rebuild melted the bow cap, straps and rivets at 36k and 81k triangles. Feature-weighted QEM met the deviation gates at 60k (p99 5 mm), but the rails went ragged and the straps wrinkled, even at 202k. A deviation number passed a surface the owner would reject at arm's length in VR.
+- **Pixal's own exporter simplifies cleanly.** `o_voxel.postprocess.to_glb` rebuilds a surface from Pixal's volume and simplifies to a vertex target (1,000,000 by default). The same seed-45 run exported at 100,000 vertices gave 98k triangles with no wrinkles, zero open edges, and bolts, straps and rail edges intact. Export the dense and low meshes from one run and level both with one transform. The dense mesh is then the normal-bake source, and the bake lines up.
+
+A single-view generator also guesses what the picture hides. Seed 42 left a hole in the floor at the bow, which the owner found in the viewer. Seeds 43 to 46 cost about 2.5 minutes each, and seed 45 had a whole planked floor. Generate a few seeds and pick by fixed views before reducing.
+
+<!-- section-timeout-20261124 -->
+## 2026-11-24 · A stage's time limit has to fit its longest honest run
+
+`rac run-stage` gave every stage one hour. The finer section cut paints up to 48 sections at two and a half to three and a half minutes each, so the documented command could not finish on the skiff: the pass was stopped at section 20 of 32. Framewright already passed four hours, which is why only the command line was caught. `paint-sections` now has its own four-hour default, and the stage listing reports each stage's limit. A pass that is stopped anyway resumes with `--reuse-sections`, which takes a finished section only when the painter's own record shows the same mesh, crop and settings.
+
+The stop did not end the painter. `subprocess.run` kills the process it started, not that process's children, so section 20's painter ran on and finished with nobody waiting for it. A second run started then would have shared the GPU with it. Stages and the painters inside `paint-sections` now run through `processes.run_bounded`, which stops the whole tree on a timeout: `taskkill /T` on Windows, the process group elsewhere.
+
+<!-- texel-scale-bake-20261124 -->
+## 2026-11-24 · Bake a section from about a texel a pixel, or its grain breaks into specks
+
+The owner found the section-painted Pixal skiff "super grainy" up close, though it looked incredible from a step back. The grain was in the section paint itself, before any compositing: wood grain broken into dashes, stair-steps and single-texel specks.
+
+**Cause.** The painter bakes by giving each texel one bilinear sample of each view. Before baking, it upscales every 768-pixel view four times, to 3072 pixels. Upstream then resizes only the first two views to `render_size`, because its loop counts the two map kinds rather than the twelve views. On a whole 2.4 m model, a 3072-pixel view is about 0.8 mm a pixel, close to a texel, so the sample is smooth. On a 0.6 m section it is 0.2 mm a pixel against 1.75 mm texels. Each texel then took one pore at random.
+
+**Fix.** The studio painter now shrinks every view to about a texel a pixel, with an antialiasing filter, before baking (`--bake-size`). `paint-sections` sizes that for each section from the model's own texel density (`--bake-scale 1`). On the same section, the speckle measure halved, from 5.49 to 2.62, and the grain ran as continuous lines again.
+
+**8192 sheet.** The same section painted on an 8192 sheet, which the studio painter now offers, kept the painter's cracks and knots. Painting time per section did not change: about 3.5 minutes at either size.
+
+**Blending.** Sections now cross-fade through weights interpolated from each face's corners. Weights constant per face had left hard triangles on Pixal's large simplified faces.
+
+<!-- sharp-first-paint-20261124 -->
+## 2026-11-24 · Keep the first paint's colour as painted; take only the sections' fine light and dark
+
+On the 8192 skiff, the owner saw flat grey and orange wedges on the stern and at the bow strap, and the teal paint chips had faded to a glow. The first paint had none of that.
+
+**Cause.** `paint-sections` kept the first paint's colour coarser than 3 cm by blurring it, and the blur is taken on the flat texture sheet. Near a UV island's edge it reaches into whatever unrelated island sits beside it on the sheet. Pixal's simplified mesh unwraps into thousands of small islands, so whole stern parts took a grey average of their neighbours. The crisp chips smeared, and the fin lost its cream band. A 1 cm or 5 mm blur helped the bow but not the stern.
+
+**Fix.** The first paint is no longer blurred at all. Each section contributes only its own light and dark finer than `--keep-colour`, now 1 cm by default, as a ratio to its own blurred light. A ratio changes brightness, never colour, so what the blur picks up near an island's edge cannot move colour. The stern matched the first paint, the chips and the fin's band came back, and the section grain stayed. A section re-lay reused all 32 painted sections and took about 16 minutes.
+
+**Still open.** The first paint itself can carry another part's colour, projected from a view where the parts overlap: the fin's red on an iron bracket. Compositing cannot remove that. Painting by parts can.
+
+<!-- paint-by-parts-20261124 -->
+## 2026-11-24 · Paint a model part by part; the fins together, the first paint's surface kept
+
+Revision 8 of the skiff still had the painter's own bleed: the fin's red on the strut that holds it, and a fin without its cream band. Compositing could not remove either; both were in the first paint. The owner asked whether it was better to split the pieces apart and reassemble them. It was. Revision 9, painted by parts, was accepted as "perfect" on 2026-11-24.
+
+**Finding the parts.** `label-parts` renders the painted model from 24 angles with the face under every pixel, labels each render with Grounding DINO boxes and SAM masks, and votes the labels onto faces.
+- **Boxes against the model.** The first run labelled most of the boat "iron" or "strut": a small part's phrase also matched the whole boat. The boat filled a fifth of a render, so a box limit taken against the picture let that box through. Judged against the model's own box in the picture, the whole-boat boxes are dropped.
+- **Parts compete.** Where two parts' boxes cover one region (IoU above 0.6), the better score keeps it. The fin's pole matched "wooden pole" as well as "red fin".
+- **Name only parts the detector finds.** "Iron strap", "metal bracket" and "wooden strut" were found in a few views and confused in the rest. The vocabulary that worked is hull (base, with struts and straps), seat and fin. Every render then labelled the seat and both fins.
+- **Votes.** A pixel left to the base votes weakly (0.15), since it means only that nothing was found there. A detected pixel votes with its strength. 24 views at 768 saw 30% of the 98k faces; the rest are small faces between pixel samples, filled from their neighbours.
+
+**Painting the parts.** `paint-parts` paints each piece alone with the model's own UVs, from the reference with the other parts made transparent, and lays it on exactly its own faces' texels.
+- **Fill the base's holes.** In the hull's picture, the seat and fins left holes. They are filled from the surrounding colours, so the painter is not shown a cut-out shape.
+- **Close a part's own holes.** The detector gave the strut crossing a fin to the hull. The hole that left in the fin's mask came back as white marks on the fin. Masks are now closed over their holes with the picture's own pixels.
+- **Thin, repeated parts together.** Painted one at a time, one fin's top came out pale and the other kept small marks. Painted as one piece from a picture of both, both fins came out red, cream and red.
+- **Keep the first paint's roughness and metal.** Isolated, the fins came back glossy: roughness 114 to 153 out of 255, against the first paint's 178 to 195, with some metal. The sun washed them out. The part paints now give colour only (`--surface first`).
+
+The four pieces took 12 minutes on an RTX 4090: hull 3.4, seat 3.2, the fins 2.6 to 2.7 each. The 32 detail sections went over the result unchanged. They depend on the mesh and their crop, not on the base, so all were reused.
+
+**What it fixed.** The far strut is wood, not fin red. The seat has the iron edging and rivets of the picture, which the whole paint had painted as wood. Both fins show their bands.
+
+![Revision 8 above, painted by parts below: the far strut, the seat's edging and the fins](evidence/paint-by-parts-vs-sections.jpg)
+
+![The skiff's labelling from label-parts: hull, seat and fins](evidence/paint-by-parts-labels.jpg)
+
+**What it did not fix.** The hull's teal paint is solid pastel bands where the picture has chipped paint over wood. The owner first read them as "blue streaks". Measured against the reference, the teal is 7 L lighter relative to the wood, 1.6 times the chroma, and 10 to 17 degrees bluer. A blue sky in the viewer pushes it to sky blue. Three attempts, none adopted:
+- Grading the teal to the reference's measured colour calmed it a little, but it stayed a band.
+- Taking the sections' own colour (`--keep-colour 0`) washed out the whole boat and lost the fins' red.
+- Matching each section's colour to the base under it in Lab (mean and spread) was not judged against the reference before the owner accepted revision 9.
+
+The hull is 2.2 m painted whole, too coarse for chips. A finer split of the hull, or colour from sections that can be trusted, is the open problem.
+
+![The reference's chipped teal against revision 9's bands, and the graded attempt](evidence/paint-by-parts-teal-open.jpg)
+
+**Two crashes on the workstation's CPU**, unrelated to this work:
+- 0xC0000005 in the section compositor (plain Python and numpy) while Blender renders ran beside it;
+- EXCEPTION_ILLEGAL_INSTRUCTION inside numpy in a Blender bake.
+
+The same commands ran cleanly when repeated with nothing else running. Both fit the i9-14900K instability already on record. Long CPU stages on that machine should run alone, and be repeated once before a failure is believed.
+
+<!-- 8192-in-12gb-20261124 -->
+## 2026-11-24 · An 8192 sheet paints within a 12 GB card, byte for byte
+
+The studio painter fitted a 12 GB card at 4096: 12 views × 768 peaked at 9.6 GiB under a hard 10 GiB cap. The 8192 sheet that v0.4.0 made the prop route's default did not. Across 456 painter runs recorded at 8192, the peak was 13.2 to 18.0 GiB allocated. Every section and part of the skiff needed a 16 GB card or more.
+
+**Where the memory went.** Wrapping each pipeline step with a peak counter, on the skiff's seat at 8192:
+- The diffusion itself peaked at 9.1 GiB.
+- The peak, 13.2 GiB, came from loading the mesh: 7.2 GiB of scratch on top of the 6 GiB of models already on the card.
+- `MeshRender.extract_textiles` builds the map from texels to surface points out of a dozen sheet-sized buffers: the raster, positions and smoothed normals for every texel, a 64-bit row and column for every texel, then a mask down to the covered ones. The smoothed normals are wasted. Upstream overwrites every covered texel's normal with its face's flat normal.
+- The custom rasterizer's `interpolate` built 8192 × 8192 × 3 × 3 index and value tensors for the whole sheet, 6.4 GiB, to keep a third of the result.
+- The bake kept every view's sheet-sized projection in lists, and merged the lists from scratch after every view: 78 merges for 12 views where 12 do.
+
+**Fix.** Three patches in the studio runner, each keeping upstream's arithmetic and order:
+- The bake adds each view in as it is projected.
+- The texel map is built from the covered texels only.
+- Those texels' positions are interpolated a slice at a time.
+
+| Step | Peak allocated | Maps |
+|---|---|---|
+| v0.5.0 | 14.27 GiB | |
+| + bake one view at a time | 13.24 GiB | identical |
+| + covered texels only | 12.50 GiB | identical |
+| + slice-wise interpolation | 9.14 GiB | identical |
+
+"Identical" is pixel for pixel, for base colour, metal and roughness at 8192. Run under a hard 10 GiB allocator cap, as a 12 GB card leaves after the desktop, the same paint finished at 9.14 GiB allocated and 9.55 GiB reserved, again identical. A run took 184 s against 190 s.
+
+**How to measure it on Windows.** A process holding memory on the card does not shrink what PyTorch reports as free: Windows backs an over-full card with shared memory. With 11 GiB left free by a placeholder, the painter still set its pool budget to 22 GiB. Only a hard `set_per_process_memory_fraction` cap tests that a run fits.
+
+The section, part and head passes, and `texture --atlas`, now say they need 10.5 GiB free, the launcher's own floor for the studio painter. The legacy painter (no `--atlas`) still needs 21 GiB.
+
+<!-- pixal-12gb-20261124 -->
+## 2026-11-24 · Pixal3D at 1024 runs within a 12 GB card; the same seed does not give the same mesh
+
+Measured on the skiff (seed 45, `--resolution 1024`, upstream's `low_vram`), Pixal3D peaked at 14.22 GiB allocated (15.27 GiB reserved, about 16 GiB on the card), against upstream's note of "about 10 to 12 GB" in that mode. A peak counter around each pipeline step put every step at 6.2 GiB or less, except one: the texture stage's image conditioning, at 14.2 GiB for about a second.
+
+**Cause.** `DinoV3ProjFeatureExtractor` upsamples DINOv3's 1024-channel patch features with NAF to a full 1024 × 1024 map, then samples it at the 64³ voxel grid's 262,144 projected points. NAF's attention resizes the values to the full map first. The 1024-channel map (4 GiB) and its 8 GiB of scratch existed only to be sampled at those points. The shape stage does the same at 512 × 512 (6.2 GiB).
+
+**Fix.** NAF's four attention heads are independent, and each owns its own 256 channels of the features. `run_pixal3d.py` now upsamples one head at a time, samples it at the grid straight away, and puts the heads' channels back in upstream's order. This is the same computation in pieces.
+
+| Measurement | Upstream | Head by head |
+|---|---|---|
+| Texture conditioning peak | 14.21 GiB | 7.70 GiB |
+| Shape conditioning peak | 6.18 GiB | 5.19 GiB |
+| Whole run | 14.22 GiB allocated, 15.27 reserved, 166 s | 7.71 GiB allocated, 8.51 reserved, 157 s |
+
+On the same inputs in one process, both extractors' outputs were `torch.equal` to upstream's (largest difference 0.0). The run also completed under a hard 10 GiB allocator cap at the same 7.71 GiB.
+
+**Pixal3D is not deterministic.** Two unmodified runs of seed 45 gave different meshes: 757,294 against 756,491 vertices, and 82,778 against 83,457 in the 100k export. A seed picks the design, not the exact triangles. That is why the change above was proved on the conditioning tensor and not on the final mesh. Renders of the three runs (unmodified, head by head, and capped) show the same boat at the same detail.
+
+![Pixal3D seed 45 as pinned, head by head, and head by head under a 10 GiB cap](evidence/pixal-12gb-check.jpg)
+
+With this and the painter's fix, every GPU stage of the prop route runs within a 12 GB card:
+
+| Stage | Peak allocated |
+|---|---|
+| Pixal3D at 1024 | 7.7 GiB |
+| First paint, sections and parts at 8192 | 9.1 GiB |
+| label-parts (Grounding DINO + SAM ViT-B) | 3.6 GiB |
+
+<!-- pixal-geometry-stage-20261125 -->
+## 2026-11-25 · Pixal3D becomes a stage, so Framewright can drive it
+
+The owner chose Pixal3D for props. Framewright can only run `rac run-stage` stages, so the prop route stayed a hand-run recipe: a cutout, the WSL runner and `level_pair.py`. The Frastown run was therefore told to run the compiler directly.
+
+`pixal-geometry` does those three steps in one call. It takes a picture and writes the levelled game mesh (`.blend`, for `uv-unwrap`) and, beside it, the levelled dense mesh (`<name>-dense.blend`, for `bake-shape --dense`).
+- **Cutout:** a picture with an opaque background has it removed by the painter's environment.
+- **Pinned runner:** the runner's hash is checked against `workflows/catalog.json` before every run.
+- **Where Pixal3D runs:** `RAC_PIXAL3D_ROOT`, `RAC_PIXAL3D_PYTHON` and `RAC_WSL_DISTRO` name its Linux environment.
+- **The listing stays fast:** on Windows it checks only that WSL is installed; a run checks the rest and refuses in plain words.
+
+**Size.** A size can be a landmark on a person (`--size knee`), which is a height, as Framewright asks it. It can also be metres (`--size-m`), the longest side unless `--size-is height`. `level_pair.py --height` scales by height for the first case.
+
+**Measured on the skiff's own picture:** 179 s end to end (Pixal3D 170 s). A 97,938-triangle game mesh and a 991,833-triangle dense mesh, both levelled to 2.2 m.
+
+## 2026-11-25 · Mend Pixal3D's game mesh, and bake its shape from closer cages where the first faces in
+
+The Frastown run stopped two props on faults in Pixal3D's meshes. Neither came from our own steps: `level_pair.py` passes both meshes through unchanged, and the route has no retopology of its own. The game mesh is Pixal3D's own simplification. Evidence is in the run's `outputs/Pixal-Route-Faults`.
+
+**PR-04.2 crate: open edges in every game mesh.** All six seeds' 5,000-vertex game meshes had 9 to 58 open edges after welding, and the dense mesh had 217. They were not simple holes: tiny loose specks, a few fins (a third or fourth face on one edge), zero-area slivers, and slits along edges. Filling holes alone closed none of them.
+- **The fix:** `level_pair.py` now mends each game mesh (not the dense one). It drops specks under a hundred-thousandth of the surface, dissolves degenerate faces, and drops the smallest extra faces on an edge shared by more than two. It welds open vertices closer than a thousandth of the model's size. Then it fills each open loop that is small, by area under half a percent of the surface or perimeter under 15 % of the size, with at most `--fill-holes` edges (64; 0 turns mending off). A loop `holes_fill` refuses goes to Blender's contextual fill. Every new face is wound like its neighbours.
+- **The result:** four of the six seeds closed completely, seed 42 kept 2 open edges and seed 50 kept 10 (from 58). On seed 45 the mend added 16 faces and moved no vertex. The report records each file's open edges and non-manifold edges before and after.
+- **Not the dense mesh:** mending a million faces took 9 minutes and left more open edges (fin removal opens them). The bake below copes with them instead.
+- **Still open:** at a 5,000-vertex target the crate's game mesh is lumpy, with dents near its corners. That is the target, not the mend.
+
+**WK-04.1 stair: a black crescent after `bake-shape`.** The dense mesh had a stray thin sheet 4 to 40 mm under the top landing's plate. A ray starts on the cage, 8 mm out, and takes the first surface it meets going in. Where the sheet lay inside the cage, the ray met its back first and baked a normal pointing into the surface, which renders black. The band where the sheet crossed the cage was the crescent. A longer ray cannot help, since the ray starts beyond the sheet; that is why Codex's 20 to 52 mm test changed nothing. Making the dense mesh's winding consistent changed nothing either: it had 4 disagreeing edges in a million faces.
+- **The fix:** `bake-shape` bakes again from closer cages (`--fallback-cages`, 3 mm and 1 mm by default). Each texel keeps the first result, from the outermost cage in, that faces out of the surface (tangent z at least 0.05). A texel that faces in from every cage is left flat; the relief still rides on it.
+- **On the stair (4096 map):** 16.25 M texels kept the 8 mm result, 324 k took 3 mm, 62 k took 1 mm, and 138 k (0.8 %, mostly along sharp edges) were left flat. The crescent and the black nicks on the tread edges are gone, at 15 s of bake instead of 5.
+
+## 2026-11-25 · Pixal3D props bake no occlusion map; the browser copy carries its tangents
+
+The owner looked at the WK-04.1 stair in Framewright, after the cage fix, and found its treads shattered into dark triangles. No Blender render had shown them, Codex's or mine.
+
+**The cause: the occlusion map from `bake-detail`.** Framewright's Lit view showed the triangles, and so did its Roughness view, but not Colour, Normal or Metal. The same file with its occlusion slot removed was clean at the same camera. Blender's renderer ignores a glTF occlusion map, which is why every Blender check passed. Framewright (three.js) reads it, and so does Unreal.
+
+**Why the bake goes wrong on these meshes.** Pixal3D's game meshes carry enclosed interior shells and stacked sheets: on the stair, 34 % of the surface baked under 0.2. The darkest vertices had 60 of 64 rays stopped by inward-facing surfaces of the same mesh about 3 cm away. Tried and ruled out:
+- Flat or angle-split normals: about 1,150 open faces stayed dark either way.
+- Baking occlusion from the dense mesh, selected to active, with the game mesh hidden from rays: still shattered.
+- Counting only occluders whose front faces the point, beyond 3 mm (per vertex): still shattered.
+
+**The decision: `bake-detail --no-occlusion` for the Pixal3D route.** Without the map, Framewright and Unreal light the model the same way; Unreal adds its own occlusion at runtime, and the dense mesh's real shape is in `bake-shape`'s normal map. The Hunyuan route keeps its occlusion, and the approved skiff (revision 9) is not changed.
+
+**And the browser copy now exports tangents** whenever a material reads a normal map (`export_browser_payload.py`). The normal maps are baked against Blender's MikkTSpace tangents. A viewer given none estimates its own: three.js per triangle from screen derivatives, Unreal its own MikkTSpace on its own vertex split. Tangents in the file keep Framewright and Unreal on the frame the map was baked in. This alone did not remove the stair's triangles; the occlusion map did.
+
+**Corrected:** the note that the stair's seed 45 had fused its open treads was wrong. From above, the treads are separate with gaps, as in the reference.
+
+## 2026-11-25 · No two faces share a texel: `uv-unwrap` separates what Smart Project folds onto itself
+
+**Correction to the entry above.** The stair's shattered triangles were not caused by interior shells darkening an occlusion bake. They came from the UV layout: 8.9 % of the texels the stair's layout used belonged to two or more faces (2,142 faces).
+- **How it showed:** a hidden face (the floor of a tread's hollow) sharing texels with a visible one (the tread's top) gave the visible face the hidden one's occlusion and roughness. That is why colour stayed clean (the painter projects only what its cameras see) while Lit, Roughness and Unreal showed triangles.
+- **What misled the diagnosis:** a cross-section shows each tread is a folded channel: a top plate about 1 cm thick, a nose, and a lower plate under a 2 to 4 cm hollow. No underside pokes through. Every test that changed the occlusion (dense mesh, front faces only) kept the same texels shared, so kept the triangles.
+
+**Why Smart Project does it.** It groups connected faces that face roughly the same way and projects each group flat, so a surface that passes back over itself lands on itself; re-packing cannot fix an island that overlaps itself. A helical ramp reproduces it in the tests.
+
+**The fix, in `prepare_texture_uv_transport.py`:**
+- After Smart Project, the layout is rasterised at 1024 (slightly inside each triangle, so seams do not count).
+- Faces whose texels another face also covers are projected again at 45°, then 30°, then 15°, packing all islands after each pass. Any face still overlapping gets an island of its own.
+- A layout that still shares more than 0.1 % of its texels is refused, and the report records overlap before, after each pass, and after the final pack.
+- A layout without overlap is unchanged.
+
+**On the stair:**
+- **Overlap:** 8.85 % → 0 in three passes (12 faces left after 45°, 4 after 30°, none after 15°), in 32 s.
+- **Resolution:** covered texels at 2048 went from 1.50 M to 2.33 M, about 55 % more paint resolution on the same sheet.
+- **Other pieces:** the landing's layout had none (a box). The approved skiff's had 0.5 %.
+
+**Open:** whether the Pixal route can bake occlusion again now that no texel is shared. The stair is being painted at 8192 on the new layout, with both detail bakes, to decide.
+
+## 2026-11-25 · Project the reference onto the faces it shows: `project-reference`
+
+The painter smooths away fine, high-contrast wear. On the WK-04.3 landing, 21 sections at 8192 still lost every scratch of the reference and painted its dark steel pale. That happens on either geometry route, because both use the same painter. But Pixal3D builds its mesh in the picture's own camera, so the picture itself can be laid onto the faces it shows. The owner passed the result: "Pass, canonize it."
+
+**The camera.**
+- **Pixal3D's model:** it crops the cutout to a square 1.1 times the object (alpha over 0.8). It puts a perspective camera on the depth axis of its frame at 0.5 / tan(fov/2), with the field of view MoGe-2 estimates and the run's log records (`camera_angle_x`).
+- **Axes:** in the GLB Pixal3D exports, the camera frame is x across (mirrored), z depth, y up. That convention was found by trying all 48 signed axis permutations against the cutout's outline: 0.987 overlap for one, nothing close for the others.
+- **The stage's fit:** it starts from the logged field of view and refines small turns, the field of view and the framing against the outline. On the rebuilt landing it found 15.66° with no turn, the logged value, at 0.995 overlap.
+- **A different picture of the same object:** it fits with a small turn (the revised landing picture, 6° higher, 0.994). But that is not enough, as the next point shows.
+
+**Same picture for geometry and projection.** The first try projected the landing's revised picture onto geometry made from the first one. The outlines matched (0.994), but the revised render puts its bolts about 2 cm elsewhere, and every bolt showed twice: a 3D bolt with a flat bolt beside it. The owner caught it close up. The stage now refuses a reference whose hash is not the geometry report's picture: revise the picture, then make the geometry again.
+
+**Where the painted model is.** Levelling, sizing and unwrapping move the mesh, and the Frastown run's "sized" landing had one side stretched 7.8 % to make it square. An affine map from Pixal3D's own game mesh to the painted one is fitted by nearest points, starting from the levelling transform. It fits to 0.04 mm on the rebuilt landing (0.0 mm on the stretched one). Above 2 mm it is refused.
+
+**The blend, per texel.** Each texel's position and normal are baked at up to 2048. Its weight is:
+- how squarely it faces the camera: nothing below 0.2, all of it from 0.5;
+- whether a ray to the camera is clear;
+- whether it lands inside the cutout, eroded by 4 px.
+
+Per-corner weights faded half of a big flat triangle from one grazing corner. Texels the picture cannot see keep the paint, moved toward the picture's colour in luma and chroma: brightness level and contrast, colour average. Per-channel grading turned the painter's grey bolts purple on the bolts' far sides.
+
+**After a projection, no relief from the paint.** `bake-detail --relief-tilt` raised the picture's photographic grain into lumps across the landing's side panels. The dense mesh's own shape, baked by `bake-shape`, is clean.
+
+**Occlusion is back on the Pixal route.** The entry that took it off blamed the occlusion bake. The cause was the overlapping UV layout, fixed in `uv-unwrap`. The stair re-baked on the fixed layout with occlusion shows no triangles, and the owner passed it.
+
+**Measured:** the stage on the rebuilt landing ran in 39 s (0.8 M rays). Its result matches the owner-passed prototype within 0.26/255 on average in the elevated view.
+
+## 2026-11-25 · Sections paint in one painter run, fill only near their faces, and are laid only where they weigh
+
+At hero quality a model went from about 10 minutes to about 2 hours. The WK-04.1 stair took 128 minutes; 114 of them were its 33 sections, and the owner asked for the speed back without losing what he had passed. Measured from the stair's GPU trace and its section receipts:
+
+- **Each section, about 3.5 minutes (210 s) at 8192:**
+  - 13 s starting PowerShell and Python;
+  - 12 s loading the models;
+  - 58 s on the GPU, painting the views and upscaling them;
+  - about 90 s with the GPU idle, while OpenCV filled every texel of the 8192 sheet that no view saw, on one core per map;
+  - about 25 s writing the maps and the GLB, then the painter's teardown.
+- **The section only uses its own faces.** A half-metre section is a few percent of an 8192 sheet, and the composite reads only its faces' texels and 2 texels round them. On a test sheet the whole-sheet fill took 147 s a map; filling near the faces alone took 5 s.
+- **The composite, 14.5 minutes after the last section.** For every section and both maps it blurred the whole 8192 sheet (25-30 s each) to take the tone from the first paint, though the section weighs on about 2 % of it.
+
+**What changed, none of it in what the painter paints:**
+- `run_hy3d21_studio.py --inpaint-reach N` fills unseen texels with upstream's OpenCV fill only in a band round the mesh's own texels. The rest of the sheet first takes the nearest paint by a pull-push fill (`sheet_fill.py`, hash-pinned like the normal helper), so the band is edged with paint and not with the empty sheet's black. The texels inside the band start as upstream hands them, because OpenCV's fill reads them.
+  - **The band's width matters.** The first GPU check used 8 texels, and 41 % of the stair's first section moved, by up to 19/255. The old painter, run again, reproduced the passed sections byte for byte, so the painter is deterministic and the band was to blame. At a texel-scale bake a 256-pixel view leaves rims and patches of a section's own faces unpainted; OpenCV marches into them from the nearest paint, and a band edge closer than that paint becomes the source instead.
+  - **The width now comes from the paint** (`reach_for`): twice the deepest unpainted gap in the mesh's texels and the 2 round them, plus 16, between N and 256. On sheets with rims of 2-20 texels and patches up to 15 texels, every texel within 64 of paint came out identical to the whole-sheet fill. `paint-sections` passes 32.
+  - **Faces no view saw do not widen it past 256.** The stair's sections each hold faces 1,000-3,200 texels from any paint. The whole-sheet fill colours them from whatever paint its march reaches first, and no band short of the sheet repeats that; gaps deeper than 120 texels are left out of the width. With the cut at 64, a 3 x 6 cm patch of one such face moved by 32/255 in metal (0.13 to 0.26) in the finished stair; at 120 nothing moved by more than 9/255. Sections painted this way still match the passed ones on 87-96 % of texels, the rest being such faces. Laid into the passed stair in place of its own first three, its finished maps moved on 0.011 % of colour texels (at most 2/255) and 0.05 % of metal-rough texels (at most 9/255), which nobody sees.
+- `run_hy3d21_studio.py --jobs` paints a list of meshes in one process. The painter seeds every run itself (seed 0, a fresh generator), and before each job after the first the diffusion and DINO go back on the card as the first job found them, so each job's maps are those a process of its own would paint. Each job gets its own execution receipt and validation report from `run_hy3d21_texture.ps1 -Jobs`; a job that fails is recorded beside its output and the next goes on. `paint-sections` paints every section in one run; `--separate-runs` keeps one run a section.
+- `composite` sums only where a section weighs and blurs only round those texels (`masked_blur_at`): tile by tile with the Gaussian's full reach for a full-size blur, and read back from the shrunk sheet by the interpolation that grows it otherwise. On random sheets every mode gives the whole-sheet numbers within 0.0002 of 255. The passed stair, re-composited from its own 33 sections, is byte-identical to the one passed.
+- `--maps-only`: the painter's GLB is its PNG maps packed by Blender's exporter (base colour as is; metal-rough as 255, roughness, metallic). The batch writes only the maps and `paint-sections` reads them into the same bytes. Maps painted this way are byte-identical to the batch that wrote the GLB, and the painter's teardown fault went with the export.
+
+**Measured on the stair's first three sections (8192, 12 views at 768):** 99-132 s a section in one run, against 140-197 s each before; reading 33 sections took 1.7 minutes and the composite 4.5, against 14.5 for the composite alone. That puts the stair's section pass near 75 minutes instead of 114, and the model near 90 instead of 128.
+
+**Where the time still goes:** each section has about 45 s of diffusion and 13 s of upscaling on the GPU, then about 50 s with the GPU idle: the fill, writing the maps, and the next section's setup. Running that tail beside the next section's diffusion is the next step. Skipping the 4x upscale, which a texel-scale bake shrinks straight back, would save 13 s more, but it changes the paint and needs the owner's eye.
+
+## 2026-11-26 · A section's maps are finished while the next one paints, and sections are laid as they come
+
+The owner asked for more speed after the one-run section pass (above). Before building, each step of a section was timed on the WK-04.1 stair's first three sections, on an otherwise idle machine:
+
+- **On the card:** diffusion 42-63 s, the 4x upscale 10-13 s, the two bakes about 4 s.
+- **The tail after the bakes, about 12 s with the card idle:** waiting for the metal-rough fill (the colour fill runs beside it, 8.5-9 s each), setting the maps (1.3 s) and writing them (2.4 s).
+- **The next section's setup, about 3 s:** putting the diffusion back on the card (1.1-1.3 s), choosing views (0.8 s), rendering normals and positions (0.7 s).
+- The "about 50 s idle" in the previous entry came from a once-a-second GPU trace and counted short gaps inside the upscale; only the 12 s tail could move.
+
+**A busy CPU costs more than any of that.** The same three sections took 82, 69 and 97 s on an idle machine, through the launcher or run straight, and 99-144 s in four earlier runs of the same code, at least one of which shared the CPU with Codex's composite (the CPU was not traced then; on the idle runs it averaged 7 %). The 99-132 s a section quoted in the previous entry was measured on a busy machine. Nothing CPU-heavy should run beside painting.
+
+**What changed, none of it in what the painter paints:**
+- `run_hy3d21_studio.py` (patch 4d): with `--jobs` and `--maps-only`, everything a job's tail reads (the baked sheets, their masks, the mesh's texels and the mesh itself) is copied off the card and out of the renderer when it is baked. Upstream's own fill, texture-setting and save functions then run on those copies on a thread while the next job paints. At most one job is finishing at a time. Its report is written after its maps, whole (written to a temporary name and renamed), and gives its time on the card as `seconds_painting`. Single-mesh runs are unchanged.
+- `paint_sections.py`: each section's place on the sheet comes from the geometry alone, so it is planned on a thread while the painter loads its models. The first paint's tone under every section is blurred then too. `Stitch` lays each section as soon as its report appears, in section order, with the sums `composite` takes (`composite` is now `Stitch` laid all at once), and lets each section's paint go once laid. Harmonising neighbours (`--keep-colour 0`) reads every section first, so it lays them at the end as before.
+
+**Measured:**
+- **Three sections (8192, 12 views at 768):** the maps, OBJ and MTL are byte-identical to main's. Each section spent 9-13 s less on the card (69, 60 and 88 s), and the batch took 249 s instead of 267.
+- **The whole stair, end to end, on the passed first paint and settings:** 42 minutes instead of 114 (2,525 s against 6,817), with the CPU at 7 % on average. All 33 sections were laid while the painter ran, leaving 26 s of stitching after the last one, where reading and compositing had taken about 6 minutes. Sections spent 60-100 s each on the card, 74 s on average.
+- **Against the stair the owner passed:** this was the first time all 33 sections were painted with the near-mesh fill. Colour moved on 1.6 % of texels, almost all by 4/255 or less (0.0013 % by more than 8, at most 15). Metal-rough moved on 6 % (0.11 % by more than 8, 0.0065 % by more than 16, at most 41). A copy of the stair coloured where it moved was rendered in the four fixed views and, unlit, from below and both low sides. Its marks covered 0-11 pixels of the fixed views and none from below: the texels that moved lie on faces no outside view reaches, or in the atlas padding. The passed and new stairs look the same from every one of those views.
+
+**Next, if more is wanted:** the diffusion itself (42-63 s, varying between sections for reasons not yet found) and the 4x upscale (10-13 s) are what is left. Skipping the upscale changes the paint and needs the owner's eye.
+
+## 2026-11-26 · Parts paint in one painter run; what else was tried for a whole model's time
+
+The owner swapped hard-surface geometry back to Hunyuan3D (it follows the picture more faithfully than Pixal3D) and asked for every easy speed-up left, and for a model's time front to back. The receipts of Codex's run on 25 November gave that time per stage: the PR-04.3 basket (no parts, no sections) took 9 min 22 s front to back, 7 min 07 s of it in stages, the first paint the largest at 3 min 15 s. The PR-02.3 counter (four parts, 30 sections) spent 2 h 14 min in stages, 91 minutes of it in sections. That section pass ran at 182 s a section beside Codex's remeshes and unwraps of other pieces. A remesh run beside it took 20 minutes where its neighbours took 20-35 s.
+
+**Kept:**
+- **`rac time-to-model <folder>`** reads the stage receipts under a model's folder and lays them out in order: each stage's start and seconds, the time in stages, the time between them, pauses over 30 minutes left out. Stage receipts now carry `started_utc` and `finished_utc`; older ones are timed by their file's time.
+- **`paint-parts` in one painter run**, as sections: the painter's models loaded once, each piece's maps finished while the next paints, each piece's unseen texels filled near its own faces (`--inpaint-reach 32`). On the PR-02.3 counter, on Codex's own first paint, labelling and picture: 354 s instead of 686, the pieces 60-91 s each on the card instead of 154-166. Metal-rough is byte-identical (the first paint's, kept). Colour moved on 0.0087 % of texels, up to 47/255, all texels no view saw. On a grey copy marked where it moved, the marks covered 0-2 pixels of the four fixed views and none from below or the low sides. The two counters look the same.
+- **`bake-shape` writes its normal map in bulk** (`foreach_set`, not a 268-million-float Python list): 66.8 s instead of 72.5 on the basket. The map matches within the bake's own noise: two CPU runs of the unchanged script differ on 25 texels by 1/255, the bulk write on 34.
+
+**Tried and dropped:**
+- **The allocator's early cache clean-up** (`garbage_collection_threshold:0.8`) makes the painter's pool swing by about 5 GB a second during diffusion. With it off, diffusion took 78 s against 76, and the maps were byte-identical. It is not what makes diffusion slow.
+- **The near-mesh fill on the first paint** (`texture --inpaint-reach 32`): the painter took 157 s against 154-157 with the whole-sheet fill. On a whole model the reach that fills deep gaps as the whole sheet does covers nearly all the empty sheet anyway.
+- **`bake-shape` on the GPU (OptiX):** 55 s of baking against 52 on the CPU. Blender casts selected-to-active rays on the CPU whatever the device.
+- **`bake-shape`'s closer cages on only the faces that need them** (1,797 of 50,000, with every face touching them): 15 and 14 s against 18 s for the whole mesh. Blender's cost per bake at 8192 is the whole image (setting up and margining 67 million texels), not the rays; 4 s saved was not worth the code.
+
+**Repeatable:** the first paint of the basket, run twice the same morning, gave byte-identical maps, also identical to Codex's paint of the night before. Start-up before the first job was 19 s with the model files cached, about 50 s cold.
+
+**What is left is the diffusion.** It takes 42-76 s a job (76-78 s on the whole basket), and the GPU is busy throughout. The levers left change the paint: fewer views, fewer or larger sections, skipping the 4x upscale. Each needs the owner's eye on an A/B.
+
+## 2026-11-26 · The section pass's own speed levers, A/B on the PR-02.3 counter
+
+The owner asked which speed levers that change the paint are worth it, with a fast version tuned for looks beside them. Every version started from the same first paint, parts paint and picture as the counter in review (12 views, 30 sections of 0.45 m, `--keep-colour 0.001`), changed only the section pass, and was finished the same way. They are revisions 2-7 of its Framewright card; revision 1, in review, stayed current. Times are the section pass on an otherwise idle machine:
+
+| Version | Sections | Time | Up close (fixed views, then three arm's-length close-ups and a full-resolution plank crop) |
+|---|---|---|---|
+| In review: 12 views, 0.45 m, 4x upscale | 30 | about 33-34 min today (C plus about 11 s a section) | the reference |
+| B: 8 views | 30 | 32.8 min, 62 s a section | the same as revision 1 |
+| C: no upscale | 30 | 27.7 min, 52 s a section | the same as revision 1, even in the full-resolution crop |
+| D: 0.6 m sections | 16 | 19.0 min, 65 s a section | faint false board lines on the planks, a spiral painted on the bolt heads |
+| F: 8 views, 0.6 m, upscale kept (fast, tuned) | 16 | 18.7 min, 64 s a section | as D |
+| E: 8 views, 0.6 m, no upscale | 16 | 15.8 min, 53 s a section | slightly softer, no false lines |
+| G: no sections (the parts paint, finished) | 0 | 0 | clean but plainer: the body is painted at 2.8 mm a pixel, against 0.9 with sections, and the fine cracks and grain are gone |
+
+- **Fewer views does not pay:** about 3 s a section.
+- **The upscale** costs about 11 s a section and, at a section's bake size (1,100-1,800 px, to which every view is resized anyway), showed nothing on this wood-and-bread piece. The owner chose `--no-upscale` for pieces like it, the upscale staying available for complex ones.
+- **Bigger sections** are the largest saving and the visible cost: the painter, given more of the counter in one view, paints board lines and bolt spirals of its own.
+- The owner, from the fixed views: "all versions look nearly identical to my eye."
+
+The whole-model first paint keeps its upscale: it bakes the views at the size the upscale leaves them, not at a bake size.
+
+## 2026-11-26 · Empty paint views
+
+An empty back-projection can fail in both isolated and shared painter runs, because both use the same depth reduction. Verify raster coverage at the bake resolution before skipping the view. Preserve the saved sections and resume only the missing ones after fixing the pinned runner.

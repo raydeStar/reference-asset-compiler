@@ -3,6 +3,17 @@
 This stage changes UV coordinates only. The approved BLEND (or explicitly
 enabled static triangle GLB) remains the geometry authority. The OBJ is a
 transport derivative for Hunyuan3D-Paint, not a newly modeled surface.
+
+No two faces may share a texel. Smart Project groups connected faces that face
+roughly the same way and projects each group flat, so a surface that folds back
+over itself lands on top of itself: the WK-04.1 stair's treads are channels
+whose top plate curls round a nose into a lower plate, and 8.9 % of the texels
+its layout used belonged to two or more faces. A hidden face and a visible one
+sharing texels is how the stair's treads showed the hidden face's occlusion and
+roughness as dark and light triangles. So the faces that overlap are projected
+again at a tighter angle, the islands are packed again, and that repeats; a face
+that still overlaps gets an island of its own. A layout that still overlaps is
+refused.
 """
 
 from __future__ import annotations
@@ -16,7 +27,11 @@ import sys
 from collections import Counter
 
 import bpy
+import numpy as np
 from mathutils.kdtree import KDTree
+
+OVERLAP_RASTER = 1024
+OVERLAP_ANGLES = (45.0, 30.0, 15.0)
 
 
 def parse_args() -> argparse.Namespace:
@@ -116,6 +131,90 @@ def repack(obj: bpy.types.Object, margin: float, before: float) -> float:
                             margin_method="FRACTION", margin=margin)
     bpy.ops.object.mode_set(mode="OBJECT")
     return float(uv_metrics(obj).get("summed_uv_area") or 0.0)
+
+
+def overlapping_faces(obj: bpy.types.Object, size: int = OVERLAP_RASTER) -> tuple[set[int], float]:
+    """Polygons whose texels another polygon also covers, and the share of covered texels shared.
+
+    Each triangle is rasterised a little inside its own edges, so two faces
+    that merely meet along a seam do not count as overlapping.
+    """
+    layer = obj.data.uv_layers.active
+    uv = np.empty(len(obj.data.loops) * 2, dtype=np.float64)
+    layer.data.foreach_get("uv", uv)
+    uv = uv.reshape(-1, 2) * size
+    count = np.zeros((size, size), dtype=np.int32)
+    owner = np.full((size, size), -1, dtype=np.int64)
+    clash: set[int] = set()
+    for polygon in obj.data.polygons:
+        loops = list(polygon.loop_indices)
+        for index in range(1, len(loops) - 1):
+            points = uv[[loops[0], loops[index], loops[index + 1]]]
+            lo = np.maximum(np.floor(points.min(axis=0)).astype(int), 0)
+            hi = np.minimum(np.ceil(points.max(axis=0)).astype(int), size - 1)
+            if (hi < lo).any():
+                continue
+            xs, ys = np.meshgrid(np.arange(lo[0], hi[0] + 1) + 0.5, np.arange(lo[1], hi[1] + 1) + 0.5)
+            (ax, ay), (bx, by), (cx, cy) = points
+            denominator = (by - cy) * (ax - cx) + (cx - bx) * (ay - cy)
+            if abs(denominator) < 1e-12:
+                continue
+            first = ((by - cy) * (xs - cx) + (cx - bx) * (ys - cy)) / denominator
+            second = ((cy - ay) * (xs - cx) + (ax - cx) * (ys - cy)) / denominator
+            inside = (first > 0.02) & (second > 0.02) & (1.0 - first - second > 0.02)
+            if not inside.any():
+                continue
+            block = count[lo[1]:hi[1] + 1, lo[0]:hi[0] + 1]
+            owners = owner[lo[1]:hi[1] + 1, lo[0]:hi[0] + 1]
+            shared = inside & (block > 0) & (owners != polygon.index)
+            if shared.any():
+                clash.add(polygon.index)
+                clash.update(int(other) for other in np.unique(owners[shared]))
+            block[inside & (owners != polygon.index)] += 1
+            owners[inside] = polygon.index
+    covered = int((count > 0).sum())
+    return clash, (float((count > 1).sum()) / covered) if covered else 0.0
+
+
+def select_faces(obj: bpy.types.Object, faces: set[int]) -> None:
+    import bmesh  # noqa: PLC0415 - Blender's own module, only inside Blender
+
+    mesh = bmesh.from_edit_mesh(obj.data)
+    mesh.faces.ensure_lookup_table()
+    for face in mesh.faces:
+        face.select_set(face.index in faces)
+    bmesh.update_edit_mesh(obj.data)
+
+
+def separate_overlaps(obj: bpy.types.Object, margin: float) -> dict[str, object]:
+    """Project the overlapping faces again, tighter each pass, until no texel is shared."""
+    faces, share = overlapping_faces(obj)
+    record: dict[str, object] = {"faces_before": len(faces), "texel_share_before": round(share, 5), "passes": []}
+    for angle in OVERLAP_ANGLES + (None,):
+        if not faces:
+            break
+        bpy.ops.object.mode_set(mode="EDIT")
+        select_faces(obj, faces)
+        if angle is None:
+            # Last resort: every face still overlapping becomes an island of
+            # its own, which cannot fold over anything.
+            bpy.ops.uv.reset()
+        else:
+            bpy.ops.uv.smart_project(angle_limit=math.radians(angle), island_margin=margin,
+                                     area_weight=0.0, correct_aspect=True, scale_to_bounds=False)
+        bpy.ops.mesh.select_all(action="SELECT")
+        bpy.ops.uv.select_all(action="SELECT")
+        bpy.ops.uv.pack_islands(rotate=True, rotate_method="ANY", scale=True, shape_method="CONCAVE",
+                                margin_method="FRACTION", margin=margin)
+        bpy.ops.object.mode_set(mode="OBJECT")
+        projected = len(faces)
+        faces, share = overlapping_faces(obj)
+        record["passes"].append({"angle_degrees": angle if angle is not None else "own island",
+                                 "faces_projected": projected, "faces_left": len(faces),
+                                 "texel_share_left": round(share, 5)})
+    record["faces_after"] = len(faces)
+    record["texel_share_after"] = round(share, 5)
+    return record
 
 
 def uv_metrics(obj: bpy.types.Object) -> dict[str, object]:
@@ -221,6 +320,7 @@ def main() -> int:
         scale_to_bounds=False,
     )
     bpy.ops.object.mode_set(mode="OBJECT")
+    overlap = separate_overlaps(obj, args.margin)
     cut_occupancy = float(uv_metrics(obj).get("summed_uv_area") or 0.0)
     packed_occupancy = cut_occupancy
     if args.repack_margin > 0.0:
@@ -243,6 +343,11 @@ def main() -> int:
         failures.append("UV layout exceeds one")
     if float(metrics.get("nondegenerate_polygon_fraction", 0.0)) < 0.999:
         failures.append("UV layout contains degenerate polygons")
+    final_overlap, final_share = overlapping_faces(obj)
+    overlap["faces_after_repack"] = len(final_overlap)
+    overlap["texel_share_after_repack"] = round(final_share, 5)
+    if final_share > 0.001:
+        failures.append("UV layout still shares {0:.2%} of its texels between faces".format(final_share))
     if failures:
         raise RuntimeError("; ".join(failures))
 
@@ -310,6 +415,7 @@ def main() -> int:
             # close-up of somebody's hands.
             "atlas_occupancy_as_cut": round(cut_occupancy, 5),
             "atlas_occupancy": round(packed_occupancy, 5),
+            "overlap": overlap,
             "triangulated_transport_only": True,
             "source_format": source.suffix.lower(),
             "static_triangle_glb_enabled": args.allow_triangulated_glb,

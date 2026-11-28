@@ -12,6 +12,7 @@ and the files can move without breaking anyone downstream.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import os
 import re
@@ -19,6 +20,7 @@ import shutil
 import subprocess
 import sys
 import time
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
@@ -33,7 +35,10 @@ from .glass_colours import GlassColourError, named_colours, resolve_colour
 from .material_recipes import MaterialRecipeError, named_recipes, named_tones, parse_assignment
 from .human_scale import HumanScaleError, named_sizes, resolve_height
 from .rebake import MESH_SUFFIXES, RebakeError, check_binding, read_reduction
+from .processes import run_bounded
 from .resources import checkout_root
+from .pixal import pixal_missing
+from .segmentation import segmentation_missing
 
 BLENDER_ENVIRONMENT = "RAC_BLENDER"
 """Where the Blender executable is named, matching workflow_doctor."""
@@ -42,9 +47,106 @@ POWERSHELL = "powershell.exe"
 """Windows PowerShell 5.1, which the launchers are written against."""
 
 DEFAULT_TIMEOUT_SECONDS = 3600
+
+# How a stage's command is run: like subprocess.run, except that a timeout stops
+# everything the stage started, not only the process it launched. A name of its
+# own so a test can stand in for the launch.
+run_command = run_bounded
 """An hour. A stage that has not finished by then is a stage to investigate."""
 
 STAGES: dict[str, dict[str, Any]] = {
+    "repack-surface": {
+        "runner": "python", "script": "scripts/repack_surface.py",
+        "arguments": ("source", "output", "report"), "options": ("textures",), "output_suffix": ".glb",
+        "summary": "Isolate an acquired primitive's UV atlas and transport its PBR maps, weights and morphs.",
+        "produces": "reference-asset-compiler.repack-surface.v1",
+    },
+    "polish-review": {
+        "runner": "blender", "script": "scripts/blender/review_polished_asset.py",
+        "arguments": ("source", "output", "report"), "options": ("textures",), "output_suffix": ".blend",
+        "needs": ("blender",),
+        "summary": "Render four views, moving light and explicit poses; pack and reopen a review-native copy.",
+        "produces": "reference-asset-compiler.polish-review.v1",
+    },
+    "inspect-surface": {
+        "runner": "python", "script": "scripts/inspect_surface.py",
+        "arguments": ("source", "output", "report"), "options": (), "output_suffix": ".json",
+        "summary": "Inspect boundaries, UV density and material response without modifying the acquired mesh.",
+        "produces": "reference-asset-compiler.surface-inspection.v1",
+    },
+    "repair-bounds": {
+        "runner": "python", "script": "scripts/repair_position_bounds.py",
+        "arguments": ("source", "output", "report"), "options": (), "output_suffix": ".glb",
+        "summary": "Compute valid POSITION min/max while retaining every binary payload byte.",
+        "produces": "reference-asset-compiler.position-bounds.v1",
+    },
+    "restore-surface": {
+        "runner": "python", "script": "scripts/restore_acquired_surface.py",
+        "arguments": ("source", "output", "report"), "options": ("textures",), "output_suffix": ".glb",
+        "summary": "Close a reviewed hole with explicitly selected acquired triangles and inherited skin data.",
+        "produces": "reference-asset-compiler.restore-surface.v1",
+    },
+    "capture-reference": {
+        "runner": "python", "script": "scripts/capture_reference_guides.py",
+        "arguments": ("source", "output", "report"), "options": ("textures",), "output_suffix": ".json",
+        "summary": "Capture deterministic mesh-local color, clay and visibility guides for AI reference editing.",
+        "produces": "reference-asset-compiler.reference-guides.v1",
+    },
+    "reference-patch": {
+        "runner": "python",
+        "script": "scripts/project_reference_patch.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("textures",),
+        "output_suffix": ".glb",
+        "summary": "Project registered reference repairs onto scoped material regions, preserving geometry and rig data.",
+        "produces": "reference-asset-compiler.reference-patch.v1",
+    },
+    "eye-detail": {
+        "runner": "python",
+        "script": "scripts/eye_detail.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("textures",),
+        "output_suffix": ".glb",
+        "summary": "Append lid-margin lash cards and an eye-occlusion shell that follow the head's morphs, changing nothing else.",
+        "produces": "reference-asset-compiler.eye-detail.v1",
+    },
+    "prune-payload": {
+        "runner": "python",
+        "script": "scripts/prune_glb_payload.py",
+        "arguments": ("source", "output", "report"),
+        "options": (),
+        "output_suffix": ".glb",
+        "summary": "Discard replaced material images without re-encoding reachable geometry or textures.",
+        "produces": "rac.glb-payload-prune.v1",
+    },
+    "material-sweep": {
+        "runner": "python",
+        "script": "scripts/material_sweep.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("textures",),
+        "output_suffix": ".glb",
+        "summary": "Finish a painted GLB from assigned material classes, preserving original geometry, rig and colour.",
+        "produces": "reference-asset-compiler.material-sweep.v1",
+    },
+    "bake-surface-maps": {
+        "runner": "blender",
+        "script": "scripts/blender/bake_surface_maps.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("textures",),
+        "needs": ("blender",),
+        "output_suffix": ".npz",
+        "summary": "Bake position, facing, occlusion, edge and class maps off a part's own geometry, for a painter to read.",
+        "produces": "rac.surface-maps.v1",
+    },
+    "hard-surface-finish": {
+        "runner": "python",
+        "script": "scripts/hard_surface_finish.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("textures",),
+        "output_suffix": ".glb",
+        "summary": "Paint a hard-surface part from its baked maps: metal, primer, paint, rust and wear that follow the geometry.",
+        "produces": "rac.hard-surface-finish.v1",
+    },
     "adopt-mesh": {
         "runner": "blender",
         "script": "scripts/blender/adopt_reviewed_mesh.py",
@@ -84,11 +186,25 @@ STAGES: dict[str, dict[str, Any]] = {
         "runner": "blender",
         "script": "scripts/blender/bake_derived_maps.py",
         "arguments": ("source", "output", "report"),
-        "options": ("resolution", "samples", "distance", "edge_wear", "relief_from_paint"),
+        "options": ("resolution", "samples", "distance", "edge_wear", "relief_from_paint", "relief_tilt",
+                    "no_occlusion"),
         "prepare": "bake-detail",
         "needs": ("blender",),
         "summary": "Bake the occlusion and curvature a model's own geometry already implies.",
         "produces": "reference-asset-compiler.derived-maps.v1",
+    },
+    "bake-shape": {
+        "runner": "blender",
+        "script": "scripts/blender/bake_dense_shape.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("dense", "cage", "fallback_cages", "max_ray"),
+        "prepare": "bake-shape",
+        "needs": ("blender",),
+        # After paint and bake-detail, onto the game mesh's own UVs: the dense
+        # mesh a generator made (Pixal3D's million triangles) gives the normal
+        # map its bolts, seams and bevels, under the paint's relief.
+        "summary": "Bake a dense mesh's shape onto a painted game mesh's normal map, under its relief.",
+        "produces": "reference-asset-compiler.dense-shape.v1",
     },
     "cull-unseen": {
         "runner": "blender",
@@ -242,7 +358,8 @@ STAGES: dict[str, dict[str, Any]] = {
         # words -- process health is separate from whether the paint is sound --
         # so what this stage produced is the verdict, not how its runner died.
         "verdict": "produced",
-        "summary": "Paint a UV-mapped mesh from its reference image. Needs a GPU with 21 GiB free.",
+        "summary": "Paint a UV-mapped mesh from its reference image. With --atlas (the studio painter) it needs "
+                   "10.5 GiB free, a 12 GB card, at any sheet up to 8192; without, 21 GiB.",
         "produces": "reference-asset-compiler.paint-validation.v1",
     },
     "paint-head": {
@@ -258,8 +375,117 @@ STAGES: dict[str, dict[str, Any]] = {
         # and lays it back over the body's atlas -- same UVs, so it lands where
         # the first paint did. No Blender: the mesh is read from the GLB.
         "summary": "Paint the head again on its own, at head scale, and lay it over the body's paint. "
-                   "Needs a GPU with 21 GiB free.",
+                   "Needs 10.5 GiB free, a 12 GB card.",
         "produces": "reference-asset-compiler.head-detail-paint.v1",
+    },
+    "paint-sections": {
+        "runner": "python",
+        "script": "scripts/paint_sections.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("reference", "views", "resolution", "atlas", "section", "overlap", "context",
+                    "keep_colour", "keep_tone", "min_length", "max_sections", "min_free_vram",
+                    "reuse_sections", "bake_scale", "inpaint_reach", "separate_runs", "no_upscale"),
+        # A section took about 2.5 minutes at 4096 and 3.5 at 8192, and the
+        # finer cut paints up to 48: the hour every other stage gets killed the
+        # skiff's pass at section 20 of 32. Four hours, as Framewright already
+        # passes. One painter run with the near-mesh fill is about a minute a section.
+        "timeout": 14400,
+        "prepare": "paint-sections",
+        "needs": ("paint-stack",),
+        # The painter sees a whole model in 768 pixels whatever its size, so a
+        # 45 cm fitting gets 0.6 mm of surface a painted pixel and a 2.2 m skiff
+        # 3 mm. This cuts a large model into sections of about half a metre,
+        # paints each alone with the reference cropped to match, and lays them
+        # back over the first paint on the same UVs, the first paint's tone kept.
+        # A model under the minimum length is passed through unchanged.
+        "summary": "Paint a large model again in sections of about half a metre and lay them over "
+                   "its first paint. One painter run for every section; needs 10.5 GiB free, a 12 GB card.",
+        "produces": "reference-asset-compiler.section-detail-paint.v1",
+        # Measured on an RTX 4090: on 2026-11-24 six mast sections in 11.6
+        # minutes and forty-five skiff sections at about two and a half each,
+        # one painter run a section; on 2026-11-26 the WK-04.1 stair's 33 in 42
+        # minutes, one run for them all on an idle machine (a busy CPU adds
+        # about 35 s a section). A consumer quotes a cost from this, not from a guess.
+        "estimate": {"unit": "section", "minutes": 1.5, "free_vram_mib": 10752},
+    },
+    "pixal-geometry": {
+        "runner": "python",
+        "script": "scripts/run_pixal_geometry.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("size", "size_adjust", "size_m", "size_is", "seed", "pixal_resolution", "vertex_target",
+                    "up", "flip"),
+        "prepare": "pixal-geometry",
+        "needs": ("blender", "pixal"),
+        # The prop route the owner chose on 24 November: Pixal3D keeps rivets,
+        # straps and seams as geometry. One picture in; the game mesh (a .blend
+        # for uv-unwrap) and beside it the dense mesh for bake-shape, both from
+        # one generation and levelled by one transform at their real size.
+        "output_suffix": ".blend",
+        "timeout": 3600,
+        "summary": "Turn one picture into a levelled game mesh and dense mesh with Pixal3D (a Linux "
+                   "environment; WSL on Windows). About 3 minutes and 9 GiB free.",
+        "produces": "reference-asset-compiler.pixal-geometry.v1",
+        # Measured on an RTX 4090 on 2026-11-24: 157 s, 7.7 GiB allocated and
+        # 8.5 GiB reserved at --pixal-resolution 1024.
+        "estimate": {"unit": "seed", "minutes": 3, "free_vram_mib": 9216},
+    },
+    "project-reference": {
+        "runner": "python",
+        "script": "scripts/project_reference.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("geometry", "reference", "minimum_fit"),
+        "prepare": "project-reference",
+        "needs": ("blender",),
+        # The painter smooths fine wear away (the WK-04.3 landing kept none of
+        # its scratches through 21 sections at 8192), but Pixal3D builds its mesh
+        # in the picture's camera, so the picture itself is laid on the faces it
+        # shows and the paint kept for the rest. Only the picture the geometry
+        # was made from: a revised one doubled every bolt by 2 cm.
+        "timeout": 3600,
+        "summary": "Lay the reference picture onto the faces of a Pixal3D model it shows, over the paint: the "
+                   "picture's own scratches and colour. The geometry must be made from the same picture.",
+        "produces": "reference-asset-compiler.reference-projection.v1",
+    },
+    "label-parts": {
+        "runner": "python",
+        "script": "scripts/label_parts.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("vocab", "reference", "torch_python", "detector", "sam"),
+        "prepare": "label-parts",
+        "needs": ("blender", "segmentation"),
+        # The labelling paint-parts paints by: one part index a face, and the
+        # same parts in the reference picture. 24 renders with the face under
+        # every pixel, Grounding DINO and SAM in a torch Python, votes carried
+        # onto the faces, and fixed views in part colours for a person to check.
+        "output_suffix": ".npz",
+        "timeout": 7200,
+        "summary": "Find a painted model's parts face by face, and in its reference, from a vocabulary of "
+                   "parts. Renders, a detector and SAM; needs a GPU for a few minutes.",
+        "produces": "reference-asset-compiler.part-labels.v1",
+    },
+    "paint-parts": {
+        "runner": "python",
+        "script": "scripts/paint_parts.py",
+        "arguments": ("source", "output", "report"),
+        "options": ("parts", "reference", "views", "resolution", "atlas", "together", "surface",
+                    "reuse_parts", "min_free_vram", "inpaint_reach", "separate_runs", "no_upscale"),
+        "timeout": 7200,
+        "prepare": "paint-parts",
+        "needs": ("paint-stack",),
+        # Painted whole, a model's parts bleed: the skiff's fin red landed on
+        # the strut holding it. This paints each part alone, from the reference
+        # with the other parts masked out, and lays each on its own faces, the
+        # colour changing at the edge where parts meet. paint-sections goes on
+        # top afterwards, its finished sections reused.
+        "summary": "Paint a model again part by part, each from the reference with the other parts masked "
+                   "out, and lay each on its own faces. One painter run for every piece; needs 10.5 GiB free, "
+                   "a 12 GB card.",
+        "produces": "reference-asset-compiler.part-paint.v1",
+        # Measured on an RTX 4090: on 2026-11-24 the skiff's hull (2.2 m) in
+        # 3.4 minutes, its seat in 3.2 and both fins together in 2.6, one painter
+        # run a piece; on 2026-11-26 the PR-02.3 counter's four pieces in 5.9
+        # minutes together (60-91 s each on the card), one run for them all.
+        "estimate": {"unit": "piece", "minutes": 1.5, "free_vram_mib": 10752},
     },
 }
 
@@ -303,6 +529,13 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # upstream checkout and its own weights, and a machine that can
             # generate geometry often cannot paint it.
             missing += [item for item in paint_missing(legacy) if item not in missing]
+        if "pixal" in needs:
+            # Pixal3D runs in its own Linux environment, WSL on Windows.
+            missing += [item for item in pixal_missing() if item not in missing]
+        if "segmentation" in needs:
+            # A third: the part labeller's detector and SAM run in a Python
+            # with torch, which this compiler's own environment does not carry.
+            missing += [item for item in segmentation_missing() if item not in missing]
         described = {
             "stage": name,
             "runner": stage["runner"],
@@ -316,7 +549,13 @@ def describe_stages(repo_root: Path | None = None, blender: str | None = None,
             # the file before the stage runs, and a staged mesh is a .blend
             # where everything else is a .glb.
             "output_suffix": stage.get("output_suffix", ".glb"),
+            # How long run-stage waits before abandoning it, unless told otherwise.
+            "timeout_seconds": int(stage.get("timeout", DEFAULT_TIMEOUT_SECONDS)),
         }
+        if "estimate" in stage:
+            # How long one unit of the stage's work takes, where that varies by
+            # model: a consumer multiplies it out rather than hard-coding it.
+            described["estimate"] = dict(stage["estimate"])
         if "assign" in stage.get("options", ()) and root is not None:
             # The surfaces a caller may ask for, offered from the one table the
             # stage itself applies, so nobody is ever choosing from a stale list.
@@ -371,7 +610,7 @@ def run_stage(
     report: Path,
     repo_root: Path | None = None,
     blender: str | None = None,
-    timeout: int = DEFAULT_TIMEOUT_SECONDS,
+    timeout: int | None = None,
     textures: Path | None = None,
     legacy_root: Path | None = None,
     options: dict[str, Any] | None = None,
@@ -382,6 +621,8 @@ def run_stage(
         raise StageError("Unknown stage {0}. Known stages: {1}".format(
             stage_name, ", ".join(sorted(STAGES))))
 
+    if timeout is None:
+        timeout = int(stage.get("timeout", DEFAULT_TIMEOUT_SECONDS))
     root = repo_root or checkout_root()
     if root is None:
         raise StageError(
@@ -412,6 +653,8 @@ def run_stage(
         context = prepare_compress_textures(options or {})
     elif prepare == "cull-unseen":
         context = prepare_cull_unseen(options or {})
+    elif prepare == "bake-shape":
+        context = prepare_bake_shape(options or {})
     elif prepare == "bake-detail":
         context = prepare_bake_detail(options or {})
     elif prepare == "survey-surfaces":
@@ -448,6 +691,17 @@ def run_stage(
             Path(source), Path(output), options or {}, resolve_legacy_root(legacy_root))
     elif prepare == "paint-head":
         context = prepare_paint_head(options or {}, resolve_legacy_root(legacy_root))
+    elif prepare == "paint-sections":
+        context = prepare_paint_sections(options or {}, resolve_legacy_root(legacy_root))
+    elif prepare == "pixal-geometry":
+        context = prepare_pixal_geometry(options or {}, resolve_blender(blender),
+                                         resolve_legacy_root(legacy_root, required=False))
+    elif prepare == "label-parts":
+        context = prepare_label_parts(root, options or {}, resolve_blender(blender))
+    elif prepare == "project-reference":
+        context = prepare_project_reference(options or {}, resolve_blender(blender))
+    elif prepare == "paint-parts":
+        context = prepare_paint_parts(options or {}, resolve_legacy_root(legacy_root))
     extra = [str(item) for item in context.get("arguments", ())]
 
     if stage["runner"] == "blender":
@@ -483,8 +737,11 @@ def run_stage(
         environment = {key: value for key, value in os.environ.items()
                        if key.upper() != "PSMODULEPATH"}
     started = time.monotonic()
+    # Wall-clock times as well as the seconds, so `rac time-to-model` can lay a
+    # model's stages out in order from their receipts alone.
+    started_utc = datetime.now(timezone.utc).isoformat(timespec="seconds")
     try:
-        finished = subprocess.run(
+        finished = run_command(
             command, capture_output=True, text=True, errors="replace", timeout=timeout,
             env=environment,
             # Nothing here may ever wait to be typed at. A stage is run by a
@@ -494,7 +751,8 @@ def run_stage(
             # and spending no CPU, which looks exactly like slow work.
             stdin=subprocess.DEVNULL)
     except subprocess.TimeoutExpired:
-        raise StageError("Stage {0} did not finish within {1} seconds.".format(stage_name, timeout))
+        raise StageError("Stage {0} did not finish within {1} seconds, and everything it started "
+                         "was stopped.".format(stage_name, timeout))
     seconds = round(time.monotonic() - started, 3)
 
     payload: dict[str, Any] = {
@@ -505,6 +763,8 @@ def run_stage(
         "blender": runner,
         "exit_code": finished.returncode,
         "seconds": seconds,
+        "started_utc": started_utc,
+        "finished_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "report": str(report),
     }
 
@@ -643,10 +903,30 @@ def prepare_bake_detail(options: dict[str, Any]) -> dict[str, Any]:
     arguments: list[str] = []
     for flag, name in (("--resolution", "resolution"), ("--samples", "samples"),
                        ("--distance", "distance"), ("--edge-wear", "edge_wear"),
-                       ("--relief-from-paint", "relief_from_paint")):
+                       ("--relief-from-paint", "relief_from_paint"), ("--relief-tilt", "relief_tilt")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
+    if options.get("no_occlusion"):
+        arguments.append("--no-occlusion")
     return {"arguments": arguments}
+
+
+def prepare_bake_shape(options: dict[str, Any]) -> dict[str, Any]:
+    """The dense mesh the shape comes from, refused here if it is missing or no mesh file."""
+    dense = options.get("dense")
+    if not dense:
+        raise StageError("Baking a shape needs the dense mesh it comes from: pass --dense.")
+    dense = Path(dense).resolve()
+    if not dense.is_file():
+        raise StageError("The dense mesh does not exist: {0}".format(dense))
+    if dense.suffix.lower() not in (".blend", ".glb", ".gltf"):
+        raise StageError("The dense mesh must be .blend, .glb or .gltf, not {0}.".format(
+            dense.suffix or "a file without an extension"))
+    arguments = ["--dense", str(dense)]
+    for flag, name in (("--cage", "cage"), ("--fallback-cages", "fallback_cages"), ("--max-ray", "max_ray")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    return {"arguments": arguments, "payload": {"dense": str(dense)}}
 
 
 def prepare_cull_unseen(options: dict[str, Any]) -> dict[str, Any]:
@@ -1106,6 +1386,210 @@ def prepare_paint_head(options: dict[str, Any], legacy: Path) -> dict[str, Any]:
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]
     return {"arguments": arguments, "payload": {"reference": str(reference)}}
+
+
+def prepare_paint_sections(options: dict[str, Any], legacy: Path) -> dict[str, Any]:
+    """What the section pass insists on: the same picture, and the same stack.
+
+    As with the head pass, the reference is the whole picture the model was
+    painted from. The stage works out where each section sits in it from the
+    model's own outline; a caller does not crop it.
+    """
+    reference = options.get("reference")
+    if not reference:
+        raise StageError(
+            "Painting in sections needs the reference the model was painted from: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The paint reference does not exist: {0}".format(reference))
+    missing = paint_missing(legacy)
+    if missing:
+        raise StageError(
+            "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
+    arguments = ["--reference", str(reference), "--legacy-root", str(legacy)]
+    for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
+                       ("--section", "section"), ("--overlap", "overlap"), ("--context", "context"),
+                       ("--bake-scale", "bake_scale"),
+                       ("--keep-colour", "keep_colour"),
+                       ("--keep-tone", "keep_tone"),
+                       ("--min-length", "min_length"), ("--max-sections", "max_sections"),
+                       ("--min-free-vram", "min_free_vram"), ("--inpaint-reach", "inpaint_reach")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    if options.get("separate_runs"):
+        arguments.append("--separate-runs")
+    if options.get("no_upscale"):
+        arguments.append("--no-upscale")
+    if options.get("reuse_sections") is not None:
+        earlier = Path(options["reuse_sections"]).resolve()
+        if not earlier.is_dir():
+            raise StageError("There is no earlier section attempt at {0}.".format(earlier))
+        arguments += ["--reuse-sections", str(earlier)]
+    return {"arguments": arguments, "payload": {"reference": str(reference)}}
+
+
+PIXAL_UP = ("shortest", "middle", "longest")
+
+
+def prepare_pixal_geometry(options: dict[str, Any], blender: str, legacy: Path | None) -> dict[str, Any]:
+    """The real size, the seed and how the piece stands, settled before a GPU is asked for.
+
+    The size is given as a landmark on a person (--size knee, the way the rest of
+    the compiler and Framewright ask it), which is the piece's height, or as
+    metres with --size-m, which is its longest side unless --size-is height says
+    otherwise. The painter's environment is passed on when there is one: it
+    removes the background of a picture that still has one.
+    """
+    if options.get("size") and options.get("size_m"):
+        raise StageError("Give the real size once: --size (a landmark on a person) or --size-m (metres).")
+    if options.get("size"):
+        try:
+            resolved = resolve_height(str(options["size"]), float(options.get("size_adjust") or 1.0))
+        except HumanScaleError as problem:
+            raise StageError(str(problem)) from problem
+        size_m, size_is, scale = resolved["height_m"], "height", resolved
+    elif options.get("size_m"):
+        size_m, size_is, scale = float(options["size_m"]), options.get("size_is") or "longest", None
+        if size_is not in ("height", "longest"):
+            raise StageError("--size-is is height or longest.")
+    else:
+        raise StageError("Pixal3D geometry needs the piece's real size: --size knee (a landmark on a person) "
+                         "or --size-m 2.2 (metres along its longest side).")
+    if not 0.01 <= size_m <= 50.0:
+        raise StageError("A real size of {0} m is not plausible.".format(size_m))
+    up = options.get("up") or "shortest"
+    if up not in PIXAL_UP:
+        raise StageError("--up is shortest (a boat, a bench), longest (a lantern, a column) or middle "
+                         "(a panel standing on its edge).")
+    arguments = ["--size-m", repr(float(size_m)), "--size-is", size_is, "--up", up, "--blender", blender]
+    for flag, name in (("--seed", "seed"), ("--resolution", "pixal_resolution"), ("--vertex-target", "vertex_target")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    if options.get("flip"):
+        arguments.append("--flip")
+    if legacy is not None:
+        arguments += ["--legacy-root", str(legacy)]
+    payload = {"size_m": size_m, "size_is": size_is, "up": up}
+    if scale:
+        payload["scale"] = scale
+    return {"arguments": arguments, "payload": payload}
+
+
+def prepare_project_reference(options: dict[str, Any], blender: str) -> dict[str, Any]:
+    """The geometry report and its own picture, checked before anything runs."""
+    geometry = options.get("geometry")
+    if not geometry:
+        raise StageError("Projecting a reference needs the pixal-geometry report of the mesh it was painted on: "
+                         "pass --geometry.")
+    geometry = Path(geometry).resolve()
+    try:
+        made = json.loads(geometry.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as problem:
+        raise StageError("The geometry report {0} could not be read: {1}".format(geometry, problem))
+    if made.get("schema") != "reference-asset-compiler.pixal-geometry.v1":
+        raise StageError("{0} is not a pixal-geometry report; projection needs Pixal3D's camera.".format(geometry))
+    reference = options.get("reference")
+    if not reference:
+        raise StageError("Projecting a reference needs the picture: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The reference does not exist: {0}".format(reference))
+    if hashlib.sha256(reference.read_bytes()).hexdigest() != made.get("picture_sha256"):
+        raise StageError("The reference is not the picture this geometry was made from ({0}). A revised picture "
+                         "puts its details a little elsewhere; make the geometry again from it with "
+                         "pixal-geometry, then paint and project.".format(made.get("picture")))
+    arguments = ["--geometry", str(geometry), "--reference", str(reference), "--blender", blender]
+    if options.get("minimum_fit") is not None:
+        fit = float(options["minimum_fit"])
+        if not 0.5 <= fit <= 1.0:
+            raise StageError("--minimum-fit is an outline overlap between 0.5 and 1. Got {0}.".format(fit))
+        arguments += ["--minimum-fit", repr(fit)]
+    return {"arguments": arguments, "payload": {"geometry": str(geometry), "reference": str(reference)}}
+
+
+def prepare_label_parts(root: Path, options: dict[str, Any], blender: str) -> dict[str, Any]:
+    """What the part labeller insists on: a vocabulary, the picture, Blender and a segmenter.
+
+    A vocabulary may be named as a file or by its name under
+    profiles/segmentation (skiff-parts). It is checked here, before a GPU is
+    asked for: one base part, at least one part to find, every part named once.
+    """
+    vocab = options.get("vocab")
+    if not vocab:
+        raise StageError("Labelling parts needs a vocabulary: pass --vocab, e.g. skiff-parts or a JSON file.")
+    path = Path(vocab)
+    if not path.is_file():
+        named = root / "profiles" / "segmentation" / "{0}.json".format(vocab)
+        if not named.is_file():
+            raise StageError("There is no part vocabulary {0}, as a file or under profiles/segmentation.".format(
+                vocab))
+        path = named
+    try:
+        parts = json.loads(path.read_text(encoding="utf-8"))["parts"]
+        names = [part["name"] for part in parts]
+    except (OSError, ValueError, KeyError, TypeError) as problem:
+        raise StageError("The part vocabulary {0} could not be read: {1}".format(path, problem))
+    if sum(1 for part in parts if part.get("base")) != 1 or len(parts) < 2 or len(set(names)) != len(names):
+        raise StageError("A part vocabulary names one base part, at least one part to find, and each part once.")
+    for part in parts:
+        if not part.get("base") and not part.get("prompts"):
+            raise StageError("The part {0} has no prompts to look for it with.".format(part["name"]))
+    reference = options.get("reference")
+    if not reference:
+        raise StageError("Labelling parts needs the reference the model was painted from: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The reference does not exist: {0}".format(reference))
+    missing = segmentation_missing(options.get("torch_python"), options.get("detector"), options.get("sam"))
+    if missing:
+        raise StageError(
+            "This machine cannot label parts; it is missing: {0}. Name them with --torch-python, --detector "
+            "and --sam, or RAC_TORCH_PYTHON, RAC_GROUNDING_DINO and RAC_SAM_CHECKPOINT.".format(", ".join(missing)))
+    arguments = ["--vocab", str(path.resolve()), "--reference", str(reference), "--blender", blender]
+    for flag, name in (("--torch-python", "torch_python"), ("--detector", "detector"), ("--sam", "sam")):
+        if options.get(name):
+            arguments += [flag, str(options[name])]
+    return {"arguments": arguments, "payload": {"reference": str(reference), "vocab": str(path.resolve())}}
+
+
+def prepare_paint_parts(options: dict[str, Any], legacy: Path) -> dict[str, Any]:
+    """What the part painter insists on: the labelling, the same picture, and the paint stack."""
+    labelling = options.get("parts")
+    if not labelling:
+        raise StageError("Painting by parts needs the labelling label-parts made: pass --parts <labels.npz>.")
+    labelling = Path(labelling).resolve()
+    if not labelling.is_file():
+        raise StageError("The part labelling does not exist: {0}".format(labelling))
+    reference = options.get("reference")
+    if not reference:
+        raise StageError("Painting by parts needs the reference the model was painted from: pass --reference.")
+    reference = Path(reference).resolve()
+    if not reference.is_file():
+        raise StageError("The paint reference does not exist: {0}".format(reference))
+    if options.get("surface") not in (None, "first", "parts"):
+        raise StageError("--surface is first (keep the first paint's roughness and metal) or parts.")
+    missing = paint_missing(legacy)
+    if missing:
+        raise StageError(
+            "This machine cannot paint; it is missing: {0}".format(", ".join(missing)))
+    arguments = ["--parts", str(labelling), "--reference", str(reference), "--legacy-root", str(legacy)]
+    for flag, name in (("--views", "views"), ("--resolution", "resolution"), ("--atlas", "atlas"),
+                       ("--surface", "surface"), ("--min-free-vram", "min_free_vram"),
+                       ("--inpaint-reach", "inpaint_reach")):
+        if options.get(name) is not None:
+            arguments += [flag, str(options[name])]
+    if options.get("separate_runs"):
+        arguments.append("--separate-runs")
+    if options.get("no_upscale"):
+        arguments.append("--no-upscale")
+    if options.get("together") is not None:
+        arguments += ["--together", *[str(name) for name in options["together"]]]
+    if options.get("reuse_parts") is not None:
+        earlier = Path(options["reuse_parts"]).resolve()
+        if not earlier.is_dir():
+            raise StageError("There is no earlier part attempt at {0}.".format(earlier))
+        arguments += ["--reuse-parts", str(earlier)]
+    return {"arguments": arguments, "payload": {"reference": str(reference), "parts": str(labelling)}}
 
 
 def collect_produced(produced: dict[str, Path], output: Path, report: Path) -> None:
