@@ -9342,3 +9342,9 @@ The owner asked for the materials to be pushed until they hold up beside the sma
 - The skiff is being painted in 45 sections at about 0.7 mm a painted pixel at its real size; its result is recorded when it has been looked at.
 
 Framewright's side is raydeStar/framewright#45 (open): a prop is painted in sections instead of the head pass, and existing models gain a "Paint in sections" action.
+
+## 2026-11-26 · Handle empty paint camera projections
+
+A thin section can miss the raster at one bake angle and trigger an empty depth reduction. The streaming bake rechecks visibility at the input resolution after that error. A confirmed empty view adds zero weight. Other renderer failures still propagate, and all-empty coverage fails the job. Updated the launcher and registry pins together.
+
+CPU verification in a clean environment: 1,285 passed, 53 skipped, 217 subtests passed. Lint and stage syntax passed. The offline wheel build lacked Hatchling. The actual resumed GPU bake is the remaining acceptance check.

@@ -454,11 +454,33 @@ def bake_from_multiview_one_view_at_a_time(self, views, camera_elevs, camera_azi
     same sums are taken in the same order, view by view, with the same rule
     for skipping a view whose texels are already 99% painted, so the merged
     texture and mask are the ones upstream's last pass returns, byte for byte.
+    An empty projection contributes no texels even if the upstream renderer
+    fails before it can return its empty weight map.
     """
     render = self.render
     texture_merge = trust_map_merge = None
     for view, camera_elev, camera_azim, weight in zip(views, camera_elevs, camera_azims, view_weights):
-        texture, cos_map, _ = render.back_project(view, camera_elev, camera_azim)
+        try:
+            texture, cos_map, _ = render.back_project(view, camera_elev, camera_azim)
+        except RuntimeError as error:
+            # Hunyuan's depth extrema require at least one raster hit. An
+            # edge-on section can have none at its reduced bake resolution.
+            # Confirm the empty raster before skipping the upstream reduction
+            # error; a visible render must still report its original error.
+            if "input.numel() == 0" not in str(error):
+                raise
+            from PIL.Image import Image  # noqa: PLC0415
+
+            resolution = (view.height, view.width) if isinstance(view, Image) else view.shape[:2]
+            alpha = render.render_alpha(camera_elev, camera_azim, resolution=resolution)
+            if alpha.any():
+                raise
+            print(
+                f"HY3D21_EMPTY_BACK_PROJECTION elev={camera_elev} azim={camera_azim} "
+                f"resolution={tuple(resolution)}",
+                flush=True,
+            )
+            continue
         cos_map = weight * (cos_map ** self.config.bake_exp)
         if texture_merge is None:
             texture_merge = torch.zeros(render.texture_size + (texture.shape[-1],)).to(render.device)
@@ -469,8 +491,13 @@ def bake_from_multiview_one_view_at_a_time(self, views, camera_elevs, camera_azi
             texture_merge += texture * cos_map
             trust_map_merge += cos_map
         del texture, cos_map
+    if trust_map_merge is None:
+        raise RuntimeError("No paint view projected any texels of this mesh")
+    covered = trust_map_merge > 1e-8
+    if not covered.any():
+        raise RuntimeError("No paint view projected any texels of this mesh")
     texture_merge = texture_merge / torch.clamp(trust_map_merge, min=1e-8)
-    return texture_merge, trust_map_merge > 1e-8
+    return texture_merge, covered
 
 
 ViewProcessor.bake_from_multiview = bake_from_multiview_one_view_at_a_time
