@@ -107,10 +107,13 @@ from __future__ import annotations
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 import gc
+import hashlib
+import inspect
 import json
 import os
 import sys
 import time
+import textwrap
 import traceback
 from pathlib import Path
 
@@ -166,7 +169,10 @@ parser.add_argument("--maps-only", action="store_true",
                          "the maps saves that export, about 12 s a job at 8192.")
 parser.add_argument("--release-stages", action="store_true",
                     help="Move diffusion weights off the GPU before the upscale and bake.")
+parser.add_argument("--transfer-mode", choices=("baseline", "atlas", "encodes", "both"), default="baseline")
 args = parser.parse_args()
+if args.transfer_mode in ("encodes", "both") and not args.release_stages:
+    parser.error("grouping encodes requires --release-stages")
 
 LEGACY = args.legacy_root.resolve()
 UPSTREAM = LEGACY / "upstream" / "Hunyuan3D-2.1"
@@ -182,6 +188,63 @@ import textureGenPipeline as hy3d_pipeline  # noqa: E402
 from textureGenPipeline import Hunyuan3DPaintConfig, Hunyuan3DPaintPipeline  # noqa: E402
 from DifferentiableRenderer import mesh_utils  # noqa: E402
 from DifferentiableRenderer.MeshRender import MeshRender  # noqa: E402
+
+
+def without_unused_atlases(original):
+    """Remove two dead allocations from the verified upstream projector in this process only."""
+    source = textwrap.dedent(inspect.getsource(original))
+    expected = "2bb43b4cf9253c15ba865c2b2343af3d9a91be43be6658da57e5c8139209e0e4"
+    if hashlib.sha256(source.encode()).hexdigest() != expected:
+        raise RuntimeError("Unsupported back_project implementation for the atlas transfer optimization")
+    dead = ("    texture = torch.zeros(self.texture_size + (channel,)).to(self.device)\n"
+            "    cos_map = torch.zeros(self.texture_size + (1,)).to(self.device)\n")
+    if source.count(dead) != 1:
+        raise RuntimeError("Could not identify both unused atlas allocations")
+    namespace = {}
+    exec(compile(source.replace(dead, ""), original.__code__.co_filename, "exec"), original.__globals__, namespace)
+    return namespace[original.__name__]
+
+
+if args.transfer_mode in ("atlas", "both"):
+    MeshRender.back_project = without_unused_atlases(MeshRender.back_project)
+
+
+def offload_for_encodes(pipeline, device, empty_cache, grouped):
+    """In grouped mode keep weights off the card until denoising begins, including across VAE calls."""
+    encode, denoise = pipeline.encode_images, pipeline.denoise
+    parked = False
+
+    def restore():
+        nonlocal parked
+        if parked:
+            pipeline.unet.to(device)
+            parked = False
+
+    def encode_without_unet(*args, **kwargs):
+        nonlocal parked
+        if not parked:
+            pipeline.unet.to("cpu")
+            parked = True
+            empty_cache()
+        try:
+            return encode(*args, **kwargs)
+        finally:
+            if not grouped:
+                restore()
+
+    def denoise_on_device(*args, **kwargs):
+        restore()
+        # Upstream stacks the UNet's learned prompt tokens after encoding.
+        # With the weights parked those copies are on the host, too.
+        for key in ("prompt_embeds", "negative_prompt_embeds"):
+            if kwargs.get(key) is not None:
+                kwargs[key] = kwargs[key].to(device)
+        return denoise(*args, **kwargs)
+
+    pipeline.encode_images = encode_without_unet
+    if grouped:
+        pipeline.denoise = denoise_on_device
+    return restore
 
 
 def load_mesh(path):
@@ -721,18 +784,8 @@ def release_between_stages(painter):
         split += 1
     print("HY3D21_MULTIVIEW_ATTENTION_SPLIT blocks={0}".format(split), flush=True)
     pipeline = multiview.pipeline
-    encode_images = pipeline.encode_images
-
-    def encode_without_unet(*encode_args, **encode_kwargs):
-        # The batched condition encodes peak while 3.7 GiB of UNet sits idle.
-        pipeline.unet.to("cpu")
-        torch.cuda.empty_cache()
-        try:
-            return encode_images(*encode_args, **encode_kwargs)
-        finally:
-            pipeline.unet.to(execution_device)
-
-    pipeline.encode_images = encode_without_unet
+    restore_unet = offload_for_encodes(pipeline, execution_device, torch.cuda.empty_cache,
+                                       args.transfer_mode in ("encodes", "both"))
     torch.cuda.empty_cache()
     vae = multiview.pipeline.vae
     decode = vae.decode
@@ -749,7 +802,10 @@ def release_between_stages(painter):
     vae.decode = decode_one_at_a_time
 
     def generate_then_release(*call_args, **call_kwargs):
-        views = multiview(*call_args, **call_kwargs)
+        try:
+            views = multiview(*call_args, **call_kwargs)
+        finally:
+            restore_unet()
         multiview.pipeline.to("cpu")
         gc.collect()
         torch.cuda.empty_cache()
@@ -871,6 +927,7 @@ def paint(job, number):
         written = sorted(p.name for p in output_obj.parent.glob(output_obj.stem + "*.png"))
         report = {
             "source_mesh": str(mesh_path),
+            "transfer_mode": args.transfer_mode,
             "reference": str(reference_path),
             "output_obj": str(output_obj),
             "output_glb": None if args.maps_only else str(output_obj.with_suffix(".glb")),
