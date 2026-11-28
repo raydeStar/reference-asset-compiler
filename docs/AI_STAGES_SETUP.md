@@ -339,6 +339,36 @@ launcher), and all three maps are byte-identical. Splitting the attention for
 the 12 GB budget costs no measurable time. Fewer diffusion steps would be
 faster but would change the paint, so that stays a quality decision.
 
+### Section-painter transfer modes
+
+The studio launcher accepts `-TransferMode baseline|atlas|encodes|both`.
+For a registered section stage, set `RAC_PAINT_TRANSFER_MODE` in the child
+process that invokes `rac run-stage paint-sections`. The default is
+`baseline`. The atlas option removes two unused full-sheet allocations from
+the pinned upstream projector. The encode option holds the denoising weights
+in host memory through the conditioning encodes and restores them for
+sampling. It requires released stages. Both options preserve the input
+views, resolution, diffusion steps, UV layout and bake sizes. The validation
+and execution receipts record the mode.
+
+On the workstation RTX 4090, three paired 12-view, 768-pixel, no-upscale
+sections painted to an 8192 atlas gave these timings. Elapsed time includes
+one launcher startup and the final map writes for each three-section batch.
+
+| Mode | Elapsed seconds | Sum of per-section painter seconds |
+| --- | ---: | ---: |
+| Baseline | 342.9 | 268.3 |
+| Atlas | 303.3 | 253.6 |
+| Encodes | 253.0 | 221.5 |
+| Both | 246.3 | 214.5 |
+
+All nine PNGs per variant matched the archived control by SHA-256. On a
+separate complete 46-section model, both options brought the stage from
+2,495.0 seconds in the saved run to 2,348.3 seconds. All 138 PNGs and the
+composed GLB matched byte for byte, with zero reused sections. This 5.9%
+stage saving includes planning and compositing. Whole-asset build time also
+includes acquisition, preparation and finishing.
+
 ## Optional historical geometry through ComfyUI
 
 Earlier geometry work on the development workstation ran through the preserved
