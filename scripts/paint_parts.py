@@ -38,11 +38,18 @@ and dark go over it as over a first paint, and they need not be painted
 again (`--reuse-sections` finds them by mesh and crop, which a base does not
 change).
 
+The pieces are painted as the sections are: one painter run for them all, its
+models loaded once, each piece's maps written while the next one paints
+(`--separate-runs` starts one per piece, as before), and each piece fills only
+the texels near its own faces that no view saw (`--inpaint-reach`). A piece
+is laid on its own faces' texels only, so the rest of its sheet was never read.
+
 Usage:
   python scripts/paint_parts.py -- <painted.glb> <output.glb> <report.json> \\
       --parts <labels.npz> --reference <image> --legacy-root <studio tree> \\
       [--atlas 8192] [--views 12] [--resolution 768] [--together fin] \\
-      [--surface first] [--reuse-parts <earlier attempt>] [--plan-only]
+      [--surface first] [--reuse-parts <earlier attempt>] [--plan-only] \\
+      [--inpaint-reach 32] [--separate-runs] [--no-upscale]
 """
 
 from __future__ import annotations
@@ -102,6 +109,14 @@ def parse_arguments(argv):
                         help="roughness and metal from the first paint (default) or from the part paints")
     parser.add_argument("--reuse-parts", type=Path,
                         help="an earlier attempt; a piece it painted from the same mesh and crop is reused")
+    parser.add_argument("--inpaint-reach", type=int, default=32,
+                        help="fill the texels no view saw only within at least this many texels of each "
+                             "piece's faces (wider where the views left deeper gaps); 0 fills the whole sheet")
+    parser.add_argument("--separate-runs", action="store_true",
+                        help="start the painter once for each piece instead of once for them all")
+    parser.add_argument("--no-upscale", action="store_true",
+                        help="skip the painter's 4x upscale of each view; every view is resized to the "
+                             "piece's bake size anyway")
     parser.add_argument("--plan-only", action="store_true")
     return parser.parse_args(argv)
 
@@ -273,6 +288,8 @@ def main(argv=None) -> int:
             return failed("the {0} does not exist: {1}".format(what, path))
     if args.output.exists():
         return failed("refusing to overwrite {0}".format(args.output))
+    if not 0 <= args.inpaint_reach <= 256:
+        return failed("inpaint-reach runs from 0 to 256 texels. Got {0}".format(args.inpaint_reach))
 
     raw = args.source.read_bytes()
     document, binary = ps.read_glb(raw)
@@ -335,7 +352,10 @@ def main(argv=None) -> int:
         "output": str(args.output),
         "settings": {"atlas": args.atlas, "views": args.views, "resolution": args.resolution,
                      "crop_margin": args.crop_margin, "min_piece": args.min_piece, "join_m": args.join,
-                     "together": sorted(together_names), "surface_from": args.surface},
+                     "together": sorted(together_names), "surface_from": args.surface,
+                     "inpaint_reach": args.inpaint_reach,
+                     "painter_runs": "one per piece" if args.separate_runs else "one for every piece",
+                     "upscale": "none" if args.no_upscale else "4x RealESRGAN"},
         "geometry_unchanged": True, "uvs_unchanged": True,
         "requires_fixed_view_review": True, "production_grade": False,
         "attempt": str(attempt), "pieces": [],
@@ -401,40 +421,65 @@ def main(argv=None) -> int:
         base_mr = ps.as_pixels(Image.open(io.BytesIO(ps.image_bytes(document, binary, mr_index))),
                                size).astype(np.float32)
     sheet = ps.face_sheet(uvs, triangles, size)
-    albedo_layers, mr_layers = [], []
+    pending = []
     for piece in pieces:
         record = piece["record"]
         folder = Path(record["folder"])
         earlier = ps.reusable_paint(args.reuse_parts, folder, args, record["bake_size"]) \
             if args.reuse_parts else None
-        begun = time.monotonic()
+        if earlier is not None:
+            shutil.copytree(earlier, folder / "paint")
+            record["reused_from"] = str(earlier)
+            record["launcher_exit_code"] = None
+        else:
+            pending.append(record)
+    if pending and args.separate_runs:
+        for record in pending:
+            folder = Path(record["folder"])
+            print("{0} painting {1}".format(TAG, record["piece"]), flush=True)
+            begun = time.monotonic()
+            try:
+                _, _, record["launcher_exit_code"] = ps.paint_section(
+                    args, folder / "section.obj", folder / "reference.png", folder / "paint", record["bake_size"])
+            except (RuntimeError, subprocess.TimeoutExpired) as problem:
+                return failed("piece {0} could not be painted, and no half-painted model is delivered: {1}".format(
+                    record["piece"], problem))
+            record["paint_seconds"] = round(time.monotonic() - begun, 1)
+    elif pending:
+        print("{0} painting {1} pieces in one painter run".format(TAG, len(pending)), flush=True)
         try:
-            if earlier is not None:
-                shutil.copytree(earlier, folder / "paint")
-                glb, gate = ps.read_paint(folder / "paint")
-                record["reused_from"] = str(earlier)
-                exit_code = None
-            else:
-                print("{0} painting {1}".format(TAG, record["piece"]), flush=True)
-                glb, gate, exit_code = ps.paint_section(args, folder / "section.obj", folder / "reference.png",
-                                                        folder / "paint", record["bake_size"])
-        except (RuntimeError, subprocess.TimeoutExpired) as problem:
-            return failed("piece {0} could not be painted, and no half-painted model is delivered: {1}".format(
-                record["piece"], problem))
-        record["launcher_exit_code"] = exit_code
-        record["paint_seconds"] = round(time.monotonic() - begun, 1)
+            exit_code = ps.paint_batch(args, [(Path(r["folder"]) / "section.obj", Path(r["folder"]) / "reference.png",
+                                               Path(r["folder"]) / "paint", r["bake_size"]) for r in pending],
+                                       Path(report["attempt"]))
+        except subprocess.TimeoutExpired as problem:
+            return failed("the painter ran past {0:.0f} minutes and was stopped; no half-painted model is "
+                          "delivered. The pieces it finished are kept: pass --reuse-parts {1} to paint only "
+                          "the rest".format(problem.timeout / 60.0, report["attempt"]))
+        for record in pending:
+            record["launcher_exit_code"] = exit_code
+
+    albedo_layers, mr_layers = [], []
+    for piece in pieces:
+        record = piece["record"]
+        paint_dir = Path(record["folder"]) / "paint"
+        try:
+            glb, gate = ps.read_paint(paint_dir, "" if "reused_from" in record else
+                                      ps.why_unpainted(paint_dir, Path(report["attempt"])))
+        except RuntimeError as problem:
+            return failed("piece {0} could not be painted, and no half-painted model is delivered: {1}{2}".format(
+                record["piece"], problem, "" if args.separate_runs else
+                ". The pieces that were painted are kept: pass --reuse-parts {0} to paint only the rest".format(
+                    report["attempt"])))
+        if "paint_seconds" not in record and "reused_from" not in record:
+            # The painter's own time on the card for this piece.
+            record["paint_seconds"] = gate.get("seconds_painting", gate.get("seconds"))
         record["gate"] = {key: gate.get(key) for key in ("faces_equal", "geometry_delta", "uv_delta", "atlas")}
-        painted_document, painted_binary = ps.read_glb(glb.read_bytes())
-        painted_pbr = painted_document["materials"][0].get("pbrMetallicRoughness", {})
+        albedo_image, mr_image = ps.section_maps(paint_dir, glb)
         weights = hard_weights(sheet, piece["faces"], len(triangles), size)
         mask = weights > 0
-        albedo = ps.texture_image(painted_document, painted_pbr.get("baseColorTexture"))
-        albedo_layers.append((ps.as_pixels(Image.open(io.BytesIO(
-            ps.image_bytes(painted_document, painted_binary, albedo))), size), weights, mask))
-        mr = ps.texture_image(painted_document, painted_pbr.get("metallicRoughnessTexture"))
-        if base_mr is not None and mr is not None:
-            mr_layers.append((ps.as_pixels(Image.open(io.BytesIO(
-                ps.image_bytes(painted_document, painted_binary, mr))), size), weights, mask))
+        albedo_layers.append((ps.as_pixels(albedo_image, size), weights, mask))
+        if base_mr is not None and mr_image is not None:
+            mr_layers.append((ps.as_pixels(mr_image, size), weights, mask))
 
     replacements = {albedo_index: ps.png_bytes(ps.to_image(ps.composite(base_albedo, albedo_layers, 0.0)))}
     if base_mr is not None and len(mr_layers) == len(albedo_layers):

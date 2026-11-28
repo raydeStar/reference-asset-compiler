@@ -95,13 +95,14 @@
       "id": "hunyuan3d21_studio_runner",
       "stage": "texture_candidate",
       "path": "texture/hunyuan3d21/run_hy3d21_studio.py",
-      "sha256": "1DA1734A7EA292AE59953A3C2B8F53BD42E7E79D4547659790CE805CEEA9263D",
+      "sha256": "3D983E62EFE3CF154198DB4DD65A155A33A90E2F689BC1F83C723A0F5B923725",
       "selection": "launched_by_run_hy3d21_texture_ps1_when_RunnerKind_studio",
       "runtime": "Windows_Python_3.11_CUDA_12.4",
-      "method": "trimesh force=mesh process=False preserves UV-corner splits; normals use an exact-position proxy without changing geometry or UVs; optional smooth character conditioning; retains requested atlas and writes PNG maps; default release_stages (launcher -KeepStagesResident opts out) offloads the idle text encoder and DINO before sampling (pipeline device pinned to the GPU), runs the UNet feed-forward, multiview attention and VAE decode one image or sequence at a time, parks the UNet in host memory during condition encodes, sets PYTORCH_CUDA_ALLOC_CONF against fragmentation, and offloads the diffusion weights before upscale and bake; fits a 12 GB card (measured, not byte-identical)",
+      "method": "trimesh force=mesh process=False preserves UV-corner splits; normals use an exact-position proxy without changing geometry or UVs; optional smooth character conditioning; retains requested atlas and writes PNG maps; default release_stages (launcher -KeepStagesResident opts out) offloads the idle text encoder and DINO before sampling (pipeline device pinned to the GPU), runs the UNet feed-forward, multiview attention and VAE decode one image or sequence at a time, parks the UNet in host memory during condition encodes, sets PYTORCH_CUDA_ALLOC_CONF against fragmentation, and offloads the diffusion weights before upscale and bake; fits a 12 GB card (measured, not byte-identical); --jobs paints a list of meshes in one process with the models loaded once, each job re-seeded and the diffusion put back on the card as the first found it; --inpaint-reach fills unseen texels with OpenCV only near the mesh and the rest of the sheet from the nearest paint (sheet_fill.py); --maps-only writes the maps without the GLB Blender packs them into; with --jobs and --maps-only each job's fills, map conversion and PNGs run on a thread from host copies while the next job paints (byte-identical maps, report written last and whole) With --no-upscale the 4x RealESRGAN upscale is skipped and each view goes straight to the bake size, for section and part passes (the owner's A/B on PR-02.3, 26 November).",
       "topology_contract": "exact_face_order_geometry_and_UV_with_tolerance_1e-6",
       "deployment": "run in place from this repository; scripts/run_hy3d21_texture.ps1 -RunnerKind studio verifies this sha256 before launching",
-      "normal_helper": {"path": "texture/hunyuan3d21/seam_normals.py", "sha256": "D6F166BB122DC8F6E0EC47B42644A53C2600FE7AFD3E3F049DFA9AC3BB6AAFDD"}
+      "normal_helper": {"path": "texture/hunyuan3d21/seam_normals.py", "sha256": "D6F166BB122DC8F6E0EC47B42644A53C2600FE7AFD3E3F049DFA9AC3BB6AAFDD"},
+      "fill_helper": {"path": "texture/hunyuan3d21/sheet_fill.py", "sha256": "0D95040DCD66D2102070FBB79C5E31051918D0B81AF8D4580FBAE530196E3B54"}
     },
     {
       "id": "trellis2_existing_mesh_pbr",

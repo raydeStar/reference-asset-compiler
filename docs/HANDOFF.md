@@ -9343,6 +9343,12 @@ The owner asked for the materials to be pushed until they hold up beside the sma
 
 Framewright's side is raydeStar/framewright#45 (open): a prop is painted in sections instead of the head pass, and existing models gain a "Paint in sections" action.
 
+## 2026-11-26 · Handle empty paint camera projections
+
+A thin section can miss the raster at one bake angle and trigger an empty depth reduction. The streaming bake rechecks visibility at the input resolution after that error. A confirmed empty view adds zero weight. Other renderer failures still propagate, and all-empty coverage fails the job. Updated the launcher and registry pins together.
+
+CPU verification in a clean environment: 1,285 passed, 53 skipped, 217 subtests passed. Lint and stage syntax passed. The offline wheel build lacked Hatchling. The actual resumed GPU bake is the remaining acceptance check.
+
 ## 2026-11-27 · Use the cached NAF ref in Pixal3D
 
 While acquiring the Frastown bow, Torch Hub's default-branch lookup failed with `HTTP Error 504: Gateway Time-out`. The existing `main` cache contains the NAF code and weights. The Pixal3D runner names that ref and the registry pins the updated runner. The Pixal geometry, frame and GPU-reservation tests completed with two environment skips. A WSL CPU check loaded the real cached NAF model with Torch Hub network calls forbidden and reused the same frozen model on a second call. The bow geometry and joint checks are still open.

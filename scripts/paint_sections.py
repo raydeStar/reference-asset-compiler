@@ -42,6 +42,12 @@ byte for byte, and its receipt says so. `--plan-only` writes the sections, their
 crops and the receipt without painting, so the plan can be looked at before any
 GPU time is spent on it.
 
+Every section is painted by one painter run that loads the models once
+(`--separate-runs` starts one per section, as before), and each fills only the
+texels near its own faces that no view saw (`--inpaint-reach`): on an 8192
+sheet a section is a few percent of it, and filling the rest took most of each
+section's time for texels nothing here reads.
+
 Usage:
   python scripts/paint_sections.py -- <painted.glb> <output.glb> <report.json> \\
       --reference <image> --legacy-root <studio tree> \\
@@ -53,6 +59,7 @@ from __future__ import annotations
 
 import argparse
 import hashlib
+from concurrent.futures import ThreadPoolExecutor
 import io
 import itertools
 import json
@@ -81,7 +88,7 @@ from paint_head_detail import (  # noqa: E402
     texture_image,
     write_obj,
 )
-from reference_asset_compiler.processes import run_bounded  # noqa: E402
+from reference_asset_compiler.processes import kill_tree, run_bounded  # noqa: E402
 
 TAG = "[SECTIONS]"
 POWERSHELL = "powershell.exe"
@@ -134,6 +141,16 @@ def parse_arguments(argv):
                         help="Extra around a section's place in the picture, as a fraction of it")
     parser.add_argument("--min-free-vram", type=int, default=0,
                         help="MiB the painter must find free before it starts; 0 leaves it to the launcher")
+    parser.add_argument("--inpaint-reach", type=int, default=32,
+                        help="Fill the texels no view saw only within at least this many texels of each "
+                             "section's faces (wider where the views left deeper gaps), the rest of its "
+                             "sheet from the nearest paint; 0 fills the whole sheet")
+    parser.add_argument("--no-upscale", action="store_true",
+                        help="Skip the painter's 4x upscale of each view: every view is resized to the "
+                             "section's bake size anyway, and on the PR-02.3 counter it looked the same "
+                             "and saved about 10 s a section")
+    parser.add_argument("--separate-runs", action="store_true",
+                        help="Start the painter once for each section instead of once for them all")
     parser.add_argument("--plan-only", action="store_true",
                         help="Plan the sections and their crops and write the receipt; paint nothing")
     parser.add_argument("--cutout", type=Path,
@@ -465,13 +482,19 @@ def smooth_weights(sheet, triangles, vertex_weights, painted_faces):
     paint weighs nothing, whatever its corners say.
     """
     size = sheet["size"]
-    corners = triangles[sheet["faces"]]
-    values = (vertex_weights[corners] * sheet["bary"]).sum(axis=1)
-    values *= painted_faces[sheet["faces"]]
+    # Only the texels of the section's own faces: on an 8192 sheet the rest are
+    # most of it, and their weight is nothing whatever their corners say.
+    painted = np.asarray(painted_faces)[sheet["faces"]]
+    if painted.dtype != bool:
+        painted = painted != 0
+    faces = sheet["faces"][painted]
+    corners = triangles[faces]
+    values = (vertex_weights[corners] * sheet["bary"][painted]).sum(axis=1)
+    rows, columns = sheet["rows"][painted], sheet["columns"][painted]
     weights = np.zeros((size, size), dtype=np.float32)
-    weights[sheet["rows"], sheet["columns"]] = values
+    weights[rows, columns] = values
     mask = np.zeros((size, size), dtype=bool)
-    mask[sheet["rows"], sheet["columns"]] = painted_faces[sheet["faces"]]
+    mask[rows, columns] = True
     return weights, mask
 
 
@@ -515,6 +538,97 @@ def masked_blur(image, mask, sigma):
         out[up.shape[0]:] = out[up.shape[0] - 1]
     if up.shape[1] < width:
         out[:, up.shape[1]:] = out[:, up.shape[1] - 1: up.shape[1]]
+    return out
+
+
+def _block_mean(array, factor, rows, columns):
+    """The mean of every factor x factor block of the first rows*factor x columns*factor texels, as float32.
+
+    Summed along one axis and then the other, which reads the sheet in order:
+    a mean over both block axes at once strides across it and took seconds.
+    """
+    array = array[: rows * factor, : columns * factor]
+    channels = array.shape[2]
+    down = np.ascontiguousarray(array).reshape(rows, factor, columns * factor * channels).sum(axis=1, dtype=np.float32)
+    down = down.reshape(rows, columns, factor, channels).sum(axis=2, dtype=np.float32)
+    return down / np.float32(factor * factor)
+
+
+def _shrunk_blur(image, mask, sigma, factor):
+    """masked_blur's shrunk sheet, blurred, before it is grown back: (rows, columns, channels) float32."""
+    from scipy.ndimage import gaussian_filter  # noqa: PLC0415
+
+    height, width = mask.shape
+    rows, columns = max(1, height // factor), max(1, width // factor)
+    weight = _block_mean(mask[..., None], factor, rows, columns)[..., 0]
+    held = image * mask[..., None].astype(image.dtype if image.dtype.kind == "f" else np.uint8)
+    summed = _block_mean(held, factor, rows, columns)
+    small_sigma = sigma / factor
+    weight = gaussian_filter(weight, small_sigma)
+    blurred = np.stack([gaussian_filter(summed[..., c], small_sigma) for c in range(image.shape[2])], axis=2)
+    return blurred / np.maximum(weight, 1e-6)[..., None]
+
+
+def masked_blur_at(image, mask, sigma, index, tile=256):
+    """masked_blur(image, mask, sigma) at the flat texel indices `index` only: (n, channels) float32.
+
+    A section uses a few percent of an 8192 sheet, and blurring all of it for
+    every section took most of the composite: 25-30 s a section a map. Where
+    the blur is taken at full size, it is taken here tile by tile, only round
+    the tiles that hold a texel asked for, each with a border as wide as the
+    Gaussian reaches, so every texel asked for reads exactly the texels the
+    whole-sheet blur would. Where it is taken on a shrunk sheet, that sheet is
+    small and is blurred whole, and only the texels asked for are read back
+    from it, by the same linear interpolation that grows it to full size; its
+    block means are summed in another order, so they agree to float rounding.
+    `image` may be uint8 or float.
+    """
+    from scipy.ndimage import gaussian_filter  # noqa: PLC0415
+
+    height, width = mask.shape
+    channels = image.shape[2]
+    index = np.asarray(index, dtype=np.int64)
+    rows, columns = np.divmod(index, width)
+    factor = max(1, int(sigma // 3))
+    out = np.empty((len(index), channels), dtype=np.float32)
+    if len(index) == 0:
+        return out
+    if factor > 1:
+        low = _shrunk_blur(image, mask, sigma, factor).astype(np.float32)
+        low_rows, low_columns = low.shape[:2]
+        # scipy.ndimage.zoom(order=1) to (height, width): output texel o reads
+        # the shrunk sheet at o * (in - 1) / (out - 1), linearly between its two
+        # neighbours on each axis. Rows past what it grows are the last row's.
+        grown_rows = int(round(low_rows * (height / low_rows)))
+        grown_columns = int(round(low_columns * (width / low_columns)))
+        y = np.minimum(rows, grown_rows - 1).astype(np.float64) * (
+            (low_rows - 1) / (grown_rows - 1) if grown_rows > 1 else 0.0)
+        x = np.minimum(columns, grown_columns - 1).astype(np.float64) * (
+            (low_columns - 1) / (grown_columns - 1) if grown_columns > 1 else 0.0)
+        y0 = np.floor(y).astype(np.int64)
+        x0 = np.floor(x).astype(np.int64)
+        fy, fx = (y - y0)[:, None], (x - x0)[:, None]
+        y1, x1 = np.minimum(y0 + 1, low_rows - 1), np.minimum(x0 + 1, low_columns - 1)
+        low64 = low.astype(np.float64)
+        out[:] = ((1 - fy) * (1 - fx) * low64[y0, x0] + (1 - fy) * fx * low64[y0, x1]
+                  + fy * (1 - fx) * low64[y1, x0] + fy * fx * low64[y1, x1])
+        return out
+    reach = int(4.0 * sigma + 0.5)          # gaussian_filter's own reach, truncate=4
+    tiles = (rows // tile) * ((width + tile - 1) // tile) + columns // tile
+    order = np.argsort(tiles, kind="stable")
+    starts = np.flatnonzero(np.r_[True, np.diff(tiles[order]) != 0])
+    ends = np.r_[starts[1:], len(order)]
+    for start, end in zip(starts, ends):
+        members = order[start:end]
+        top, left = (rows[members[0]] // tile) * tile, (columns[members[0]] // tile) * tile
+        r0, r1 = max(0, top - reach), min(height, top + tile + reach)
+        c0, c1 = max(0, left - reach), min(width, left + tile + reach)
+        held = mask[r0:r1, c0:c1].astype(np.float32)
+        weight = gaussian_filter(held, sigma)
+        window = image[r0:r1, c0:c1] * held[..., None]
+        for channel in range(channels):
+            blurred = gaussian_filter(window[..., channel], sigma)
+            out[members, channel] = (blurred / np.maximum(weight, 1e-6))[rows[members] - r0, columns[members] - c0]
     return out
 
 
@@ -575,6 +689,79 @@ def repad(image, covered):
 LUMINANCE = np.array([0.2126, 0.7152, 0.0722], dtype=np.float32)
 
 
+def sparse_layout(weights, mask):
+    """A section's place on the sheet: the flat texels it weighs, their weights (float32), and its mask."""
+    flat = np.asarray(weights).reshape(-1)
+    at = np.flatnonzero(flat != 0)
+    return at, flat[at].astype(np.float32), mask
+
+
+class Stitch:
+    """composite(), one section at a time: the same sums, taken in the same order.
+
+    `layout` holds each section's sparse_layout, in section order. It comes
+    from the geometry alone, so everything that reads every section's place
+    (the first paint's tone under all of them) is taken before any is painted,
+    and each section's paint is laid as soon as it exists and then let go. The
+    section pass lays them while the painter is still painting the next ones.
+    Sections are laid strictly in order, so the sums are those composite takes.
+    """
+
+    def __init__(self, base, layout, sigma, mode="colour", gains=None):
+        self.base, self.layout, self.sigma, self.mode, self.gains = base, list(layout), sigma, mode, gains
+        height, width, channels = base.shape
+        self.base_flat = base.reshape(-1, channels)
+        self.total = np.zeros(height * width, dtype=np.float32)
+        self.laid = np.zeros((height * width, channels), dtype=np.float32)
+        self.base_tone = None
+        if sigma > 0 and mode != "light":
+            everywhere = np.zeros(base.shape[:2], dtype=bool)
+            weighed = np.zeros(height * width, dtype=bool)
+            for at, _, mask in self.layout:
+                everywhere |= mask
+                weighed[at] = True
+            tone_at = np.flatnonzero(weighed)
+            self.base_tone = np.zeros((height * width, channels), dtype=np.float32)
+            self.base_tone[tone_at] = masked_blur_at(base, everywhere, sigma, tone_at)
+        self.next = 0
+
+    def lay(self, number, paint):
+        """Lay section `number`'s paint (the base's size, uint8 or float); sections come in order."""
+        if number != self.next:
+            raise ValueError("sections are laid in order: section {0} came before {1}".format(number, self.next))
+        at, weight, mask = self.layout[number]
+        self.layout[number] = None
+        self.next += 1
+        if len(at) == 0:
+            return
+        channels = self.base.shape[2]
+        if self.gains is not None:
+            paint = paint.astype(np.float32) * np.asarray(self.gains[number], dtype=np.float32)
+        here = np.asarray(paint).reshape(-1, channels)[at].astype(np.float32)
+        if self.sigma > 0 and self.mode == "light":
+            own = masked_blur_at(paint, mask, self.sigma, at)
+            ratio = np.clip((here @ LUMINANCE + 4.0) / (own @ LUMINANCE + 4.0), 0.55, 1.6)
+            here = self.base_flat[at] * ratio[:, None]
+        elif self.sigma > 0:
+            own = masked_blur_at(paint, mask, self.sigma, at)
+            here = self.base_tone[at] + (here - own)
+        self.laid[at] += here * weight[:, None]
+        self.total[at] += weight
+
+    def result(self):
+        """The sheet once every section is laid."""
+        if self.next != len(self.layout):
+            raise ValueError("{0} of {1} sections were laid".format(self.next, len(self.layout)))
+        height, width, channels = self.base.shape
+        # Where weights sum away from one -- grown masks overlapping at an island's
+        # edge, or a face one neighbour did not paint -- the sections share.
+        covered = self.total > 0
+        out = self.base.copy() if self.base.dtype == np.float32 else self.base.astype(np.float32)
+        out_flat = out.reshape(-1, channels)
+        out_flat[covered] = self.laid[covered] / self.total[covered][:, None]
+        return repad(out, covered.reshape(height, width))
+
+
 def composite(base, sections, sigma, gains=None, mode="colour"):
     """Every section laid over the model, on the first paint's islands.
 
@@ -598,32 +785,14 @@ def composite(base, sections, sigma, gains=None, mode="colour"):
     section reached keep the base, and the atlas padding is refilled from the
     nearest laid texel so mip levels read what the islands hold.
     """
-    total = np.zeros(base.shape[:2], dtype=np.float32)
-    laid = np.zeros_like(base)
-    base_tone = None
-    if sigma > 0 and mode != "light":
-        everywhere = np.zeros(base.shape[:2], dtype=bool)
-        for _, _, mask in sections:
-            everywhere |= mask
-        base_tone = masked_blur(base, everywhere, sigma)
-    for number, (paint, weights, mask) in enumerate(sections):
-        paint = paint.astype(np.float32)
-        if gains is not None:
-            paint = paint * np.asarray(gains[number], dtype=np.float32)
-        if sigma > 0 and mode == "light":
-            own = masked_blur(paint, mask, sigma)
-            ratio = np.clip((paint @ LUMINANCE + 4.0) / (own @ LUMINANCE + 4.0), 0.55, 1.6)
-            paint = base * ratio[..., None]
-        elif sigma > 0:
-            paint = base_tone + (paint - masked_blur(paint, mask, sigma))
-        laid += paint * weights[..., None]
-        total += weights
-    # Where weights sum away from one -- grown masks overlapping at an island's
-    # edge, or a face one neighbour did not paint -- the sections share.
-    share = np.where(total > 0, total, 1.0)
-    covered = (total > 0).astype(np.float32)[..., None]
-    out = base * (1.0 - covered) + laid / share[..., None]
-    return repad(out, total > 0)
+    # Every sum is taken only where a section weighs anything, and every blur
+    # only there (masked_blur_at): the same numbers as the whole-sheet arithmetic
+    # this replaced, a few percent of the work on a large sheet. Stitch takes
+    # them; the section pass lays each section as it is painted.
+    stitch = Stitch(base, [sparse_layout(weights, mask) for _, weights, mask in sections], sigma, mode, gains)
+    for number, (paint, _, _) in enumerate(sections):
+        stitch.lay(number, paint)
+    return stitch.result()
 
 
 def as_pixels(image: Image.Image, size):
@@ -681,6 +850,10 @@ def paint_section(args, mesh_obj, crop_png, paint_dir, bake_size=0):
         command += ["-MinimumFreeVramMiB", str(args.min_free_vram)]
     if bake_size > 0:
         command += ["-BakeSize", str(int(bake_size))]
+    if getattr(args, "inpaint_reach", 0) > 0:
+        command += ["-InpaintReach", str(int(args.inpaint_reach))]
+    if getattr(args, "no_upscale", False):
+        command.append("-NoUpscale")
     painted = run_bounded(command, capture_output=True, text=True, errors="replace",
                              stdin=subprocess.DEVNULL, timeout=3000,
                              env={key: value for key, value in os.environ.items()
@@ -689,16 +862,122 @@ def paint_section(args, mesh_obj, crop_png, paint_dir, bake_size=0):
     return glb, gate, painted.returncode
 
 
+def paint_batch(args, jobs, attempt, minutes_each=10.0, on_progress=None):
+    """Every section through one painter run, its models loaded once; returns the launcher's exit code.
+
+    `jobs` is a list of (mesh_obj, crop_png, paint_dir, bake_size). The painter
+    writes each section's maps and gate into its paint folder as it finishes it,
+    so the progress printed here is what is on disk. Its output goes to
+    painter.log in the attempt. A section that failed has no gate and is found
+    so by read_paint; the others are kept for --reuse-sections. `on_progress`,
+    if given, is called whenever a section is newly painted, while the painter
+    goes on with the next.
+    """
+    jobs_file = attempt / "paint-jobs.json"
+    jobs_file.write_text(json.dumps([
+        {"mesh": str(mesh_obj), "reference": str(crop_png), "output_obj": str(paint_dir / "section.obj"),
+         "bake_size": int(bake_size)} for mesh_obj, crop_png, paint_dir, bake_size in jobs], indent=2) + "\n",
+        encoding="utf-8")
+    command = [
+        POWERSHELL, "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass",
+        "-File", str(args.launcher), "-Jobs", str(jobs_file), "-LegacyRoot", str(args.legacy_root),
+        "-Views", str(args.views), "-Resolution", str(args.resolution),
+        "-RunnerKind", "studio", "-Atlas", str(args.atlas), "-MapsOnly",
+    ]
+    if args.min_free_vram > 0:
+        command += ["-MinimumFreeVramMiB", str(args.min_free_vram)]
+    if args.inpaint_reach > 0:
+        command += ["-InpaintReach", str(int(args.inpaint_reach))]
+    if getattr(args, "no_upscale", False):
+        command.append("-NoUpscale")
+    limit = 600.0 + minutes_each * 60.0 * len(jobs)
+    started = time.monotonic()
+    reported = set()
+    with open(attempt / "painter.log", "w", encoding="utf-8", errors="replace") as log:
+        with subprocess.Popen(command, stdout=log, stderr=subprocess.STDOUT, stdin=subprocess.DEVNULL,
+                              env={key: value for key, value in os.environ.items()
+                                   if key.upper() != "PSMODULEPATH"}) as process:
+            try:
+                while True:
+                    try:
+                        process.wait(timeout=5)
+                        break
+                    except subprocess.TimeoutExpired:
+                        pass
+                    newly = False
+                    for number, (_, _, paint_dir, _) in enumerate(jobs):
+                        if number not in reported and (paint_dir / "section.validation.json").is_file():
+                            reported.add(number)
+                            newly = True
+                            print("{0} painted {1} of {2} ({3:.0f} s so far)".format(
+                                TAG, len(reported), len(jobs), time.monotonic() - started), flush=True)
+                    if newly and on_progress is not None:
+                        on_progress()
+                    if time.monotonic() - started > limit:
+                        kill_tree(process.pid)
+                        process.kill()
+                        process.wait()
+                        raise subprocess.TimeoutExpired(command, limit)
+            except BaseException:
+                if process.poll() is None:
+                    kill_tree(process.pid)
+                    process.kill()
+                raise
+    return process.returncode
+
+
+def why_unpainted(paint_dir, attempt):
+    """What the painter recorded about a section it did not finish, or the end of its log."""
+    failure = paint_dir / "section.failure.json"
+    if failure.is_file():
+        try:
+            return json.loads(failure.read_text(encoding="utf-8-sig")).get("error", "")
+        except ValueError:
+            pass
+    log = attempt / "painter.log"
+    if log.is_file():
+        return " ".join(tail(log.read_text(encoding="utf-8", errors="replace"), 6))
+    return ""
+
+
+MAPS = ("section.png", "section_metallic.png", "section_roughness.png")
+
+
 def read_paint(paint_dir, why_missing=""):
-    """A painted section and the painter's own gate, refused if it moved anything."""
+    """A painted section and the painter's own gate, refused if it moved anything.
+
+    Returns its GLB, or None when the painter wrote only its maps (--maps-only).
+    """
     glb = paint_dir / "section.glb"
     validation = paint_dir / "section.validation.json"
-    if not glb.is_file() or not validation.is_file():
+    painted = glb.is_file() or all((paint_dir / name).is_file() for name in MAPS)
+    if not painted or not validation.is_file():
         raise RuntimeError("the painter produced nothing: {0}".format(why_missing))
     gate = json.loads(validation.read_text(encoding="utf-8-sig"))
     if not gate.get("faces_equal") or gate.get("geometry_delta", 1) > 1e-6 or gate.get("uv_delta", 1) > 1e-6:
         raise RuntimeError("the painter moved the section: {0}".format(json.dumps(gate, sort_keys=True)))
-    return glb, gate
+    return (glb if glb.is_file() else None), gate
+
+
+def section_maps(paint_dir, glb):
+    """A section's base colour and metal-rough images, from its GLB or from the maps it was packed from.
+
+    Blender's exporter packs the painter's maps into the GLB unchanged: the base
+    colour is section.png, and metal-rough is 255, roughness and metallic in
+    red, green and blue. Read from the maps, they are those same bytes.
+    """
+    if glb is not None:
+        document, binary = read_glb(glb.read_bytes())
+        pbr = document["materials"][0].get("pbrMetallicRoughness", {})
+        albedo_index = texture_image(document, pbr.get("baseColorTexture"))
+        mr_index = texture_image(document, pbr.get("metallicRoughnessTexture"))
+        albedo = Image.open(io.BytesIO(image_bytes(document, binary, albedo_index)))
+        mr = None if mr_index is None else Image.open(io.BytesIO(image_bytes(document, binary, mr_index)))
+        return albedo, mr
+    albedo = Image.open(paint_dir / MAPS[0])
+    metallic = np.asarray(Image.open(paint_dir / MAPS[1]).convert("L"))
+    roughness = np.asarray(Image.open(paint_dir / MAPS[2]).convert("L"))
+    return albedo, Image.fromarray(np.stack([np.full_like(roughness, 255), roughness, metallic], axis=2), "RGB")
 
 
 def reusable_paint(previous, folder, args, bake_size=0):
@@ -709,7 +988,7 @@ def reusable_paint(previous, folder, args, bake_size=0):
     finished section by what the painter itself recorded it was given: the hash
     of the mesh and of the crop, and the views, resolution and atlas. A section
     planned differently, cut from a different crop or painted at other settings
-    has other hashes or other numbers and is painted again. The painter's exit
+    (the upscale among them) has other hashes or other numbers and is painted again. The painter's exit
     code is not consulted; its known teardown fault comes after it has written
     everything, which is why the gate, not the exit code, decides here too.
     """
@@ -723,7 +1002,8 @@ def reusable_paint(previous, folder, args, bake_size=0):
     same_inputs = (str(record.get("input_mesh_sha256", "")).lower() == sha256(folder / "section.obj")
                    and str(record.get("reference_sha256", "")).lower() == sha256(folder / "reference.png"))
     same_settings = (record.get("views"), record.get("resolution"), record.get("atlas"),
-                     int(record.get("bake_size") or 0)) == (args.views, args.resolution, args.atlas, int(bake_size))
+                     int(record.get("bake_size") or 0), bool(record.get("no_upscale"))) == (
+        args.views, args.resolution, args.atlas, int(bake_size), bool(getattr(args, "no_upscale", False)))
     if not (same_inputs and same_settings):
         return None
     try:
@@ -758,6 +1038,8 @@ def main(argv=None) -> int:
         return failed("keep-colour runs from 0 to 0.5 metres. Got {0}".format(args.keep_colour))
     if not 2 <= args.max_sections <= 64:
         return failed("max-sections runs from 2 to 64. Got {0}".format(args.max_sections))
+    if not 0 <= args.inpaint_reach <= 256:
+        return failed("inpaint-reach runs from 0 to 256 texels. Got {0}".format(args.inpaint_reach))
 
     raw = args.source.read_bytes()
     try:
@@ -788,7 +1070,10 @@ def main(argv=None) -> int:
                      "keep_colour_m": args.keep_colour, "keep_tone_m": args.keep_tone,
                      "min_length_m": args.min_length,
                      "max_sections": args.max_sections, "views": args.views,
-                     "resolution": args.resolution, "atlas": args.atlas},
+                     "resolution": args.resolution, "atlas": args.atlas,
+                     "inpaint_reach": args.inpaint_reach,
+                     "painter_runs": "one per section" if args.separate_runs else "one for every section",
+                     "upscale": "none" if args.no_upscale else "4x RealESRGAN"},
         "geometry_unchanged": True,
         "uvs_unchanged": True,
         "requires_fixed_view_review": True,
@@ -920,60 +1205,165 @@ def main(argv=None) -> int:
     # tone is the base's, so there is nothing between them to match.
     mode = "light" if args.keep_colour > 0 else "colour"
     harmonize_sections = not args.no_harmonize and args.keep_colour == 0
-    albedo_layers, mr_layers = [], []
-    sheet = face_sheet(uvs, triangles, size)
-    for record, cell in zip(sections, plan["cells"]):
-        folder = Path(record["folder"])
-        print("{0} painting section {1} of {2}: {3} faces, {4:.2f} m across".format(
-            TAG, record["number"] + 1, len(sections), record["faces_painted"], max(record["span_m"])),
-            flush=True)
-        earlier = reusable_paint(args.reuse_sections, folder, args, record["bake_size"])
-        try:
-            if earlier is not None:
-                shutil.copytree(earlier, folder / "paint")
-                glb, gate = read_paint(folder / "paint")
-                exit_code = None
-                record["reused_from"] = str(earlier)
-                print("{0} section {1} reused from {2}".format(TAG, record["number"] + 1, earlier), flush=True)
-            else:
-                glb, gate, exit_code = paint_section(args, folder / "section.obj", folder / "reference.png",
-                                                     folder / "paint", record["bake_size"])
-        except (RuntimeError, subprocess.TimeoutExpired) as problem:
-            return failed("section {0} could not be painted, and no half-painted model is delivered: "
-                          "{1}".format(record["number"], problem))
-        record["gate"] = {key: gate.get(key) for key in ("faces_equal", "geometry_delta", "uv_delta", "atlas")}
-        record["launcher_exit_code"] = exit_code
-        section_document, section_binary = read_glb(glb.read_bytes())
-        section_pbr = section_document["materials"][0].get("pbrMetallicRoughness", {})
-        weights, mask = smooth_weights(sheet, triangles, cell["vertex_weights"], cell["faces"])
-        section_albedo = texture_image(section_document, section_pbr.get("baseColorTexture"))
-        albedo_layers.append((as_pixels(Image.open(io.BytesIO(
-            image_bytes(section_document, section_binary, section_albedo))), size), weights, mask))
-        section_mr = texture_image(section_document, section_pbr.get("metallicRoughnessTexture"))
-        if base_mr is not None and section_mr is not None:
-            mr_layers.append((as_pixels(Image.open(io.BytesIO(
-                image_bytes(section_document, section_binary, section_mr))), size), weights, mask))
+    timings = {}
+    # Where each section lies on the sheet comes from the geometry alone, so it
+    # is worked out beside the painter while it loads, and each section is laid
+    # over the first paint as soon as the painter has written it, while it
+    # paints the next. Harmonising reads every section's paint before any is
+    # laid, so then they are only read as they come and laid at the end.
+    stitches = {}
 
-    albedo_gains, albedo_pairs = (None, [])
-    if harmonize_sections:
-        albedo_gains, albedo_pairs = harmonize(albedo_layers)
-    replacements = {albedo_index: png_bytes(to_image(
-        composite(base_albedo, albedo_layers, sigma, albedo_gains, mode)))}
-    mr_gains = None
-    if base_mr is not None and len(mr_layers) == len(albedo_layers):
+    def plan_stitch():
+        planning = time.monotonic()
+        sheet = face_sheet(uvs, triangles, size)
+        layout = [sparse_layout(*smooth_weights(sheet, triangles, cell["vertex_weights"], cell["faces"]))
+                  for cell in plan["cells"]]
+        del sheet
+        if not harmonize_sections:
+            stitches["albedo"] = Stitch(base_albedo, layout, sigma, mode)
+            if base_mr is not None:
+                stitches["mr"] = Stitch(base_mr, layout, sigma)
+            layout = None  # the stitches hold it now, and let each section's go once laid
+        timings["planning_the_stitch"] = round(time.monotonic() - planning, 1)
+        return layout
+
+    planner = ThreadPoolExecutor(max_workers=1, thread_name_prefix="stitch-plan")
+    planned = planner.submit(plan_stitch)
+    planner.shutdown(wait=False)
+    albedo_layers, mr_layers = [], []
+    taken = {"next": 0}
+
+    def take_next(strict):
+        """Read the next section in order and lay it; False when it is not painted yet (unless strict)."""
+        if not strict and not planned.done():
+            return False
+        planned.result()  # the plan's own failure, if it failed
+        record = sections[taken["next"]]
+        paint_dir = Path(record["folder"]) / "paint"
+        if not strict and not (paint_dir / "section.validation.json").is_file():
+            return False
+        try:
+            glb, gate = read_paint(paint_dir, why_unpainted(paint_dir, attempt) if strict else "")
+        except (RuntimeError, ValueError, OSError):
+            # While the painter runs, a section that is not readable yet is
+            # taken after it stops, where what is wrong with it is reported.
+            if strict:
+                raise
+            return False
+        number = taken["next"]
+        record["gate"] = {key: gate.get(key) for key in ("faces_equal", "geometry_delta", "uv_delta", "atlas")}
+        if "seconds" in gate:
+            record["painter_seconds"] = gate["seconds"]
+        section_albedo, section_mr = section_maps(paint_dir, glb)
+        albedo = as_pixels(section_albedo, size)
+        mr = None if section_mr is None else as_pixels(section_mr, size)
         if harmonize_sections:
-            mr_gains, _ = harmonize(mr_layers)
+            albedo_layers.append(albedo)
+            mr_layers.append(mr)
+        else:
+            stitches["albedo"].lay(number, albedo)
+            if "mr" in stitches:
+                if mr is None:
+                    # A section without metal-rough leaves the first paint's whole.
+                    del stitches["mr"]
+                else:
+                    stitches["mr"].lay(number, mr)
+        taken["next"] += 1
+        return True
+
+    def take_ready():
+        while taken["next"] < len(sections) and take_next(strict=False):
+            pass
+
+    clock = time.monotonic()
+    pending = []
+    for record in sections:
+        folder = Path(record["folder"])
+        earlier = reusable_paint(args.reuse_sections, folder, args, record["bake_size"])
+        if earlier is not None:
+            shutil.copytree(earlier, folder / "paint")
+            record["reused_from"] = str(earlier)
+            print("{0} section {1} reused from {2}".format(TAG, record["number"] + 1, earlier), flush=True)
+        else:
+            pending.append(record)
+    exit_codes = {}
+    take_ready()  # sections reused from an earlier attempt, as far as they run unbroken
+    if pending and args.separate_runs:
+        for record in pending:
+            folder = Path(record["folder"])
+            print("{0} painting section {1} of {2}: {3} faces, {4:.2f} m across".format(
+                TAG, record["number"] + 1, len(sections), record["faces_painted"], max(record["span_m"])),
+                flush=True)
+            try:
+                _, _, exit_codes[record["number"]] = paint_section(
+                    args, folder / "section.obj", folder / "reference.png", folder / "paint", record["bake_size"])
+            except (RuntimeError, subprocess.TimeoutExpired) as problem:
+                return failed("section {0} could not be painted, and no half-painted model is delivered: "
+                              "{1}".format(record["number"], problem))
+            take_ready()
+    elif pending:
+        print("{0} painting {1} sections in one painter run{2}".format(
+            TAG, len(pending), "" if len(pending) == len(sections) else
+            " ({0} reused)".format(len(sections) - len(pending))), flush=True)
+        try:
+            exit_code = paint_batch(args, [(Path(r["folder"]) / "section.obj", Path(r["folder"]) / "reference.png",
+                                            Path(r["folder"]) / "paint", r["bake_size"]) for r in pending], attempt,
+                                    on_progress=take_ready)
+        except subprocess.TimeoutExpired as problem:
+            return failed("the painter ran past {0:.0f} minutes and was stopped; no half-painted model is "
+                          "delivered. The sections it finished are kept: pass --reuse-sections {1} to paint "
+                          "only the rest".format(problem.timeout / 60.0, attempt))
+        exit_codes = {record["number"]: exit_code for record in pending}
+    timings["painting"] = round(time.monotonic() - clock, 1)
+    report["sections_laid_while_painting"] = taken["next"]
+    clock = time.monotonic()
+
+    while taken["next"] < len(sections):
+        number = taken["next"]
+        try:
+            take_next(strict=True)
+        except RuntimeError as problem:
+            return failed("section {0} could not be painted, and no half-painted model is delivered: "
+                          "{1}. The sections that were painted are kept: pass --reuse-sections {2} to "
+                          "paint only the rest".format(number, problem, attempt))
+    for record in sections:
+        record["launcher_exit_code"] = exit_codes.get(record["number"])
+
+    timings["reading_sections_after_painting"] = round(time.monotonic() - clock, 1)
+    clock = time.monotonic()
+    albedo_gains, albedo_pairs = (None, [])
+    mr_gains = None
+    if harmonize_sections:
+        layout = planned.result()
+        albedo_gains, albedo_pairs = harmonize([(paint, None, mask) for paint, (_, _, mask)
+                                                in zip(albedo_layers, layout)])
+        stitches["albedo"] = Stitch(base_albedo, layout, sigma, mode, albedo_gains)
+        for number, paint in enumerate(albedo_layers):
+            stitches["albedo"].lay(number, paint)
+        albedo_layers.clear()
+        if base_mr is not None and all(paint is not None for paint in mr_layers):
+            mr_gains, _ = harmonize([(paint, None, mask) for paint, (_, _, mask) in zip(mr_layers, layout)])
+            stitches["mr"] = Stitch(base_mr, layout, sigma, gains=mr_gains)
+            for number, paint in enumerate(mr_layers):
+                stitches["mr"].lay(number, paint)
+        mr_layers.clear()
+    replacements = {albedo_index: png_bytes(to_image(stitches["albedo"].result()))}
+    if "mr" in stitches:
         # Roughness and metal keep the base's layout as well, with the sections'
         # fine variation in them: what is iron stays iron.
-        replacements[metal_rough_index] = png_bytes(to_image(composite(base_mr, mr_layers, sigma, mr_gains)))
+        replacements[metal_rough_index] = png_bytes(to_image(stitches["mr"].result()))
     for number, record in enumerate(sections):
         if albedo_gains is not None:
             record["colour_gain"] = [round(float(g), 4) for g in albedo_gains[number]]
         if mr_gains is not None:
             record["metal_rough_gain"] = [round(float(g), 4) for g in mr_gains[number]]
+    timings["composite"] = round(time.monotonic() - clock, 1)
+    clock = time.monotonic()
     document, rebuilt = swap_images(document, binary, replacements)
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_bytes(write_glb(document, rebuilt))
+    timings["writing"] = round(time.monotonic() - clock, 1)
+    report["seconds_by_step"] = timings
     report["reused_sections"] = sum(1 for record in sections if "reused_from" in record)
     report["composite"] = {
         "atlas_size": size,

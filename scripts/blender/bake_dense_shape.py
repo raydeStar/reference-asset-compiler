@@ -49,6 +49,8 @@ TAG = "[SHAPE]"
 # A baked tangent-space normal whose z is below this points into the surface,
 # or so nearly along it that it is a ray that struck the next face, not shape.
 FACING_OUT = 0.05
+# Texels a bake fills beyond each island's edge from the nearest baked texel.
+MARGIN = 16
 
 
 def sha256(path):
@@ -87,6 +89,7 @@ def main(argv) -> int:
     parser.add_argument("--max-ray", type=float, default=0.02, help="How far a ray may travel, in metres")
     args = parser.parse_args(argv)
     started = time.time()
+    steps = {}
     cages = [args.cage]
     if args.fallback_cages.strip().lower() not in ("", "none"):
         cages += [float(value) for value in args.fallback_cages.split(",") if value.strip()]
@@ -140,8 +143,13 @@ def main(argv) -> int:
             return 1
         width, height = colour[0].from_node.image.size
 
+    steps["loading"] = round(time.time() - started, 1)
+    clock = time.time()
     scene = bpy.context.scene
     scene.render.engine = "CYCLES"
+    # The CPU: Blender casts selected-to-active rays from the cage on the CPU
+    # whatever the device, and on the GPU an 8192 bake of the PR-04.3 basket
+    # took 55 s against 52.
     scene.cycles.device = "CPU"
     scene.cycles.samples = 1
     baked = bpy.data.images.new("dense_shape", width, height, alpha=False, float_buffer=True)
@@ -156,14 +164,16 @@ def main(argv) -> int:
     shape = None
     unsettled = np.ones((height, width), dtype=bool)
     texels_by_cage = {}
+    seconds_by_cage = {}
     for cage in cages:
         if not unsettled.any():
             texels_by_cage["{0:g}".format(cage)] = 0
             continue
+        begun = time.time()
         # Cleared first: a bake leaves texels it does not reach as they were.
         baked.pixels.foreach_set(np.zeros(width * height * 4, dtype=np.float32))
         bpy.ops.object.bake(type="NORMAL", use_selected_to_active=True, cage_extrusion=cage,
-                            max_ray_distance=args.max_ray, margin=16, normal_space="TANGENT")
+                            max_ray_distance=args.max_ray, margin=MARGIN, normal_space="TANGENT")
         buffer = np.empty(width * height * 4, dtype=np.float32)
         baked.pixels.foreach_get(buffer)
         this = buffer.reshape(height, width, 4)[..., :3] * 2.0 - 1.0
@@ -173,6 +183,7 @@ def main(argv) -> int:
         shape[taken] = this[taken]
         unsettled &= ~taken
         texels_by_cage["{0:g}".format(cage)] = int(taken.sum())
+        seconds_by_cage["{0:g}".format(cage)] = round(time.time() - begun, 1)
     texels_flat = int(unsettled.sum())
     shape[unsettled] = (0.0, 0.0, 1.0)
     pixels = np.ones((height, width, 4), dtype=np.float32)
@@ -180,9 +191,15 @@ def main(argv) -> int:
     baked.pixels.foreach_set(pixels.reshape(-1))
     baked.update()
     bake_seconds = time.time() - started
+    steps["baking"] = round(time.time() - clock, 1)
+    clock = time.time()
 
     if relief_node is not None and relief_node.image is not None:
-        relief = np.asarray(relief_node.image.pixels[:], dtype=np.float32).reshape(height, width, 4)[..., :3]
+        # Read and written in bulk: an 8192 sheet is 268 million floats, and as
+        # a Python list the write alone cost about 6 s of a 72 s stage.
+        relief = np.empty(width * height * 4, dtype=np.float32)
+        relief_node.image.pixels.foreach_get(relief)
+        relief = relief.reshape(height, width, 4)[..., :3]
         combined = reoriented(shape, relief * 2.0 - 1.0)
         mode = "the dense shape, with the existing relief turned onto it (reoriented normal mapping)"
     else:
@@ -192,7 +209,7 @@ def main(argv) -> int:
     pixels[..., :3] = combined * 0.5 + 0.5
     result = bpy.data.images.new("normal", width, height, alpha=False, float_buffer=False)
     result.colorspace_settings.name = "Non-Color"
-    result.pixels = pixels.reshape(-1).tolist()
+    result.pixels.foreach_set(pixels.reshape(-1))
     result.update()
 
     # Written to a file and reloaded before export: a generated image packs the
@@ -222,6 +239,7 @@ def main(argv) -> int:
                               use_selection=True, export_animations=False, export_cameras=False,
                               export_lights=False)
     tilt = np.degrees(np.arccos(np.clip(combined[..., 2], -1.0, 1.0)))
+    steps["finishing"] = round(time.time() - clock, 1)
     report = {
         "schema": "reference-asset-compiler.dense-shape.v1",
         "source": args.source, "source_sha256": sha256(args.source),
@@ -229,11 +247,13 @@ def main(argv) -> int:
         "output": args.output, "output_sha256": sha256(args.output),
         "size": [width, height], "cage_m": args.cage, "max_ray_m": args.max_ray,
         "cages_m": cages, "texels_by_cage": texels_by_cage, "texels_flat": texels_flat,
+        "seconds_by_cage": seconds_by_cage,
         "texels_flat_share": round(texels_flat / float(width * height), 5),
         "centre_offset_m": round(offset, 5), "diagonal_gap_m": round(diagonal_gap, 5),
         "normal": mode,
         "tilt_degrees_p50_p90": np.percentile(tilt, [50, 90]).round(2).tolist(),
         "bake_seconds": round(bake_seconds, 1), "seconds": round(time.time() - started, 1),
+        "seconds_by_step": steps,
         "geometry_unchanged": True, "uvs_unchanged": True,
         "requires_fixed_view_review": True, "production_grade": False,
     }

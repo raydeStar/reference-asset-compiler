@@ -17,6 +17,10 @@ The Pixal3D runner uses the explicit NAF `main` ref. Its installed Torch Hub
 cache loaded in a CPU check that forbids network calls. The Frastown bow still
 needs a successful geometry run and a joint check.
 
+### Hunyuan3D-Paint empty camera projections (2026-11-26)
+
+The pinned streaming baker confirms an empty raster before dropping an empty-depth view. A section with no projected UV texels fails explicitly. CPU regression and contract tests passed. Workstation recovery from saved sections is the next gate.
+
 <!-- clanker-sentry-regular-rac-v001:start -->
 ### Sentry: Rodin rig review Pending (2026-11-13)
 
