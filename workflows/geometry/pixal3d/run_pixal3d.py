@@ -14,6 +14,17 @@ import sys
 
 from PIL import Image
 
+# Take ownership in the actual Linux worker. If its Windows launcher disappears,
+# this process keeps the reservation until its own CUDA work has ended.
+if __name__ == "__main__":
+    sys.path.insert(0, str(Path(__file__).resolve().parents[3] / "src"))
+    from reference_asset_compiler.gpu_reservation import linux_reservation, wait_for_memory
+    _reservation = linux_reservation()
+    # The duplicate stays open through interpreter teardown and CUDA cleanup.
+    # The kernel closes it on normal exit, cancellation or a native crash.
+    _lifetime_fd = os.dup(_reservation.__enter__().fileno())
+    wait_for_memory(max(9216, int(os.environ.get("RAC_MIN_FREE_VRAM_MIB", 0))))
+
 
 PIXAL_ROOT = Path(os.environ.get("PIXAL3D_ROOT", "/path/to/Pixal3D"))
 
@@ -80,8 +91,12 @@ _to_glb = upstream.o_voxel.postprocess.to_glb
 
 def to_glb_with_extra_targets(*args, **kwargs):
     glb = _to_glb(*args, **kwargs)
-    for target, path in EXTRA_TARGETS:
-        extra = _to_glb(*args, **{**kwargs, "decimation_target": target})
+    for target, path, mode in EXTRA_TARGETS:
+        options = {**kwargs, "decimation_target": target}
+        if mode == "clean":
+            # Pixal's native two-pass simplifier cleans holes and fins after each reduction.
+            options["remesh"] = False
+        extra = _to_glb(*args, **options)
         extra.apply_transform(_UPSTREAM_ROTATION)
         extra.export(path, extension_webp=True)
         print("[Pixal3D] decimation_target {0} -> {1}".format(target, path), flush=True)
@@ -103,6 +118,23 @@ from einops import rearrange  # noqa: E402
 from pixal3d.trainers.flow_matching.mixins import image_conditioned_proj as proj_module  # noqa: E402
 
 _original_extractor_forward = proj_module.DinoV3ProjFeatureExtractor.forward
+
+
+def load_naf_from_main(self):
+    """Load the same NAF model without looking up GitHub's default branch."""
+    if self.naf_model is not None:
+        return
+
+    device = next(self.model.parameters()).device
+    # Without :main, Torch Hub probes GitHub before checking its local cache.
+    self.naf_model = torch.hub.load(
+        "valeoai/NAF:main", "naf", pretrained=True, device=device, trust_repo=True
+    )
+    self.naf_model.eval()
+    self.naf_model.requires_grad_(False)
+
+
+proj_module.DinoV3ProjFeatureExtractor._load_naf = load_naf_from_main
 
 
 @torch.no_grad()
@@ -188,13 +220,14 @@ def main() -> None:
     parser.add_argument("--resolution", type=int, default=1024)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--fov", type=float, default=-1.0)
+    parser.add_argument("--game-export", choices=("remesh", "clean"), default="remesh")
     parser.add_argument("--extra-targets", default="",
                         help="Comma-separated vertex targets, each also exported from the same "
                              "generation as <output>-v<target>.glb, e.g. 100000 for a game mesh")
     args = parser.parse_args()
     stem = os.path.splitext(args.output)[0]
     for target in [int(item) for item in args.extra_targets.split(",") if item.strip()]:
-        EXTRA_TARGETS.append((target, "{0}-v{1}.glb".format(stem, target)))
+        EXTRA_TARGETS.append((target, "{0}-v{1}.glb".format(stem, target), args.game_export))
 
     image = Image.open(args.image)
     if image.mode != "RGBA" or image.getchannel("A").getextrema() == (255, 255):

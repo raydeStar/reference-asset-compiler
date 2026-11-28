@@ -408,12 +408,20 @@ STAGES: dict[str, dict[str, Any]] = {
         # about 35 s a section). A consumer quotes a cost from this, not from a guess.
         "estimate": {"unit": "section", "minutes": 1.5, "free_vram_mib": 10752},
     },
+    "check-socket-layout": {
+        "runner": "python",
+        "script": "scripts/check_socket_layout.py",
+        "arguments": ("source", "output", "report"),
+        "output_suffix": ".png",
+        "summary": "Compare marked socket heights with their assembly dimensions before acquiring or painting a part.",
+        "produces": "reference-asset-compiler.socket-layout.v1",
+    },
     "pixal-geometry": {
         "runner": "python",
         "script": "scripts/run_pixal_geometry.py",
         "arguments": ("source", "output", "report"),
         "options": ("size", "size_adjust", "size_m", "size_is", "seed", "pixal_resolution", "vertex_target",
-                    "up", "flip"),
+                    "up", "flip", "topology", "game_export", "geometry", "mounts", "check_outline"),
         "prepare": "pixal-geometry",
         "needs": ("blender", "pixal"),
         # The prop route the owner chose on 24 November: Pixal3D keeps rivets,
@@ -736,6 +744,19 @@ def run_stage(
         # Let 5.1 build its own standard path; all other configuration survives.
         environment = {key: value for key, value in os.environ.items()
                        if key.upper() != "PSMODULEPATH"}
+    gpu_stages = ("geometry", "texture", "label-parts", "paint-parts", "paint-sections", "paint-head")
+    if stage_name in (*gpu_stages, "pixal-geometry"):
+        environment = dict(os.environ if environment is None else environment)
+        wait_file = Path(str(report) + ".gpu-wait").resolve()
+        wait_file.parent.mkdir(parents=True, exist_ok=True)
+        wait_file.unlink(missing_ok=True)
+        environment["RAC_GPU_WAIT_FILE"] = str(wait_file)
+        if os.name == "nt":
+            bridge = environment.get("WSLENV", "").split(":")
+            for setting in ("RAC_GPU_WAIT_FILE/p", "RAC_MIN_FREE_VRAM_MIB"):
+                if setting not in bridge:
+                    bridge.append(setting)
+            environment["WSLENV"] = ":".join(filter(None, bridge))
     started = time.monotonic()
     # Wall-clock times as well as the seconds, so `rac time-to-model` can lay a
     # model's stages out in order from their receipts alone.
@@ -743,6 +764,9 @@ def run_stage(
     try:
         finished = run_command(
             command, capture_output=True, text=True, errors="replace", timeout=timeout,
+            **({"gpu_mib": max(int(os.environ.get("RAC_MIN_FREE_VRAM_MIB", 0)),
+                                stage.get("estimate", {}).get("free_vram_mib", 0))}
+               if stage_name in gpu_stages else {}),
             env=environment,
             # Nothing here may ever wait to be typed at. A stage is run by a
             # queue worker whose own input is whatever its parent happened to
@@ -1450,8 +1474,8 @@ def prepare_pixal_geometry(options: dict[str, Any], blender: str, legacy: Path |
         size_m, size_is, scale = resolved["height_m"], "height", resolved
     elif options.get("size_m"):
         size_m, size_is, scale = float(options["size_m"]), options.get("size_is") or "longest", None
-        if size_is not in ("height", "longest"):
-            raise StageError("--size-is is height or longest.")
+        if size_is not in ("height", "width", "longest"):
+            raise StageError("--size-is is height, width or longest.")
     else:
         raise StageError("Pixal3D geometry needs the piece's real size: --size knee (a landmark on a person) "
                          "or --size-m 2.2 (metres along its longest side).")
@@ -1462,6 +1486,26 @@ def prepare_pixal_geometry(options: dict[str, Any], blender: str, legacy: Path |
         raise StageError("--up is shortest (a boat, a bench), longest (a lantern, a column) or middle "
                          "(a panel standing on its edge).")
     arguments = ["--size-m", repr(float(size_m)), "--size-is", size_is, "--up", up, "--blender", blender]
+    topology = options.get("topology") or "closed"
+    if topology not in ("closed", "open"):
+        raise StageError("Topology must be closed or open.")
+    arguments += ["--topology", topology]
+    game_export = options.get("game_export") or "remesh"
+    if game_export not in ("remesh", "clean", "solid"):
+        raise StageError("Pixal3D game export must be remesh, clean or solid.")
+    if game_export == "solid" and topology != "closed":
+        raise StageError("Solid retopology needs a closed shell.")
+    if options.get("mounts"):
+        if topology != "open" or size_is != "width" or options.get("flip"):
+            raise StageError("Mounting landmarks require an open frame measured by horizontal run.")
+        arguments += ["--mounts", options["mounts"]]
+    if options.get("check_outline"):
+        arguments.append("--check-outline")
+    if options.get("geometry"):
+        if game_export != "solid" and not (options.get("mounts") or options.get("check_outline")):
+            raise StageError("Reusing a Pixal acquisition requires the solid game export.")
+        arguments += ["--geometry", str(Path(options["geometry"]).resolve())]
+    arguments += ["--game-export", game_export]
     for flag, name in (("--seed", "seed"), ("--resolution", "pixal_resolution"), ("--vertex-target", "vertex_target")):
         if options.get(name) is not None:
             arguments += [flag, str(options[name])]

@@ -3610,3 +3610,7 @@ The whole-model first paint keeps its upscale: it bakes the views at the size th
 ## 2026-11-26 · Empty paint views
 
 An empty back-projection can fail in both isolated and shared painter runs, because both use the same depth reduction. Verify raster coverage at the bake resolution before skipping the view. Preserve the saved sections and resume only the missing ones after fixing the pinned runner.
+
+## 2026-11-27 · Resolve Pixal3D's NAF ref before cache lookup
+
+The Frastown bow failed before generating geometry with `HTTP Error 504: Gateway Time-out`. Torch Hub tries to discover the default branch for `valeoai/NAF` before inspecting its disk cache. A 504 escapes that branch discovery, even with `valeoai_NAF_main` and `naf_release.pth` already cached. The runner names `valeoai/NAF:main` explicitly so Torch Hub uses the existing cache. The NAF model, weights and settings match the prior successful runs. The installed WSL runner loaded and reused the cached model on CPU with Torch Hub's network calls forbidden.

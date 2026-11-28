@@ -301,10 +301,16 @@ def build_parser() -> argparse.ArgumentParser:
                        help="Refuse if the colour covers less of the model than this (default: 0.005)")
     stage.add_argument("--size-m", type=float,
                        help="Pixal3D geometry: the real size in metres, the longest side unless --size-is height")
-    stage.add_argument("--size-is", choices=("height", "longest"),
+    stage.add_argument("--mounts", help="Open-frame reference coordinates and foot spacing, as a JSON object")
+    stage.add_argument("--check-outline", action="store_true", help="Measure the unpainted Pixal silhouettes at source resolution")
+    stage.add_argument("--topology", choices=("closed", "open"),
+                       help="Pixal3D game mesh: require a closed shell or preserve intentional open boundaries")
+    stage.add_argument("--size-is", choices=("height", "width", "longest"),
                        help="Pixal3D geometry: whether --size-m is the height or the longest side (default: longest)")
     stage.add_argument("--pixal-resolution", type=int, choices=(512, 1024, 1536),
                        help="Pixal3D geometry: the generation's resolution (default: 1024)")
+    stage.add_argument("--game-export", choices=("remesh", "clean", "solid"),
+                       help="Pixal game mesh: native remeshing, native two-pass cleanup or closed-volume retopology")
     stage.add_argument("--vertex-target", type=int,
                        help="Pixal3D geometry: the game mesh's vertices, from Pixal's own simplifier "
                             "(default: 100000)")
@@ -571,8 +577,10 @@ def main(argv: list[str] | None = None) -> int:
                     "reuse_parts": args.reuse_parts,
                     "size_m": args.size_m,
                     "size_is": args.size_is,
+                    "topology": args.topology,
                     "pixal_resolution": args.pixal_resolution,
                     "vertex_target": args.vertex_target,
+                    "game_export": args.game_export, "mounts": args.mounts, "check_outline": args.check_outline,
                     "up": args.up,
                     "flip": args.flip or None,
                 })

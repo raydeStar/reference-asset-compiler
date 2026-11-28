@@ -204,6 +204,9 @@ def separate_overlaps(obj: bpy.types.Object, margin: float) -> dict[str, object]
                                      area_weight=0.0, correct_aspect=True, scale_to_bounds=False)
         bpy.ops.mesh.select_all(action="SELECT")
         bpy.ops.uv.select_all(action="SELECT")
+        # Reprojecting a subset gives it a whole UV square. Restore area-based density
+        # across all islands before packing, including single faces made by reset().
+        bpy.ops.uv.average_islands_scale()
         bpy.ops.uv.pack_islands(rotate=True, rotate_method="ANY", scale=True, shape_method="CONCAVE",
                                 margin_method="FRACTION", margin=margin)
         bpy.ops.object.mode_set(mode="OBJECT")
@@ -217,6 +220,23 @@ def separate_overlaps(obj: bpy.types.Object, margin: float) -> dict[str, object]
     return record
 
 
+def densest_percent_share(areas: list[tuple[float, float]]) -> float:
+    """Fraction of the used atlas allocated to the most oversampled 1% of surface area."""
+    surface = sum(area for area, _ in areas)
+    atlas = sum(uv for _, uv in areas)
+    if not surface or not atlas:
+        return 0.0
+    left, share = surface * 0.01, 0.0
+    for area, uv in sorted(areas, key=lambda pair: pair[1] / max(pair[0], 1e-30), reverse=True):
+        if area <= left:
+            share += uv
+            left -= area
+        else:
+            share += uv * left / area
+            break
+    return share / atlas
+
+
 def uv_metrics(obj: bpy.types.Object) -> dict[str, object]:
     layer = obj.data.uv_layers.active
     if layer is None:
@@ -225,6 +245,8 @@ def uv_metrics(obj: bpy.types.Object) -> dict[str, object]:
     finite = bool(values) and all(math.isfinite(value) for pair in values for value in pair)
     nondegenerate = 0
     uv_area = 0.0
+    areas = []
+    transform = obj.matrix_world.to_3x3()
     for polygon in obj.data.polygons:
         points = [layer.data[index].uv for index in polygon.loop_indices]
         area = 0.0
@@ -234,6 +256,10 @@ def uv_metrics(obj: bpy.types.Object) -> dict[str, object]:
                 (b.x - a.x) * (c.y - a.y) - (c.x - a.x) * (b.y - a.y)
             ) * 0.5
         uv_area += area
+        coords = [obj.data.vertices[i].co for i in polygon.vertices]
+        edges = [transform @ (point - coords[0]) for point in coords[1:]]
+        world_area = sum(a.cross(b).length for a, b in zip(edges, edges[1:])) * 0.5
+        areas.append((world_area, area))
         if area > 1.0e-12:
             nondegenerate += 1
     return {
@@ -244,6 +270,7 @@ def uv_metrics(obj: bpy.types.Object) -> dict[str, object]:
         "maximum": max((max(pair) for pair in values), default=None),
         "nondegenerate_polygon_fraction": nondegenerate / max(1, len(obj.data.polygons)),
         "summed_uv_area": uv_area,
+        "densest_one_percent_texel_share": densest_percent_share(areas),
     }
 
 
@@ -343,6 +370,8 @@ def main() -> int:
         failures.append("UV layout exceeds one")
     if float(metrics.get("nondegenerate_polygon_fraction", 0.0)) < 0.999:
         failures.append("UV layout contains degenerate polygons")
+    if metrics.get("densest_one_percent_texel_share", 0.0) > 0.5:
+        failures.append("UV layout allocates most of the atlas to one percent of the physical surface")
     final_overlap, final_share = overlapping_faces(obj)
     overlap["faces_after_repack"] = len(final_overlap)
     overlap["texel_share_after_repack"] = round(final_share, 5)
